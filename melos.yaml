@@ -1,0 +1,3 @@
+name: taxi_exam_app
+packages:
+  - packages/**
