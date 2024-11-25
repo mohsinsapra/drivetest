@@ -78,6 +78,10 @@ class _TestscreenState extends State<Testscreen> {
   @override
   Widget build(BuildContext context) {
     final question = widget.questions[currentQuestionIndex];
+    // Clone the list to avoid mutating the original data
+
+// Sort options by 'option_label' or any other key
+    question.options.sort((a, b) => a.optionLabel.compareTo(b.optionLabel));
     disableScreenshot();
     return Scaffold(
       appBar: AppBar(
