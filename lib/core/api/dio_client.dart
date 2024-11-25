@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:taxi_exam_app/core/models/option.dart';
+import 'package:taxi_exam_app/core/models/question.dart';
 
 import 'package:taxi_exam_app/core/utils/crypto_service.dart'; // For HMAC-SHA256 decryption
 
@@ -24,8 +26,8 @@ class DioClient {
     cryptoService = CryptoService(Uint8List.fromList(key));
 
     dio = Dio(BaseOptions(
-      // baseUrl: 'http://10.0.2.2:8000/api/',
-      baseUrl: 'http://192.168.1.79:8000/api/',
+      baseUrl: 'http://10.0.2.2:8000/',
+      // baseUrl: 'http://192.168.1.79:8000/api/',
       connectTimeout: const Duration(milliseconds: 5000),
       receiveTimeout: const Duration(milliseconds: 3000),
     ));
@@ -80,24 +82,34 @@ class DioClient {
     }
   }
 
-  // Decrypt Questions Logic
-  List<dynamic> _decryptQuestions(List<dynamic> data) {
-    return data.map((question) {
-      question['text'] = _decryptField(question['text']);
-      question['answer_explanation'] =
-          _decryptField(question['answer_explanation']);
+  // List<Question> _decryptQuestions(List<dynamic> data) {
+  //   return data.map((questionMap) {
+  //     return Question.fromMap(questionMap, _decryptField);
+  //   }).toList();
+  // }
 
-      // Decrypt options
-      question['options'] = question['options'].map((option) {
-        option['text'] = _decryptField(option['text']);
-        return option;
-      }).toList();
+  List<Question> _decryptQuestions(List<dynamic> data) {
+    return data.map((questionMap) {
+      // Decrypt question fields
+      final decryptedQuestion = Question(
+        text: _decryptField(questionMap['text'] ?? ''),
+        imageUrl: _decryptField(questionMap['image_url'] ?? ''),
+        correctAnswer: questionMap['correct_answer'] ?? '',
+        answerExplanation:
+            _decryptField(questionMap['answer_explanation'] ?? ''),
+        options: (questionMap['options'] as List<dynamic>).map((optionMap) {
+          return Option(
+            optionLabel: optionMap['option_label'] ?? '',
+            text: _decryptField(optionMap['text'] ?? ''),
+            imageUrl: _decryptField(optionMap['image_url'] ?? ''),
+          );
+        }).toList(),
+      );
 
-      return question;
+      return decryptedQuestion;
     }).toList();
   }
 
-  // Decrypt Individual Field
   String _decryptField(String? field) {
     if (field == null || field.isEmpty) return field ?? '';
 

@@ -1,13 +1,23 @@
+// test_screen.dart
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
+import 'package:taxi_exam_app/core/widgets/option_widget.dart';
+import 'package:taxi_exam_app/core/widgets/question_widget.dart';
 
 class Testscreen extends StatefulWidget {
-  final List<dynamic> questions;
+  final List<Question> questions;
   final bool instantMarking;
+  final String licenceId;
+  final String categoryId;
 
   const Testscreen({
     super.key,
     required this.questions,
     required this.instantMarking,
+    required this.licenceId,
+    required this.categoryId,
   });
 
   @override
@@ -16,28 +26,17 @@ class Testscreen extends StatefulWidget {
 
 class _TestscreenState extends State<Testscreen> {
   int currentQuestionIndex = 0;
-  String? selectedOptionId;
+  String selectedOptionId = '';
   bool showExplanation = false;
+
+  final ApiService _apiService = ApiService();
 
   void _selectOption(String optionId) {
     if (widget.instantMarking) {
-      final correctAnswerId =
-          widget.questions[currentQuestionIndex]['correct_answer'];
       setState(() {
         selectedOptionId = optionId;
         showExplanation = true;
       });
-
-      // Add a delay for visual feedback when incorrect
-      // if (optionId != correctAnswerId) {
-      //   Future.delayed(const Duration(milliseconds: 500), () {
-      //     if (mounted) {
-      //       setState(() {
-      //         selectedOptionId = null;
-      //       });
-      //     }
-      //   });
-      // }
     }
   }
 
@@ -45,7 +44,7 @@ class _TestscreenState extends State<Testscreen> {
     if (currentQuestionIndex < widget.questions.length - 1) {
       setState(() {
         currentQuestionIndex++;
-        selectedOptionId = null;
+        selectedOptionId = '';
         showExplanation = false;
       });
     } else {
@@ -59,7 +58,7 @@ class _TestscreenState extends State<Testscreen> {
     if (currentQuestionIndex > 0) {
       setState(() {
         currentQuestionIndex--;
-        selectedOptionId = null;
+        selectedOptionId = '';
         showExplanation = false;
       });
     } else {
@@ -72,7 +71,6 @@ class _TestscreenState extends State<Testscreen> {
   @override
   Widget build(BuildContext context) {
     final question = widget.questions[currentQuestionIndex];
-    final options = question['options'];
 
     return Scaffold(
       appBar: AppBar(
@@ -82,101 +80,67 @@ class _TestscreenState extends State<Testscreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              question['text'],
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: options.length,
-                itemBuilder: (context, index) {
-                  final option = options[index];
-                  final isSelected = selectedOptionId == option['option_label'];
-                  final isCorrect =
-                      option['option_label'] == question['correct_answer'];
-
-                  Color backgroundColor = Colors.white;
-                  if (widget.instantMarking && selectedOptionId != null) {
-                    if (isSelected) {
-                      backgroundColor =
-                          isCorrect ? Colors.green[300]! : Colors.red[300]!;
-                    } else if (isCorrect) {
-                      backgroundColor = Colors.green[100]!;
-                    }
-                  }
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: GestureDetector(
-                      onTap: () => _selectOption(option['option_label']),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          border: Border.all(color: Colors.grey[400]!),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              option['option_label'],
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Text(
-                                option['text'],
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Question Widget
+              QuestionWidget(
+                question: question,
+                licenceId: widget.licenceId,
+                categoryId: widget.categoryId,
+                apiService: _apiService,
               ),
-            ),
-            if (showExplanation && question['answer_explanation'] != null) ...[
-              const Divider(),
-              const Text(
-                'Explanation:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              const SizedBox(height: 16),
+              // Options
+              ...question.options.map((option) => OptionWidget(
+                    option: option,
+                    question: question,
+                    isSelected: selectedOptionId == option.optionLabel,
+                    isInstantMarking: widget.instantMarking,
+                    selectedOptionId: selectedOptionId,
+                    onSelectOption: _selectOption,
+                    licenceId: widget.licenceId,
+                    categoryId: widget.categoryId,
+                    apiService: _apiService,
+                  )),
+              // Explanation
+              if (showExplanation)
+                ExplanationWidget(
+                  question: question,
+                  licenceId: widget.licenceId,
+                  categoryId: widget.categoryId,
+                  apiService: _apiService,
+                ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 32.0),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment:
+                MainAxisAlignment.spaceEvenly, // Space buttons evenly
+            children: [
+              ElevatedButton(
+                onPressed: _previousQuestion,
+                child: const Text('Back'),
               ),
-              Text(
-                question['answer_explanation'],
-                style: const TextStyle(fontSize: 14),
+              ElevatedButton(
+                onPressed: () {},
+                child: const Text('EN/SV'),
+              ),
+              ElevatedButton(
+                onPressed: () {},
+                child: const Text('Save'),
+              ),
+              ElevatedButton(
+                onPressed: _nextQuestion,
+                child: const Text('Next'),
               ),
             ],
-            const Divider(),
-            Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceEvenly, // Space buttons evenly
-              children: [
-                ElevatedButton(
-                  onPressed: _previousQuestion,
-                  child: const Text('Back'),
-                ),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('EN/SV'),
-                ),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Save'),
-                ),
-                ElevatedButton(
-                  onPressed: _nextQuestion,
-                  child: const Text('Next'),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

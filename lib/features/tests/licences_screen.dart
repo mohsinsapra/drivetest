@@ -210,16 +210,14 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           final fetchedQuestions = await _apiService.fetchQuestions(
               selectedLicenseType?['licence_id'],
               selectedCategory?['category_id']);
-
-          if (!mounted) return;
-
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => Testscreen(
-                questions: fetchedQuestions, // List of questions from API
-                instantMarking: true, // Enable or disable instant marking
-              ),
+                  questions: fetchedQuestions, // List of questions from API
+                  instantMarking: true, // Enable or disable instant marking
+                  licenceId: selectedLicenseType?['licence_id'],
+                  categoryId: selectedCategory?['category_id']),
             ),
           );
         },
