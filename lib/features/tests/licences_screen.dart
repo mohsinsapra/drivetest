@@ -224,12 +224,15 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       },
       {
         'label': 'Create custom Test',
-        'onPressed': () {
+        'onPressed': () async {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => CreateCustomTestScreen(
-                  categoryName: selectedCategory?['name']),
+                licenceId: selectedLicenseType?['licence_id'],
+                categoryId: selectedCategory?['category_id'],
+                categoryName: selectedCategory?['name'],
+              ),
             ),
           );
         },

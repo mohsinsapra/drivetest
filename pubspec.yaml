@@ -52,6 +52,9 @@ dependencies:
   flutter_dotenv: ^5.2.1
   encrypt: ^5.0.3
   pointycastle: ^3.9.1
+  no_screenshot: ^0.3.1
+  dio_cache_interceptor: ^3.5.0
+  cached_network_image: ^3.4.0
 
 dev_dependencies:
   flutter_test:

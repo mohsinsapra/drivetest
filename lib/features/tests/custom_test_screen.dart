@@ -1,31 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
 class CreateCustomTestScreen extends StatefulWidget {
   final String categoryName;
+  final String licenceId;
+  final String categoryId;
 
-  const CreateCustomTestScreen({super.key, required this.categoryName});
-
+  const CreateCustomTestScreen({
+    super.key,
+    required this.categoryName,
+    required this.licenceId,
+    required this.categoryId,
+  });
   @override
   State<CreateCustomTestScreen> createState() => _CreateCustomTestScreenState();
 }
 
 class _CreateCustomTestScreenState extends State<CreateCustomTestScreen> {
   bool isTimed = false;
-  bool isInstantMarking = false;
+  bool isInstantMarking = true;
   int numberOfQuestions = 10;
   bool includeSavedQuestions = false;
+  final ApiService _apiService = ApiService();
 
-  void _onStartTest() {
+  void _onStartTest() async {
     // Handle starting the test
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Starting test for category: ${widget.categoryName}\n'
-          'Timed: $isTimed\n'
-          'Instant Marking: $isInstantMarking\n'
-          'Questions: $numberOfQuestions\n'
-          'Include Saved: $includeSavedQuestions',
-        ),
+
+    final fetchedQuestions = await _apiService.fetchQuestions(
+        widget.licenceId, widget.categoryId,
+        pageSize: numberOfQuestions);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Testscreen(
+            questions: fetchedQuestions, // List of questions from API
+            instantMarking:
+                isInstantMarking, // Enable or disable instant marking
+            licenceId: widget.licenceId,
+            categoryId: widget.licenceId),
       ),
     );
   }
@@ -81,8 +94,8 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen> {
                   Slider(
                     value: numberOfQuestions.toDouble(),
                     min: 1,
-                    max: 100,
-                    divisions: 99,
+                    max: 1000,
+                    divisions: 999,
                     label: '$numberOfQuestions',
                     onChanged: (value) {
                       setState(() {

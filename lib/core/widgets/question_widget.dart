@@ -1,4 +1,5 @@
 // widgets/question_widget.dart
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import '../models/question.dart';
@@ -24,7 +25,6 @@ class QuestionWidget extends StatelessWidget {
         categoryId,
         imagePath,
       );
-      print(imageUrl);
       return imageUrl;
     } catch (e) {
       throw Exception('Failed to fetch image URL: $e');
@@ -41,7 +41,7 @@ class QuestionWidget extends StatelessWidget {
             question.text,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-        if (question.imageUrl != null && question.imageUrl.isNotEmpty)
+        if (question.imageUrl.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Center(
@@ -60,9 +60,12 @@ class QuestionWidget extends StatelessWidget {
                       constraints: BoxConstraints(
                         maxHeight: MediaQuery.of(context).size.height * 0.4,
                       ),
-                      child: Image.network(
-                        snapshot.data!,
-                        fit: BoxFit.contain,
+                      child: CachedNetworkImage(
+                        imageUrl: snapshot.data!,
+                        placeholder: (context, url) =>
+                            const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
                     );
                   } else {

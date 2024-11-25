@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:dio/dio.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'dio_client.dart';
@@ -46,33 +44,22 @@ class ApiService {
     return response.data['categories'];
   }
 
-  Future<List<Question>> fetchQuestions(
-      String licenceId, String categoryId) async {
-    final response = await _dio
-        .get('api/licences/$licenceId/categories/$categoryId/questions/');
+  Future<List<Question>> fetchQuestions(String licenceId, String categoryId,
+      {int pageSize = 20}) async {
+    final response = await _dio.get(
+        'api/licences/$licenceId/categories/$categoryId/questions/',
+        queryParameters: {
+          'page_size': pageSize,
+        });
 
     return response.data['results'];
   }
 
   Future<String> fetchImage(
       String licenceId, String categoryId, String imagePath) async {
-    // final imageUrl =
-    //     'http://192.168.1.79:8000/secure-media/$licenceId/$categoryId/$imagePath/';
     final imageUrl =
-        'http://10.0.2.2:8000/secure-media/$licenceId/$categoryId/$imagePath/';
+        '${_dio.options.baseUrl}/secure-media/$licenceId/$categoryId/$imagePath/';
 
     return imageUrl;
-    // try {
-    //   final response = await _dio.get(
-    //     imageUrl,
-    //   );
-    //   print(response.data); // This will print Uint8List
-    //   return Uint8List.fromList(response.data);
-    //   // print('Response data type: ${response.data.runtimeType}');
-
-    //   return response.data; // This will be Uint8List
-    // } catch (e) {
-    //   throw Exception('Failed to load image: $e');
-    // }
   }
 }

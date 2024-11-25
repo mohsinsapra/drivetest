@@ -1,4 +1,5 @@
 // widgets/option_widget.dart
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import '../models/option.dart';
@@ -106,9 +107,12 @@ class OptionWidget extends StatelessWidget {
                                   maxHeight:
                                       MediaQuery.of(context).size.height * 0.3,
                                 ),
-                                child: Image.network(
-                                  snapshot.data!,
-                                  fit: BoxFit.contain,
+                                child: CachedNetworkImage(
+                                  imageUrl: snapshot.data!,
+                                  placeholder: (context, url) =>
+                                      const CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
                                 ),
                               );
                             } else {

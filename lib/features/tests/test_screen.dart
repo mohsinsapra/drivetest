@@ -5,6 +5,7 @@ import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
 import 'package:taxi_exam_app/core/widgets/option_widget.dart';
 import 'package:taxi_exam_app/core/widgets/question_widget.dart';
+import 'package:no_screenshot/no_screenshot.dart';
 
 class Testscreen extends StatefulWidget {
   final List<Question> questions;
@@ -28,6 +29,7 @@ class _TestscreenState extends State<Testscreen> {
   int currentQuestionIndex = 0;
   String selectedOptionId = '';
   bool showExplanation = false;
+  final _noScreenshot = NoScreenshot.instance;
 
   final ApiService _apiService = ApiService();
 
@@ -68,10 +70,15 @@ class _TestscreenState extends State<Testscreen> {
     }
   }
 
+  void disableScreenshot() async {
+    await _noScreenshot.screenshotOff();
+    // debugPrint('Screenshot Off: $result');
+  }
+
   @override
   Widget build(BuildContext context) {
     final question = widget.questions[currentQuestionIndex];
-
+    disableScreenshot();
     return Scaffold(
       appBar: AppBar(
         title: Text(
