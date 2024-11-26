@@ -34,7 +34,9 @@ class ResultScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your Results'),
+        title: Text(
+          'Result: ${hasPassed ? 'Passed' : 'Failed'}',
+        ),
         centerTitle: true,
       ),
       body: Padding(
@@ -42,14 +44,10 @@ class ResultScreen extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              hasPassed ? 'You Passed!' : 'You Did Not Pass',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            Text(
               'You got $correctAnswers out of ${questions.length} correct!',
-              style: const TextStyle(fontSize: 24),
+              style: const TextStyle(fontSize: 18),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
                 itemCount: questions.length,
