@@ -71,8 +71,8 @@ class ApiService {
         'api/payment/create-intent/',
         data: {
           // 'amount': amount, // Amount in cents (e.g., 5000 = $50.00)
-          'currency': 'sek',
-          'payment_method_types': [paymentMethod],
+          // 'currency': 'sek',
+          // 'payment_method_types': [paymentMethod],
           'licence_id': licenceId,
           'category_id': categoryId, // Specify selected method
         },

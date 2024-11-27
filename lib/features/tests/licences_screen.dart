@@ -149,18 +149,6 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
 
       // Present the PaymentSheet to the user
       await Stripe.instance.presentPaymentSheet();
-
-      // If the payment is successful, execute the following
-      print('Payment successful');
-      _showSnackBar('Payment successful');
-
-      // Optionally, update the category subscription status
-      setState(() {
-        if (selectedCategory != null) {
-          selectedCategory!['is_subscribed'] = true;
-          isShowingTestOptions = true;
-        }
-      });
     } catch (e) {
       // Handle Stripe-specific errors
       if (e is StripeException) {
