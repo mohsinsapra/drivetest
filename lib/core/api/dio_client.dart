@@ -54,9 +54,9 @@ class DioClient {
     );
     dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',
-      baseUrl: 'http://192.168.1.79:8000/',
+      baseUrl: 'http://192.168.1.84:8000/',
       connectTimeout: const Duration(milliseconds: 5000),
-      receiveTimeout: const Duration(milliseconds: 3000),
+      receiveTimeout: const Duration(milliseconds: 20000),
     ));
     dio.interceptors.add(DioCacheInterceptor(options: options));
     dio.interceptors.add(InterceptorsWrapper(

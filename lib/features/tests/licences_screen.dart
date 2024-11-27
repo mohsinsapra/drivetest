@@ -1,7 +1,11 @@
+// features/tests/licence_types_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
+import 'package:taxi_exam_app/features/payment/payment_method_sheet.dart'; // Import the PaymentMethodSheet
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 class LicenceTypesScreen extends StatefulWidget {
   const LicenceTypesScreen({super.key});
@@ -24,6 +28,13 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   void initState() {
     super.initState();
     _loadLicenseTypes();
+    _initializeStripe();
+  }
+
+  // Initialize Stripe
+  void _initializeStripe() {
+    // Ensure you have set Stripe.publishableKey in main.dart
+    // Additional configurations can be added here if needed
   }
 
   Future<void> _loadLicenseTypes() async {
@@ -77,7 +88,11 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
 
   void _onCategoryPressed(dynamic category) {
     if (category['is_subscribed'] == false) {
-      _showSnackBar('Please buy a subscription to access this category.');
+      // Show the Payment Method Modal Bottom Sheet
+      setState(() {
+        selectedCategory = category;
+      });
+      _openPaymentMethodSheet();
       return;
     }
 
@@ -85,6 +100,108 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       selectedCategory = category;
       isShowingTestOptions = true;
     });
+  }
+
+  // Function to open the Payment Method Modal Bottom Sheet
+  void _openPaymentMethodSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return PaymentMethodSheet(
+          onSelected: (method) {
+            Navigator.pop(context); // Close the bottom sheet
+            // Initiate payment with the selected method
+
+            initiatePayment(10000, method);
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> processPayment(String clientSecret) async {
+    try {
+      // Initialize the PaymentSheet with the required parameters
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: 'Taxi Exam App',
+          // Optional: Configure Apple Pay
+          applePay: const PaymentSheetApplePay(
+            merchantCountryCode: 'SV', // Replace with your country code
+          ),
+          // Optional: Configure Google Pay
+          googlePay: const PaymentSheetGooglePay(
+            merchantCountryCode: 'SV', // Replace with your country code
+            testEnv: true, // Set to false in production
+            // existingPaymentMethodRequired: false,
+          ),
+          style: ThemeMode
+              .light, // Choose between ThemeMode.light or ThemeMode.dark
+          // Optional: Customize the appearance
+          // appearance: PaymentSheetAppearance(
+          //   colors: PaymentSheetAppearanceColors(
+          //     primary: Colors.blue,
+          //   ),
+          // ),
+        ),
+      );
+
+      // Present the PaymentSheet to the user
+      await Stripe.instance.presentPaymentSheet();
+
+      // If the payment is successful, execute the following
+      print('Payment successful');
+      _showSnackBar('Payment successful');
+
+      // Optionally, update the category subscription status
+      setState(() {
+        if (selectedCategory != null) {
+          selectedCategory!['is_subscribed'] = true;
+          isShowingTestOptions = true;
+        }
+      });
+    } catch (e) {
+      // Handle Stripe-specific errors
+      if (e is StripeException) {
+        print('Payment canceled or failed: ${e.error.localizedMessage}');
+        _showSnackBar('Payment failed: ${e.error.localizedMessage}');
+      } else {
+        // Handle other types of errors
+        print('Payment failed: $e');
+        // _showSnackBar('Payment failed: $e');
+      }
+      throw e; // Re-throw the exception if you need to handle it further up the call stack
+    }
+  }
+
+  // Updated initiatePayment function with paymentMethod parameter
+  Future<void> initiatePayment(int amount, String paymentMethod) async {
+    try {
+      // Step 1: Create Payment Intent
+      String clientSecret = await _apiService.createPaymentIntent(
+          amount,
+          paymentMethod,
+          selectedLicenseType?['licence_id'],
+          selectedCategory?['category_id']);
+
+      // Step 2: Confirm Payment
+      await processPayment(clientSecret);
+
+      // Step 3: Show success message
+      _showSnackBar('Payment successful');
+
+      // Optionally, update the category subscription status
+      setState(() {
+        if (selectedCategory != null) {
+          selectedCategory!['is_subscribed'] = true;
+          isShowingTestOptions = true;
+        }
+      });
+    } catch (e) {
+      // Handle errors (e.g., show error message to user)
+      _showSnackBar('Payment failed: $e');
+    }
   }
 
   void _goBack() {
@@ -103,8 +220,9 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
