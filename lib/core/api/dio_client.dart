@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:taxi_exam_app/core/utils/crypto_service.dart'; // For HMAC-SHA256 decryption
 
@@ -14,12 +15,16 @@ class DioClient {
   late final List<int> key;
   // Initialize cipher
   late final CryptoService cryptoService;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   String? accessToken;
   String? refreshToken;
-
   factory DioClient() {
     return _instance;
+  }
+  Future<void> init() async {
+    // Load the refreshToken from secure storage
+    refreshToken = await _secureStorage.read(key: 'refreshToken');
   }
 
   DioClient._internal() {
@@ -89,7 +94,6 @@ class DioClient {
       },
     ));
   }
-
   Future<bool> _refreshAccessToken() async {
     if (refreshToken == null) return false;
 
@@ -100,14 +104,35 @@ class DioClient {
           'refresh': refreshToken,
         },
       );
-      print(response.data);
 
       accessToken = response.data['access'];
+
+      // If a new refresh token is provided, update and save it
+      if (response.data.containsKey('refresh')) {
+        refreshToken = response.data['refresh'];
+        await _secureStorage.write(key: 'refreshToken', value: refreshToken);
+      }
+
       return true;
     } catch (e) {
       print('Failed to refresh token: $e');
       return false;
     }
+  }
+
+  Future<void> setTokens(
+      {required String access, required String refresh}) async {
+    accessToken = access;
+    refreshToken = refresh;
+
+    // Save the refreshToken securely
+    await _secureStorage.write(key: 'refreshToken', value: refresh);
+  }
+
+  Future<void> logout() async {
+    accessToken = null;
+    refreshToken = null;
+    await _secureStorage.delete(key: 'refreshToken');
   }
 
   List<Question> _decryptQuestions(List<dynamic> data) {
