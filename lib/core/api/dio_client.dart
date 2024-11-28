@@ -95,11 +95,12 @@ class DioClient {
 
     try {
       final response = await dio.post(
-        'token/refresh/',
+        'api/token/refresh/',
         data: {
           'refresh': refreshToken,
         },
       );
+      print(response.data);
 
       accessToken = response.data['access'];
       return true;
