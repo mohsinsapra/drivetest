@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'dio_client.dart';
 
@@ -61,5 +62,25 @@ class ApiService {
         '${_dio.options.baseUrl}/secure-media/$licenceId/$categoryId/$imagePath/';
 
     return imageUrl;
+  }
+
+  Future<String> createPaymentIntent(int amount, String paymentMethod,
+      String licenceId, String categoryId) async {
+    try {
+      final response = await _dio.post(
+        'api/payment/create-intent/',
+        data: {
+          // 'amount': amount, // Amount in cents (e.g., 5000 = $50.00)
+          // 'currency': 'sek',
+          // 'payment_method_types': [paymentMethod],
+          'licence_id': licenceId,
+          'category_id': categoryId, // Specify selected method
+        },
+      );
+
+      return response.data['clientSecret']; // Return the client secret
+    } catch (e) {
+      throw Exception('Failed to create payment intent: $e');
+    }
   }
 }

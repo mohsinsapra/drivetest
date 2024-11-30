@@ -13,6 +13,7 @@ class CreateCustomTestScreen extends StatefulWidget {
     required this.licenceId,
     required this.categoryId,
   });
+
   @override
   State<CreateCustomTestScreen> createState() => _CreateCustomTestScreenState();
 }
@@ -25,22 +26,50 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen> {
   final ApiService _apiService = ApiService();
 
   void _onStartTest() async {
-    // Handle starting the test
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing the dialog
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
 
-    final fetchedQuestions = await _apiService.fetchQuestions(
-        widget.licenceId, widget.categoryId,
-        pageSize: numberOfQuestions);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => Testscreen(
+    try {
+      // Fetch the questions
+      final fetchedQuestions = await _apiService.fetchQuestions(
+        widget.licenceId,
+        widget.categoryId,
+        pageSize: numberOfQuestions,
+      );
+
+      // Remove the loading dialog
+      if (mounted) Navigator.pop(context);
+
+      // Navigate to the test screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => Testscreen(
             questions: fetchedQuestions, // List of questions from API
             instantMarking:
                 isInstantMarking, // Enable or disable instant marking
             licenceId: widget.licenceId,
-            categoryId: widget.licenceId),
-      ),
-    );
+            categoryId: widget.categoryId,
+          ),
+        ),
+      );
+    } catch (e) {
+      // Remove the loading dialog
+      if (mounted) Navigator.pop(context);
+
+      // Show an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to start test: $e'),
+        ),
+      );
+    }
   }
 
   @override
