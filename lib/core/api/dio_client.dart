@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:taxi_exam_app/core/utils/crypto_service.dart'; // For HMAC-SHA256 decryption
 
@@ -14,12 +15,16 @@ class DioClient {
   late final List<int> key;
   // Initialize cipher
   late final CryptoService cryptoService;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   String? accessToken;
   String? refreshToken;
-
   factory DioClient() {
     return _instance;
+  }
+  Future<void> init() async {
+    // Load the refreshToken from secure storage
+    refreshToken = await _secureStorage.read(key: 'refreshToken');
   }
 
   DioClient._internal() {
@@ -54,9 +59,9 @@ class DioClient {
     );
     dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',
-      baseUrl: 'http://192.168.1.79:8000/',
+      baseUrl: 'http://192.168.1.84:8000/',
       connectTimeout: const Duration(milliseconds: 5000),
-      receiveTimeout: const Duration(milliseconds: 3000),
+      receiveTimeout: const Duration(milliseconds: 20000),
     ));
     dio.interceptors.add(DioCacheInterceptor(options: options));
     dio.interceptors.add(InterceptorsWrapper(
@@ -89,24 +94,45 @@ class DioClient {
       },
     ));
   }
-
   Future<bool> _refreshAccessToken() async {
     if (refreshToken == null) return false;
 
     try {
       final response = await dio.post(
-        'token/refresh/',
+        'api/token/refresh/',
         data: {
           'refresh': refreshToken,
         },
       );
 
       accessToken = response.data['access'];
+
+      // If a new refresh token is provided, update and save it
+      if (response.data.containsKey('refresh')) {
+        refreshToken = response.data['refresh'];
+        await _secureStorage.write(key: 'refreshToken', value: refreshToken);
+      }
+
       return true;
     } catch (e) {
       print('Failed to refresh token: $e');
       return false;
     }
+  }
+
+  Future<void> setTokens(
+      {required String access, required String refresh}) async {
+    accessToken = access;
+    refreshToken = refresh;
+
+    // Save the refreshToken securely
+    await _secureStorage.write(key: 'refreshToken', value: refresh);
+  }
+
+  Future<void> logout() async {
+    accessToken = null;
+    refreshToken = null;
+    await _secureStorage.delete(key: 'refreshToken');
   }
 
   List<Question> _decryptQuestions(List<dynamic> data) {
