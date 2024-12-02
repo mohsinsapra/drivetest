@@ -10,12 +10,15 @@ class QuestionWidget extends StatelessWidget {
   final String categoryId;
   final ApiService apiService;
 
+  final String questionText; // Added parameter for translated text
+
   const QuestionWidget({
     super.key,
     required this.question,
     required this.licenceId,
     required this.categoryId,
     required this.apiService,
+    required this.questionText, // Include in constructor
   });
 
   Future<String> _loadImage(String imagePath) async {
@@ -36,9 +39,10 @@ class QuestionWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (question.text.isNotEmpty)
+        if (questionText
+            .isNotEmpty) // Use questionText instead of question.text
           Text(
-            question.text,
+            questionText,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         if (question.imageUrl.isNotEmpty)

@@ -16,6 +16,8 @@ class OptionWidget extends StatelessWidget {
   final String categoryId;
   final ApiService apiService;
 
+  final String optionText; // Added parameter for translated text
+
   const OptionWidget({
     super.key,
     required this.option,
@@ -27,6 +29,7 @@ class OptionWidget extends StatelessWidget {
     required this.licenceId,
     required this.categoryId,
     required this.apiService,
+    required this.optionText, // Include in constructor
   });
 
   Future<String> _loadImage(String imagePath) async {
@@ -81,9 +84,10 @@ class OptionWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (option.text.isNotEmpty)
+                    if (optionText
+                        .isNotEmpty) // Use optionText instead of option.text
                       Text(
-                        option.text,
+                        optionText,
                         style: const TextStyle(fontSize: 16),
                       ),
                     if (option.imageUrl.isNotEmpty)
