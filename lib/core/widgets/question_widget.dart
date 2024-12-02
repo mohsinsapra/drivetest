@@ -4,28 +4,48 @@ import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import '../models/question.dart';
 
-class QuestionWidget extends StatelessWidget {
+class QuestionWidget extends StatefulWidget {
   final Question question;
   final String licenceId;
   final String categoryId;
   final ApiService apiService;
-
-  final String questionText; // Added parameter for translated text
+  final String questionText;
 
   const QuestionWidget({
-    super.key,
+    Key? key,
     required this.question,
     required this.licenceId,
     required this.categoryId,
     required this.apiService,
-    required this.questionText, // Include in constructor
-  });
+    required this.questionText,
+  }) : super(key: key);
+
+  @override
+  _QuestionWidgetState createState() => _QuestionWidgetState();
+}
+
+class _QuestionWidgetState extends State<QuestionWidget> {
+  late Future<String> _imageFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _imageFuture = _loadImage(widget.question.imageUrl);
+  }
+
+  @override
+  void didUpdateWidget(covariant QuestionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.question.imageUrl != widget.question.imageUrl) {
+      _imageFuture = _loadImage(widget.question.imageUrl);
+    }
+  }
 
   Future<String> _loadImage(String imagePath) async {
     try {
-      final imageUrl = await apiService.fetchImage(
-        licenceId,
-        categoryId,
+      final imageUrl = await widget.apiService.fetchImage(
+        widget.licenceId,
+        widget.categoryId,
         imagePath,
       );
       return imageUrl;
@@ -39,18 +59,17 @@ class QuestionWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (questionText
-            .isNotEmpty) // Use questionText instead of question.text
+        if (widget.questionText.isNotEmpty)
           Text(
-            questionText,
+            widget.questionText,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-        if (question.imageUrl.isNotEmpty)
+        if (widget.question.imageUrl.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Center(
               child: FutureBuilder<String>(
-                future: _loadImage(question.imageUrl),
+                future: _imageFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
