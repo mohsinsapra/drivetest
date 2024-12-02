@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:introduction_screen/introduction_screen.dart';
+import 'package:lottie/lottie.dart';
 
 class IntroScreen extends StatelessWidget {
   const IntroScreen({super.key});
@@ -13,19 +14,19 @@ class IntroScreen extends StatelessWidget {
         PageViewModel(
           title: "Welcome to TaxiQuiz",
           body: "Learn and practice for your taxi license with ease.",
-          image: _buildImage('assets/images/slide1.png'),
+          image: _buildLottie('assets/animations/animation1.json'),
           decoration: _getPageDecoration(),
         ),
         PageViewModel(
           title: "Interactive Tests",
           body: "Practice tests with real-time feedback and explanations.",
-          image: _buildImage('assets/images/slide2.png'),
+          image: _buildLottie('assets/animations/animation2.json'),
           decoration: _getPageDecoration(),
         ),
         PageViewModel(
           title: "Get Certified",
           body: "Ace your exams and become a certified taxi driver.",
-          image: _buildImage('assets/images/slide3.png'),
+          image: _buildLottie('assets/animations/animation3.json'),
           decoration: _getPageDecoration(),
         ),
       ],
@@ -38,21 +39,28 @@ class IntroScreen extends StatelessWidget {
       showSkipButton: true,
       skip: const Text("Skip"),
       next: const Icon(Icons.arrow_forward),
-      done: const Text("Get Started",
-          style: TextStyle(fontWeight: FontWeight.w600)),
+      done: const Text(
+        "Get Started",
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
       dotsDecorator: _getDotsDecorator(),
     );
   }
 
-  Widget _buildImage(String assetName) {
-    return Center(child: Image.asset(assetName, width: 300));
+  Widget _buildLottie(String assetName) {
+    return Center(
+      child: Lottie.asset(
+        assetName,
+        width: 700,
+        repeat: true, // Animation plays only once
+      ),
+    );
   }
 
   PageDecoration _getPageDecoration() {
     return const PageDecoration(
       titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       bodyTextStyle: TextStyle(fontSize: 16),
-      // descriptionPadding: EdgeInsets.all(16).copyWith(bottom: 0),
       imagePadding: EdgeInsets.all(24),
       pageColor: Colors.white,
     );

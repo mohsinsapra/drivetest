@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
 import 'package:taxi_exam_app/core/widgets/option_widget.dart';
 import 'package:taxi_exam_app/core/widgets/question_widget.dart';
@@ -15,16 +17,18 @@ class Testscreen extends StatefulWidget {
   final String categoryId;
   final int initialQuestionIndex;
   final Map<int, String>? userSelections;
+  final bool isReviewMode; // New parameter
 
   const Testscreen({
-    super.key,
+    Key? key,
     required this.questions,
     required this.instantMarking,
     required this.licenceId,
     required this.categoryId,
     this.initialQuestionIndex = 0,
     this.userSelections,
-  });
+    this.isReviewMode = false, // Default to false
+  }) : super(key: key);
 
   @override
   State<Testscreen> createState() => _TestscreenState();
@@ -71,6 +75,10 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   void _selectOption(String optionId, int index) {
+    if (widget.isReviewMode) {
+      // Do not allow selection in review mode
+      return;
+    }
     setState(() {
       userSelections[index] = optionId;
     });
@@ -138,6 +146,8 @@ class _TestscreenState extends State<Testscreen> {
               child: const Text('Yes'),
               onPressed: () {
                 Navigator.of(context).pop(); // Dismiss the dialog
+                _saveTestAttempt();
+
                 _showResultDialog(); // Show pass/fail result
               },
             ),
@@ -221,6 +231,42 @@ class _TestscreenState extends State<Testscreen> {
         );
       },
     );
+  }
+
+  void _saveTestAttempt() async {
+    int correctAnswers = 0;
+
+    for (int i = 0; i < widget.questions.length; i++) {
+      final question = widget.questions[i];
+      final selectedOptionLabel = userSelections[i];
+
+      if (selectedOptionLabel != null &&
+          selectedOptionLabel == question.correctAnswer) {
+        correctAnswers++;
+      }
+    }
+
+    double scorePercentage = (correctAnswers / widget.questions.length) * 100;
+    bool hasPassed = scorePercentage >= 70; // Adjust as needed
+
+    // Create a TestAttempt object
+    TestAttempt attempt = TestAttempt(
+      testId: DateTime.now().millisecondsSinceEpoch.toString(), // Unique ID
+      dateTime: DateTime.now(),
+      userSelections: userSelections,
+      score: scorePercentage,
+      hasPassed: hasPassed,
+      questions: widget.questions, // Save questions for detailed view
+    );
+
+    // Open a Hive box
+    var box = await Hive.openBox<TestAttempt>('testAttempts');
+
+    // Save the attempt
+    await box.add(attempt);
+
+    // Close the box (optional)
+    await box.close();
   }
 
   Future<void> _translateQuestion(int index) async {

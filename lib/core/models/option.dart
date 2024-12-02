@@ -1,7 +1,14 @@
 // models/option.dart
+import 'package:hive/hive.dart';
+part 'option.g.dart';
+
+@HiveType(typeId: 2)
 class Option {
+  @HiveField(0)
   final String optionLabel;
+  @HiveField(1)
   final String text;
+  @HiveField(2)
   final String imageUrl;
 
   Option({

@@ -514,6 +514,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
               onPressed: () => _onLicenseTypePressed(licenseType),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
+                minimumSize:
+                    const Size(double.infinity, 48), // Ensure consistent width
               ),
               child: Text(
                 licenseType['name'],

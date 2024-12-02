@@ -24,6 +24,23 @@ class ApiService {
     }
   }
 
+  Future<dynamic> signup(String email, String username, String password) async {
+    try {
+      final response = await _dio.post(
+        'api/user/signup/',
+        data: {
+          'username': username,
+          'password': password,
+          'email': email,
+        },
+      );
+
+      return response;
+    } catch (e) {
+      throw Exception('Authentication failed: $e');
+    }
+  }
+
   Future<List<dynamic>> fetchLicenses() async {
     try {
       final response = await _dio.get('api/licences/');

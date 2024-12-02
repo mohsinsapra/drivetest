@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -12,6 +13,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool _isLoading = false;
+  final ApiService _apiService = ApiService();
 
   void _signup() async {
     setState(() {
@@ -19,11 +21,19 @@ class _SignupScreenState extends State<SignupScreen> {
     });
 
     try {
-      // Simulate signup logic (Replace with actual signup logic)
-      await Future.delayed(const Duration(seconds: 2));
+      final response = await _apiService.signup(
+        _emailController.text,
+        _usernameController.text,
+        _passwordController.text,
+      );
 
       // Show success message and navigate back to login
       if (!mounted) return;
+      if (response.statusCode != 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Signup failed: ${response.body}')),
+        );
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Signup successful! Please login.')),
       );
