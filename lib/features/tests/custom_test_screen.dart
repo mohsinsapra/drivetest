@@ -10,11 +10,11 @@ class CreateCustomTestScreen extends StatefulWidget {
   final String categoryId;
 
   const CreateCustomTestScreen({
-    super.key,
+    Key? key,
     required this.categoryName,
     required this.licenceId,
     required this.categoryId,
-  });
+  }) : super(key: key);
 
   @override
   State<CreateCustomTestScreen> createState() => _CreateCustomTestScreenState();
