@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
-import 'package:taxi_exam_app/features/tests/attempt_detail_screen.dart';
+import 'package:taxi_exam_app/features/home/attempt_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
