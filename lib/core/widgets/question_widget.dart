@@ -12,13 +12,13 @@ class QuestionWidget extends StatefulWidget {
   final String questionText;
 
   const QuestionWidget({
-    Key? key,
+    super.key,
     required this.question,
     required this.licenceId,
     required this.categoryId,
     required this.apiService,
     required this.questionText,
-  }) : super(key: key);
+  });
 
   @override
   _QuestionWidgetState createState() => _QuestionWidgetState();

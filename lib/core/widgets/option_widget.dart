@@ -18,7 +18,7 @@ class OptionWidget extends StatefulWidget {
   final String optionText;
 
   const OptionWidget({
-    Key? key,
+    super.key,
     required this.option,
     required this.question,
     required this.isSelected,
@@ -29,7 +29,7 @@ class OptionWidget extends StatefulWidget {
     required this.categoryId,
     required this.apiService,
     required this.optionText,
-  }) : super(key: key);
+  });
 
   @override
   _OptionWidgetState createState() => _OptionWidgetState();

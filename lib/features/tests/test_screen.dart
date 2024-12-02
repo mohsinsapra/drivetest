@@ -20,7 +20,7 @@ class Testscreen extends StatefulWidget {
   final bool isReviewMode; // New parameter
 
   const Testscreen({
-    Key? key,
+    super.key,
     required this.questions,
     required this.instantMarking,
     required this.licenceId,
@@ -28,7 +28,7 @@ class Testscreen extends StatefulWidget {
     this.initialQuestionIndex = 0,
     this.userSelections,
     this.isReviewMode = false, // Default to false
-  }) : super(key: key);
+  });
 
   @override
   State<Testscreen> createState() => _TestscreenState();
