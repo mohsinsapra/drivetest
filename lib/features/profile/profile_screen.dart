@@ -12,6 +12,8 @@ class ProfileScreen extends StatelessWidget {
       ),
       body: Center(
         child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center, // Center the content vertically
           children: [
             const Text(
               'Manage your profile and app settings.',
@@ -20,14 +22,15 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                // Navigate to Profile Edit Screen
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AuthScreen(),
-                    ));
+                // Clear user session or any necessary logout operations here
+
+                // Navigate to Auth Screen and clear the navigation stack
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  (Route<dynamic> route) => false,
+                );
               },
-              child: const Text('Edit Profile'),
+              child: const Text('Logout'),
             ),
           ],
         ),
