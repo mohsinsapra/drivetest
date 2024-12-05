@@ -1,0 +1,15 @@
+default_platform(:android)
+
+platform :android do
+  desc "Deploy Beta"
+  lane :beta do
+    gradle(task: "assembleRelease")
+    upload_to_play_store(track: "beta", skip_upload_metadata: true, skip_upload_images: true)
+  end
+
+  desc "Deploy Production"
+  lane :production do
+    gradle(task: "assembleRelease")
+    upload_to_play_store(track: "production")
+  end
+end
