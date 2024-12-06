@@ -17,9 +17,9 @@ void main() async {
   // WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
-  // Stripe.merchantIdentifier =
-  //     'merchant.com.yourapp.identifier'; // Required for Apple Pay
-  // Stripe.urlScheme = 'your-url-scheme'; // Required for certain payment methods
+  Stripe.merchantIdentifier =
+      'merchant.com.yourapp.identifier'; // Required for Apple Pay
+  Stripe.urlScheme = 'your-url-scheme'; // Required for certain payment methods
 
   await DioClient().init(); // Initialize DioClient and load tokens.
 
