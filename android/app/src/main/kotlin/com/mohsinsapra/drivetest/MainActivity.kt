@@ -1,4 +1,4 @@
-package com.example.taxi_exam_app
+package com.mohsinsapra.drivetest
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.android.FlutterFragmentActivity
