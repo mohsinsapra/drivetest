@@ -184,7 +184,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: 'Taxi Exam App',
+          merchantDisplayName: 'Drive Test',
           // Optional: Configure Apple Pay
           applePay: const PaymentSheetApplePay(
             merchantCountryCode: 'SV', // Replace with your country code
@@ -317,6 +317,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   Future<void> initiatePayment(int amount, String paymentMethod) async {
     try {
       // Step 1: Create Payment Intent
+
       String clientSecret = await _apiService.createPaymentIntent(
           amount,
           paymentMethod,
