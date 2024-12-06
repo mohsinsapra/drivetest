@@ -16,7 +16,7 @@ import 'core/models/test_attempt.dart';
 void main() async {
   // WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
-  Stripe.publishableKey = 'pk_test_on1dP7jlAmwx5V1vG02ktjF200G4XQHemE';
+  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
   Stripe.merchantIdentifier =
       'merchant.com.yourapp.identifier'; // Required for Apple Pay
   Stripe.urlScheme = 'your-url-scheme'; // Required for certain payment methods
