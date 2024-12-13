@@ -23,7 +23,6 @@ class ProfileScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 // Clear user session or any necessary logout operations here
-
                 // Navigate to Auth Screen and clear the navigation stack
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const AuthScreen()),
