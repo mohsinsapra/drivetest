@@ -12,10 +12,8 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final ApiService _apiService = ApiService();
-  final TextEditingController _usernameController =
-      TextEditingController(text: 'admin');
-  final TextEditingController _passwordController =
-      TextEditingController(text: '123');
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
   Future<void> _authenticate() async {

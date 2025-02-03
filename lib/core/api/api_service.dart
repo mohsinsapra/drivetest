@@ -63,11 +63,12 @@ class ApiService {
   }
 
   Future<List<Question>> fetchQuestions(String licenceId, String categoryId,
-      {int pageSize = 20}) async {
+      {int pageSize = 20, bool randomize = false}) async {
     final response = await _dio.get(
         'api/licences/$licenceId/categories/$categoryId/questions/',
         queryParameters: {
           'page_size': pageSize,
+          'randomize': randomize,
         });
 
     return response.data['results'];
