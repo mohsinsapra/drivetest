@@ -57,6 +57,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _usernameController.text = 'admin';
+    _passwordController.text = "123";
     return Scaffold(
       body: Center(
         child: Padding(
