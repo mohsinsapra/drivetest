@@ -55,7 +55,7 @@ PODS:
     - StripeUICore (= 23.30.0)
   - StripeUICore (23.30.0):
     - StripeCore (= 23.30.0)
-  - vibration (1.7.5):
+  - vibration (3.0.0):
     - Flutter
 
 DEPENDENCIES:
@@ -105,7 +105,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/vibration/ios"
 
 SPEC CHECKSUMS:
-  device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
+  device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
   flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
@@ -123,8 +123,8 @@ SPEC CHECKSUMS:
   StripePaymentSheet: eac031f76d7fbb4f52df9b9c39be5be671ca4c07
   StripePaymentsUI: 7d7cffb2ecfc0d6b5ac3a4488c02893a5ff6cc77
   StripeUICore: bb102d453b1e1a10a37f810bc0a9aa0675fb17fd
-  vibration: 8e2f50fc35bb736f9eecb7dd9f7047fbb6a6e888
+  vibration: 69774ad57825b11c951ee4c46155f455d7a592ce
 
 PODFILE CHECKSUM: a57f30d18f102dd3ce366b1d62a55ecbef2158e5
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
