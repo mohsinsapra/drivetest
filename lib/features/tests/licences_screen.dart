@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
@@ -504,27 +505,72 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   Widget _buildLicenseTypesView() {
     return RefreshIndicator(
       onRefresh: _loadLicenseTypes,
-      child: ListView.builder(
-        itemCount: licenseTypes.length,
-        itemBuilder: (context, index) {
-          final licenseType = licenseTypes[index];
-          return Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-            child: ElevatedButton(
-              onPressed: () => _onLicenseTypePressed(licenseType),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                minimumSize:
-                    const Size(double.infinity, 48), // Ensure consistent width
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+        child: GridView.builder(
+          itemCount: licenseTypes.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // 2 columns
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio:
+                0.75, // Adjust as needed for taller or wider cards
+          ),
+          itemBuilder: (context, index) {
+            final licenseType = licenseTypes[index];
+            return GestureDetector(
+              onTap: () => _onLicenseTypePressed(licenseType),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Optional image at the top
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                      child: Image.asset(
+                        'assets/icon/${licenseType['image'] ?? 'icon.png'}',
+                        height: 100,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            licenseType['name'] ?? '',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Text(
-                licenseType['name'],
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -557,8 +603,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
                   ),
                   Icon(
                     category['is_subscribed'] == false
-                        ? Icons.lock
-                        : Icons.lock_open,
+                        ? LucideIcons.lock
+                        : LucideIcons.unlock,
                     size: 20,
                   ),
                 ],
