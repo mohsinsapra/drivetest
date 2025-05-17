@@ -541,11 +541,24 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
                         topLeft: Radius.circular(16),
                         topRight: Radius.circular(16),
                       ),
-                      child: Image.asset(
-                        'assets/icon/${licenseType['image'] ?? 'icon.png'}',
+                      child: Image(
+                        image: (licenseType['image'] != null &&
+                                licenseType['image']
+                                    .toString()
+                                    .startsWith('http'))
+                            ? NetworkImage(licenseType['image'])
+                            : const AssetImage('assets/icon/icon.png')
+                                as ImageProvider,
                         height: 100,
                         width: double.infinity,
                         fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Image.asset(
+                          'assets/icon/icon.png',
+                          height: 100,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     Padding(
