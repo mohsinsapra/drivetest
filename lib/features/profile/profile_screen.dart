@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
+import 'package:taxi_exam_app/settings/settings.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -9,31 +11,153 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          )
+        ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center, // Center the content vertically
-          children: [
-            const Text(
-              'Manage your profile and app settings.',
-              style: TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
+      body: ListView(
+        children: [
+          const SizedBox(height: 24),
+
+          // Profile Picture & Name
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircleAvatar(
+                radius: 48,
+                backgroundImage: AssetImage(
+                    'assets/icon/icon.png'), // Replace with user's image if available
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.pinkAccent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'PRO',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Alison Danis',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const Text(
+                'UX/UI Designer',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+
+          // Menu Items
+          _buildMenuTile(
+            context,
+            icon: Icons.person,
+            iconColor: Colors.pink[100],
+            title: 'Edit profile',
+            onTap: () {}, // TODO: Add edit logic
+          ),
+          _buildMenuTile(
+            context,
+            icon: Icons.bar_chart,
+            iconColor: Colors.purple[100],
+            title: 'My stats',
+            onTap: () {}, // TODO: Add stats screen
+          ),
+          _buildMenuTile(
+            context,
+            icon: Icons.settings,
+            iconColor: Colors.orange[100],
+            title: 'Settings',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+
+          const Divider(),
+
+          _buildMenuTile(
+            context,
+            icon: Icons.person_add_alt,
+            iconColor: Colors.grey[300],
+            title: 'Invite a friend',
+            onTap: () {}, // TODO: Add invite logic
+          ),
+          _buildMenuTile(
+            context,
+            icon: Icons.help_outline,
+            iconColor: Colors.grey[300],
+            title: 'Help',
+            onTap: () {}, // TODO: Add help screen
+          ),
+
+          const Divider(),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: ElevatedButton(
               onPressed: () {
-                // Clear user session or any necessary logout operations here
-                // Navigate to Auth Screen and clear the navigation stack
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const AuthScreen()),
                   (Route<dynamic> route) => false,
                 );
               },
-              child: const Text('Logout'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Logout',
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
+
+Widget _buildMenuTile(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required VoidCallback onTap,
+  Color? iconColor,
+}) {
+  return ListTile(
+    leading: Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: iconColor ?? Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: Colors.black),
+    ),
+    title: Text(title),
+    trailing: const Icon(Icons.chevron_right),
+    onTap: onTap,
+  );
 }

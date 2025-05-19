@@ -61,6 +61,7 @@ dependencies:
   device_info_plus: ^11.4.0
   path_provider: ^2.1.5
   lucide_icons: ^0.257.0
+  page_transition: ^2.2.1
 
 dev_dependencies:
   flutter_test:
@@ -103,6 +104,7 @@ flutter:
     - assets/icon/
     - assets/images/
     - assets/animations/
+    # - assets/fonts/
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
@@ -114,11 +116,11 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
+  fonts:
+    - family: NudMoto
+      fonts:
+        - asset: assets/fonts/NudMotoya.ttf
+
   #         style: italic
   #   - family: Trajan Pro
   #     fonts:

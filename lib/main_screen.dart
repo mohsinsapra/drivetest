@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
 import 'package:taxi_exam_app/features/profile/profile_screen.dart';
@@ -24,7 +25,20 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    final provider = Provider.of<MainScreenProvider>(context, listen: false);
     _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Listen for index changes and animate the page view
+    Provider.of<MainScreenProvider>(context).addListener(() {
+      final index =
+          Provider.of<MainScreenProvider>(context, listen: false).currentIndex;
+      _pageController.jumpToPage(index); // or use animateToPage
+    });
   }
 
   @override
@@ -46,11 +60,13 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<MainScreenProvider>(context);
     return Scaffold(
       body: PageView(
         controller: _pageController,
         children: _screens,
         onPageChanged: _onPageChanged,
+
         physics: const ClampingScrollPhysics(), // Prevent overscroll glow
       ),
       bottomNavigationBar: Theme(
@@ -60,8 +76,8 @@ class MainScreenState extends State<MainScreen> {
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          currentIndex: _currentIndex,
-          onTap: _onItemTapped,
+          currentIndex: provider.currentIndex,
+          onTap: (index) => provider.setIndex(index),
           selectedItemColor: Theme.of(context).colorScheme.primary,
           unselectedItemColor: Colors.grey,
           items: const [
@@ -81,5 +97,16 @@ class MainScreenState extends State<MainScreen> {
         ),
       ),
     );
+  }
+}
+
+class MainScreenProvider extends ChangeNotifier {
+  int _currentIndex = 0;
+
+  int get currentIndex => _currentIndex;
+
+  void setIndex(int index) {
+    _currentIndex = index;
+    notifyListeners();
   }
 }

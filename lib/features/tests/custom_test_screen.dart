@@ -1,5 +1,6 @@
 import 'dart:async'; // Import for TimeoutException
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
@@ -39,6 +40,18 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
 
     _numberOfQuestionsController =
         TextEditingController(text: numberOfQuestions.toString());
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isTimed = prefs.getBool('isTimed') ?? false;
+      isInstantMarking = prefs.getBool('isInstantMarking') ?? false;
+      includeSavedQuestions = prefs.getBool('includeSavedQuestions') ?? false;
+      numberOfQuestions = prefs.getInt('numberOfQuestions') ?? 10;
+      _numberOfQuestionsController.text = numberOfQuestions.toString();
+    });
   }
 
   @override

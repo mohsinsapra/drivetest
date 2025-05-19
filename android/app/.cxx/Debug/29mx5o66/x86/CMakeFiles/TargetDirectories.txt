@@ -1,0 +1,2 @@
+/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/android/app/.cxx/Debug/29mx5o66/x86/CMakeFiles/edit_cache.dir
+/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/android/app/.cxx/Debug/29mx5o66/x86/CMakeFiles/rebuild_cache.dir

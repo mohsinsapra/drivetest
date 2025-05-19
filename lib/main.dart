@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -30,59 +31,94 @@ void main() async {
   Hive.registerAdapter(QuestionAdapter());
   Hive.registerAdapter(OptionAdapter());
 
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => MainScreenProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
+
+final customTheme = ThemeData(
+  fontFamily: 'NudMoto',
+  textTheme: TextTheme(
+    bodyLarge: TextStyle(fontFamily: 'NudMoto'),
+    bodyMedium: TextStyle(fontFamily: 'NudMoto'),
+    titleLarge: TextStyle(fontFamily: 'NudMoto'),
+  ),
+  colorScheme: const ColorScheme(
+    primary: Color.fromARGB(255, 39, 121, 188),
+    primaryContainer: Color(0xFF2779BC),
+    secondary: Colors.green,
+    secondaryContainer: Colors.greenAccent,
+    surface: Colors.white,
+    background: Colors.white,
+    error: Colors.red,
+    onPrimary: Colors.white,
+    onSecondary: Colors.white,
+    onSurface: Colors.black,
+    onBackground: Colors.black,
+    onError: Colors.white,
+    brightness: Brightness.light,
+  ),
+  inputDecorationTheme: InputDecorationTheme(
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(
+        color: Colors.grey,
+        width: 1, // Make the border thin
+      ),
+    ),
+  ),
+  scaffoldBackgroundColor: Colors.white,
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Colors.white,
+    elevation: 0,
+    iconTheme: IconThemeData(color: Colors.black),
+    titleTextStyle: TextStyle(
+      color: Colors.black,
+      fontSize: 20,
+      fontFamily: 'NudMoto',
+    ),
+  ),
+  buttonTheme: const ButtonThemeData(
+    buttonColor: Color.fromARGB(255, 201, 160, 11),
+    textTheme: ButtonTextTheme.primary,
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color.fromARGB(255, 39, 121, 188),
+      foregroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+      ),
+    ),
+  ),
+  bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    selectedItemColor: Color.fromARGB(255, 39, 121, 188),
+    unselectedItemColor: Colors.grey,
+    backgroundColor: Colors.white,
+  ),
+);
 
 class MyApp extends StatelessWidget {
   MyApp({super.key});
-  final customTheme = ThemeData(
-    colorScheme: const ColorScheme(
-      primary: Color.fromARGB(255, 39, 121, 188), // Custom primary color
-      primaryContainer: Color(0xFF2779BC), // A slightly darker shade (optional)
-      secondary: Colors.green, // Secondary color
-      secondaryContainer: Colors.greenAccent, // A slightly darker/lighter shade
-      surface: Colors.white,
-      background: Colors.white,
-      error: Colors.red,
-      onPrimary: Colors.white, // Text color on primary
-      onSecondary: Colors.white, // Text color on secondary
-      onSurface: Colors.black,
-      onBackground: Colors.black,
-      onError: Colors.white,
-      brightness: Brightness.light,
-    ),
-    brightness: Brightness.light,
-    primarySwatch: Colors.blue,
-    scaffoldBackgroundColor: Colors.white,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.white,
-      elevation: 0, // Remove shadow for flat design
-      iconTheme: IconThemeData(color: Colors.black),
-      titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
-    ),
-    buttonTheme: const ButtonThemeData(
-      buttonColor: Color.fromARGB(255, 39, 121, 188), // Flat button color
-      textTheme: ButtonTextTheme.primary,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color.fromARGB(255, 39, 121, 188),
-        foregroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8.0)),
-        ),
-      ),
-    ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      selectedItemColor: Color.fromARGB(255, 39, 121, 188),
-      unselectedItemColor: Colors.grey,
-      backgroundColor: Colors.white,
-    ),
-  );
+
   // Combined initialization to check onboarding and authentication
   Future<Map<String, bool>> _initializeApp() async {
     final prefs = await SharedPreferences.getInstance();
     bool onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+    String? refreshToken = prefs.getString('refreshToken');
+    String? accessToken = prefs.getString('accessToken');
+    if (accessToken != null) {
+      DioClient().accessToken = accessToken;
+    }
+    if (refreshToken != null) {
+      DioClient().refreshToken = refreshToken;
+    }
+
     bool isAuthenticated = DioClient().refreshToken != null;
 
     return {

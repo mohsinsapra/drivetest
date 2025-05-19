@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:lottie/lottie.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:taxi_exam_app/features/auth/login_screen.dart';
 import 'package:taxi_exam_app/features/auth/signup_screen.dart';
-import 'package:taxi_exam_app/main_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -11,135 +12,148 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final ApiService _apiService = ApiService();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
-
-  Future<void> _authenticate() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await _apiService.authenticate(
-        _usernameController.text,
-        _passwordController.text,
-      );
-
-      if (!mounted) return;
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Authentication failed: $e')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
   void _navigateToSignup() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const SignupScreen()),
+      PageTransition(
+        type: PageTransitionType.rightToLeftWithFade,
+        duration: const Duration(milliseconds: 400),
+        child: const SignupScreen(),
+      ),
+    );
+  }
+
+  void _navigateToLogin() {
+    Navigator.push(
+      context,
+      PageTransition(
+        type: PageTransitionType.rightToLeftWithFade,
+        duration: const Duration(milliseconds: 300),
+        child: const LoginScreen(),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    _usernameController.text = 'admin';
-    _passwordController.text = "123";
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Card(
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Top: Centered image + welcome text
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        height: 250,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Lottie.asset(
+                            'assets/animations/welcome.json',
+                            fit: BoxFit.contain,
+                            repeat: true,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      const Text(
+                        'Welcome to Drive Test!',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Practice and ace your driving test!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+
+            // Bottom: Buttons
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(
-                    "assets/icon/icon.png", // Replace with your actual asset path
-                    height: 150,
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
-                      labelText: 'Username',
-                      prefixIcon: const Icon(Icons.person),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: GestureDetector(
+                      onTap: _navigateToLogin,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.8),
+                              Theme.of(context).colorScheme.primaryContainer,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'LOGIN',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: GestureDetector(
+                      onTap: _navigateToSignup,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'SIGNUP',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _isLoading
-                      ? const CircularProgressIndicator()
-                      : SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _authenticate,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text(
-                              'Login',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                        ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: _navigateToSignup,
-                      child: const Text('Don’t have an account? Sign up'),
-                    ),
-                  ),
                 ],
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

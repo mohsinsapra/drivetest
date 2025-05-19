@@ -1,5 +1,6 @@
 import 'dart:convert'; // For json.decode
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -129,7 +130,7 @@ class _SignupScreenState extends State<SignupScreen> {
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         title: const Text(
           'Create Account',
           style: TextStyle(color: Colors.black),
@@ -137,14 +138,11 @@ class _SignupScreenState extends State<SignupScreen> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Card(
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+      body: Container(
+        color: Colors.white,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Form(
@@ -152,16 +150,15 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      'assets/icon/icon.png', // Adjust path as needed
-                      height: 100,
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
+                    SizedBox(
+                      height: 200,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Lottie.asset(
+                          'assets/animations/signup.json',
+                          fit: BoxFit.contain,
+                          repeat: true,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -171,9 +168,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         labelText: 'Username',
                         prefixIcon: const Icon(Icons.person),
                         errorText: _serverErrors['username'],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                       ),
                       validator: _validateUsername,
                     ),
@@ -184,9 +178,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         labelText: 'Email',
                         prefixIcon: const Icon(Icons.email),
                         errorText: _serverErrors['email'],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                       ),
                       validator: _validateEmail,
                     ),
@@ -198,9 +189,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock),
                         errorText: _serverErrors['password'],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                       ),
                       validator: _validatePassword,
                     ),
