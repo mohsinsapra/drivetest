@@ -59,8 +59,8 @@ class DioClient {
     );
     dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',
-      baseUrl: 'http://192.168.1.169:8000/',
-      // baseUrl: 'https://taxiexam.hayatpoetry.com/',
+      // baseUrl: 'http://192.168.1.169:8000/',
+      baseUrl: 'https://taxiexam.hayatpoetry.com/',
       connectTimeout: const Duration(milliseconds: 5000),
       receiveTimeout: const Duration(milliseconds: 20000),
     ));
