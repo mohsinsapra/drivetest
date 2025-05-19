@@ -47,6 +47,7 @@ class _TestscreenState extends State<Testscreen> {
   bool isEnglish = true; // Track current language
   Map<int, String> translatedQuestions = {};
   Map<int, List<String>> translatedOptions = {};
+  String currentLanguageCode = 'EN';
 
   final _noScreenshot = NoScreenshot.instance;
 
@@ -269,9 +270,8 @@ class _TestscreenState extends State<Testscreen> {
     await box.close();
   }
 
-  Future<void> _translateQuestion(int index) async {
+  Future<void> _translateQuestion(int index, String targetLang) async {
     final question = widget.questions[index];
-    String targetLanguage = isEnglish ? 'en' : 'sv';
 
     // Show loading indicator
     showDialog(
@@ -285,7 +285,7 @@ class _TestscreenState extends State<Testscreen> {
       var translatedQuestion = await translator.translate(
         question.text,
         from: 'sv',
-        to: targetLanguage,
+        to: targetLang,
       );
 
       // Translate options
@@ -294,7 +294,7 @@ class _TestscreenState extends State<Testscreen> {
         var translatedOption = await translator.translate(
           option.text,
           from: 'sv',
-          to: targetLanguage,
+          to: targetLang,
         );
         translatedOptionTexts.add(translatedOption.text);
       }
@@ -302,15 +302,13 @@ class _TestscreenState extends State<Testscreen> {
       setState(() {
         translatedQuestions[index] = translatedQuestion.text;
         translatedOptions[index] = translatedOptionTexts;
-        isEnglish = !isEnglish; // Toggle language state
+        isEnglish = targetLang == 'en';
       });
     } catch (e) {
-      // Handle error
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Translation failed. Please try again.')),
       );
     } finally {
-      // Dismiss loading indicator
       Navigator.of(context).pop();
     }
   }
@@ -322,7 +320,6 @@ class _TestscreenState extends State<Testscreen> {
   @override
   Widget build(BuildContext context) {
     disableScreenshot();
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -417,11 +414,52 @@ class _TestscreenState extends State<Testscreen> {
                 onPressed: _previousQuestion,
                 child: const Text('Back'),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  _translateQuestion(currentQuestionIndex);
+              DropdownButton<String>(
+                value:
+                    currentLanguageCode, // ✅ reflect actual selected language
+                underline: const SizedBox(),
+                items: [
+                  {'code': 'SV', 'label': '🇸🇪'}, // Swedish (official)
+                  {
+                    'code': 'EN',
+                    'label': '🇬🇧'
+                  }, // English (widely used as second language)
+                  {'code': 'AR', 'label': '🇸🇦'}, // Arabic
+                  {'code': 'SO', 'label': '🇸🇴'}, // Somali
+                  {'code': 'FA', 'label': '🇮🇷'}, // Persian (Farsi)
+                  {'code': 'UR', 'label': '🇵🇰'}, // Urdu
+                  {
+                    'code': 'FI',
+                    'label': '🇫🇮'
+                  }, // Finnish (official minority)
+                  {'code': 'KU', 'label': '🇹🇷'}, // Kurdish (Kurmanji/Sorani)
+                  {'code': 'RU', 'label': '🇷🇺'}, // Russian
+                  {'code': 'TI', 'label': '🇪🇷'}, // Tigrinya
+                  {'code': 'DA', 'label': '🇩🇰'}, // Danish
+                  {'code': 'NO', 'label': '🇳🇴'}, // Norwegian
+                  {'code': 'PL', 'label': '🇵🇱'}, // Polish
+                  {'code': 'TR', 'label': '🇹🇷'}, // Turkish
+                ]
+                    .map((lang) => DropdownMenuItem<String>(
+                          value: lang['code'],
+                          child: Text(
+                            lang['label']!,
+                            style: const TextStyle(fontSize: 35),
+                          ),
+                        ))
+                    .toList(),
+                onChanged: (String? value) async {
+                  if (value == null) return;
+
+                  String targetLang = value.toLowerCase();
+                  // Optional condition if you want to skip already active languages
+                  if (targetLang != currentLanguageCode.toLowerCase()) {
+                    await _translateQuestion(currentQuestionIndex, targetLang);
+                    setState(() {
+                      currentLanguageCode = value; // ✅ update selected language
+                    });
+                  }
                 },
-                child: Text(!isEnglish ? 'SV' : 'EN'),
               ),
               ElevatedButton(
                 onPressed: () {
