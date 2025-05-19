@@ -62,6 +62,7 @@ dependencies:
   path_provider: ^2.1.5
   lucide_icons: ^0.257.0
   page_transition: ^2.2.1
+  upgrader: ^11.4.0
 
 dev_dependencies:
   flutter_test:

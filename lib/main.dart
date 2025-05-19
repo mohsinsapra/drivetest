@@ -11,6 +11,7 @@ import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:taxi_exam_app/main_screen.dart';
+import 'package:upgrader/upgrader.dart';
 
 import 'core/models/test_attempt.dart';
 
@@ -30,6 +31,7 @@ void main() async {
   Hive.registerAdapter(TestAttemptAdapter());
   Hive.registerAdapter(QuestionAdapter());
   Hive.registerAdapter(OptionAdapter());
+  await Upgrader.clearSavedSettings();
 
   runApp(
     MultiProvider(
@@ -158,41 +160,44 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, bool>>(
-      future: _initializeApp(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return MaterialApp(
-            theme: customTheme,
-            debugShowCheckedModeBanner: false, // Remove the debug banner
-            home: const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          );
-        }
+    return UpgradeAlert(
+        showIgnore: false,
+        showLater: false,
+        child: FutureBuilder<Map<String, bool>>(
+          future: _initializeApp(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return MaterialApp(
+                theme: customTheme,
+                debugShowCheckedModeBanner: false, // Remove the debug banner
+                home: const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              );
+            }
 
-        bool onboardingComplete = snapshot.data!['onboardingComplete']!;
-        bool isAuthenticated = snapshot.data!['isAuthenticated']!;
+            bool onboardingComplete = snapshot.data!['onboardingComplete']!;
+            bool isAuthenticated = snapshot.data!['isAuthenticated']!;
 
-        // Decide which screen to show based on onboarding and authentication
-        Widget home;
-        if (!onboardingComplete) {
-          home = const IntroScreen();
-        } else if (!isAuthenticated) {
-          home =
-              const AuthScreen(); // Replace with your main authenticated screen if needed
-        } else {
-          home = const MainScreen();
-        }
+            // Decide which screen to show based on onboarding and authentication
+            Widget home;
+            if (!onboardingComplete) {
+              home = const IntroScreen();
+            } else if (!isAuthenticated) {
+              home =
+                  const AuthScreen(); // Replace with your main authenticated screen if needed
+            } else {
+              home = const MainScreen();
+            }
 
-        return MaterialApp(
-          theme: customTheme,
-          home: home,
-          debugShowCheckedModeBanner: false, // Remove the debug banner
-        );
-      },
-    );
+            return MaterialApp(
+              theme: customTheme,
+              home: home,
+              debugShowCheckedModeBanner: false, // Remove the debug banner
+            );
+          },
+        ));
   }
 }
