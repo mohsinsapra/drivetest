@@ -104,6 +104,12 @@ final customTheme = ThemeData(
       color: Colors.black,
       fontSize: 20,
       fontFamily: 'NudMoto',
+      fontWeight: FontWeight.w600,
+    ),
+    toolbarTextStyle: TextStyle(
+      color: Colors.black,
+      fontSize: 18,
+      fontFamily: 'NudMoto',
     ),
   ),
   buttonTheme: const ButtonThemeData(

@@ -1,9 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
-import 'package:taxi_exam_app/features/tests/licences_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -34,6 +35,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
+      final user = await _apiService.fetchCurrentUser();
+      if (user != null) {
+        final prefs = await SharedPreferences.getInstance();
+
+        await prefs.setString('user', jsonEncode(user));
+      }
       final refreshToken = DioClient().refreshToken;
       final accessToken = DioClient().accessToken;
 
@@ -49,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      print(e);
       setState(() {
         _authError = 'Invalid username or password';
       });

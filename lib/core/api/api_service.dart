@@ -24,6 +24,15 @@ class ApiService {
     }
   }
 
+  Future<dynamic> fetchCurrentUser() async {
+    try {
+      final response = await _dio.get('api/user/self');
+      return response.data;
+    } catch (e) {
+      throw Exception('Failed to fetch current user: $e');
+    }
+  }
+
   Future<dynamic> signup(String email, String username, String password) async {
     try {
       final response = await _dio.post(
