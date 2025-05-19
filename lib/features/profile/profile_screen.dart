@@ -33,8 +33,12 @@ class ProfileScreen extends StatelessWidget {
             children: [
               const CircleAvatar(
                 radius: 48,
-                backgroundImage: AssetImage(
-                    'assets/icon/icon.png'), // Replace with user's image if available
+                backgroundColor: Colors.pinkAccent,
+                child: Icon(
+                  LucideIcons.user,
+                  size: 48,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 8),
               Container(
@@ -93,7 +97,10 @@ class ProfileScreen extends StatelessWidget {
             },
           ),
 
-          const Divider(),
+          const Divider(
+            thickness: 0.5,
+            color: Color(0xFFE0E0E0),
+          ),
 
           _buildMenuTile(
             context,
@@ -110,8 +117,10 @@ class ProfileScreen extends StatelessWidget {
             onTap: () {}, // TODO: Add help screen
           ),
 
-          const Divider(),
-
+          const Divider(
+            thickness: 0.5,
+            color: Color(0xFFE0E0E0),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             child: ElevatedButton(
@@ -122,7 +131,7 @@ class ProfileScreen extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.red.shade700,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

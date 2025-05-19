@@ -1,14 +1,15 @@
 // features/tests/licence_types_screen.dart
 
 import 'dart:io';
-import 'package:flutter/material.dart';
+
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/features/payment/payment_method_sheet.dart'; // Import the PaymentMethodSheet
-import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
 import 'package:vibration/vibration.dart';
 import 'dart:math'; // For pi and shapes
@@ -182,16 +183,16 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   Future<void> processPayment(String clientSecret) async {
     try {
       // Initialize the PaymentSheet with the required parameters
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
+      await stripe.Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'Drive Test',
           // Optional: Configure Apple Pay
-          applePay: const PaymentSheetApplePay(
+          applePay: const stripe.PaymentSheetApplePay(
             merchantCountryCode: 'SV', // Replace with your country code
           ),
           // Optional: Configure Google Pay
-          googlePay: const PaymentSheetGooglePay(
+          googlePay: const stripe.PaymentSheetGooglePay(
             merchantCountryCode: 'SV', // Replace with your country code
             testEnv: true, // Set to false in production
             // existingPaymentMethodRequired: false,
@@ -208,10 +209,10 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       );
 
       // Present the PaymentSheet to the user
-      await Stripe.instance.presentPaymentSheet();
+      await stripe.Stripe.instance.presentPaymentSheet();
     } catch (e) {
       // Handle Stripe-specific errors
-      if (e is StripeException) {
+      if (e is stripe.StripeException) {
         print('Payment canceled or failed: ${e.error.localizedMessage}');
         _showSnackBar('Payment failed: ${e.error.localizedMessage}');
       } else {
@@ -549,13 +550,11 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
                             ? NetworkImage(licenseType['image'])
                             : const AssetImage('assets/icon/icon.png')
                                 as ImageProvider,
-                        height: 100,
                         width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
                             Image.asset(
                           'assets/icon/icon.png',
-                          height: 100,
                           width: double.infinity,
                           fit: BoxFit.cover,
                         ),
@@ -591,36 +590,55 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   Widget _buildCategoriesView() {
     return ListView.builder(
       itemCount: categories.length,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       itemBuilder: (context, index) {
         final category = categories[index];
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: ElevatedButton(
-            onPressed: () => _onCategoryPressed(category),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              minimumSize:
-                  const Size(double.infinity, 48), // Ensure consistent width
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Card(
+            elevation: 3,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    category['name'],
-                    style: const TextStyle(fontSize: 16),
-                    maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis, // Handle long text gracefully
-                  ),
-                  Icon(
-                    category['is_subscribed'] == false
-                        ? LucideIcons.lock
-                        : LucideIcons.unlock,
-                    size: 20,
-                  ),
-                ],
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => _onCategoryPressed(category),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20.0,
+                  horizontal: 20.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        category['name'],
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    CircleAvatar(
+                      backgroundColor: category['is_subscribed'] == false
+                          ? Colors.red.withOpacity(0.15)
+                          : Colors.green.withOpacity(0.15),
+                      radius: 18,
+                      child: Icon(
+                        category['is_subscribed'] == false
+                            ? LucideIcons.lock
+                            : LucideIcons.unlock,
+                        size: 20,
+                        color: category['is_subscribed'] == false
+                            ? Colors.red
+                            : Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -633,24 +651,30 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     final List<Map<String, dynamic>> testOptions = [
       {
         'label': 'Start Practice Test',
+        'icon': LucideIcons.playCircle,
+        'color': Colors.blueAccent,
         'onPressed': () async {
           final fetchedQuestions = await _apiService.fetchQuestions(
-              selectedLicenseType?['licence_id'],
-              selectedCategory?['category_id']);
+            selectedLicenseType?['licence_id'],
+            selectedCategory?['category_id'],
+          );
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => Testscreen(
-                  questions: fetchedQuestions, // List of questions from API
-                  instantMarking: true, // Enable or disable instant marking
-                  licenceId: selectedLicenseType?['licence_id'],
-                  categoryId: selectedCategory?['category_id']),
+                questions: fetchedQuestions,
+                instantMarking: true,
+                licenceId: selectedLicenseType?['licence_id'],
+                categoryId: selectedCategory?['category_id'],
+              ),
             ),
           );
         },
       },
       {
-        'label': 'Create Custom Test',
+        'label': 'Custom Test',
+        'icon': LucideIcons.settings,
+        'color': Colors.orangeAccent,
         'onPressed': () async {
           Navigator.push(
             context,
@@ -666,31 +690,66 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       },
       {
         'label': 'Saved Questions',
+        'icon': LucideIcons.bookmark,
+        'color': Colors.purpleAccent,
         'onPressed': () {
           _showSnackBar('Saved Questions for ${selectedCategory?['name']}');
         },
       },
     ];
 
-    return ListView.builder(
+    return Padding(
       padding: const EdgeInsets.all(16.0),
-      itemCount: testOptions.length,
-      itemBuilder: (context, index) {
-        final option = testOptions[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: GridView.builder(
+        itemCount: testOptions.length,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 1.2,
+        ),
+        itemBuilder: (context, index) {
+          final option = testOptions[index];
+          return GestureDetector(
+            onTap: option['onPressed'],
+            child: Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      backgroundColor:
+                          (option['color'] as Color).withOpacity(0.1),
+                      radius: 28,
+                      child: Icon(
+                        option['icon'],
+                        color: option['color'],
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      option['label'],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            onPressed: option['onPressed'],
-            child: Text(
-              option['label'],
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
