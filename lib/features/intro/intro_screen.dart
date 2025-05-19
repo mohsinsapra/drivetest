@@ -37,12 +37,16 @@ class IntroScreen extends StatelessWidget {
         await _completeOnboarding(context);
       },
       showSkipButton: true,
-      skip: const Text("Skip"),
-      next: const Icon(Icons.arrow_forward),
-      done: const Text(
-        "Get Started",
-        style: TextStyle(fontWeight: FontWeight.w600),
+      skip: const Text(
+        "Skip",
+        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
       ),
+      next: const Icon(
+        Icons.arrow_forward,
+        size: 28,
+      ),
+      done: const Text("Get Started",
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
       dotsDecorator: _getDotsDecorator(),
     );
   }
@@ -58,10 +62,17 @@ class IntroScreen extends StatelessWidget {
   }
 
   PageDecoration _getPageDecoration() {
-    return const PageDecoration(
-      titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      bodyTextStyle: TextStyle(fontSize: 16),
-      imagePadding: EdgeInsets.all(24),
+    return PageDecoration(
+      titleTextStyle: const TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: Color.fromRGBO(0, 0, 0, 0.7),
+      ),
+      bodyTextStyle: const TextStyle(
+        fontSize: 20,
+        color: Color.fromRGBO(0, 0, 0, 0.6),
+      ),
+      imagePadding: const EdgeInsets.all(24),
       pageColor: Colors.white,
     );
   }

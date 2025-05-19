@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -133,6 +134,13 @@ class DioClient {
   Future<void> logout() async {
     accessToken = null;
     refreshToken = null;
+
+    // Remove tokens from shared preferences if stored there
+    // (Assuming you have used SharedPreferences elsewhere)
+    // import 'package:shared_preferences/shared_preferences.dart';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('refreshToken');
+    await prefs.remove('accessToken');
     await _secureStorage.delete(key: 'refreshToken');
   }
 

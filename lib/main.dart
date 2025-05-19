@@ -64,11 +64,34 @@ final customTheme = ThemeData(
     brightness: Brightness.light,
   ),
   inputDecorationTheme: InputDecorationTheme(
+    fillColor: Color(0xFF757575),
+    labelStyle: const TextStyle(
+      color: Color(0xFF757575), // Soft grey for label text
+      fontFamily: 'NudMoto',
+    ),
+    hintStyle: const TextStyle(
+      color: Color(0xFF9E9E9E), // Lighter grey for hint text
+      fontFamily: 'NudMoto',
+    ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(
-        color: Colors.grey,
-        width: 1, // Make the border thin
+        color: Color(0xFFBDBDBD), // Lighter grey
+        width: 0.5, // Thinner border
+      ),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(
+        color: Color(0xFFBDBDBD), // Lighter grey
+        width: 0.5,
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(
+        color: Color(0xFF2779BC), // Use primary color for focus
+        width: 1,
       ),
     ),
   ),
