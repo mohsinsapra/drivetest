@@ -66,7 +66,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
 
     _controller = YoutubePlayerController(
       initialVideoId: YoutubePlayer.convertUrlToId(
-          'https://www.youtube.com/watch?v=5qap5aO4i9A')!,
+          'https://www.youtube.com/watch?v=XjspPudEbmc&t=1s')!,
       flags: const YoutubePlayerFlags(
         autoPlay: true,
         mute: false,
@@ -156,7 +156,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   }
 
   void _onCategoryPressed(dynamic category) {
-    if (category['is_subscribed'] == false) {
+    if (category['is_subscribed'] == false && category['name'] != 'Karta') {
       setState(() => selectedCategory = category);
       _showSubscriptionDialog();
       return;

@@ -41,18 +41,24 @@ class CategoryCard extends StatelessWidget {
                   ),
                 ),
                 CircleAvatar(
-                  backgroundColor: category['is_subscribed'] == false
-                      ? Colors.red.withOpacity(0.15)
-                      : Colors.green.withOpacity(0.15),
+                  backgroundColor: category['name'] == 'Karta'
+                      ? Colors.green.withOpacity(0.15)
+                      : (category['is_subscribed'] == false
+                          ? Colors.red.withOpacity(0.15)
+                          : Colors.green.withOpacity(0.15)),
                   radius: 18,
                   child: Icon(
-                    category['is_subscribed'] == false
-                        ? LucideIcons.lock
-                        : LucideIcons.unlock,
+                    category['name'] == 'Karta'
+                        ? LucideIcons.unlock
+                        : (category['is_subscribed'] == false
+                            ? LucideIcons.lock
+                            : LucideIcons.unlock),
                     size: 20,
-                    color: category['is_subscribed'] == false
-                        ? Colors.red
-                        : Colors.green,
+                    color: category['name'] == 'Karta'
+                        ? Colors.green
+                        : (category['is_subscribed'] == false
+                            ? Colors.red
+                            : Colors.green),
                   ),
                 ),
               ],
