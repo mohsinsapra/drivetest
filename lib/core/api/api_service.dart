@@ -24,6 +24,15 @@ class ApiService {
     }
   }
 
+  Future<void> logout() async {
+    try {
+      await _dioClient.logout();
+
+    } catch (e) {
+      throw Exception('Authentication failed: $e');
+    }
+  }
+
   Future<dynamic> fetchCurrentUser() async {
     try {
       final response = await _dio.get('api/user/self');
