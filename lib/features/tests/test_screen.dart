@@ -1,20 +1,23 @@
-// test_screen.dart
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
 import 'package:taxi_exam_app/core/widgets/option_widget.dart';
 import 'package:taxi_exam_app/core/widgets/question_widget.dart';
 import 'package:no_screenshot/no_screenshot.dart';
 import 'package:taxi_exam_app/features/tests/result_screen.dart';
+import 'package:translator/translator.dart';
 
 class Testscreen extends StatefulWidget {
   final List<Question> questions;
   final bool instantMarking;
   final String licenceId;
   final String categoryId;
-  final int initialQuestionIndex; // New parameter
-  final Map<int, String>? userSelections; // New parameter
+  final int initialQuestionIndex;
+  final Map<int, String>? userSelections;
+  final bool isReviewMode; // New parameter
 
   const Testscreen({
     super.key,
@@ -24,6 +27,7 @@ class Testscreen extends StatefulWidget {
     required this.categoryId,
     this.initialQuestionIndex = 0,
     this.userSelections,
+    this.isReviewMode = false, // Default to false
   });
 
   @override
@@ -32,46 +36,61 @@ class Testscreen extends StatefulWidget {
 
 class _TestscreenState extends State<Testscreen> {
   int currentQuestionIndex = 0;
-  String selectedOptionId = '';
-  bool showExplanation = false;
-  final _noScreenshot = NoScreenshot.instance;
-  final ApiService _apiService = ApiService();
   Map<int, String> userSelections = {};
+  final ApiService _apiService = ApiService();
 
-  // Add ScrollController
-  final ScrollController _scrollController = ScrollController();
+  // Add PageController
+  late PageController _pageController;
+
+  // Translation variables
+  final translator = GoogleTranslator();
+  bool isEnglish = true; // Track current language
+  Map<int, String> translatedQuestions = {};
+  Map<int, List<String>> translatedOptions = {};
+  String currentLanguageCode = 'EN';
+
+  final _noScreenshot = NoScreenshot.instance;
 
   @override
   void initState() {
     super.initState();
     currentQuestionIndex = widget.initialQuestionIndex;
     userSelections = widget.userSelections ?? {};
-    selectedOptionId = userSelections[currentQuestionIndex] ?? '';
+
+    // Initialize PageController
+    _pageController = PageController(initialPage: currentQuestionIndex);
+
+    disableScreenshot();
   }
 
-  void _selectOption(String optionId) {
-    // Capture the current scroll position
-    final scrollPosition = _scrollController.position.pixels;
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
+  void _onPageChanged(int index) {
     setState(() {
-      selectedOptionId = optionId;
-      showExplanation = true;
-      userSelections[currentQuestionIndex] = optionId; // Record selection
+      currentQuestionIndex = index;
     });
+  }
 
-    // Restore the scroll position after the frame is rendered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.jumpTo(scrollPosition);
+  void _selectOption(String optionId, int index) {
+    if (widget.isReviewMode) {
+      // Do not allow selection in review mode
+      return;
+    }
+    setState(() {
+      userSelections[index] = optionId;
     });
   }
 
   void _nextQuestion() {
     if (currentQuestionIndex < widget.questions.length - 1) {
-      setState(() {
-        currentQuestionIndex++;
-        selectedOptionId = userSelections[currentQuestionIndex] ?? '';
-        showExplanation = false;
-      });
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     } else {
       // Show confirmation dialog
       _showFinishConfirmationDialog();
@@ -80,11 +99,10 @@ class _TestscreenState extends State<Testscreen> {
 
   void _previousQuestion() {
     if (currentQuestionIndex > 0) {
-      setState(() {
-        currentQuestionIndex--;
-        selectedOptionId = userSelections[currentQuestionIndex] ?? '';
-        showExplanation = false;
-      });
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('This is the first question!')),
@@ -129,6 +147,8 @@ class _TestscreenState extends State<Testscreen> {
               child: const Text('Yes'),
               onPressed: () {
                 Navigator.of(context).pop(); // Dismiss the dialog
+                _saveTestAttempt();
+
                 _showResultDialog(); // Show pass/fail result
               },
             ),
@@ -214,19 +234,91 @@ class _TestscreenState extends State<Testscreen> {
     );
   }
 
+  void _saveTestAttempt() async {
+    int correctAnswers = 0;
+
+    for (int i = 0; i < widget.questions.length; i++) {
+      final question = widget.questions[i];
+      final selectedOptionLabel = userSelections[i];
+
+      if (selectedOptionLabel != null &&
+          selectedOptionLabel == question.correctAnswer) {
+        correctAnswers++;
+      }
+    }
+
+    double scorePercentage = (correctAnswers / widget.questions.length) * 100;
+    bool hasPassed = scorePercentage >= 70; // Adjust as needed
+
+    // Create a TestAttempt object
+    TestAttempt attempt = TestAttempt(
+      testId: DateTime.now().millisecondsSinceEpoch.toString(), // Unique ID
+      dateTime: DateTime.now(),
+      userSelections: userSelections,
+      score: scorePercentage,
+      hasPassed: hasPassed,
+      questions: widget.questions, // Save questions for detailed view
+    );
+
+    // Open a Hive box
+    var box = await Hive.openBox<TestAttempt>('testAttempts');
+
+    // Save the attempt
+    await box.add(attempt);
+
+    // Close the box (optional)
+    await box.close();
+  }
+
+  Future<void> _translateQuestion(int index, String targetLang) async {
+    final question = widget.questions[index];
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Translate question text
+      var translatedQuestion = await translator.translate(
+        question.text,
+        from: 'sv',
+        to: targetLang,
+      );
+
+      // Translate options
+      List<String> translatedOptionTexts = [];
+      for (var option in question.options) {
+        var translatedOption = await translator.translate(
+          option.text,
+          from: 'sv',
+          to: targetLang,
+        );
+        translatedOptionTexts.add(translatedOption.text);
+      }
+
+      setState(() {
+        translatedQuestions[index] = translatedQuestion.text;
+        translatedOptions[index] = translatedOptionTexts;
+        isEnglish = targetLang == 'en';
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Translation failed. Please try again.')),
+      );
+    } finally {
+      Navigator.of(context).pop();
+    }
+  }
+
   void disableScreenshot() async {
     await _noScreenshot.screenshotOff();
-    // debugPrint('Screenshot Off: $result');
   }
 
   @override
   Widget build(BuildContext context) {
-    final question = widget.questions[currentQuestionIndex];
-    // Clone the list to avoid mutating the original data
-    bool isLastQuestion = currentQuestionIndex == widget.questions.length - 1;
-
-// Sort options by 'option_label' or any other key
-    question.options.sort((a, b) => a.optionLabel.compareTo(b.optionLabel));
     disableScreenshot();
     return Scaffold(
       appBar: AppBar(
@@ -240,49 +332,75 @@ class _TestscreenState extends State<Testscreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          controller: _scrollController, // Add this line
-          child: Column(
-            children: [
-              // Question Widget
-              QuestionWidget(
-                question: question,
-                licenceId: widget.licenceId,
-                categoryId: widget.categoryId,
-                apiService: _apiService,
-              ),
-              const SizedBox(height: 16),
-              // Options
-              ...question.options.map((option) => OptionWidget(
-                    option: option,
+      body: PageView.builder(
+        controller: _pageController,
+        onPageChanged: _onPageChanged,
+        itemCount: widget.questions.length,
+        itemBuilder: (context, index) {
+          final question = widget.questions[index];
+
+          // Sort options if necessary
+          question.options
+              .sort((a, b) => a.optionLabel.compareTo(b.optionLabel));
+
+          // Get translated question text if available
+          String questionText = translatedQuestions[index] ?? question.text;
+
+          // Get translated options if available
+          List<String> optionTexts = [];
+          if (translatedOptions[index] != null) {
+            optionTexts = translatedOptions[index]!;
+          } else {
+            optionTexts = question.options.map((e) => e.text).toList();
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Question Widget
+                  QuestionWidget(
+                    questionText: questionText,
                     question: question,
-                    isSelected: selectedOptionId == option.optionLabel,
-                    isInstantMarking: widget.instantMarking,
-                    selectedOptionId: selectedOptionId,
-                    onSelectOption: _selectOption,
                     licenceId: widget.licenceId,
                     categoryId: widget.categoryId,
                     apiService: _apiService,
-                  )),
-              // Explanation
+                  ),
+                  const SizedBox(height: 16),
+                  // Options
+                  ...question.options.asMap().entries.map((entry) {
+                    int optIndex = entry.key;
+                    var option = entry.value;
+                    String optionText = optionTexts[optIndex];
 
-              Visibility(
-                visible: showExplanation,
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainState: true,
-                child: ExplanationWidget(
-                  question: question,
-                  licenceId: widget.licenceId,
-                  categoryId: widget.categoryId,
-                  apiService: _apiService,
-                ),
+                    return OptionWidget(
+                      optionText: optionText,
+                      option: option,
+                      question: question,
+                      isSelected: userSelections[index] == option.optionLabel,
+                      isInstantMarking: widget.instantMarking,
+                      selectedOptionId: userSelections[index] ?? '',
+                      onSelectOption: (optionId) =>
+                          _selectOption(optionId, index),
+                      licenceId: widget.licenceId,
+                      categoryId: widget.categoryId,
+                      apiService: _apiService,
+                    );
+                  }),
+                  // Explanation
+                  if (widget.instantMarking && userSelections[index] != null)
+                    ExplanationWidget(
+                      question: question,
+                      licenceId: widget.licenceId,
+                      categoryId: widget.categoryId,
+                      apiService: _apiService,
+                    ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 32.0),
@@ -296,17 +414,64 @@ class _TestscreenState extends State<Testscreen> {
                 onPressed: _previousQuestion,
                 child: const Text('Back'),
               ),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Text('EN/SV'),
+              DropdownButton<String>(
+                value:
+                    currentLanguageCode, // ✅ reflect actual selected language
+                underline: const SizedBox(),
+                items: [
+                  {'code': 'SV', 'label': '🇸🇪'}, // Swedish (official)
+                  {
+                    'code': 'EN',
+                    'label': '🇬🇧'
+                  }, // English (widely used as second language)
+                  {'code': 'AR', 'label': '🇸🇦'}, // Arabic
+                  {'code': 'SO', 'label': '🇸🇴'}, // Somali
+                  {'code': 'FA', 'label': '🇮🇷'}, // Persian (Farsi)
+                  {'code': 'UR', 'label': '🇵🇰'}, // Urdu
+                  {
+                    'code': 'FI',
+                    'label': '🇫🇮'
+                  }, // Finnish (official minority)
+                  {'code': 'KU', 'label': '🇹🇷'}, // Kurdish (Kurmanji/Sorani)
+                  {'code': 'RU', 'label': '🇷🇺'}, // Russian
+                  {'code': 'TI', 'label': '🇪🇷'}, // Tigrinya
+                  {'code': 'DA', 'label': '🇩🇰'}, // Danish
+                  {'code': 'NO', 'label': '🇳🇴'}, // Norwegian
+                  {'code': 'PL', 'label': '🇵🇱'}, // Polish
+                  {'code': 'TR', 'label': '🇹🇷'}, // Turkish
+                ]
+                    .map((lang) => DropdownMenuItem<String>(
+                          value: lang['code'],
+                          child: Text(
+                            lang['label']!,
+                            style: const TextStyle(fontSize: 35),
+                          ),
+                        ))
+                    .toList(),
+                onChanged: (String? value) async {
+                  if (value == null) return;
+
+                  String targetLang = value.toLowerCase();
+                  // Optional condition if you want to skip already active languages
+                  if (targetLang != currentLanguageCode.toLowerCase()) {
+                    await _translateQuestion(currentQuestionIndex, targetLang);
+                    setState(() {
+                      currentLanguageCode = value; // ✅ update selected language
+                    });
+                  }
+                },
               ),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Handle Save action
+                },
                 child: const Text('Save'),
               ),
               ElevatedButton(
                 onPressed: _nextQuestion,
-                child: Text(isLastQuestion ? 'Finish' : 'Next'),
+                child: Text(currentQuestionIndex == widget.questions.length - 1
+                    ? 'Finish'
+                    : 'Next'),
               ),
             ],
           ),

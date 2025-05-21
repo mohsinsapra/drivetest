@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
 import 'package:taxi_exam_app/features/profile/profile_screen.dart';
@@ -12,6 +14,7 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  late PageController _pageController;
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -20,33 +23,90 @@ class MainScreenState extends State<MainScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    final provider = Provider.of<MainScreenProvider>(context, listen: false);
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Listen for index changes and animate the page view
+    Provider.of<MainScreenProvider>(context).addListener(() {
+      final index =
+          Provider.of<MainScreenProvider>(context, listen: false).currentIndex;
+      _pageController.jumpToPage(index); // or use animateToPage
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  void _onItemTapped(int selectedIndex) {
+    // Animate to the selected page
+    _pageController.jumpToPage(selectedIndex);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<MainScreenProvider>(context);
     return Scaffold(
-      body: SafeArea(
-        child: _screens[_currentIndex],
+      body: PageView(
+        controller: _pageController,
+        children: _screens,
+        onPageChanged: _onPageChanged,
+
+        physics: const ClampingScrollPhysics(), // Prevent overscroll glow
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Tests',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: provider.currentIndex,
+          onTap: (index) => provider.setIndex(index),
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          unselectedItemColor: Colors.grey,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(LucideIcons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(LucideIcons.bookOpenCheck),
+              label: 'Tests',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(LucideIcons.user),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+class MainScreenProvider extends ChangeNotifier {
+  int _currentIndex = 0;
+
+  int get currentIndex => _currentIndex;
+
+  void setIndex(int index) {
+    _currentIndex = index;
+    notifyListeners();
   }
 }

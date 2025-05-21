@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -42,7 +43,7 @@ class DioClient {
       // Returns a cached response on error but for statuses 401 & 403.
       // Also allows to return a cached response on network errors (e.g. offline usage).
       // Defaults to [null].
-      hitCacheOnErrorExcept: [401, 403],
+      hitCacheOnErrorCodes: [401, 403],
       // Overrides any HTTP directive to delete entry past this duration.
       // Useful only when origin server has no cache config or custom behaviour is desired.
       // Defaults to [null].
@@ -59,7 +60,8 @@ class DioClient {
     );
     dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',
-      baseUrl: 'http://192.168.1.84:8000/',
+      // baseUrl: 'http://192.168.1.169:8000/',
+      baseUrl: 'https://taxiexam.hayatpoetry.com/',
       connectTimeout: const Duration(milliseconds: 5000),
       receiveTimeout: const Duration(milliseconds: 20000),
     ));
@@ -132,6 +134,13 @@ class DioClient {
   Future<void> logout() async {
     accessToken = null;
     refreshToken = null;
+
+    // Remove tokens from shared preferences if stored there
+    // (Assuming you have used SharedPreferences elsewhere)
+    // import 'package:shared_preferences/shared_preferences.dart';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('refreshToken');
+    await prefs.remove('accessToken');
     await _secureStorage.delete(key: 'refreshToken');
   }
 

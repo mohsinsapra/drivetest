@@ -24,6 +24,32 @@ class ApiService {
     }
   }
 
+  Future<dynamic> fetchCurrentUser() async {
+    try {
+      final response = await _dio.get('api/user/self');
+      return response.data;
+    } catch (e) {
+      throw Exception('Failed to fetch current user: $e');
+    }
+  }
+
+  Future<dynamic> signup(String email, String username, String password) async {
+    try {
+      final response = await _dio.post(
+        'api/user/signup/',
+        data: {
+          'username': username,
+          'password': password,
+          'email': email,
+        },
+      );
+
+      return response;
+    } catch (e) {
+      throw Exception('Authentication failed: $e');
+    }
+  }
+
   Future<List<dynamic>> fetchLicenses() async {
     try {
       final response = await _dio.get('api/licences/');
@@ -46,11 +72,12 @@ class ApiService {
   }
 
   Future<List<Question>> fetchQuestions(String licenceId, String categoryId,
-      {int pageSize = 20}) async {
+      {int pageSize = 20, bool randomize = false}) async {
     final response = await _dio.get(
         'api/licences/$licenceId/categories/$categoryId/questions/',
         queryParameters: {
           'page_size': pageSize,
+          'randomize': randomize,
         });
 
     return response.data['results'];
@@ -59,7 +86,7 @@ class ApiService {
   Future<String> fetchImage(
       String licenceId, String categoryId, String imagePath) async {
     final imageUrl =
-        '${_dio.options.baseUrl}/secure-media/$licenceId/$categoryId/$imagePath/';
+        '${_dio.options.baseUrl}secure-media/$licenceId/$categoryId/$imagePath/';
 
     return imageUrl;
   }

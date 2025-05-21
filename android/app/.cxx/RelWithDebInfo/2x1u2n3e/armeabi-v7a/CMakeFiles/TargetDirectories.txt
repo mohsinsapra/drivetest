@@ -1,0 +1,2 @@
+/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/android/app/.cxx/RelWithDebInfo/2x1u2n3e/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/android/app/.cxx/RelWithDebInfo/2x1u2n3e/armeabi-v7a/CMakeFiles/rebuild_cache.dir

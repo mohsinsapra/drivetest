@@ -5,7 +5,7 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import '../models/option.dart';
 import '../models/question.dart';
 
-class OptionWidget extends StatelessWidget {
+class OptionWidget extends StatefulWidget {
   final Option option;
   final Question question;
   final bool isSelected;
@@ -15,6 +15,7 @@ class OptionWidget extends StatelessWidget {
   final String licenceId;
   final String categoryId;
   final ApiService apiService;
+  final String optionText;
 
   const OptionWidget({
     super.key,
@@ -27,13 +28,35 @@ class OptionWidget extends StatelessWidget {
     required this.licenceId,
     required this.categoryId,
     required this.apiService,
+    required this.optionText,
   });
+
+  @override
+  _OptionWidgetState createState() => _OptionWidgetState();
+}
+
+class _OptionWidgetState extends State<OptionWidget> {
+  late Future<String> _imageFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _imageFuture = _loadImage(widget.option.imageUrl);
+  }
+
+  @override
+  void didUpdateWidget(covariant OptionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.option.imageUrl != widget.option.imageUrl) {
+      _imageFuture = _loadImage(widget.option.imageUrl);
+    }
+  }
 
   Future<String> _loadImage(String imagePath) async {
     try {
-      final imageUrl = await apiService.fetchImage(
-        licenceId,
-        categoryId,
+      final imageUrl = await widget.apiService.fetchImage(
+        widget.licenceId,
+        widget.categoryId,
         imagePath,
       );
       return imageUrl;
@@ -44,11 +67,12 @@ class OptionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isCorrect = option.optionLabel == question.correctAnswer;
+    final isCorrect =
+        widget.option.optionLabel == widget.question.correctAnswer;
 
     Color backgroundColor = Colors.white;
-    if (isInstantMarking && selectedOptionId.isNotEmpty) {
-      if (isSelected) {
+    if (widget.isInstantMarking && widget.selectedOptionId.isNotEmpty) {
+      if (widget.isSelected) {
         backgroundColor = isCorrect ? Colors.green[300]! : Colors.red[300]!;
       } else if (isCorrect) {
         backgroundColor = Colors.green[300]!;
@@ -58,7 +82,7 @@ class OptionWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: GestureDetector(
-        onTap: () => onSelectOption(option.optionLabel),
+        onTap: () => widget.onSelectOption(widget.option.optionLabel),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -70,7 +94,7 @@ class OptionWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                option.optionLabel,
+                widget.option.optionLabel,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -81,16 +105,16 @@ class OptionWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (option.text.isNotEmpty)
+                    if (widget.optionText.isNotEmpty)
                       Text(
-                        option.text,
+                        widget.optionText,
                         style: const TextStyle(fontSize: 16),
                       ),
-                    if (option.imageUrl.isNotEmpty)
+                    if (widget.option.imageUrl.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: FutureBuilder<String>(
-                          future: _loadImage(option.imageUrl),
+                          future: _imageFuture,
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {

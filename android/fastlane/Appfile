@@ -1,0 +1,2 @@
+json_key_file("/Users/muhammadmohsin/Documents/Learning/TAXI/Android\ signing\ key/drivetest-fastlane-credentials.json")
+package_name("com.mohsinsapra.drivetest") # e.g. com.krausefx.app

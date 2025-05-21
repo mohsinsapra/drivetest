@@ -1,12 +1,20 @@
 // models/question.dart
 
+import 'package:hive/hive.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
+part 'question.g.dart';
 
-class Question {
+@HiveType(typeId: 1)
+class Question extends HiveObject {
+  @HiveField(0)
   final String text;
+  @HiveField(1)
   final String imageUrl;
+  @HiveField(2)
   final String correctAnswer;
+  @HiveField(3)
   final String answerExplanation;
+  @HiveField(4)
   final List<Option> options;
 
   Question({

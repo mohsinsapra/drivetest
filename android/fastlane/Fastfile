@@ -1,0 +1,42 @@
+default_platform(:android)
+
+platform :android do
+  desc "Deploy Beta"
+  lane :beta do
+    ENV["JAVA_HOME"] = "/Library/Java/JavaVirtualMachines/temurin-20.jdk/Contents/Home" # Replace with your Java 11 path
+    sh "java -version" # Verify the version being used
+    
+
+    previous_build_number = google_play_track_version_codes(
+      track: "internal"
+    ).max
+
+    current_build_number = previous_build_number + 1
+    puts "Current build number: #{current_build_number}"
+    increment_version_code(
+      gradle_file_path: "app/build.gradle",
+      version_code: current_build_number
+    )
+    # Fetch the last commit message
+    last_commit_message = sh("git log -1 --pretty=%B").strip
+
+    changelogs_dir = "metadata/android/en-US/changelogs"
+    FileUtils.mkdir_p(changelogs_dir)
+
+    changelog_path = "metadata/android/en-US/changelogs/#{current_build_number}.txt"
+    File.write(changelog_path, last_commit_message)
+
+    # gradle(task: "assembleRelease") # This will build the APK
+    gradle(task: "bundleRelease")
+    upload_to_play_store(track: "internal", skip_upload_metadata: true, skip_upload_images: true, version_code:current_build_number,
+    
+     aab: "../build/app/outputs/bundle/release/app-release.aab",
+    )
+  end
+
+  desc "Deploy Production"
+  lane :production do
+    gradle(task: "assembleRelease")
+    upload_to_play_store(track: "production")
+  end
+end
