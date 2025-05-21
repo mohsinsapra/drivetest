@@ -25,7 +25,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    final provider = Provider.of<MainScreenProvider>(context, listen: false);
+    Provider.of<MainScreenProvider>(context, listen: false);
     _pageController = PageController(initialPage: _currentIndex);
   }
 
@@ -53,10 +53,6 @@ class MainScreenState extends State<MainScreen> {
     });
   }
 
-  void _onItemTapped(int selectedIndex) {
-    // Animate to the selected page
-    _pageController.jumpToPage(selectedIndex);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,10 +60,10 @@ class MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: PageView(
         controller: _pageController,
-        children: _screens,
         onPageChanged: _onPageChanged,
 
-        physics: const ClampingScrollPhysics(), // Prevent overscroll glow
+        physics: const ClampingScrollPhysics(),
+        children: _screens, // Prevent overscroll glow
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(

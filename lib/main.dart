@@ -135,7 +135,7 @@ final customTheme = ThemeData(
 );
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  const MyApp({super.key});
 
   // Combined initialization to check onboarding and authentication
   Future<Map<String, bool>> _initializeApp() async {

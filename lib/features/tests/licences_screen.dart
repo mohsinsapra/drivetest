@@ -54,9 +54,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   late YoutubeMetaData _videoMetaData;
   late TextEditingController _idController;
   late TextEditingController _seekToController;
-  double _volume = 100;
-  bool _muted = false;
-  bool _isPlayerReady = false;
+
 
   @override
   void initState() {
@@ -287,7 +285,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     } else if (Platform.isAndroid) {
       // Use Vibration package for Android
       bool? hasVibrator = await Vibration.hasVibrator();
-      if (hasVibrator != null && hasVibrator) {
+      if (hasVibrator) {
         Vibration.vibrate(duration: 500); // Vibrate for 500 milliseconds
       }
     }

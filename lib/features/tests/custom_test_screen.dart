@@ -97,7 +97,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
           .timeout(const Duration(seconds: 15));
 
       // Check if questions are available
-      if (fetchedQuestions == null || fetchedQuestions.isEmpty) {
+      if (fetchedQuestions.isEmpty) {
         // Dismiss the loading dialog
         if (_isLoadingDialogDisplayed && mounted) {
           Navigator.pop(context);
