@@ -779,7 +779,9 @@ class _TestscreenState extends State<Testscreen> {
                   const SizedBox(height: 24),
 
                   // Explanation (scrollable)
-                  if (widget.instantMarking && userSelections[index] != null)
+                  if (widget.instantMarking &&
+                      userSelections[index] != null &&
+                      question.answerExplanation.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.only(bottom: 20),
                       padding: const EdgeInsets.all(20),
@@ -791,7 +793,6 @@ class _TestscreenState extends State<Testscreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      
                           Container(
                             constraints: const BoxConstraints(
                               maxHeight:
