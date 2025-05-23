@@ -65,6 +65,8 @@ dependencies:
   upgrader: ^11.4.0
   photo_view: ^0.15.0
   youtube_player_flutter: ^9.1.1
+  modal_bottom_sheet: ^3.0.0
+  expandable: ^5.0.1
 
 dev_dependencies:
   flutter_test:

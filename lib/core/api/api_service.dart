@@ -92,8 +92,8 @@ class ApiService {
     return response.data['results'];
   }
 
-  Future<String> fetchImage(
-      String licenceId, String categoryId, String imagePath) async {
+  String fetchImage(
+      String licenceId, String categoryId, String imagePath)  {
     final imageUrl =
         '${_dio.options.baseUrl}secure-media/$licenceId/$categoryId/$imagePath/';
 

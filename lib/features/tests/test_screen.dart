@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/models/image_viewer.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
@@ -357,14 +360,127 @@ class _TestscreenState extends State<Testscreen> {
   Widget build(BuildContext context) {
     disableScreenshot();
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(
-            'Question ${currentQuestionIndex + 1} of ${widget.questions.length}'),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: GestureDetector(
+          onTap: _showQuestionNavigationSheet,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey[200]!, width: 1),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Progress bar
+                Container(
+                  width: 100,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor:
+                        (currentQuestionIndex + 1) / widget.questions.length,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Question counter
+                Text(
+                  '${currentQuestionIndex + 1}/${widget.questions.length}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                // Dropdown indicator
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 16,
+                  color: Colors.grey[500],
+                ),
+              ],
+            ),
+          ),
+        ),
         centerTitle: true,
         actions: [
-          TextButton(
-            onPressed: _showFinishConfirmationDialog,
-            child: const Text('Finish'),
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: PopupMenuButton<String>(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey[200]!, width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _getLanguageFlag(currentLanguageCode),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      LucideIcons.languages,
+                      size: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ],
+                ),
+              ),
+              onSelected: (String value) async {
+                String targetLang = value.toLowerCase();
+                if (targetLang != currentLanguageCode.toLowerCase()) {
+                  await _translateQuestion(currentQuestionIndex, targetLang);
+                  setState(() {
+                    currentLanguageCode = value;
+                  });
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                {'code': 'SV', 'label': '🇸🇪 Swedish'},
+                {'code': 'EN', 'label': '🇬🇧 English'},
+                {'code': 'AR', 'label': '🇸🇦 Arabic'},
+                {'code': 'SO', 'label': '🇸🇴 Somali'},
+                {'code': 'FA', 'label': '🇮🇷 Persian'},
+                {'code': 'UR', 'label': '🇵🇰 Urdu'},
+                {'code': 'FI', 'label': '🇫🇮 Finnish'},
+                {'code': 'KU', 'label': '🇹🇷 Kurdish'},
+                {'code': 'RU', 'label': '🇷🇺 Russian'},
+                {'code': 'TI', 'label': '🇪🇷 Tigrinya'},
+                {'code': 'DA', 'label': '🇩🇰 Danish'},
+                {'code': 'NO', 'label': '🇳🇴 Norwegian'},
+                {'code': 'PL', 'label': '🇵🇱 Polish'},
+                {'code': 'TR', 'label': '🇹🇷 Turkish'},
+              ]
+                  .map((lang) => PopupMenuItem<String>(
+                        value: lang['code'],
+                        child: Text(lang['label']!),
+                      ))
+                  .toList(),
+            ),
           ),
         ],
       ),
@@ -379,7 +495,11 @@ class _TestscreenState extends State<Testscreen> {
               (translatedList != null && translatedList.length > index)
                   ? translatedList[index]
                   : widget.questions[index];
-
+          var questionUrl = _apiService.fetchImage(
+            widget.licenceId,
+            widget.categoryId,
+            widget.questions[index].imageUrl,
+          );
           // Sort options if necessary
           question.options
               .sort((a, b) => a.optionLabel.compareTo(b.optionLabel));
@@ -389,50 +509,305 @@ class _TestscreenState extends State<Testscreen> {
 
           // Get translated options if available
           List<String> optionTexts = [];
-
           optionTexts = question.options.map((e) => e.text).toList();
 
           return Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20.0),
             child: SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Question Widget
-                  QuestionWidget(
-                    questionText: questionText,
-                    question: question,
-                    licenceId: widget.licenceId,
-                    categoryId: widget.categoryId,
-                    apiService: _apiService,
+                  // Question header
+
+                  // Question text
+                  Text(
+                    questionText,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      height: 1.3,
+                    ),
                   ),
                   const SizedBox(height: 16),
+
+                  // Question image (if available)
+                  if (question.imageUrl.isNotEmpty)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 24),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: GestureDetector(
+                          onTap: () => showImageViewer(context, questionUrl),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxHeight:
+                                  MediaQuery.of(context).size.height * 0.4,
+                              maxWidth: MediaQuery.of(context).size.width * 0.9,
+                            ),
+                            child:
+                                Image.network(questionUrl, fit: BoxFit.contain),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 16),
+
                   // Options
                   ...question.options.asMap().entries.map((entry) {
                     int optIndex = entry.key;
                     var option = entry.value;
                     String optionText = optionTexts[optIndex];
+                    bool isSelected =
+                        userSelections[index] == option.optionLabel;
 
-                    return OptionWidget(
-                      optionText: optionText,
-                      option: option,
-                      question: question,
-                      isSelected: userSelections[index] == option.optionLabel,
-                      isInstantMarking: widget.instantMarking,
-                      selectedOptionId: userSelections[index] ?? '',
-                      onSelectOption: (optionId) =>
-                          _selectOption(optionId, index),
-                      licenceId: widget.licenceId,
-                      categoryId: widget.categoryId,
-                      apiService: _apiService,
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            print(
+                                'Option tapped: ${option.optionLabel}'); // Debug
+                            print(
+                                'Current selections: $userSelections'); // Debug
+                            setState(() {
+                              userSelections[index] = option.optionLabel;
+                            });
+                            print(
+                                'Updated selections: $userSelections'); // Debug
+
+                            _selectOption(option.optionLabel, index);
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              // Determine background color and border for instant marking
+                              color: widget.instantMarking &&
+                                      userSelections[index] != null
+                                  ? (isSelected
+                                      ? (option.optionLabel ==
+                                              question.correctAnswer
+                                          ? Colors.green[100]
+                                          : Colors.red[100])
+                                      : (option.optionLabel ==
+                                              question.correctAnswer
+                                          ? Colors.green[200]
+                                          : Colors.white))
+                                  : (isSelected
+                                      ? Theme.of(context)
+                                          .primaryColor
+                                          .withOpacity(0.1)
+                                      : Colors.white),
+                              border: Border.all(
+                                color: widget.instantMarking &&
+                                        userSelections[index] != null
+                                    ? (option.optionLabel ==
+                                            question.correctAnswer
+                                        ? Colors.green[200]!
+                                        : isSelected
+                                            ? Colors.red[200]!
+                                            : Colors.grey[200]!)
+                                    : (isSelected
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.grey[300]!),
+                                width: widget.instantMarking &&
+                                        userSelections[index] != null
+                                    ? (option.optionLabel ==
+                                                question.correctAnswer ||
+                                            isSelected
+                                        ? 1.5
+                                        : 0.5)
+                                    : (isSelected ? 1 : 0.5),
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 200),
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: isSelected
+                                            ? Theme.of(context).primaryColor
+                                            : Colors.transparent,
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? Theme.of(context).primaryColor
+                                              : Colors.grey[400]!,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: isSelected
+                                          ? const Icon(
+                                              Icons.circle,
+                                              color: Colors.white,
+                                              size: 12,
+                                            )
+                                          : null,
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Text(
+                                        optionText,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.normal,
+                                          color: isSelected
+                                              ? Theme.of(context).primaryColor
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                // Option image (if available)
+                                if (option.imageUrl != null &&
+                                    option.imageUrl!.isNotEmpty)
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 12),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        option.imageUrl!,
+                                        width: double.infinity,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Container(
+                                            width: double.infinity,
+                                            height: 120,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[200],
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 24,
+                                                  color: Colors.grey[400],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  'Image not available',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                        loadingBuilder:
+                                            (context, child, loadingProgress) {
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return Container(
+                                            width: double.infinity,
+                                            height: 120,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[100],
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Center(
+                                              child: SizedBox(
+                                                width: 24,
+                                                height: 24,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  value: loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
+                                                      : null,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     );
-                  }),
-                  // Explanation
+                  }).toList(),
+
+                  const SizedBox(height: 24),
+
+                  // Explanation (scrollable)
                   if (widget.instantMarking && userSelections[index] != null)
-                    ExplanationWidget(
-                      question: question,
-                      licenceId: widget.licenceId,
-                      categoryId: widget.categoryId,
-                      apiService: _apiService,
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue[200]!, width: 1),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      
+                          Container(
+                            constraints: const BoxConstraints(
+                              maxHeight:
+                                  200, // Limit height to make it scrollable
+                            ),
+                            child: SingleChildScrollView(
+                              child: ExplanationWidget(
+                                question: question,
+                                licenceId: widget.licenceId,
+                                categoryId: widget.categoryId,
+                                apiService: _apiService,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               ),
@@ -440,81 +815,258 @@ class _TestscreenState extends State<Testscreen> {
           );
         },
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 32.0),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment:
-                MainAxisAlignment.spaceEvenly, // Space buttons evenly
-            children: [
-              ElevatedButton(
-                onPressed: _previousQuestion,
-                child: const Text('Back'),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: currentQuestionIndex > 0 ? _previousQuestion : null,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  side: BorderSide(
+                    color: currentQuestionIndex > 0
+                        ? Colors.grey[400]!
+                        : Colors.grey[300]!,
+                  ),
+                ),
+                child: Text(
+                  'Back',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: currentQuestionIndex > 0
+                        ? Colors.black87
+                        : Colors.grey[400],
+                  ),
+                ),
               ),
-              DropdownButton<String>(
-                value:
-                    currentLanguageCode, // ✅ reflect actual selected language
-                underline: const SizedBox(),
-                items: [
-                  {'code': 'SV', 'label': '🇸🇪'}, // Swedish (official)
-                  {
-                    'code': 'EN',
-                    'label': '🇬🇧'
-                  }, // English (widely used as second language)
-                  {'code': 'AR', 'label': '🇸🇦'}, // Arabic
-                  {'code': 'SO', 'label': '🇸🇴'}, // Somali
-                  {'code': 'FA', 'label': '🇮🇷'}, // Persian (Farsi)
-                  {'code': 'UR', 'label': '🇵🇰'}, // Urdu
-                  {
-                    'code': 'FI',
-                    'label': '🇫🇮'
-                  }, // Finnish (official minority)
-                  {'code': 'KU', 'label': '🇹🇷'}, // Kurdish (Kurmanji/Sorani)
-                  {'code': 'RU', 'label': '🇷🇺'}, // Russian
-                  {'code': 'TI', 'label': '🇪🇷'}, // Tigrinya
-                  {'code': 'DA', 'label': '🇩🇰'}, // Danish
-                  {'code': 'NO', 'label': '🇳🇴'}, // Norwegian
-                  {'code': 'PL', 'label': '🇵🇱'}, // Polish
-                  {'code': 'TR', 'label': '🇹🇷'}, // Turkish
-                ]
-                    .map((lang) => DropdownMenuItem<String>(
-                          value: lang['code'],
-                          child: Text(
-                            lang['label']!,
-                            style: const TextStyle(fontSize: 35),
-                          ),
-                        ))
-                    .toList(),
-                onChanged: (String? value) async {
-                  if (value == null) return;
-
-                  String targetLang = value.toLowerCase();
-                  // Optional condition if you want to skip already active languages
-                  if (targetLang != currentLanguageCode.toLowerCase()) {
-                    await _translateQuestion(currentQuestionIndex, targetLang);
-                    setState(() {
-                      currentLanguageCode = value; // ✅ update selected language
-                    });
-                  }
-                },
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle Save action
-                },
-                child: const Text('Save'),
-              ),
-              ElevatedButton(
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton(
                 onPressed: _nextQuestion,
-                child: Text(currentQuestionIndex == widget.questions.length - 1
-                    ? 'Finish'
-                    : 'Next'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  currentQuestionIndex == widget.questions.length - 1
+                      ? 'Finish'
+                      : 'Next',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+// Add this helper method for language flags
+  String _getLanguageFlag(String code) {
+    final flagMap = {
+      'SV': '🇸🇪',
+      'EN': '🇬🇧',
+      'AR': '🇸🇦',
+      'SO': '🇸🇴',
+      'FA': '🇮🇷',
+      'UR': '🇵🇰',
+      'FI': '🇫🇮',
+      'KU': '🇹🇷',
+      'RU': '🇷🇺',
+      'TI': '🇪🇷',
+      'DA': '🇩🇰',
+      'NO': '🇳🇴',
+      'PL': '🇵🇱',
+      'TR': '🇹🇷',
+    };
+    return flagMap[code.toUpperCase()] ?? '🌐';
+  }
+
+// Add this method to show the question navigation sheet
+  void _showQuestionNavigationSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Questions',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${currentQuestionIndex + 1} of ${widget.questions.length}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: widget.questions.length,
+                  itemBuilder: (context, index) {
+                    bool isAnswered = userSelections[index] != null;
+                    bool isCurrent = index == currentQuestionIndex;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            _pageController.animateToPage(
+                              index,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: isCurrent
+                                  ? Theme.of(context)
+                                      .primaryColor
+                                      .withOpacity(0.1)
+                                  : Colors.grey[50],
+                              border: Border.all(
+                                color: isCurrent
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.transparent,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: isAnswered
+                                        ? Colors.green
+                                        : isCurrent
+                                            ? Theme.of(context).primaryColor
+                                            : Colors.grey[300],
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: isAnswered
+                                        ? const Icon(
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 16,
+                                          )
+                                        : Text(
+                                            '${index + 1}',
+                                            style: TextStyle(
+                                              color: isCurrent || isAnswered
+                                                  ? Colors.white
+                                                  : Colors.grey[600],
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Question ${index + 1}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: isCurrent
+                                              ? Theme.of(context).primaryColor
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        isAnswered
+                                            ? 'Answered'
+                                            : 'Not answered',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isAnswered
+                                              ? Colors.green
+                                              : Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
