@@ -24,4 +24,9 @@ class Option {
       imageUrl: map['image_url'] ?? '',
     );
   }
+  Option copyWith({String? text, String? optionLabel}) => Option(
+        optionLabel: optionLabel ?? this.optionLabel,
+        text: text ?? this.text,
+        imageUrl: imageUrl,
+      );
 }

@@ -47,7 +47,10 @@ class _TestscreenState extends State<Testscreen> {
   bool isEnglish = true; // Track current language
   Map<int, String> translatedQuestions = {};
   Map<int, List<String>> translatedOptions = {};
-  String currentLanguageCode = 'EN';
+
+  Map<String, List<Question>> translatedQuestionsWithOptions = {};
+
+  String currentLanguageCode = 'SV';
 
   final _noScreenshot = NoScreenshot.instance;
 
@@ -270,10 +273,54 @@ class _TestscreenState extends State<Testscreen> {
     await box.close();
   }
 
-  Future<void> _translateQuestion(int index, String targetLang) async {
-    final question = widget.questions[index];
+  Future<List<Question>> translateQuestionsOnce(
+    List<Question> questions, {
+    required String fromLang,
+    required String toLang,
+    required GoogleTranslator translator,
+  }) async {
+    // 1 ─ Gather all strings that need translation (order matters!)
+    final List<String> buffer = [];
+    for (final q in questions) {
+      buffer.add(q.text);
+      buffer.addAll(q.options.map((o) => o.text));
+    }
 
-    // Show loading indicator
+    // 2 ─ Kick off *one* asynchronous batch of requests.
+    //     Each element in `results` keeps the same index it had in `buffer`.
+    final results = await Future.wait(
+      buffer
+          .map((txt) => translator.translate(txt, from: fromLang, to: toLang)),
+    ); // ← single await point :contentReference[oaicite:0]{index=0}
+
+    // 3 ─ Walk through the original structure and replace the texts.
+    var idx = 0;
+    return questions.map((q) {
+      final translatedQuestionText = results[idx++].text;
+
+      final translatedOptions = q.options.map((o) {
+        final translatedOptText = results[idx++].text;
+        return o.copyWith(text: translatedOptText);
+        // …or Option(optionLabel: o.optionLabel, text: translatedOptText, imageUrl: o.imageUrl);
+      }).toList();
+
+      return q.copyWith(
+          text: translatedQuestionText, options: translatedOptions);
+      // …or Question(text: translatedQuestionText, imageUrl: q.imageUrl, …);
+    }).toList();
+  }
+
+  Future<void> _translateQuestion(int index, String targetLang) async {
+    if (translatedQuestionsWithOptions.containsKey(targetLang)) {
+      // If already translated, just use the cached translation
+      final translated = translatedQuestionsWithOptions[targetLang]!;
+      translatedQuestions[index] = translated[index].text;
+      translatedOptions[index] =
+          translated[index].options.map((option) => option.text).toList();
+
+      return;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -281,27 +328,16 @@ class _TestscreenState extends State<Testscreen> {
     );
 
     try {
-      // Translate question text
-      var translatedQuestion = await translator.translate(
-        question.text,
-        from: 'sv',
-        to: targetLang,
+      final translated = await translateQuestionsOnce(
+        widget.questions,
+        fromLang: 'sv',
+        toLang: targetLang,
+        translator: translator,
       );
 
-      // Translate options
-      List<String> translatedOptionTexts = [];
-      for (var option in question.options) {
-        var translatedOption = await translator.translate(
-          option.text,
-          from: 'sv',
-          to: targetLang,
-        );
-        translatedOptionTexts.add(translatedOption.text);
-      }
+      translatedQuestionsWithOptions[targetLang] = translated;
 
       setState(() {
-        translatedQuestions[index] = translatedQuestion.text;
-        translatedOptions[index] = translatedOptionTexts;
         isEnglish = targetLang == 'en';
       });
     } catch (e) {
@@ -337,22 +373,24 @@ class _TestscreenState extends State<Testscreen> {
         onPageChanged: _onPageChanged,
         itemCount: widget.questions.length,
         itemBuilder: (context, index) {
-          final question = widget.questions[index];
+          final translatedList =
+              translatedQuestionsWithOptions[currentLanguageCode.toLowerCase()];
+          final question =
+              (translatedList != null && translatedList.length > index)
+                  ? translatedList[index]
+                  : widget.questions[index];
 
           // Sort options if necessary
           question.options
               .sort((a, b) => a.optionLabel.compareTo(b.optionLabel));
 
           // Get translated question text if available
-          String questionText = translatedQuestions[index] ?? question.text;
+          String questionText = question.text;
 
           // Get translated options if available
           List<String> optionTexts = [];
-          if (translatedOptions[index] != null) {
-            optionTexts = translatedOptions[index]!;
-          } else {
-            optionTexts = question.options.map((e) => e.text).toList();
-          }
+
+          optionTexts = question.options.map((e) => e.text).toList();
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
