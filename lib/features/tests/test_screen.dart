@@ -579,16 +579,6 @@ class _TestscreenState extends State<Testscreen> {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
-                            print(
-                                'Option tapped: ${option.optionLabel}'); // Debug
-                            print(
-                                'Current selections: $userSelections'); // Debug
-                            setState(() {
-                              userSelections[index] = option.optionLabel;
-                            });
-                            print(
-                                'Updated selections: $userSelections'); // Debug
-
                             _selectOption(option.optionLabel, index);
                           },
                           borderRadius: BorderRadius.circular(12),
@@ -798,13 +788,11 @@ class _TestscreenState extends State<Testscreen> {
                               maxHeight:
                                   200, // Limit height to make it scrollable
                             ),
-                            child: SingleChildScrollView(
-                              child: ExplanationWidget(
-                                question: question,
-                                licenceId: widget.licenceId,
-                                categoryId: widget.categoryId,
-                                apiService: _apiService,
-                              ),
+                            child: ExplanationWidget(
+                              question: question,
+                              licenceId: widget.licenceId,
+                              categoryId: widget.categoryId,
+                              apiService: _apiService,
                             ),
                           ),
                         ],
