@@ -1,1 +1,1 @@
-main: locking screen fixed android [deploy]
+main: updated start practice  card issue [deploy]

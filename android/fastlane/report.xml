@@ -5,39 +5,37 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000372">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000332">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: java -version" time="0.18291">
+      <testcase classname="fastlane.lanes" name="1: java -version" time="0.128706">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: google_play_track_version_codes" time="2.02008">
+      <testcase classname="fastlane.lanes" name="2: google_play_track_version_codes" time="2.350829">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: increment_version_code" time="0.002397">
+      <testcase classname="fastlane.lanes" name="3: increment_version_code" time="0.001998">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: git log -1 --pretty=%B" time="0.013407">
+      <testcase classname="fastlane.lanes" name="4: git log -1 --pretty=%B" time="0.012285">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="5: bundleRelease" time="104.649436">
+      <testcase classname="fastlane.lanes" name="5: bundleRelease" time="117.175137">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="6: upload_to_play_store" time="47.401369">
-        
-          <failure message="/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/actions/actions_helper.rb:67:in `execute_action'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/runner.rb:255:in `block in execute_action'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/runner.rb:229:in `chdir'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/runner.rb:229:in `execute_action'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/runner.rb:157:in `trigger_action_by_name'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/fast_file.rb:159:in `method_missing'&#10;Fastfile:31:in `block (2 levels) in parsing_binding'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/lane.rb:41:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/runner.rb:49:in `block in execute'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/runner.rb:45:in `chdir'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/runner.rb:45:in `execute'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/lane_manager.rb:46:in `cruise_lane'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/command_line_handler.rb:34:in `handle'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/commands_generator.rb:110:in `block (2 levels) in run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/command.rb:187:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/command.rb:157:in `run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/runner.rb:444:in `run_active_command'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane_core/lib/fastlane_core/ui/fastlane_runner.rb:124:in `run!'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/delegates.rb:18:in `run!'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/commands_generator.rb:363:in `run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/commands_generator.rb:43:in `start'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/fastlane/lib/fastlane/cli_tools_distributor.rb:123:in `take_off'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.225.0/bin/fastlane:23:in `&lt;top (required)&gt;'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/fastlane:23:in `load'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/fastlane:23:in `&lt;main&gt;'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/ruby_executable_hooks:22:in `eval'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/ruby_executable_hooks:22:in `&lt;main&gt;'&#10;&#10;Google Api Error: Invalid request - Track not found: closed." />
+      <testcase classname="fastlane.lanes" name="6: upload_to_play_store" time="42.022642">
         
       </testcase>
     
