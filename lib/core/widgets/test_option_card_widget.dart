@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 class TestOptionCard extends StatelessWidget {
@@ -34,14 +35,17 @@ class TestOptionCard extends StatelessWidget {
                 child: Icon(icon, color: color, size: 28),
               ),
               const SizedBox(height: 12),
-              Text(
+              AutoSizeText(
                 label,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
-              ),
+                maxLines: 1, // Try to fit in one line
+                minFontSize: 10, // Minimum size it can shrink to
+                overflow: TextOverflow.ellipsis,
+              )
             ],
           ),
         ),

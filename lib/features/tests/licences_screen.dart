@@ -55,7 +55,6 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   late TextEditingController _idController;
   late TextEditingController _seekToController;
 
-
   @override
   void initState() {
     super.initState();

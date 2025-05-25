@@ -67,6 +67,7 @@ dependencies:
   youtube_player_flutter: ^9.1.1
   modal_bottom_sheet: ^3.0.0
   expandable: ^5.0.1
+  auto_size_text: ^3.0.0
 
 dev_dependencies:
   flutter_test:
