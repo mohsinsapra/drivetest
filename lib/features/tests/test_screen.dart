@@ -8,8 +8,6 @@ import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
-import 'package:taxi_exam_app/core/widgets/option_widget.dart';
-import 'package:taxi_exam_app/core/widgets/question_widget.dart';
 import 'package:no_screenshot/no_screenshot.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
 import 'package:taxi_exam_app/features/tests/result_screen.dart';
