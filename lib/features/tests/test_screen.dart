@@ -3,9 +3,11 @@ import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/constants/language_options.dart';
 import 'package:taxi_exam_app/core/models/image_viewer.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
 import 'package:taxi_exam_app/core/widgets/option_widget.dart';
 import 'package:taxi_exam_app/core/widgets/question_widget.dart';
@@ -42,6 +44,7 @@ class _TestscreenState extends State<Testscreen> {
   Map<int, String> userSelections = {};
   final ApiService _apiService = ApiService();
 
+  final ttsService = TtsService();
   // Add PageController
   late PageController _pageController;
 
@@ -438,7 +441,7 @@ class _TestscreenState extends State<Testscreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _getLanguageFlag(currentLanguageCode),
+                      ttsService.getLanguageFlag(currentLanguageCode),
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(width: 4),
@@ -459,22 +462,7 @@ class _TestscreenState extends State<Testscreen> {
                   });
                 }
               },
-              itemBuilder: (BuildContext context) => [
-                {'code': 'SV', 'label': '🇸🇪 Swedish'},
-                {'code': 'EN', 'label': '🇬🇧 English'},
-                {'code': 'AR', 'label': '🇸🇦 Arabic'},
-                {'code': 'SO', 'label': '🇸🇴 Somali'},
-                {'code': 'FA', 'label': '🇮🇷 Persian'},
-                {'code': 'UR', 'label': '🇵🇰 Urdu'},
-                {'code': 'FI', 'label': '🇫🇮 Finnish'},
-                {'code': 'KU', 'label': '🇹🇷 Kurdish'},
-                {'code': 'RU', 'label': '🇷🇺 Russian'},
-                {'code': 'TI', 'label': '🇪🇷 Tigrinya'},
-                {'code': 'DA', 'label': '🇩🇰 Danish'},
-                {'code': 'NO', 'label': '🇳🇴 Norwegian'},
-                {'code': 'PL', 'label': '🇵🇱 Polish'},
-                {'code': 'TR', 'label': '🇹🇷 Turkish'},
-              ]
+              itemBuilder: (BuildContext context) => languageOptions
                   .map((lang) => PopupMenuItem<String>(
                         value: lang['code'],
                         child: Text(lang['label']!),
@@ -529,6 +517,22 @@ class _TestscreenState extends State<Testscreen> {
                       height: 1.3,
                     ),
                   ),
+                  if (ttsService.isTtsLanguageSupported(currentLanguageCode))
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        icon: const Icon(LucideIcons.volume2,
+                            color: Colors.blueGrey, size: 28),
+                        tooltip: 'Read aloud',
+                        onPressed: () {
+                          ttsService.speak(
+                            questionText,
+                            currentLanguageCode,
+                            () => setState(() {}),
+                          );
+                        },
+                      ),
+                    ),
                   const SizedBox(height: 16),
 
                   // Question image (if available)
@@ -875,25 +879,6 @@ class _TestscreenState extends State<Testscreen> {
   }
 
 // Add this helper method for language flags
-  String _getLanguageFlag(String code) {
-    final flagMap = {
-      'SV': '🇸🇪',
-      'EN': '🇬🇧',
-      'AR': '🇸🇦',
-      'SO': '🇸🇴',
-      'FA': '🇮🇷',
-      'UR': '🇵🇰',
-      'FI': '🇫🇮',
-      'KU': '🇹🇷',
-      'RU': '🇷🇺',
-      'TI': '🇪🇷',
-      'DA': '🇩🇰',
-      'NO': '🇳🇴',
-      'PL': '🇵🇱',
-      'TR': '🇹🇷',
-    };
-    return flagMap[code.toUpperCase()] ?? '🌐';
-  }
 
 // Add this method to show the question navigation sheet
   void _showQuestionNavigationSheet() {
