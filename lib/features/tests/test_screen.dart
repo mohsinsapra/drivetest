@@ -672,22 +672,27 @@ class _TestscreenState extends State<Testscreen> {
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
-                                          Text(
-                                            optionText,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: isSelected
-                                                  ? FontWeight.w600
-                                                  : FontWeight.normal,
-                                              color: isSelected
-                                                  ? Theme.of(context)
-                                                      .primaryColor
-                                                  : Colors.black87,
+                                          Expanded(
+                                            child: Text(
+                                              optionText,
+                                              softWrap: true,
+                                              overflow: TextOverflow.visible,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.normal,
+                                                color: isSelected
+                                                    ? Theme.of(context)
+                                                        .primaryColor
+                                                    : Colors.black87,
+                                              ),
                                             ),
                                           ),
+                                          const SizedBox(width: 8),
                                           TtsButton(
                                             textToSpeak: optionText,
                                             languageCode: currentLanguageCode,
@@ -803,10 +808,7 @@ class _TestscreenState extends State<Testscreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            constraints: const BoxConstraints(
-                              maxHeight:
-                                  200, // Limit height to make it scrollable
-                            ),
+                            constraints: const BoxConstraints(),
                             child: ExplanationWidget(
                               question: question,
                               licenceId: widget.licenceId,
