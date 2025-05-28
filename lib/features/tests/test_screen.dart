@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/constants/language_options.dart';
 import 'package:taxi_exam_app/core/models/image_viewer.dart';
@@ -12,6 +11,7 @@ import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
 import 'package:taxi_exam_app/core/widgets/option_widget.dart';
 import 'package:taxi_exam_app/core/widgets/question_widget.dart';
 import 'package:no_screenshot/no_screenshot.dart';
+import 'package:taxi_exam_app/core/widgets/tts_button.dart';
 import 'package:taxi_exam_app/features/tests/result_screen.dart';
 import 'package:translator/translator.dart';
 
@@ -75,6 +75,8 @@ class _TestscreenState extends State<Testscreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    ttsService.flutterTts.stop(); // Stop TTS when disposing
+    ttsService.ttsState = TtsState.stopped; // Reset TTS state
     super.dispose();
   }
 
@@ -82,6 +84,8 @@ class _TestscreenState extends State<Testscreen> {
     setState(() {
       currentQuestionIndex = index;
     });
+    ttsService.flutterTts.stop(); // Stop TTS when changing page
+    ttsService.ttsState = TtsState.stopped; // Reset TTS state
   }
 
   void _selectOption(String optionId, int index) {
@@ -508,31 +512,29 @@ class _TestscreenState extends State<Testscreen> {
                   // Question header
 
                   // Question text
-                  Text(
-                    questionText,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                      height: 1.3,
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        height: 1.3,
+                        fontFamily: 'NudMoto',
+                      ),
+                      children: [
+                        TextSpan(text: questionText),
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: TtsButton(
+                            textToSpeak: questionText,
+                            languageCode: currentLanguageCode,
+                            iconSize: 24, // adjust for visual balance
+                            tooltip: 'Read aloud',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  if (ttsService.isTtsLanguageSupported(currentLanguageCode))
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        icon: const Icon(LucideIcons.volume2,
-                            color: Colors.blueGrey, size: 28),
-                        tooltip: 'Read aloud',
-                        onPressed: () {
-                          ttsService.speak(
-                            questionText,
-                            currentLanguageCode,
-                            () => setState(() {}),
-                          );
-                        },
-                      ),
-                    ),
                   const SizedBox(height: 16),
 
                   // Question image (if available)
@@ -669,17 +671,30 @@ class _TestscreenState extends State<Testscreen> {
                                     ),
                                     const SizedBox(width: 16),
                                     Expanded(
-                                      child: Text(
-                                        optionText,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w600
-                                              : FontWeight.normal,
-                                          color: isSelected
-                                              ? Theme.of(context).primaryColor
-                                              : Colors.black87,
-                                        ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            optionText,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w600
+                                                  : FontWeight.normal,
+                                              color: isSelected
+                                                  ? Theme.of(context)
+                                                      .primaryColor
+                                                  : Colors.black87,
+                                            ),
+                                          ),
+                                          TtsButton(
+                                            textToSpeak: optionText,
+                                            languageCode: currentLanguageCode,
+                                            iconSize: 20,
+                                            tooltip: 'Read option aloud',
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],

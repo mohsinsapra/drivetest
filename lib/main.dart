@@ -50,6 +50,7 @@ final customTheme = ThemeData(
     bodyMedium: TextStyle(fontFamily: 'NudMoto'),
     titleLarge: TextStyle(fontFamily: 'NudMoto'),
   ),
+  
   colorScheme: const ColorScheme(
     primary: Color.fromARGB(255, 39, 121, 188),
     primaryContainer: Color(0xFF2779BC),
