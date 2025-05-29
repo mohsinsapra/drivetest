@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -44,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user', jsonEncode(user));
       }
-
+      await Hive.deleteFromDisk();
       // Store tokens only when Remember Me is selected
       final refreshToken = DioClient().refreshToken;
       final accessToken = DioClient().accessToken;

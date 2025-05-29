@@ -35,6 +35,7 @@ class MainScreenState extends State<MainScreen> {
 
     // Listen for index changes and animate the page view
     Provider.of<MainScreenProvider>(context).addListener(() {
+      if (!mounted) return;
       final index =
           Provider.of<MainScreenProvider>(context, listen: false).currentIndex;
       _pageController.jumpToPage(index); // or use animateToPage
@@ -52,7 +53,6 @@ class MainScreenState extends State<MainScreen> {
       _currentIndex = index;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {

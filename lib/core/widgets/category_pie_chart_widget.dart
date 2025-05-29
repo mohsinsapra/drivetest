@@ -8,19 +8,19 @@ class CategoryPieChart extends StatelessWidget {
   const CategoryPieChart({
     Key? key,
     required this.data,
-    this.title = "Category Distribution",
+    this.title = "Categories",
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final total = data.values.fold(0, (sum, value) => sum + value);
     final colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.teal,
-      Colors.redAccent,
+      const Color(0xFF4F8FFF), // Soft Blue
+      const Color(0xFF43D9B8), // Mint Green
+      const Color(0xFFFFB86C), // Peach Orange
+      const Color(0xFFB388FF), // Lavender Purple
+      const Color(0xFF6EE7B7), // Light Teal
+      const Color(0xFFFF6F91), // Coral Pink
     ];
 
     final sections = <PieChartSectionData>[];

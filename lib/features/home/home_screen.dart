@@ -9,8 +9,6 @@ import 'package:taxi_exam_app/core/widgets/attempt_entry_card.dart';
 import 'package:taxi_exam_app/core/widgets/attempt_group_card.dart';
 import 'package:taxi_exam_app/core/widgets/attempt_spark_widget.dart';
 import 'package:taxi_exam_app/core/widgets/attempt_tabs_widget.dart';
-import 'package:taxi_exam_app/core/widgets/attempt_timeline_chart.dart';
-import 'package:taxi_exam_app/core/widgets/category_bar_chart_widget.dart';
 import 'package:taxi_exam_app/core/widgets/category_pie_chart_widget.dart';
 
 import 'package:taxi_exam_app/core/widgets/user_header_widget.dart';
@@ -196,6 +194,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     UserHeaderWidget(
                         overallPercentage: _stats['averageScore'] ?? 0),
                     const SizedBox(height: 24),
+
+                    // 🔹 Tabs for each licence type
+                    AttemptTabsWidget(
+                      tabNames: licenceNames,
+                      selectedIndex: selectedTabIndex,
+                      onTabChanged: (i) => setState(() => selectedTabIndex = i),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // 🔹 Group card for selected licence
+                    AttemptGroupCard(
+                      licence: selectedLicence,
+                      status:
+                          (_stats['licenceCounts'][selectedLicence] ?? 0) >= 3
+                              ? "Promoted"
+                              : "In Progress",
+                      dateRange: _buildDateRange(selectedLicence),
+                    ),
+                    const SizedBox(height: 24),
                     Row(
                       children: [
                         Expanded(
@@ -241,29 +259,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
 
-                    // 🔹 Tabs for each licence type
-                    AttemptTabsWidget(
-                      tabNames: licenceNames,
-                      selectedIndex: selectedTabIndex,
-                      onTabChanged: (i) => setState(() => selectedTabIndex = i),
-                    ),
+                    const SizedBox(height: 8),
 
+                    // 🔹 Optional charts if needed
+
+                    if (_stats['licenceWithCategories'] != null &&
+                        _stats['licenceWithCategories'][selectedLicence] !=
+                            null)
+                      CategoryPieChart(
+                        data: Map<String, int>.from(
+                          _stats['licenceWithCategories'][selectedLicence],
+                        ),
+                      ),
                     const SizedBox(height: 16),
-
-                    // 🔹 Group card for selected licence
-                    AttemptGroupCard(
-                      licence: selectedLicence,
-                      status:
-                          (_stats['licenceCounts'][selectedLicence] ?? 0) >= 3
-                              ? "Promoted"
-                              : "In Progress",
-                      dateRange: _buildDateRange(selectedLicence),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        "Previous Attempts",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-
-                    const SizedBox(height: 16),
-
                     // 🔹 Attempts List filtered by selected licence
                     ..._previousAttempts
                         .where((a) => a.licenceName == selectedLicence)
@@ -279,19 +298,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                               child: AttemptEntryCard(attempt: attempt),
                             )),
-
-                    const SizedBox(height: 16),
-
-                    // 🔹 Optional charts if needed
-
-                    if (_stats['licenceWithCategories'] != null &&
-                        _stats['licenceWithCategories'][selectedLicence] !=
-                            null)
-                      CategoryPieChart(
-                        data: Map<String, int>.from(
-                          _stats['licenceWithCategories'][selectedLicence],
-                        ),
-                      ),
                   ],
                 ),
               ),

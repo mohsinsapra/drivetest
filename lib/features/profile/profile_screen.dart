@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -215,6 +216,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       onPressed: () async {
                                         Navigator.pop(context); // Close sheet
                                         await _apiService.logout();
+                                        //  var box = await Hive.openBox<TestAttempt>('testAttempts');
+
+                                        await Hive.deleteFromDisk();
+
                                         Navigator.of(context)
                                             .pushAndRemoveUntil(
                                           MaterialPageRoute(
