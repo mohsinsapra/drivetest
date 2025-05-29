@@ -1,0 +1,1 @@
+main: added text to speach to options [deploy]

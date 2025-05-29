@@ -120,6 +120,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     } catch (e) {
       _showSnackBar('Error fetching license types: $e');
     } finally {
+      if (!mounted) return;
       setState(() => isLoading = false);
     }
   }
@@ -407,7 +408,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         final category = categories[index];
         return CategoryCard(
           category: category,
-          onTap: () => _onCategoryPressed(category),
+          onTap: () => {_onCategoryPressed(category)},
         );
       },
     );
@@ -433,6 +434,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
                 instantMarking: true,
                 licenceId: selectedLicenseType?['licence_id'],
                 categoryId: selectedCategory?['category_id'],
+                licenceName: selectedLicenseType?['name'],
+                categoryName: selectedCategory?['name'],
               ),
             ),
           );

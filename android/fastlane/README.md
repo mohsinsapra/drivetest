@@ -31,6 +31,14 @@ Deploy Beta
 
 Deploy Production
 
+### android promote_internal_to_alpha
+
+```sh
+[bundle exec] fastlane android promote_internal_to_alpha
+```
+
+promote from internal to alpha
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

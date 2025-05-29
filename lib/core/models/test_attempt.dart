@@ -24,6 +24,12 @@ class TestAttempt extends HiveObject {
   @HiveField(5)
   List<Question> questions;
 
+  @HiveField(6)
+  String? licenceName;
+
+  @HiveField(7)
+  String? categoryName;
+
   TestAttempt({
     required this.testId,
     required this.dateTime,
@@ -31,5 +37,7 @@ class TestAttempt extends HiveObject {
     required this.score,
     required this.hasPassed,
     required this.questions,
+    required this.licenceName,
+    required this.categoryName,
   });
 }

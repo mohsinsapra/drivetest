@@ -23,13 +23,15 @@ class TestAttemptAdapter extends TypeAdapter<TestAttempt> {
       score: fields[3] as double,
       hasPassed: fields[4] as bool,
       questions: (fields[5] as List).cast<Question>(),
+      licenceName: fields[6] as String?,
+      categoryName: fields[7] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TestAttempt obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.testId)
       ..writeByte(1)
@@ -41,7 +43,11 @@ class TestAttemptAdapter extends TypeAdapter<TestAttempt> {
       ..writeByte(4)
       ..write(obj.hasPassed)
       ..writeByte(5)
-      ..write(obj.questions);
+      ..write(obj.questions)
+      ..writeByte(6)
+      ..write(obj.licenceName)
+      ..writeByte(7)
+      ..write(obj.categoryName);
   }
 
   @override

@@ -8,7 +8,7 @@ platform :android do
     
 
     previous_build_number = google_play_track_version_codes(
-      track: "internal"
+      track: "alpha"
     ).max
 
     current_build_number = previous_build_number + 1
@@ -28,7 +28,9 @@ platform :android do
 
     # gradle(task: "assembleRelease") # This will build the APK
     gradle(task: "bundleRelease")
-    upload_to_play_store(track: "internal", skip_upload_metadata: true, skip_upload_images: true, version_code:current_build_number,
+    upload_to_play_store(track: "alpha", skip_upload_metadata: true,
+      # track_promote_to: "alpha",
+    skip_upload_images: true, version_code:current_build_number,
     
      aab: "../build/app/outputs/bundle/release/app-release.aab",
     )
@@ -39,4 +41,14 @@ platform :android do
     gradle(task: "assembleRelease")
     upload_to_play_store(track: "production")
   end
+
+  desc "promote from internal to alpha"
+  lane :promote_internal_to_alpha do
+  promote_to_track(
+    from_track: 'internal',
+    track: 'alpha',
+    rollout: 1.0
+  )
+end
+
 end

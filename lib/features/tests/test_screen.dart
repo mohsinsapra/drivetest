@@ -18,6 +18,8 @@ class Testscreen extends StatefulWidget {
   final bool instantMarking;
   final String licenceId;
   final String categoryId;
+  final String licenceName;
+  final String categoryName;
   final int initialQuestionIndex;
   final Map<int, String>? userSelections;
   final bool isReviewMode; // New parameter
@@ -28,6 +30,8 @@ class Testscreen extends StatefulWidget {
     required this.instantMarking,
     required this.licenceId,
     required this.categoryId,
+    this.licenceName = '',
+    this.categoryName = '',
     this.initialQuestionIndex = 0,
     this.userSelections,
     this.isReviewMode = false, // Default to false
@@ -269,6 +273,8 @@ class _TestscreenState extends State<Testscreen> {
       score: scorePercentage,
       hasPassed: hasPassed,
       questions: widget.questions, // Save questions for detailed view
+      licenceName: widget.licenceName,
+      categoryName: widget.categoryName,
     );
 
     // Open a Hive box

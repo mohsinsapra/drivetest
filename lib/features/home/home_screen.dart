@@ -4,6 +4,16 @@ import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/utils/calculate_stats.dart';
+import 'package:taxi_exam_app/core/widgets/attempt_entry_card.dart';
+import 'package:taxi_exam_app/core/widgets/attempt_group_card.dart';
+import 'package:taxi_exam_app/core/widgets/attempt_spark_widget.dart';
+import 'package:taxi_exam_app/core/widgets/attempt_tabs_widget.dart';
+import 'package:taxi_exam_app/core/widgets/attempt_timeline_chart.dart';
+import 'package:taxi_exam_app/core/widgets/category_bar_chart_widget.dart';
+import 'package:taxi_exam_app/core/widgets/category_pie_chart_widget.dart';
+
+import 'package:taxi_exam_app/core/widgets/user_header_widget.dart';
 import 'package:taxi_exam_app/features/home/attempt_detail_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
@@ -16,7 +26,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<TestAttempt> _previousAttempts = [];
+  Map<String, dynamic> _stats = {};
+  int selectedTabIndex = 0;
 
+  List<String> get licenceNames =>
+      _stats['licenceWithCategories']?.keys.toList() ?? [];
+
+  String get selectedLicence =>
+      licenceNames.isNotEmpty ? licenceNames[selectedTabIndex] : '';
   @override
   void initState() {
     super.initState();
@@ -28,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _previousAttempts = box.values.toList().cast<TestAttempt>();
+      _stats = calculateStats(_previousAttempts);
     });
   }
 
@@ -45,6 +63,19 @@ class _HomeScreenState extends State<HomeScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('All tests have been deleted.')),
     );
+  }
+
+  String _buildDateRange(String licence) {
+    final attempts = _previousAttempts
+        .where((a) => a.licenceName == licence)
+        .toList()
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
+    if (attempts.isEmpty) return '';
+
+    final start = attempts.first.dateTime;
+    final end = attempts.last.dateTime;
+    return "${start.day}/${start.month} to ${end.day}/${end.month}";
   }
 
   void _confirmDeleteAllTests() {
@@ -76,9 +107,60 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Map<String, int> getDailyAttemptCounts(List<TestAttempt> attempts) {
+    final now = DateTime.now();
+    final Map<String, int> result = {};
+
+    for (int i = 6; i >= 0; i--) {
+      final date =
+          DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
+      final key = "${date.day}/${date.month}";
+      final count = attempts
+          .where((a) =>
+              a.dateTime.year == date.year &&
+              a.dateTime.month == date.month &&
+              a.dateTime.day == date.day)
+          .length;
+      result[key] = count;
+    }
+
+    return result;
+  }
+
+  Map<String, int> getMonthlyAttemptCounts(List<TestAttempt> attempts) {
+    final now = DateTime.now();
+    final Map<String, int> result = {};
+
+    for (int i = 5; i >= 0; i--) {
+      final date = DateTime(now.year, now.month - i, 1);
+      final key = "${date.month}/${date.year}";
+      final count = attempts
+          .where((a) =>
+              a.dateTime.year == date.year && a.dateTime.month == date.month)
+          .length;
+      result[key] = count;
+    }
+
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool hasData = _previousAttempts.isNotEmpty;
+    final Map<String, Map<String, int>> licenceWithCategories =
+        Map<String, Map<String, int>>.from(
+            _stats['licenceWithCategories'] ?? {});
+    List<String> licenceNames = licenceWithCategories.keys.toList();
+
+    // Filter attempts for today and this month
+
+    final dailyCounts = getDailyAttemptCounts(
+      _previousAttempts.where((a) => a.licenceName == selectedLicence).toList(),
+    );
+
+    final monthlyCounts = getMonthlyAttemptCounts(
+      _previousAttempts.where((a) => a.licenceName == selectedLicence).toList(),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -106,81 +188,112 @@ class _HomeScreenState extends State<HomeScreen> {
       body: hasData
           ? Padding(
               padding: const EdgeInsets.all(16.0),
-              child: ListView.builder(
-                itemCount: _previousAttempts.length,
-                itemBuilder: (context, index) {
-                  final attempt = _previousAttempts[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              AttemptDetailScreen(attempt: attempt),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundColor: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withOpacity(0.1),
-                            child: Icon(
-                              attempt.hasPassed
-                                  ? Icons.check_circle_outline
-                                  : Icons.error_outline,
-                              color: attempt.hasPassed
-                                  ? Colors.green
-                                  : Colors.redAccent,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 🔹 User Header with overall average score
+                    UserHeaderWidget(
+                        overallPercentage: _stats['averageScore'] ?? 0),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Attempt on ${attempt.dateTime.toLocal().toString().split('.')[0]}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Score: ${attempt.score.toStringAsFixed(1)}%, '
-                                  'Passed: ${attempt.hasPassed ? 'Yes' : 'No'}',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
-                                ),
+                                const Text("Today",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                AttemptCountLineGraph(
+                                    data: dailyCounts,
+                                    lineColor: Colors.redAccent),
                               ],
                             ),
                           ),
-                          const Icon(Icons.chevron_right, color: Colors.grey),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              children: [
+                                const Text("This month",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 8),
+                                AttemptCountLineGraph(
+                                    data: monthlyCounts,
+                                    lineColor: Colors.orange),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
+                    const SizedBox(height: 24),
+
+                    // 🔹 Tabs for each licence type
+                    AttemptTabsWidget(
+                      tabNames: licenceNames,
+                      selectedIndex: selectedTabIndex,
+                      onTabChanged: (i) => setState(() => selectedTabIndex = i),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // 🔹 Group card for selected licence
+                    AttemptGroupCard(
+                      licence: selectedLicence,
+                      status:
+                          (_stats['licenceCounts'][selectedLicence] ?? 0) >= 3
+                              ? "Promoted"
+                              : "In Progress",
+                      dateRange: _buildDateRange(selectedLicence),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // 🔹 Attempts List filtered by selected licence
+                    ..._previousAttempts
+                        .where((a) => a.licenceName == selectedLicence)
+                        .map((attempt) => GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        AttemptDetailScreen(attempt: attempt),
+                                  ),
+                                );
+                              },
+                              child: AttemptEntryCard(attempt: attempt),
+                            )),
+
+                    const SizedBox(height: 16),
+
+                    // 🔹 Optional charts if needed
+
+                    if (_stats['licenceWithCategories'] != null &&
+                        _stats['licenceWithCategories'][selectedLicence] !=
+                            null)
+                      CategoryPieChart(
+                        data: Map<String, int>.from(
+                          _stats['licenceWithCategories'][selectedLicence],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             )
           : Center(
