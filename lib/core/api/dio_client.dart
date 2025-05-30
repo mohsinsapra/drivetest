@@ -11,6 +11,8 @@ import 'package:taxi_exam_app/core/utils/crypto_service.dart'; // For HMAC-SHA25
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();
+  DioClient._internal();
+
   late final Dio dio;
   final keyString = 'ThisIsA32ByteLongSecretKeyForAES'; // 32-byte key
   late final List<int> key;
@@ -26,9 +28,7 @@ class DioClient {
   Future<void> init() async {
     // Load the refreshToken from secure storage
     refreshToken = await _secureStorage.read(key: 'refreshToken');
-  }
 
-  DioClient._internal() {
     key = utf8.encode(keyString);
     cryptoService = CryptoService(Uint8List.fromList(key));
 
@@ -96,6 +96,7 @@ class DioClient {
       },
     ));
   }
+
   Future<bool> _refreshAccessToken() async {
     if (refreshToken == null) return false;
 
