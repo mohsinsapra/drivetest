@@ -1,52 +1,69 @@
 import 'package:flutter/material.dart';
-import 'package:taxi_exam_app/core/widgets/tts_button.dart';
+import 'tts_button.dart'; // ⬅️ update path if needed
 
-class OptionWidget extends StatelessWidget {
-  final String optionText;
+class Option extends StatelessWidget {
+  final String text;
   final String optionLabel;
-  final String correctAnswer;
   final String? imageUrl;
-  final String currentLanguageCode;
+
+  /// `true` when the user tapped this option.
   final bool isSelected;
-  final bool instantMarking;
+
+  /// Whether the test is in instant-marking mode *and* the user already
+  /// chose something for this question.
+  final bool showInstantMarking;
+
+  /// If `showInstantMarking` is true, this decides the green (✔︎) or red (✘) colour.
+  final bool isCorrectAnswer;
+
+  /// Called when the tile is tapped.
   final VoidCallback onTap;
 
-  const OptionWidget({
+  /// ISO-639-1 code used by TTS (e.g. “en”, “sv” …)
+  final String languageCode;
+
+  const Option({
     super.key,
-    required this.optionText,
+    required this.text,
     required this.optionLabel,
-    required this.correctAnswer,
     this.imageUrl,
-    required this.currentLanguageCode,
     required this.isSelected,
-    required this.instantMarking,
+    required this.showInstantMarking,
+    required this.isCorrectAnswer,
     required this.onTap,
+    this.languageCode = 'sv',
   });
+
+  // --- Helper colour getters -------------------------------------------------
+  Color _backgroundColor(BuildContext ctx) {
+    if (!showInstantMarking) {
+      return isSelected
+          ? Theme.of(ctx).primaryColor.withOpacity(0.1)
+          : Colors.white;
+    }
+    if (isSelected) {
+      return isCorrectAnswer ? Colors.green[100]! : Colors.red[100]!;
+    }
+    return isCorrectAnswer ? Colors.green[200]! : Colors.white;
+  }
+
+  Color _borderColor(BuildContext ctx) {
+    if (!showInstantMarking) {
+      return isSelected ? Theme.of(ctx).primaryColor : Colors.grey[300]!;
+    }
+    if (isCorrectAnswer) return Colors.green[200]!;
+    if (isSelected) return Colors.red[200]!;
+    return Colors.grey[200]!;
+  }
+
+  double _borderWidth() {
+    if (!showInstantMarking) return isSelected ? 1.0 : 0.5;
+    return (isCorrectAnswer || isSelected) ? 1.5 : 0.5;
+  }
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    final bool isCorrect = optionLabel == correctAnswer;
-
-    final backgroundColor = instantMarking
-        ? (isSelected
-            ? (isCorrect ? Colors.green[100] : Colors.red[100])
-            : (isCorrect ? Colors.green[100] : Colors.white))
-        : (isSelected
-            ? Theme.of(context).primaryColor.withOpacity(0.1)
-            : Colors.white);
-
-    final borderColor = instantMarking
-        ? (isCorrect
-            ? Colors.green[200]!
-            : isSelected
-                ? Colors.red[200]!
-                : Colors.grey[100]!)
-        : (isSelected ? Theme.of(context).primaryColor : Colors.grey[300]!);
-
-    final borderWidth = instantMarking
-        ? ((isCorrect || isSelected) ? 1.5 : 0.5)
-        : (isSelected ? 1 : 0.5);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Material(
@@ -58,9 +75,11 @@ class OptionWidget extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: backgroundColor,
-              border:
-                  Border.all(color: borderColor, width: borderWidth.toDouble()),
+              color: _backgroundColor(context),
+              border: Border.all(
+                color: _borderColor(context),
+                width: _borderWidth(),
+              ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -73,9 +92,10 @@ class OptionWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ── label row ────────────────────────────────────────────────
                 Row(
                   children: [
-                    // Circle
+                    // radio-style bullet
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       width: 24,
@@ -98,16 +118,16 @@ class OptionWidget extends StatelessWidget {
                           : null,
                     ),
                     const SizedBox(width: 16),
-                    // Text + TTS
+
+                    // option text + TTS
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
                             child: Text(
-                              optionText,
+                              text,
                               softWrap: true,
-                              overflow: TextOverflow.visible,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: isSelected
@@ -121,8 +141,8 @@ class OptionWidget extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           TtsButton(
-                            textToSpeak: optionText,
-                            languageCode: currentLanguageCode,
+                            textToSpeak: text,
+                            languageCode: languageCode,
                             iconSize: 20,
                             tooltip: 'Read option aloud',
                           ),
@@ -131,6 +151,7 @@ class OptionWidget extends StatelessWidget {
                     ),
                   ],
                 ),
+                // ── thumbnail (optional) ────────────────────────────────────
                 if (imageUrl != null && imageUrl!.isNotEmpty)
                   Container(
                     margin: const EdgeInsets.only(top: 12),
@@ -141,29 +162,10 @@ class OptionWidget extends StatelessWidget {
                         width: double.infinity,
                         height: 120,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
+                        loadingBuilder: (c, child, progress) {
+                          if (progress == null) return child;
                           return Container(
-                            height: 120,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.image_not_supported,
-                                    size: 24, color: Colors.grey[400]),
-                                const SizedBox(height: 4),
-                                Text('Image not available',
-                                    style: TextStyle(
-                                        fontSize: 12, color: Colors.grey[600])),
-                              ],
-                            ),
-                          );
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
+                            width: double.infinity,
                             height: 120,
                             decoration: BoxDecoration(
                               color: Colors.grey[100],
@@ -175,16 +177,34 @@ class OptionWidget extends StatelessWidget {
                                 height: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  value: loadingProgress.expectedTotalBytes !=
-                                          null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
+                                  value: progress.expectedTotalBytes != null
+                                      ? progress.cumulativeBytesLoaded /
+                                          progress.expectedTotalBytes!
                                       : null,
                                 ),
                               ),
                             ),
                           );
                         },
+                        errorBuilder: (c, _, __) => Container(
+                          width: double.infinity,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.image_not_supported,
+                                  size: 24, color: Colors.grey[400]),
+                              const SizedBox(height: 4),
+                              Text('Image not available',
+                                  style: TextStyle(
+                                      color: Colors.grey[600], fontSize: 12)),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),

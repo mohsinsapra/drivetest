@@ -9,8 +9,12 @@ import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
 import 'package:no_screenshot/no_screenshot.dart';
+import 'package:taxi_exam_app/core/widgets/navigation_controls.dart';
+import 'package:taxi_exam_app/core/widgets/option_tile.dart';
+import 'package:taxi_exam_app/core/widgets/question_progress_header.dart';
+import 'package:taxi_exam_app/core/widgets/test_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
-import 'package:taxi_exam_app/features/tests/result_screen.dart';
+
 import 'package:translator/translator.dart';
 
 class Testscreen extends StatefulWidget {
@@ -100,7 +104,7 @@ class _TestscreenState extends State<Testscreen> {
     });
   }
 
-  void _nextQuestion() {
+  void _nextQuestion() async {
     if (currentQuestionIndex < widget.questions.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -108,7 +112,22 @@ class _TestscreenState extends State<Testscreen> {
       );
     } else {
       // Show confirmation dialog
-      _showFinishConfirmationDialog();
+      await showFinishConfirmationDialog(
+        context: context,
+        unansweredCount: widget.questions.length - userSelections.length,
+        onCancel: () {}, // nothing extra to do
+        onConfirm: () {
+          _saveTestAttempt();
+          showResultDialog(
+            context: context,
+            hasPassed: _calculateResult(),
+            questions: widget.questions,
+            userSelections: userSelections,
+            licenceId: widget.licenceId,
+            categoryId: widget.categoryId,
+          );
+        },
+      );
     }
   }
 
@@ -123,54 +142,6 @@ class _TestscreenState extends State<Testscreen> {
         const SnackBar(content: Text('This is the first question!')),
       );
     }
-  }
-
-  void _showFinishConfirmationDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // User must tap a button to dismiss
-      builder: (BuildContext context) {
-        int unansweredQuestions =
-            widget.questions.length - userSelections.length;
-
-        return AlertDialog(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Finish Test'),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  Navigator.of(context).pop(); // Dismiss the dialog
-                },
-              ),
-            ],
-          ),
-          content: Text(
-            unansweredQuestions > 0
-                ? 'You have $unansweredQuestions unanswered question(s). Do you still want to finish the test?'
-                : 'Do you want to finish the test?',
-          ),
-          actions: [
-            TextButton(
-              child: const Text('No'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-              },
-            ),
-            ElevatedButton(
-              child: const Text('Yes'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-                _saveTestAttempt();
-
-                _showResultDialog(); // Show pass/fail result
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   bool _calculateResult() {
@@ -188,65 +159,6 @@ class _TestscreenState extends State<Testscreen> {
 
     double scorePercentage = (correctAnswers / widget.questions.length) * 100;
     return scorePercentage >= 70; // Assume passing score is 70%
-  }
-
-  void _showResultDialog() {
-    bool hasPassed = _calculateResult();
-
-    showDialog(
-      context: context,
-      barrierDismissible: false, // User must tap a button to dismiss
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(hasPassed ? 'Congratulations!' : 'Test Completed'),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  Navigator.of(context).pop(); // Dismiss the dialog
-                },
-              ),
-            ],
-          ),
-          content: Text(
-            hasPassed
-                ? 'You have passed the test.'
-                : 'You did not pass the test.',
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Go Back to Tests'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-                Navigator.of(context).pop(); // Go back to tests screen
-              },
-            ),
-            ElevatedButton(
-              child: const Text('See Results'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-                // Navigate to ResultScreen and remove previous routes
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ResultScreen(
-                      questions: widget.questions,
-                      userSelections: userSelections,
-                      licenceId: widget.licenceId,
-                      categoryId: widget.categoryId,
-                      hasPassed: hasPassed,
-                    ),
-                  ),
-                  (Route<dynamic> route) => route.isFirst,
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _saveTestAttempt() async {
@@ -379,58 +291,10 @@ class _TestscreenState extends State<Testscreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: GestureDetector(
+        title: QuestionProgressHeader(
+          currentIndex: currentQuestionIndex,
+          total: widget.questions.length,
           onTap: _showQuestionNavigationSheet,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey[200]!, width: 1),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Progress bar
-                Container(
-                  width: 100,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  child: FractionallySizedBox(
-                    alignment: Alignment.centerLeft,
-                    widthFactor:
-                        (currentQuestionIndex + 1) / widget.questions.length,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Question counter
-                Text(
-                  '${currentQuestionIndex + 1}/${widget.questions.length}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                // Dropdown indicator
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 16,
-                  color: Colors.grey[500],
-                ),
-              ],
-            ),
-          ),
         ),
         centerTitle: true,
         actions: [
@@ -583,214 +447,17 @@ class _TestscreenState extends State<Testscreen> {
                     bool isSelected =
                         userSelections[index] == option.optionLabel;
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            _selectOption(option.optionLabel, index);
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              // Determine background color and border for instant marking
-                              color: widget.instantMarking &&
-                                      userSelections[index] != null
-                                  ? (isSelected
-                                      ? (option.optionLabel ==
-                                              question.correctAnswer
-                                          ? Colors.green[100]
-                                          : Colors.red[100])
-                                      : (option.optionLabel ==
-                                              question.correctAnswer
-                                          ? Colors.green[200]
-                                          : Colors.white))
-                                  : (isSelected
-                                      ? Theme.of(context)
-                                          .primaryColor
-                                          .withOpacity(0.1)
-                                      : Colors.white),
-                              border: Border.all(
-                                color: widget.instantMarking &&
-                                        userSelections[index] != null
-                                    ? (option.optionLabel ==
-                                            question.correctAnswer
-                                        ? Colors.green[200]!
-                                        : isSelected
-                                            ? Colors.red[200]!
-                                            : Colors.grey[200]!)
-                                    : (isSelected
-                                        ? Theme.of(context).primaryColor
-                                        : Colors.grey[300]!),
-                                width: widget.instantMarking &&
-                                        userSelections[index] != null
-                                    ? (option.optionLabel ==
-                                                question.correctAnswer ||
-                                            isSelected
-                                        ? 1.5
-                                        : 0.5)
-                                    : (isSelected ? 1 : 0.5),
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      width: 24,
-                                      height: 24,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: isSelected
-                                            ? Theme.of(context).primaryColor
-                                            : Colors.transparent,
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? Theme.of(context).primaryColor
-                                              : Colors.grey[400]!,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: isSelected
-                                          ? const Icon(
-                                              Icons.circle,
-                                              color: Colors.white,
-                                              size: 12,
-                                            )
-                                          : null,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              optionText,
-                                              softWrap: true,
-                                              overflow: TextOverflow.visible,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: isSelected
-                                                    ? FontWeight.w600
-                                                    : FontWeight.normal,
-                                                color: isSelected
-                                                    ? Theme.of(context)
-                                                        .primaryColor
-                                                    : Colors.black87,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          TtsButton(
-                                            textToSpeak: optionText,
-                                            languageCode: currentLanguageCode,
-                                            iconSize: 20,
-                                            tooltip: 'Read option aloud',
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                // Option image (if available)
-                                if (option.imageUrl != null &&
-                                    option.imageUrl!.isNotEmpty)
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 12),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        option.imageUrl!,
-                                        width: double.infinity,
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Container(
-                                            width: double.infinity,
-                                            height: 120,
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[200],
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.image_not_supported,
-                                                  size: 24,
-                                                  color: Colors.grey[400],
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  'Image not available',
-                                                  style: TextStyle(
-                                                    color: Colors.grey[600],
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                        loadingBuilder:
-                                            (context, child, loadingProgress) {
-                                          if (loadingProgress == null)
-                                            return child;
-                                          return Container(
-                                            width: double.infinity,
-                                            height: 120,
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey[100],
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Center(
-                                              child: SizedBox(
-                                                width: 24,
-                                                height: 24,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  value: loadingProgress
-                                                              .expectedTotalBytes !=
-                                                          null
-                                                      ? loadingProgress
-                                                              .cumulativeBytesLoaded /
-                                                          loadingProgress
-                                                              .expectedTotalBytes!
-                                                      : null,
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                    return Option(
+                      text: optionText,
+                      optionLabel: option.optionLabel,
+                      imageUrl: option.imageUrl,
+                      isSelected: isSelected,
+                      showInstantMarking: widget.instantMarking &&
+                          userSelections[index] != null,
+                      isCorrectAnswer:
+                          option.optionLabel == question.correctAnswer,
+                      onTap: () => _selectOption(option.optionLabel, index),
+                      languageCode: currentLanguageCode,
                     );
                   }).toList(),
 
@@ -829,72 +496,38 @@ class _TestscreenState extends State<Testscreen> {
           );
         },
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: currentQuestionIndex > 0 ? _previousQuestion : null,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  side: BorderSide(
-                    color: currentQuestionIndex > 0
-                        ? Colors.grey[400]!
-                        : Colors.grey[300]!,
-                  ),
-                ),
-                child: Text(
-                  'Back',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: currentQuestionIndex > 0
-                        ? Colors.black87
-                        : Colors.grey[400],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _nextQuestion,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  currentQuestionIndex == widget.questions.length - 1
-                      ? 'Finish'
-                      : 'Next',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: NavigationControls(
+        atFirst: currentQuestionIndex == 0,
+        atLast: currentQuestionIndex == widget.questions.length - 1,
+        onBack: _previousQuestion,
+        // Decide at runtime whether we go to the next page or open the dialogs.
+        onNextOrFinish: () {
+          if (currentQuestionIndex < widget.questions.length - 1) {
+            _nextQuestion();
+            return;
+          }
+
+          // Last question → show the confirmation dialog
+          showFinishConfirmationDialog(
+            context: context,
+            unansweredCount: widget.questions.length - userSelections.length,
+            onCancel: () {}, // nothing extra on “No”
+            onConfirm: () {
+              _saveTestAttempt(); // store Hive record
+              final passed = _calculateResult();
+
+              // After saving, show the pass/fail dialog
+              showResultDialog(
+                context: context,
+                hasPassed: passed,
+                questions: widget.questions,
+                userSelections: userSelections,
+                licenceId: widget.licenceId,
+                categoryId: widget.categoryId,
+              );
+            },
+          );
+        },
       ),
     );
   }
