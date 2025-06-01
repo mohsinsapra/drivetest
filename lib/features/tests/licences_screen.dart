@@ -115,8 +115,10 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     setState(() => isLoading = true);
     try {
       final licenses = await _apiService.fetchLicenses();
+
       if (!mounted) return;
       setState(() => licenseTypes = licenses);
+      setState(() => isLoading = false);
     } catch (e) {
       _showSnackBar('Error fetching license types: $e');
     } finally {
@@ -135,6 +137,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         categories = fetchedCategories;
         isShowingCategories = true;
       });
+      setState(() => isLoading = false);
     } catch (e) {
       _showSnackBar('Error fetching categories: $e');
     } finally {
@@ -427,6 +430,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
             selectedCategory?['category_id'],
           );
           if (!mounted) return;
+          setState(() => isLoading = false);
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -447,7 +451,6 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         'icon': LucideIcons.settings,
         'color': Colors.orangeAccent,
         'onPressed': () async {
-          setState(() => isLoading = true);
           if (!mounted) return;
           Navigator.push(
             context,
