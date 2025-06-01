@@ -421,6 +421,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         'icon': LucideIcons.playCircle,
         'color': Colors.blueAccent,
         'onPressed': () async {
+          setState(() => isLoading = true);
           final fetchedQuestions = await _apiService.fetchQuestions(
             selectedLicenseType?['licence_id'],
             selectedCategory?['category_id'],
@@ -446,6 +447,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         'icon': LucideIcons.settings,
         'color': Colors.orangeAccent,
         'onPressed': () async {
+          setState(() => isLoading = true);
           if (!mounted) return;
           Navigator.push(
             context,
