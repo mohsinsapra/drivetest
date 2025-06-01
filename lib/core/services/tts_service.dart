@@ -7,23 +7,24 @@ enum TtsState { playing, stopped }
 class TtsService {
   static final TtsService _instance = TtsService._internal();
   factory TtsService() => _instance;
+
   List<dynamic> supportedLanguages = [];
   final FlutterTts flutterTts = FlutterTts();
   TtsState ttsState = TtsState.stopped;
+  bool _isInitialized = false;
 
-  // Private named constructor
   TtsService._internal() {
-    init();
+    _initialize();
     flutterTts.setCompletionHandler(() {
       ttsState = TtsState.stopped;
     });
-
-    // You can also optionally add:
-    // flutterTts.setErrorHandler((message) => print("TTS Error: $message"));
   }
 
-  Future<void> init() async {
-    supportedLanguages = await flutterTts.getLanguages;
+  Future<void> _initialize() async {
+    if (!_isInitialized) {
+      supportedLanguages = await flutterTts.getLanguages;
+      _isInitialized = true;
+    }
   }
 
   String? getTtsCode(String code) {
@@ -34,8 +35,23 @@ class TtsService {
     return langEntry['ttsCode'];
   }
 
+  /// ✅ Convert to async
+  Future<bool> isTtsLanguageSupported(String code) async {
+    if (!_isInitialized) {
+      await _initialize();
+    }
+
+    final ttsCode = getTtsCode(code);
+    return ttsCode != null &&
+        ttsCode.isNotEmpty &&
+        supportedLanguages.contains(ttsCode);
+  }
+
   Future<void> speak(
-      String text, String languageCode, VoidCallback onStateChange) async {
+    String text,
+    String languageCode,
+    VoidCallback onStateChange,
+  ) async {
     final flutterLangCode = getTtsCode(languageCode);
     if (flutterLangCode == null || flutterLangCode.isEmpty) {
       debugPrint("Language '$languageCode' is not mapped to a TTS code.");
@@ -49,7 +65,10 @@ class TtsService {
       return;
     }
 
-    final supportedLanguages = await flutterTts.getLanguages;
+    if (!_isInitialized) {
+      await _initialize();
+    }
+
     if (supportedLanguages.contains(flutterLangCode)) {
       await flutterTts.setLanguage(flutterLangCode);
       await flutterTts.setPitch(1);
@@ -72,19 +91,11 @@ class TtsService {
       orElse: () => {},
     );
 
-    // Extract emoji from the beginning of the label
     final label = entry['label'];
     if (label != null && label.isNotEmpty) {
-      return label.split(' ').first; // e.g., 🇸🇪 from '🇸🇪 Swedish'
+      return label.split(' ').first;
     }
 
-    return '🌐'; // fallback
-  }
-
-  bool isTtsLanguageSupported(String code) {
-    final ttsCode = getTtsCode(code);
-    return ttsCode != null &&
-        ttsCode.isNotEmpty &&
-        supportedLanguages.contains(ttsCode);
+    return '🌐';
   }
 }

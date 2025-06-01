@@ -326,6 +326,8 @@ class _TestscreenState extends State<Testscreen> {
                 ),
               ),
               onSelected: (String value) async {
+                ttsService.flutterTts.stop(); // Stop TTS when changing language
+                ttsService.ttsState = TtsState.stopped; // Reset TTS state
                 String targetLang = value.toLowerCase();
                 if (targetLang != currentLanguageCode.toLowerCase()) {
                   await _translateQuestion(currentQuestionIndex, targetLang);
@@ -398,6 +400,7 @@ class _TestscreenState extends State<Testscreen> {
                             languageCode: currentLanguageCode,
                             iconSize: 24, // adjust for visual balance
                             tooltip: 'Read aloud',
+                            // NEW: toggle icon
                           ),
                         ),
                       ],
