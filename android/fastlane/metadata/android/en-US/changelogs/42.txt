@@ -1,0 +1,1 @@
+main: dio updaetd [deploy]
