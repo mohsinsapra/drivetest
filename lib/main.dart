@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
@@ -16,21 +16,43 @@ import 'package:upgrader/upgrader.dart';
 import 'core/models/test_attempt.dart';
 
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
-  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
-  Stripe.merchantIdentifier =
-      'merchant.com.yourapp.identifier'; // Required for Apple Pay
-  Stripe.urlScheme = 'your-url-scheme'; // Required for certain payment methods
+  WidgetsFlutterBinding.ensureInitialized();
+    await DioClient().init();
+  
+  try {
+    if (kIsWeb) {
+      // For web, load from .env - try different paths
+      try {
+        await dotenv.load(fileName: ".env");
+      } catch (e) {
+        print('Failed to load .env: $e');
+        // Set default values for web
+        dotenv.env['STRIPE_PUBLISHABLE_KEY'] = 'pk_test_on1dP7jlAmwx5V1vG02ktjF200G4XQHemE';
+        dotenv.env['ENCRYPTION_PASSPHRASE'] = 'this_is_the_project_for_taxi';
+      }
+    } else {
+      // Load .env for mobile/desktop
+      await dotenv.load();
+    }
+    
+    Stripe.publishableKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY').isNotEmpty
+        ? const String.fromEnvironment('STRIPE_PUBLISHABLE_KEY')
+        : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
 
-  await DioClient().init(); // Initialize DioClient and load tokens.
-
-  await Hive.initFlutter();
-  // Register adapters
-  Hive.registerAdapter(TestAttemptAdapter());
-  Hive.registerAdapter(QuestionAdapter());
-  Hive.registerAdapter(OptionAdapter());
-  await Upgrader.clearSavedSettings();
+    
+    if (!kIsWeb) {
+      await Hive.initFlutter();
+      // Register adapters
+      Hive.registerAdapter(TestAttemptAdapter());
+      Hive.registerAdapter(QuestionAdapter());
+      Hive.registerAdapter(OptionAdapter());
+    }
+    
+    await Upgrader.clearSavedSettings();
+  } catch (e) {
+    print('Initialization error: $e');
+    // Continue with basic initialization
+  }
 
   runApp(
     MultiProvider(

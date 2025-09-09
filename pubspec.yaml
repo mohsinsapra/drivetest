@@ -70,6 +70,7 @@ dependencies:
   auto_size_text: ^3.0.0
   flutter_tts: ^4.2.2
   fl_chart: ^1.0.0
+  flutter_stripe_web: ^6.5.1
 
 dev_dependencies:
   flutter_test:
@@ -110,7 +111,6 @@ flutter:
   assets:
     - .env
     - assets/icon/
-    - assets/images/
     - assets/animations/
     # - assets/fonts/
   # An image asset can refer to one or more resolution-specific "variants", see
