@@ -28,7 +28,30 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp();
+  if (kIsWeb) {
+    // For web, load .env first then initialize Firebase
+    try {
+      await dotenv.load(fileName: ".env");
+    } catch (e) {
+      print('Warning: Failed to load .env for web: $e');
+    }
+
+    // Use environment variables or fallback to hardcoded values
+    await Firebase.initializeApp(
+      options: FirebaseOptions(
+        apiKey: dotenv.env['FIREBASE_API_KEY'] ?? "AIzaSyCNHfjgw5mcgg5d7NayRluVTXwHPlpoGWM",
+        authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? "drive-test-a4f94.firebaseapp.com",
+        projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? "drive-test-a4f94",
+        storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? "drive-test-a4f94.firebasestorage.app",
+        messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? "640394192831",
+        appId: dotenv.env['FIREBASE_APP_ID'] ?? "1:640394192831:web:2f7c45b3bae1a15f1a630a",
+        measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID'] ?? "G-2Y166BG2F3",
+      ),
+    );
+  } else {
+    // For mobile, use the config files (google-services.json / GoogleService-Info.plist)
+    await Firebase.initializeApp();
+  }
 
   await DioClient().init();
   
