@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "640394192831",
+    "project_id": "drive-test-a4f94",
+    "storage_bucket": "drive-test-a4f94.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640394192831:android:4038a0a135ee766e1a630a",
+        "android_client_info": {
+          "package_name": "com.mohsinsapra.drivetest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtlRhQoGh04eMaefKzMUNTl7oI3D1HY5k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -72,6 +72,8 @@ dependencies:
   fl_chart: ^1.0.0
   flutter_stripe_web: ^6.5.1
   clarity_flutter: ^1.6.0
+  firebase_core: ^4.2.1
+  firebase_analytics: ^12.0.4
 
 dev_dependencies:
   flutter_test:

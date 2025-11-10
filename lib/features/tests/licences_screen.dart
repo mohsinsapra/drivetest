@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/widgets/category_card_widget.dart';
 import 'package:taxi_exam_app/core/widgets/licence_type_card_widget.dart';
 import 'package:taxi_exam_app/core/widgets/test_option_card_widget.dart';
@@ -29,6 +30,7 @@ class LicenceTypesScreen extends StatefulWidget {
 
 class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   final ApiService _apiService = ApiService();
+  final AnalyticsService _analyticsService = AnalyticsService();
 
   // Data
   List<dynamic> licenseTypes = [];
@@ -159,6 +161,12 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   void _onCategoryPressed(dynamic category) {
     if (category['is_subscribed'] == false && category['name'] != 'Karta') {
       setState(() => selectedCategory = category);
+      // Track when subscription dialog is shown
+      _analyticsService.logSubscriptionDialogShown(
+        licenceId: selectedLicenseType?['licence_id'] ?? '',
+        categoryId: category['category_id'] ?? '',
+        categoryName: category['name'] ?? '',
+      );
       _showSubscriptionDialog();
       return;
     }
@@ -208,12 +216,35 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
             TextButton(
               child: const Text('Cancel'),
               onPressed: () {
+                // Track when user cancels purchase
+                _analyticsService.logPurchaseCancelled(
+                  licenceId: selectedLicenseType?['licence_id'] ?? '',
+                  categoryId: selectedCategory?['category_id'] ?? '',
+                );
                 Navigator.of(context).pop(); // Dismiss the dialog
               },
             ),
             ElevatedButton(
               child: const Text('Buy Now'),
               onPressed: () {
+                // Track Buy Now button click
+                _analyticsService.logBuyNowClick(
+                  licenceId: selectedLicenseType?['licence_id'] ?? '',
+                  licenceName: selectedLicenseType?['name'] ?? '',
+                  categoryId: selectedCategory?['category_id'] ?? '',
+                  categoryName: selectedCategory?['name'] ?? '',
+                );
+
+                // Track purchase attempt
+                _analyticsService.logPurchaseAttempt(
+                  licenceId: selectedLicenseType?['licence_id'] ?? '',
+                  licenceName: selectedLicenseType?['name'] ?? '',
+                  categoryId: selectedCategory?['category_id'] ?? '',
+                  categoryName: selectedCategory?['name'] ?? '',
+                  amount: 100.0,
+                  currency: 'SEK',
+                );
+
                 Navigator.of(context).pop(); // Dismiss the dialog
                 _openPaymentMethodSheet(); // Proceed to payment
               },
@@ -246,6 +277,17 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         }
       });
 
+      // Step 4: Track successful purchase
+      await _analyticsService.logPurchaseSuccess(
+        licenceId: selectedLicenseType?['licence_id'] ?? '',
+        licenceName: selectedLicenseType?['name'] ?? '',
+        categoryId: selectedCategory?['category_id'] ?? '',
+        categoryName: selectedCategory?['name'] ?? '',
+        amount: amount / 100.0, // Convert cents to currency
+        currency: 'SEK',
+        transactionId: DateTime.now().millisecondsSinceEpoch.toString(),
+      );
+
       // Step 5: Trigger Vibration
       await _triggerVibration();
       _confettiControllerLeft.play();
@@ -256,6 +298,13 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       // Step 6: Show Success SnackBar
       _showSnackBar('Payment successful');
     } catch (e) {
+      // Track failed purchase
+      await _analyticsService.logPurchaseFailure(
+        licenceId: selectedLicenseType?['licence_id'] ?? '',
+        categoryId: selectedCategory?['category_id'] ?? '',
+        errorMessage: e.toString(),
+      );
+
       // Handle errors (e.g., show error message to user)
       _showSnackBar('Payment failed: $e');
     }
@@ -263,11 +312,24 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
 
   // Function to open the Payment Method Modal Bottom Sheet
   void _openPaymentMethodSheet() {
+    // Track when payment method sheet is opened
+    _analyticsService.logPaymentMethodSheetOpened(
+      licenceId: selectedLicenseType?['licence_id'] ?? '',
+      categoryId: selectedCategory?['category_id'] ?? '',
+    );
+
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
         return PaymentMethodSheet(
           onSelected: (method) {
+            // Track payment method selection
+            _analyticsService.logPaymentMethodSelected(
+              paymentMethod: method,
+              licenceId: selectedLicenseType?['licence_id'] ?? '',
+              categoryId: selectedCategory?['category_id'] ?? '',
+            );
+
             Navigator.pop(context); // Close the bottom sheet
             // Initiate payment with the selected method
             initiatePayment(10000, method);
