@@ -3,13 +3,108 @@ default_platform(:ios)
 platform :ios do
   desc "Deploy Beta"
   lane :beta do
+    # Update version in pubspec.yaml and CHANGELOG.md
+    update_flutter_version
+
+    # Get changelog
+    changelog_text = get_latest_changelog_entry
+
     build_app(scheme: "Runner")
-    upload_to_testflight
+    upload_to_testflight(
+      changelog: changelog_text
+    )
+
+    # Tag the release
+    tag_release
   end
 
   desc "Deploy Production"
   lane :production do
+    # Update version
+    update_flutter_version
+
+    # Get changelog
+    changelog_text = get_latest_changelog_entry
+
     build_app(scheme: "Runner")
-    upload_to_app_store
+    upload_to_app_store(
+      release_notes: {
+        "en-US" => changelog_text
+      }
+    )
+
+    # Tag the release
+    tag_release
+  end
+
+  # Helper methods
+  private_lane :update_flutter_version do
+    # Read current version from pubspec.yaml
+    pubspec_path = "../../pubspec.yaml"
+    pubspec_content = File.read(pubspec_path)
+
+    current_version_match = pubspec_content.match(/^version:\s*(.+)\+(\d+)/)
+    if current_version_match
+      version = current_version_match[1]
+      build = current_version_match[2].to_i
+
+      # Increment build number
+      new_build = build + 1
+
+      # Update pubspec.yaml
+      updated_content = pubspec_content.gsub(
+        /^version:\s*.+/,
+        "version: #{version}+#{new_build}"
+      )
+      File.write(pubspec_path, updated_content)
+
+      puts "📦 Updated version: #{version}+#{new_build}"
+
+      # Update iOS version and build number
+      increment_version_number(version_number: version)
+      increment_build_number(build_number: new_build)
+    end
+  end
+
+  private_lane :get_latest_changelog_entry do
+    changelog_path = "../../CHANGELOG.md"
+
+    if File.exist?(changelog_path)
+      changelog_content = File.read(changelog_path)
+
+      # Extract the latest version entry (after Unreleased section)
+      match = changelog_content.match(/## \[\d+\.\d+\.\d+\+\d+\].*?\n\n(.*?)(?=\n---|\z)/m)
+
+      if match
+        # Clean up the changelog text
+        changelog_text = match[1]
+          .gsub(/^### /, '')  # Remove heading markers
+          .gsub(/^- /, '• ')  # Convert markdown lists to bullets
+          .strip
+
+        return changelog_text
+      end
+    end
+
+    # Fallback to commit message
+    sh("git log -1 --pretty=%B").strip
+  end
+
+  private_lane :tag_release do
+    pubspec_path = "../../pubspec.yaml"
+    pubspec_content = File.read(pubspec_path)
+
+    version_match = pubspec_content.match(/^version:\s*(.+)\+(\d+)/)
+    if version_match
+      version_tag = "v#{version_match[1]}-#{version_match[2]}"
+
+      begin
+        sh("git tag #{version_tag}")
+        puts "✅ Created tag: #{version_tag}"
+        puts "   Push it with: git push origin #{version_tag}"
+      rescue => e
+        puts "⚠️  Failed to create tag (may already exist): #{e.message}"
+      end
+    end
   end
 end

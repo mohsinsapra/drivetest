@@ -5,7 +5,9 @@ platform :android do
   lane :beta do
     ENV["JAVA_HOME"] = "/Users/muhammadmohsin/Library/Java/JavaVirtualMachines/ms-17.0.15/Contents/Home" # Java 17 (compatible with Java 11 target)
     sh "java -version" # Verify the version being used
-    
+
+    # Update version in pubspec.yaml and CHANGELOG.md
+    update_flutter_version
 
     previous_build_number = google_play_track_version_codes(
       track: "alpha"
@@ -17,23 +19,28 @@ platform :android do
       gradle_file_path: "app/build.gradle",
       version_code: current_build_number
     )
-    # Fetch the last commit message
-    last_commit_message = sh("git log -1 --pretty=%B").strip
+
+    # Get changelog from CHANGELOG.md for this version
+    changelog_text = get_latest_changelog_entry
 
     changelogs_dir = "metadata/android/en-US/changelogs"
     FileUtils.mkdir_p(changelogs_dir)
 
+    # Write the changelog for Google Play
     changelog_path = "metadata/android/en-US/changelogs/#{current_build_number}.txt"
-    File.write(changelog_path, last_commit_message)
+    File.write(changelog_path, changelog_text)
 
     # gradle(task: "assembleRelease") # This will build the APK
     gradle(task: "bundleRelease")
     upload_to_play_store(track: "alpha", skip_upload_metadata: true,
       # track_promote_to: "alpha",
     skip_upload_images: true, version_code:current_build_number,
-    
+
      aab: "../build/app/outputs/bundle/release/app-release.aab",
     )
+
+    # Tag the release
+    tag_release
   end
 
   desc "Deploy Production"
@@ -50,5 +57,78 @@ platform :android do
     rollout: 1.0
   )
 end
+
+  # Helper methods
+  private_lane :update_flutter_version do
+    # Read current version from pubspec.yaml
+    pubspec_path = "../../pubspec.yaml"
+    pubspec_content = File.read(pubspec_path)
+
+    current_version_match = pubspec_content.match(/^version:\s*(.+)\+(\d+)/)
+    if current_version_match
+      version = current_version_match[1]
+      build = current_version_match[2].to_i
+
+      # Increment build number
+      new_build = build + 1
+
+      # Update pubspec.yaml
+      updated_content = pubspec_content.gsub(
+        /^version:\s*.+/,
+        "version: #{version}+#{new_build}"
+      )
+      File.write(pubspec_path, updated_content)
+
+      puts "📦 Updated version: #{version}+#{new_build}"
+    end
+  end
+
+  private_lane :get_latest_changelog_entry do
+    changelog_path = "../../CHANGELOG.md"
+
+    if File.exist?(changelog_path)
+      changelog_content = File.read(changelog_path)
+
+      # Extract the latest version entry (after Unreleased section)
+      # Match from first version heading to next version heading or end
+      match = changelog_content.match(/## \[\d+\.\d+\.\d+\+\d+\].*?\n\n(.*?)(?=\n---|\z)/m)
+
+      if match
+        # Clean up the changelog text for Google Play (remove markdown formatting)
+        changelog_text = match[1]
+          .gsub(/^### /, '')  # Remove heading markers
+          .gsub(/^- /, '• ')  # Convert markdown lists to bullets
+          .strip
+
+        # Limit to 500 characters for Google Play
+        if changelog_text.length > 500
+          changelog_text = changelog_text[0...497] + "..."
+        end
+
+        return changelog_text
+      end
+    end
+
+    # Fallback to commit message
+    sh("git log -1 --pretty=%B").strip
+  end
+
+  private_lane :tag_release do
+    pubspec_path = "../../pubspec.yaml"
+    pubspec_content = File.read(pubspec_path)
+
+    version_match = pubspec_content.match(/^version:\s*(.+)\+(\d+)/)
+    if version_match
+      version_tag = "v#{version_match[1]}-#{version_match[2]}"
+
+      begin
+        sh("git tag #{version_tag}")
+        puts "✅ Created tag: #{version_tag}"
+        puts "   Push it with: git push origin #{version_tag}"
+      rescue => e
+        puts "⚠️  Failed to create tag (may already exist): #{e.message}"
+      end
+    end
+  end
 
 end
