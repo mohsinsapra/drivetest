@@ -68,6 +68,7 @@ platform :ios do
 
   private_lane :get_latest_changelog_entry do
     changelog_path = "../../CHANGELOG.md"
+    changelog_text = ""
 
     if File.exist?(changelog_path)
       changelog_content = File.read(changelog_path)
@@ -81,13 +82,15 @@ platform :ios do
           .gsub(/^### /, '')  # Remove heading markers
           .gsub(/^- /, '• ')  # Convert markdown lists to bullets
           .strip
-
-        return changelog_text
       end
     end
 
-    # Fallback to commit message
-    sh("git log -1 --pretty=%B").strip
+    # Fallback to commit message if no changelog found
+    if changelog_text.empty?
+      changelog_text = sh("git log -1 --pretty=%B").strip
+    end
+
+    changelog_text
   end
 
   private_lane :tag_release do

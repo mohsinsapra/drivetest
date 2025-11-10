@@ -85,6 +85,7 @@ end
 
   private_lane :get_latest_changelog_entry do
     changelog_path = "../../CHANGELOG.md"
+    changelog_text = ""
 
     if File.exist?(changelog_path)
       changelog_content = File.read(changelog_path)
@@ -104,13 +105,15 @@ end
         if changelog_text.length > 500
           changelog_text = changelog_text[0...497] + "..."
         end
-
-        return changelog_text
       end
     end
 
-    # Fallback to commit message
-    sh("git log -1 --pretty=%B").strip
+    # Fallback to commit message if no changelog found
+    if changelog_text.empty?
+      changelog_text = sh("git log -1 --pretty=%B").strip
+    end
+
+    changelog_text
   end
 
   private_lane :tag_release do
