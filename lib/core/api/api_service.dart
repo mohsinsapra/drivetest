@@ -17,8 +17,11 @@ class ApiService {
         },
       );
 
-      _dioClient.accessToken = response.data['access'];
-      _dioClient.refreshToken = response.data['refresh'];
+      // Use setTokens method to properly save both tokens
+      await _dioClient.setTokens(
+        access: response.data['access'],
+        refresh: response.data['refresh'],
+      );
     } catch (e) {
       throw Exception('Authentication failed: $e');
     }

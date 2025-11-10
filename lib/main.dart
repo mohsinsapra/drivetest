@@ -12,10 +12,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 import 'package:upgrader/upgrader.dart';
-
+import 'package:clarity_flutter/clarity_flutter.dart';
 import 'core/models/test_attempt.dart';
 
 void main() async {
+
+    final config = ClarityConfig(
+    projectId: "u3uu96m9ip",
+    logLevel: LogLevel.None // Note: Use "LogLevel.Verbose" value while testing to debug initialization issues.
+  );
+
   WidgetsFlutterBinding.ensureInitialized();
     await DioClient().init();
   
@@ -55,11 +61,14 @@ void main() async {
   }
 
   runApp(
-    MultiProvider(
+    ClarityWidget(
+    clarityConfig: config,
+    app: MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => MainScreenProvider()),
       ],
       child: MyApp(),
+    ),
     ),
   );
 }
@@ -155,28 +164,53 @@ final customTheme = ThemeData(
   ),
 );
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   // Combined initialization to check onboarding and authentication
   Future<Map<String, bool>> _initializeApp() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
-    String? refreshToken = prefs.getString('refreshToken');
-    String? accessToken = prefs.getString('accessToken');
-    if (accessToken != null) {
-      DioClient().accessToken = accessToken;
-    }
-    if (refreshToken != null) {
-      DioClient().refreshToken = refreshToken;
-    }
+    try {
+      debugPrint('_initializeApp - Starting initialization');
+      
+      final prefs = await SharedPreferences.getInstance();
+      bool onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+      
+      debugPrint('_initializeApp - SharedPreferences loaded');
+      
+      // DioClient is already initialized in main(), just reload tokens
+      await DioClient().reloadTokens();
+      
+      debugPrint('_initializeApp - DioClient initialized');
+      
+      // Check if user is authenticated
+      bool isAuthenticated = DioClient().refreshToken != null && DioClient().accessToken != null;
+      
+      // Debug logging
+      debugPrint('_initializeApp - Onboarding complete: $onboardingComplete');
+      debugPrint('_initializeApp - Access token exists: ${DioClient().accessToken != null}');
+      debugPrint('_initializeApp - Refresh token exists: ${DioClient().refreshToken != null}');
+      debugPrint('_initializeApp - Is authenticated: $isAuthenticated');
 
-    bool isAuthenticated = DioClient().refreshToken != null;
-
-    return {
-      'onboardingComplete': onboardingComplete,
-      'isAuthenticated': isAuthenticated,
-    };
+      final result = {
+        'onboardingComplete': onboardingComplete,
+        'isAuthenticated': isAuthenticated,
+      };
+      
+      debugPrint('_initializeApp - Completed successfully');
+      return result;
+    } catch (e) {
+      debugPrint('_initializeApp - Error: $e');
+      // Return default values on error
+      return {
+        'onboardingComplete': false,
+        'isAuthenticated': false,
+      };
+    }
   }
 
   @override

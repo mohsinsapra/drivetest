@@ -6,6 +6,7 @@ import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
+import 'package:taxi_exam_app/main.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 import 'signup_screen.dart';
@@ -38,28 +39,41 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (!mounted) return;
+      
+      // Debug: Check if tokens are properly set
+      debugPrint('Login successful: AccessToken: ${DioClient().accessToken != null}, RefreshToken: ${DioClient().refreshToken != null}');
 
-      // Cache user information regardless of Remember Me
+      // Cache user information
       final user = await _apiService.fetchCurrentUser();
       if (user != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user', jsonEncode(user));
       }
       await Hive.deleteFromDisk();
-      // Store tokens only when Remember Me is selected
-      final refreshToken = DioClient().refreshToken;
-      final accessToken = DioClient().accessToken;
-
-      if (_rememberMe && refreshToken != null && accessToken != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('refreshToken', refreshToken);
-        await prefs.setString('accessToken', accessToken);
+      
+      // Tokens are already stored in secure storage by ApiService.authenticate()
+      // Only store in SharedPreferences if Remember Me is checked for backward compatibility
+      if (_rememberMe) {
+        final refreshToken = DioClient().refreshToken;
+        final accessToken = DioClient().accessToken;
+        
+        if (refreshToken != null && accessToken != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('refreshToken', refreshToken);
+          await prefs.setString('accessToken', accessToken);
+        }
       }
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-        (Route<dynamic> route) => false,
-      );
+      // Reload tokens to ensure DioClient has the latest tokens
+      await DioClient().reloadTokens();
+      
+      if (mounted) {
+        // Navigate directly to MainScreen  
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (Route<dynamic> route) => false,
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       debugPrint(e.toString());

@@ -71,6 +71,7 @@ dependencies:
   flutter_tts: ^4.2.2
   fl_chart: ^1.0.0
   flutter_stripe_web: ^6.5.1
+  clarity_flutter: ^1.6.0
 
 dev_dependencies:
   flutter_test:
