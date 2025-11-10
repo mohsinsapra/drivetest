@@ -3,7 +3,7 @@ default_platform(:android)
 platform :android do
   desc "Deploy Beta"
   lane :beta do
-    ENV["JAVA_HOME"] = "/Library/Java/JavaVirtualMachines/temurin-20.jdk/Contents/Home" # Replace with your Java 11 path
+    ENV["JAVA_HOME"] = "/Users/muhammadmohsin/Library/Java/JavaVirtualMachines/ms-17.0.15/Contents/Home" # Java 17 (compatible with Java 11 target)
     sh "java -version" # Verify the version being used
     
 

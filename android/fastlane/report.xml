@@ -5,37 +5,37 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000256">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000196">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: java -version" time="0.05149">
+      <testcase classname="fastlane.lanes" name="1: java -version" time="0.028442">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: google_play_track_version_codes" time="1.637898">
+      <testcase classname="fastlane.lanes" name="2: google_play_track_version_codes" time="1.315415">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: increment_version_code" time="0.002446">
+      <testcase classname="fastlane.lanes" name="3: increment_version_code" time="0.000856">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: git log -1 --pretty=%B" time="0.012338">
+      <testcase classname="fastlane.lanes" name="4: git log -1 --pretty=%B" time="0.011529">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="5: bundleRelease" time="188.409083">
+      <testcase classname="fastlane.lanes" name="5: bundleRelease" time="150.456196">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="6: upload_to_play_store" time="44.335903">
+      <testcase classname="fastlane.lanes" name="6: upload_to_play_store" time="54.890164">
         
       </testcase>
     
