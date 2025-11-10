@@ -29,23 +29,31 @@ void main() async {
 
   // Initialize Firebase
   if (kIsWeb) {
-    // For web, load .env first then initialize Firebase
-    try {
-      await dotenv.load(fileName: ".env");
-    } catch (e) {
-      print('Warning: Failed to load .env for web: $e');
-    }
+    // For web, use build-time environment variables (passed via --dart-define)
+    const firebaseApiKey = String.fromEnvironment('FIREBASE_API_KEY',
+      defaultValue: "AIzaSyCNHfjgw5mcgg5d7NayRluVTXwHPlpoGWM");
+    const firebaseAuthDomain = String.fromEnvironment('FIREBASE_AUTH_DOMAIN',
+      defaultValue: "drive-test-a4f94.firebaseapp.com");
+    const firebaseProjectId = String.fromEnvironment('FIREBASE_PROJECT_ID',
+      defaultValue: "drive-test-a4f94");
+    const firebaseStorageBucket = String.fromEnvironment('FIREBASE_STORAGE_BUCKET',
+      defaultValue: "drive-test-a4f94.firebasestorage.app");
+    const firebaseMessagingSenderId = String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID',
+      defaultValue: "640394192831");
+    const firebaseAppId = String.fromEnvironment('FIREBASE_APP_ID',
+      defaultValue: "1:640394192831:web:2f7c45b3bae1a15f1a630a");
+    const firebaseMeasurementId = String.fromEnvironment('FIREBASE_MEASUREMENT_ID',
+      defaultValue: "G-2Y166BG2F3");
 
-    // Use environment variables or fallback to hardcoded values
     await Firebase.initializeApp(
-      options: FirebaseOptions(
-        apiKey: dotenv.env['FIREBASE_API_KEY'] ?? "AIzaSyCNHfjgw5mcgg5d7NayRluVTXwHPlpoGWM",
-        authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? "drive-test-a4f94.firebaseapp.com",
-        projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? "drive-test-a4f94",
-        storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? "drive-test-a4f94.firebasestorage.app",
-        messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? "640394192831",
-        appId: dotenv.env['FIREBASE_APP_ID'] ?? "1:640394192831:web:2f7c45b3bae1a15f1a630a",
-        measurementId: dotenv.env['FIREBASE_MEASUREMENT_ID'] ?? "G-2Y166BG2F3",
+      options: const FirebaseOptions(
+        apiKey: firebaseApiKey,
+        authDomain: firebaseAuthDomain,
+        projectId: firebaseProjectId,
+        storageBucket: firebaseStorageBucket,
+        messagingSenderId: firebaseMessagingSenderId,
+        appId: firebaseAppId,
+        measurementId: firebaseMeasurementId,
       ),
     );
   } else {
