@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew clean:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter build:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(/Users/muhammadmohsin/development/flutter/bin/flutter --version:*)",
+      "Bash(xattr:*)",
+      "Bash(./gradlew:*)",
+      "Bash(/Users/muhammadmohsin/development/flutter/bin/flutter:*)",
+      "Bash(rm:*)",
+      "Bash(bash -c '/Users/muhammadmohsin/development/flutter/bin/flutter --version')",
+      "Bash(cat:*)",
+      "Bash(flutter upgrade:*)",
+      "Bash(log show:*)",
+      "Bash(dtruss:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:stackoverflow.com)",
+      "Bash(/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/android/gradlew:*)",
+      "Bash(flutter install:*)",
+      "Bash(flutter run:*)",
+      "Bash(fastlane android beta:*)",
+      "Bash(fastlane beta:*)",
+      "Bash(\"/Users/muhammadmohsin/Library/Java/JavaVirtualMachines/ms-17.0.15/Contents/Home/bin/jlink\" --version)",
+      "Bash(~/.gradle/gradle.properties)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
