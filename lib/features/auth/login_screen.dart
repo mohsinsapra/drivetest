@@ -98,8 +98,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _usernameController.text = 'admin';
-    _passwordController.text = "123";
+    // _usernameController.text = 'mohsinsapra';
+    // _passwordController.text = "Sarach@123";
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
       body: Center(

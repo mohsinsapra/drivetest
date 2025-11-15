@@ -253,44 +253,49 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return UpgradeAlert(
+    return MaterialApp(
+      theme: customTheme,
+      debugShowCheckedModeBanner: false, // Remove the debug banner
+      home: UpgradeAlert(
         showIgnore: false,
-        showLater: false,
+        showLater: true,
+        // upgrader: Upgrader(
+        //   debugLogging: true,
+        //   debugDisplayAlways: true, // Force display for testing
+        // ),
         child: FutureBuilder<Map<String, bool>>(
           future: _initializeApp(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return MaterialApp(
-                theme: customTheme,
-                debugShowCheckedModeBanner: false, // Remove the debug banner
-                home: const Scaffold(
-                  body: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+            if (snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData) {
+              return const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(),
                 ),
               );
             }
 
-            bool onboardingComplete = snapshot.data!['onboardingComplete']!;
-            bool isAuthenticated = snapshot.data!['isAuthenticated']!;
-
-            // Decide which screen to show based on onboarding and authentication
-            Widget home;
-            if (!onboardingComplete) {
-              home = const IntroScreen();
-            } else if (!isAuthenticated) {
-              home =
-                  const AuthScreen(); // Replace with your main authenticated screen if needed
-            } else {
-              home = const MainScreen();
+            if (snapshot.hasError) {
+              return Scaffold(
+                body: Center(
+                  child: Text('Error during initialization: ${snapshot.error}'),
+                ),
+              );
             }
 
-            return MaterialApp(
-              theme: customTheme,
-              home: home,
-              debugShowCheckedModeBanner: false, // Remove the debug banner
-            );
+            final data = snapshot.data!;
+            final onboardingComplete = data['onboardingComplete'] ?? false;
+            final isAuthenticated = data['isAuthenticated'] ?? false;
+
+            if (!onboardingComplete) {
+              return const IntroScreen();
+            } else if (!isAuthenticated) {
+              return const AuthScreen();
+            } else {
+              return const MainScreen();
+            }
           },
-        ));
+        ),
+      ),
+    );
   }
 }
