@@ -7,7 +7,7 @@ platform :android do
     sh "java -version" # Verify the version being used
 
     # Update version in pubspec.yaml and CHANGELOG.md
-    update_flutter_version
+    # update_flutter_version
 
     previous_build_number = google_play_track_version_codes(
       track: "alpha"
@@ -15,10 +15,9 @@ platform :android do
 
     current_build_number = previous_build_number + 1
     puts "Current build number: #{current_build_number}"
-    increment_version_code(
-      gradle_file_path: "app/build.gradle",
-      version_code: current_build_number
-    )
+
+    # Update local.properties instead of build.gradle
+    update_local_properties_version(build_number: current_build_number)
 
     # Get changelog from CHANGELOG.md for this version
     changelog_text = get_latest_changelog_entry
@@ -59,6 +58,26 @@ platform :android do
 end
 
   # Helper methods
+  private_lane :update_local_properties_version do |options|
+    build_number = options[:build_number] || options
+    local_properties_path = "../local.properties"
+
+    if File.exist?(local_properties_path)
+      content = File.read(local_properties_path)
+
+      # Update flutter.versionCode
+      updated_content = content.gsub(
+        /^flutter\.versionCode=.*/,
+        "flutter.versionCode=#{build_number}"
+      )
+
+      File.write(local_properties_path, updated_content)
+      puts "📦 Updated local.properties versionCode to: #{build_number}"
+    else
+      puts "⚠️  local.properties not found at #{File.expand_path(local_properties_path)}!"
+    end
+  end
+
   private_lane :update_flutter_version do
     # Read current version from pubspec.yaml
     pubspec_path = "../../pubspec.yaml"

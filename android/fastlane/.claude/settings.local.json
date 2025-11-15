@@ -4,7 +4,10 @@
       "Bash(flutter pub get:*)",
       "Bash(chmod:*)",
       "Bash(./scripts/run_web.sh:*)",
-      "Bash(make:*)"
+      "Bash(make:*)",
+      "Bash(cat:*)",
+      "Bash(tee:*)",
+      "Bash(ruby -e:*)"
     ],
     "deny": [],
     "ask": []
