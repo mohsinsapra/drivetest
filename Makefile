@@ -88,7 +88,7 @@ _deploy-to-web-repo:
 		echo "$(COLOR_YELLOW)Initializing git repository in $(WEB_BUILD_DIR)...$(COLOR_RESET)"; \
 		cd $(WEB_BUILD_DIR) && git init; \
 		echo "$(COLOR_YELLOW)Please add your remote repository:$(COLOR_RESET)"; \
-		echo "  cd $(WEB_BUILD_DIR) && git remote add origin <your-web-repo-url>"; \
+		echo "  cd $(WEB_BUILD_DIR) && git remote add origin https://github.com/mohsinsapra/drivetest"; \
 		exit 1; \
 	fi
 	@echo "$(COLOR_GREEN)Getting last commit message from main repository...$(COLOR_RESET)"
