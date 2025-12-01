@@ -6,6 +6,7 @@ import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
+import 'package:taxi_exam_app/main.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 import 'signup_screen.dart';
@@ -35,14 +36,12 @@ class _LoginScreenState extends State<LoginScreen> {
       await _apiService.authenticate(
         _usernameController.text.trim(),
         _passwordController.text,
-        rememberMe: _rememberMe,
       );
 
       if (!mounted) return;
-
+      
       // Debug: Check if tokens are properly set
       debugPrint('Login successful: AccessToken: ${DioClient().accessToken != null}, RefreshToken: ${DioClient().refreshToken != null}');
-      debugPrint('Remember Me: $_rememberMe');
 
       // Cache user information
       final user = await _apiService.fetchCurrentUser();
@@ -51,6 +50,19 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('user', jsonEncode(user));
       }
       await Hive.deleteFromDisk();
+      
+      // Tokens are already stored in secure storage by ApiService.authenticate()
+      // Only store in SharedPreferences if Remember Me is checked for backward compatibility
+      if (_rememberMe) {
+        final refreshToken = DioClient().refreshToken;
+        final accessToken = DioClient().accessToken;
+        
+        if (refreshToken != null && accessToken != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('refreshToken', refreshToken);
+          await prefs.setString('accessToken', accessToken);
+        }
+      }
 
       // Reload tokens to ensure DioClient has the latest tokens
       await DioClient().reloadTokens();
