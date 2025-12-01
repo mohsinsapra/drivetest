@@ -7,7 +7,7 @@ class ApiService {
   final Dio _dio = DioClient().dio;
   final DioClient _dioClient = DioClient();
 
-  Future<void> authenticate(String username, String password) async {
+  Future<void> authenticate(String username, String password, {bool rememberMe = false}) async {
     try {
       final response = await _dio.post(
         'api/token/',
@@ -21,6 +21,7 @@ class ApiService {
       await _dioClient.setTokens(
         access: response.data['access'],
         refresh: response.data['refresh'],
+        rememberMe: rememberMe,
       );
     } catch (e) {
       throw Exception('Authentication failed: $e');

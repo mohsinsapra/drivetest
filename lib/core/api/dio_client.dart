@@ -35,20 +35,26 @@ class DioClient {
   
   Future<void> init() async {
     if (_initialized) return; // Prevent multiple initializations
-    // Load both tokens from secure storage
-    refreshToken = await _secureStorage.read(key: 'refreshToken');
-    accessToken = await _secureStorage.read(key: 'accessToken');
-    
-    // Fallback to SharedPreferences if not found in secure storage
-    if (refreshToken == null || accessToken == null) {
-      final prefs = await SharedPreferences.getInstance();
-      refreshToken ??= prefs.getString('refreshToken');
-      accessToken ??= prefs.getString('accessToken');
-      
-      // If found in SharedPreferences, migrate to secure storage
-      if (refreshToken != null && accessToken != null) {
-        await _secureStorage.write(key: 'refreshToken', value: refreshToken!);
-        await _secureStorage.write(key: 'accessToken', value: accessToken!);
+
+    // Check if user chose to be remembered
+    final prefs = await SharedPreferences.getInstance();
+    final rememberMe = prefs.getBool('rememberMe') ?? false;
+
+    if (rememberMe) {
+      // Only load tokens if remember me was enabled
+      refreshToken = await _secureStorage.read(key: 'refreshToken');
+      accessToken = await _secureStorage.read(key: 'accessToken');
+
+      // Fallback to SharedPreferences if not found in secure storage
+      if (refreshToken == null || accessToken == null) {
+        refreshToken ??= prefs.getString('refreshToken');
+        accessToken ??= prefs.getString('accessToken');
+
+        // If found in SharedPreferences, migrate to secure storage
+        if (refreshToken != null && accessToken != null) {
+          await _secureStorage.write(key: 'refreshToken', value: refreshToken!);
+          await _secureStorage.write(key: 'accessToken', value: accessToken!);
+        }
       }
     }
 
@@ -162,23 +168,34 @@ class DioClient {
   }
 
   Future<void> setTokens(
-      {required String access, required String refresh}) async {
+      {required String access, required String refresh, bool rememberMe = false}) async {
     accessToken = access;
     refreshToken = refresh;
 
-    // Save both tokens securely
-    await _secureStorage.write(key: 'refreshToken', value: refresh);
-    await _secureStorage.write(key: 'accessToken', value: access);
+    // Save remember me preference
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('rememberMe', rememberMe);
+
+    if (rememberMe) {
+      // Save tokens to secure storage for persistent login
+      await _secureStorage.write(key: 'refreshToken', value: refresh);
+      await _secureStorage.write(key: 'accessToken', value: access);
+    } else {
+      // Clear persistent storage if not remembering
+      await _secureStorage.delete(key: 'refreshToken');
+      await _secureStorage.delete(key: 'accessToken');
+    }
   }
 
   Future<void> logout() async {
     accessToken = null;
     refreshToken = null;
 
-    // Remove tokens from both storage locations
+    // Remove tokens from all storage locations
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('refreshToken');
     await prefs.remove('accessToken');
+    await prefs.remove('rememberMe');
     await _secureStorage.delete(key: 'refreshToken');
     await _secureStorage.delete(key: 'accessToken');
   }
