@@ -1,8 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/features/auth/login_screen.dart';
 import 'package:taxi_exam_app/features/auth/signup_screen.dart';
+import 'package:taxi_exam_app/main_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -12,6 +19,9 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  final ApiService _apiService = ApiService();
+  bool _isLoading = false;
+
   void _navigateToSignup() {
     Navigator.push(
       context,
@@ -32,6 +42,54 @@ class _AuthScreenState extends State<AuthScreen> {
         child: const LoginScreen(),
       ),
     );
+  }
+
+  Future<void> _loginAsDemo() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Login with demo credentials
+      await _apiService.authenticate('demo', 'Demo@123');
+
+      if (!mounted) return;
+
+      // Cache user information
+      final user = await _apiService.fetchCurrentUser();
+      if (user != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', jsonEncode(user));
+      }
+      await Hive.deleteFromDisk();
+
+      // Reload tokens to ensure DioClient has the latest tokens
+      await DioClient().reloadTokens();
+
+      if (mounted) {
+        // Navigate directly to MainScreen
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (Route<dynamic> route) => false,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('Demo login error: $e');
+      // Show error snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to login with demo account. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -149,6 +207,65 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // Divider
+                  const Row(
+                    children: [
+                      Expanded(child: Divider()),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'OR',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Expanded(child: Divider()),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Skip for now button (Demo login)
+                  if (_isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      child: GestureDetector(
+                        onTap: _loginAsDemo,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.grey.shade100,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.preview,
+                                color: Colors.grey.shade700,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'SKIP FOR NOW (TRY DEMO)',
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 24),
                 ],
               ),

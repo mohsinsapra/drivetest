@@ -27,6 +27,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = false;
   bool _obscurePassword = true;
 
+  Future<void> _loginAsDemo() async {
+    // Set demo credentials
+    _usernameController.text = 'demo';
+    _passwordController.text = 'Demo@123';
+
+    // Call authenticate
+    await _authenticate();
+  }
+
   Future<void> _authenticate() async {
     setState(() {
       _isLoading = true;
@@ -252,6 +261,51 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Divider
+              const Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'OR',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Divider()),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Skip for now button (Demo login)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _loginAsDemo,
+                  icon: const Icon(Icons.preview),
+                  label: const Text(
+                    'Skip for now (Try Demo)',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
