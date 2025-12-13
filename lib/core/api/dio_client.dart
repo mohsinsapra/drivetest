@@ -191,6 +191,18 @@ class DioClient {
       return true;
     } catch (e) {
       debugPrint('Failed to refresh token: $e');
+
+      // Check if token is blacklisted
+      if (e is DioException && e.response != null) {
+        final responseData = e.response?.data;
+        if (responseData is Map &&
+            responseData['code'] == 'token_not_valid' &&
+            responseData['detail'] == 'Token is blacklisted') {
+          // Token is blacklisted, logout and redirect to auth page
+          await logoutAndRedirect();
+        }
+      }
+
       return false;
     }
   }
