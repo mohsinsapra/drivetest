@@ -8,6 +8,11 @@ import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/services/navigation_service.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/auth/auth_screen.dart';
+
 import 'package:taxi_exam_app/core/utils/crypto_service.dart'; // For HMAC-SHA256 decryption
 
 class DioClient {
@@ -91,6 +96,7 @@ class DioClient {
     _dio!.interceptors.add(DioCacheInterceptor(options: options));
     _dio!.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
+        options.extra ??= <String, dynamic>{};
         if (accessToken != null) {
           options.headers['Authorization'] = 'Bearer $accessToken';
         }
@@ -105,14 +111,23 @@ class DioClient {
         return handler.next(response);
       },
       onError: (error, handler) async {
-        if (error.response?.statusCode == 401 &&
-            error.response?.data['code'] == 'token_not_valid') {
-          final refreshSuccess = await _refreshAccessToken();
-          if (refreshSuccess) {
-            final requestOptions = error.requestOptions;
-            requestOptions.headers['Authorization'] = 'Bearer $accessToken';
-            final response = await dio.fetch(requestOptions);
-            return handler.resolve(response);
+        if (error.response?.statusCode == 401) {
+          final responseData = error.response?.data;
+          if (responseData is Map &&
+              responseData['detail'] ==
+                  'You have been logged out because your account was used on another device.') {
+            await logoutAndRedirect();
+            return handler.resolve(
+                Response(requestOptions: error.requestOptions, statusCode: 200));
+          } else if (responseData is Map &&
+              responseData['code'] == 'token_not_valid') {
+            final refreshSuccess = await _refreshAccessToken();
+            if (refreshSuccess) {
+              final requestOptions = error.requestOptions;
+              requestOptions.headers['Authorization'] = 'Bearer $accessToken';
+              final response = await dio.fetch(requestOptions);
+              return handler.resolve(response);
+            }
           }
         }
         return handler.next(error);
@@ -122,6 +137,25 @@ class DioClient {
     _initialized = true;
   }
   
+  Future<void> logoutAndRedirect() async {
+    await logout();
+    final context = NavigationService.navigatorKey.currentContext;
+    if (context != null) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const AuthScreen(),
+        ),
+        (Route<dynamic> route) => false,
+      );
+      Future.delayed(const Duration(milliseconds: 500), () {
+        showAppSnackBar(
+          'You have been logged out because your account was used on another device.',
+          backgroundColor: Colors.red,
+        );
+      });
+    }
+  }
+
   Future<void> reloadTokens() async {
     // Just reload tokens without full reinitialization
     refreshToken = await _secureStorage.read(key: 'refreshToken');

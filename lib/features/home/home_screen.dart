@@ -12,6 +12,7 @@ import 'package:taxi_exam_app/core/widgets/attempt_tabs_widget.dart';
 import 'package:taxi_exam_app/core/widgets/category_pie_chart_widget.dart';
 
 import 'package:taxi_exam_app/core/widgets/user_header_widget.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/home/attempt_detail_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
@@ -57,10 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _previousAttempts.clear();
     });
 
-    // Show a confirmation message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('All tests have been deleted.')),
-    );
+    showAppSnackBar('All tests have been deleted.');
   }
 
   String _buildDateRange(String licence) {

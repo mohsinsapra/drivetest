@@ -1,6 +1,7 @@
 import 'dart:convert'; // For json.decode
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -44,9 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
         // Signup successful
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Signup successful! Please login.')),
-        );
+        showAppSnackBar('Signup successful! Please login.');
         Navigator.pop(context);
       } else {
         // Signup failed
@@ -60,18 +59,13 @@ class _SignupScreenState extends State<SignupScreen> {
         });
 
         // Show a general error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Signup failed. Please correct the errors.')),
-        );
+        showAppSnackBar('Signup failed. Please correct the errors.');
       }
     } catch (e) {
       if (!mounted) return;
 
       // Handle exceptions
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
-      );
+      showAppSnackBar('An error occurred. Please try again.');
     } finally {
       if (mounted) {
         setState(() {

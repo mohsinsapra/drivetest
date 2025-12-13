@@ -14,6 +14,7 @@ import 'package:taxi_exam_app/core/widgets/test_option_card_widget.dart';
 import 'package:taxi_exam_app/features/payment/payment_method_sheet.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:vibration/vibration.dart';
 
@@ -122,7 +123,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       setState(() => licenseTypes = licenses);
       setState(() => isLoading = false);
     } catch (e) {
-      _showSnackBar('Error fetching license types: $e');
+      if (!mounted) return;
+      showAppSnackBar('Error fetching license types. Please try again.');
     } finally {
       if (!mounted) return;
       setState(() => isLoading = false);
@@ -141,7 +143,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       });
       setState(() => isLoading = false);
     } catch (e) {
-      _showSnackBar('Error fetching categories: $e');
+      if (!mounted) return;
+      showAppSnackBar('Error fetching categories. Please try again.');
     } finally {
       setState(() => isLoading = false);
     }
@@ -296,7 +299,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
 
       _confettiControllerRight.play();
       // Step 6: Show Success SnackBar
-      _showSnackBar('Payment successful');
+      if (!mounted) return;
+      showAppSnackBar('Payment successful');
     } catch (e) {
       // Track failed purchase
       await _analyticsService.logPurchaseFailure(
@@ -306,7 +310,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       );
 
       // Handle errors (e.g., show error message to user)
-      _showSnackBar('Payment failed: $e');
+      if (!mounted) return;
+      showAppSnackBar('Payment failed. Please try again.');
     }
   }
 
@@ -394,11 +399,13 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       // Handle Stripe-specific errors
       if (e is stripe.StripeException) {
         print('Payment canceled or failed: ${e.error.localizedMessage}');
-        _showSnackBar('Payment failed: ${e.error.localizedMessage}');
+        if (!mounted) return;
+        showAppSnackBar('Payment failed. Please try again.');
       } else {
         // Handle other types of errors
         print('Payment failed: $e');
-        _showSnackBar('Payment failed: $e');
+        if (!mounted) return;
+        showAppSnackBar('Payment failed. Please try again.');
       }
       throw e; // Re-throw the exception if you need to handle it further up the call stack
     }
@@ -534,8 +541,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         'label': 'Saved Questions',
         'icon': LucideIcons.bookmark,
         'color': Colors.purpleAccent,
-        'onPressed': () =>
-            _showSnackBar('Saved Questions for ${selectedCategory?['name']}'),
+        'onPressed': () => showAppSnackBar(
+            'This feature is not yet implemented.'),
       },
     ];
 
@@ -752,10 +759,5 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   /*                              UTILITIES                                     */
   /* -------------------------------------------------------------------------- */
 
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
+
 }

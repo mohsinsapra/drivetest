@@ -17,7 +17,7 @@ import 'package:clarity_flutter/clarity_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'core/models/test_attempt.dart';
-import 'core/services/analytics_service.dart';
+import 'package:taxi_exam_app/core/services/navigation_service.dart';
 
 void main() async {
 
@@ -203,6 +203,7 @@ final customTheme = ThemeData(
   ),
 );
 
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -273,6 +274,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: NavigationService.navigatorKey,
       theme: customTheme,
       debugShowCheckedModeBanner: false, // Remove the debug banner
       home: UpgradeAlert(

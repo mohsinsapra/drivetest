@@ -15,6 +15,7 @@ import 'package:taxi_exam_app/core/widgets/question_progress_header.dart';
 import 'package:taxi_exam_app/core/widgets/test_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
 
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:translator/translator.dart';
 
 class Testscreen extends StatefulWidget {
@@ -138,9 +139,7 @@ class _TestscreenState extends State<Testscreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This is the first question!')),
-      );
+      showAppSnackBar('This is the first question!');
     }
   }
 
@@ -267,9 +266,7 @@ class _TestscreenState extends State<Testscreen> {
         isEnglish = targetLang == 'en';
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Translation failed. Please try again.')),
-      );
+      showAppSnackBar('Translation failed. Please try again.');
     } finally {
       Navigator.of(context).pop();
     }

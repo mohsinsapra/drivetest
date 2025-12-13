@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
 class CreateCustomTestScreen extends StatefulWidget {
@@ -103,11 +104,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
           Navigator.pop(context);
           _isLoadingDialogDisplayed = false;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No questions available.'),
-          ),
-        );
+        showAppSnackBar('No questions available.');
         return;
       }
     } on TimeoutException catch (_) {
@@ -116,11 +113,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
         Navigator.pop(context);
         _isLoadingDialogDisplayed = false;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Request timed out. Please try again.'),
-        ),
-      );
+      showAppSnackBar('Request timed out. Please try again.');
       return;
     } catch (e) {
       // Dismiss the loading dialog
@@ -128,11 +121,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
         Navigator.pop(context);
         _isLoadingDialogDisplayed = false;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to start test: $e'),
-        ),
-      );
+      showAppSnackBar('Failed to start test. Please try again.');
       return;
     } finally {
       // Ensure the loading dialog is dismissed

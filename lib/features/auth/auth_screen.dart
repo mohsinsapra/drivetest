@@ -9,6 +9,7 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/features/auth/login_screen.dart';
 import 'package:taxi_exam_app/features/auth/signup_screen.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -77,12 +78,8 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
       debugPrint('Demo login error: $e');
       // Show error snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to login with demo account. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showAppSnackBar(
+          'Failed to login with demo account. Please try again.');
     } finally {
       if (mounted) {
         setState(() {

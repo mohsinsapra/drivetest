@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/services/version_service.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -217,12 +218,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onPressed: () async {
                     await _savePreferences();
                     if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Settings saved successfully'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
+                    showAppSnackBar('Settings saved successfully');
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
