@@ -363,16 +363,20 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         paymentSheetParameters: stripe.SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'Drive Test',
-          // Optional: Configure Apple Pay
-          applePay: const stripe.PaymentSheetApplePay(
-            merchantCountryCode: 'SV', // Replace with your country code
-          ),
-          // Optional: Configure Google Pay
-          googlePay: const stripe.PaymentSheetGooglePay(
-            merchantCountryCode: 'SV', // Replace with your country code
-            testEnv: true, // Set to false in production
-            // existingPaymentMethodRequired: false,
-          ),
+          // Configure Apple Pay only on iOS
+          applePay: Platform.isIOS
+              ? const stripe.PaymentSheetApplePay(
+                  merchantCountryCode: 'SV', // Replace with your country code
+                )
+              : null,
+          // Configure Google Pay only on Android
+          googlePay: Platform.isAndroid
+              ? const stripe.PaymentSheetGooglePay(
+                  merchantCountryCode: 'SV', // Replace with your country code
+                  testEnv: false, // Set to false in production
+                  // existingPaymentMethodRequired: false,
+                )
+              : null,
           style: ThemeMode
               .light, // Choose between ThemeMode.light or ThemeMode.dark
           // Optional: Customize the appearance

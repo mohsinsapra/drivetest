@@ -6,10 +6,10 @@ import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
-import 'package:taxi_exam_app/main.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 import 'signup_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _authError;
   bool _rememberMe = false;
+  bool _obscurePassword = true;
 
   Future<void> _authenticate() async {
     setState(() {
@@ -154,24 +155,56 @@ class _LoginScreenState extends State<LoginScreen> {
               // Password field
               TextField(
                 controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
 
-              // Remember me checkbox
-              CheckboxListTile(
-                value: _rememberMe,
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Remember me'),
-                controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _rememberMe = value);
-                },
+              // Remember me checkbox and Forgot Password
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: CheckboxListTile(
+                      value: _rememberMe,
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Remember me'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() => _rememberMe = value);
+                      },
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ForgotPasswordScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 8),

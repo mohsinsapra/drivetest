@@ -1,15 +1,27 @@
 // features/payment/payment_method_sheet.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 class PaymentMethodSheet extends StatelessWidget {
   final Function(String) onSelected;
 
-  PaymentMethodSheet({super.key, required this.onSelected});
+  const PaymentMethodSheet({super.key, required this.onSelected});
 
-  final List<Map<String, String>> paymentMethods = [
-    {'id': 'card', 'name': 'Card'},
-  ];
+  List<Map<String, String>> get paymentMethods {
+    final methods = [
+      {'id': 'card', 'name': 'Card'},
+    ];
+
+    // Add platform-specific payment method
+    if (Platform.isIOS) {
+      methods.add({'id': 'apple_pay', 'name': 'Apple Pay'});
+    } else if (Platform.isAndroid) {
+      methods.add({'id': 'google_pay', 'name': 'Google Pay'});
+    }
+
+    return methods;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,13 +61,13 @@ class PaymentMethodSheet extends StatelessWidget {
         return const Icon(Icons.credit_card);
       case 'google_pay':
         return Image.asset(
-          'assets/google_pay.png', // Ensure you have this asset
+          'assets/icon/google_pay.png', // Ensure you have this asset
           width: 24,
           height: 24,
         );
       case 'apple_pay':
         return Image.asset(
-          'assets/apple_pay.png', // Ensure you have this asset
+          'assets/icon/apple_pay.png', // Ensure you have this asset
           width: 24,
           height: 24,
         );

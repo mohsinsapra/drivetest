@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/features/intro/intro_screen.dart';
@@ -71,7 +72,7 @@ void main() async {
       } catch (e) {
         print('Failed to load .env: $e');
         // Set default values for web
-        dotenv.env['STRIPE_PUBLISHABLE_KEY'] = 'pk_test_on1dP7jlAmwx5V1vG02ktjF200G4XQHemE';
+        dotenv.env['STRIPE_PUBLISHABLE_KEY'] = 'pk_live_51QSEQxLdbibfvPzFVwe3hE5seqcH1wQigVXOW60o9KWurHg8ewRFtpekd0c4R16UaiAa51mDZ3MDJFCmIzIRX56i00rZyQBtdD';
         dotenv.env['ENCRYPTION_PASSPHRASE'] = 'this_is_the_project_for_taxi';
       }
     } else {
@@ -214,31 +215,49 @@ class _MyAppState extends State<MyApp> {
   Future<Map<String, bool>> _initializeApp() async {
     try {
       debugPrint('_initializeApp - Starting initialization');
-      
+
       final prefs = await SharedPreferences.getInstance();
       bool onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
-      
+
       debugPrint('_initializeApp - SharedPreferences loaded');
-      
+
       // DioClient is already initialized in main(), just reload tokens
       await DioClient().reloadTokens();
-      
+
       debugPrint('_initializeApp - DioClient initialized');
-      
-      // Check if user is authenticated
-      bool isAuthenticated = DioClient().refreshToken != null && DioClient().accessToken != null;
-      
+
+      // Check if tokens exist
+      bool hasTokens = DioClient().refreshToken != null && DioClient().accessToken != null;
+      bool isAuthenticated = false;
+
+      // If tokens exist, verify they're valid by trying to fetch user data
+      if (hasTokens) {
+        debugPrint('_initializeApp - Tokens found, verifying authentication...');
+        try {
+          final apiService = ApiService();
+          await apiService.fetchCurrentUser();
+          isAuthenticated = true;
+          debugPrint('_initializeApp - Authentication verified successfully');
+        } catch (e) {
+          debugPrint('_initializeApp - Authentication verification failed: $e');
+          // If fetching user fails, clear the invalid tokens
+          await DioClient().logout();
+          debugPrint('_initializeApp - Invalid tokens cleared');
+          isAuthenticated = false;
+        }
+      } else {
+        debugPrint('_initializeApp - No tokens found');
+      }
+
       // Debug logging
       debugPrint('_initializeApp - Onboarding complete: $onboardingComplete');
-      debugPrint('_initializeApp - Access token exists: ${DioClient().accessToken != null}');
-      debugPrint('_initializeApp - Refresh token exists: ${DioClient().refreshToken != null}');
       debugPrint('_initializeApp - Is authenticated: $isAuthenticated');
 
       final result = {
         'onboardingComplete': onboardingComplete,
         'isAuthenticated': isAuthenticated,
       };
-      
+
       debugPrint('_initializeApp - Completed successfully');
       return result;
     } catch (e) {

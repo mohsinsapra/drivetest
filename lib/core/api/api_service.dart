@@ -122,4 +122,36 @@ class ApiService {
       throw Exception('Failed to create payment intent: $e');
     }
   }
+
+  Future<void> requestPasswordReset(String email) async {
+    try {
+      await _dio.post(
+        'api/user/password-reset/',
+        data: {
+          'email': email,
+        },
+      );
+    } catch (e) {
+      throw Exception('Failed to request password reset: $e');
+    }
+  }
+
+  Future<void> confirmPasswordReset({
+    required String email,
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      await _dio.post(
+        'api/user/password-reset/confirm/',
+        data: {
+          'email': email,
+          'token': token,
+          'new_password': newPassword,
+        },
+      );
+    } catch (e) {
+      throw Exception('Failed to reset password: $e');
+    }
+  }
 }
