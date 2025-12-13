@@ -28,7 +28,14 @@
       "Bash(~/.gradle/gradle.properties)",
       "Bash(dart run:*)",
       "Bash(sips:*)",
-      "Bash(flutter devices:*)"
+      "Bash(flutter devices:*)",
+      "Bash(chmod:*)",
+      "Bash(git remote add:*)",
+      "Bash(make web-build:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git pull:*)",
+      "Bash(git rebase:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

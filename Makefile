@@ -64,6 +64,10 @@ web-run:
 web-build:
 	@echo "$(COLOR_GREEN)Building web app for production...$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)Base URL: $(WEB_BASE_HREF)$(COLOR_RESET)"
+	@if [ -d "$(WEB_BUILD_DIR)/.git" ]; then \
+		echo "$(COLOR_YELLOW)Backing up .git folder...$(COLOR_RESET)"; \
+		cp -R $(WEB_BUILD_DIR)/.git /tmp/build_web_git_backup; \
+	fi
 	@flutter build web --release \
 		--base-href=$(WEB_BASE_HREF) \
 		--dart-define=FIREBASE_API_KEY="$(FIREBASE_API_KEY)" \
@@ -74,6 +78,12 @@ web-build:
 		--dart-define=FIREBASE_APP_ID="$(FIREBASE_APP_ID)" \
 		--dart-define=FIREBASE_MEASUREMENT_ID="$(FIREBASE_MEASUREMENT_ID)" \
 		--dart-define=STRIPE_PUBLISHABLE_KEY="$(STRIPE_PUBLISHABLE_KEY)"
+	@if [ -d "/tmp/build_web_git_backup" ]; then \
+		echo "$(COLOR_YELLOW)Restoring .git folder...$(COLOR_RESET)"; \
+		cp -R /tmp/build_web_git_backup $(WEB_BUILD_DIR)/.git; \
+		rm -rf /tmp/build_web_git_backup; \
+		echo "$(COLOR_GREEN)✅ .git folder restored!$(COLOR_RESET)"; \
+	fi
 	@echo "$(COLOR_GREEN)✅ Build completed! Output: $(WEB_BUILD_DIR)$(COLOR_RESET)"
 
 ## web-deploy: Build and deploy web app to repository
@@ -97,7 +107,7 @@ _deploy-to-web-repo:
 	cd $(WEB_BUILD_DIR) && \
 	git add . && \
 	git commit -m "$$LAST_COMMIT" || echo "$(COLOR_YELLOW)No changes to commit$(COLOR_RESET)"; \
-	git push $(WEB_REPO_REMOTE) $(WEB_REPO_BRANCH) && \
+	git push $(WEB_REPO_REMOTE) $(WEB_REPO_BRANCH) --force && \
 	echo "$(COLOR_GREEN)✅ Successfully deployed to web repository!$(COLOR_RESET)" || \
 	echo "$(COLOR_YELLOW)⚠️  Push failed. Check your remote configuration.$(COLOR_RESET)"
 
