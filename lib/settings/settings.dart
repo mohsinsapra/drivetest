@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/services/version_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -14,6 +15,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool includeSavedQuestions = false;
   int numberOfQuestions = 10;
   int maxQuestions = 1000;
+  VersionInfo? _versionInfo;
 
   final TextEditingController _numberOfQuestionsController =
       TextEditingController();
@@ -22,6 +24,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _loadPreferences();
+    _loadVersionInfo();
+  }
+
+  Future<void> _loadVersionInfo() async {
+    try {
+      final versionInfo = await VersionService.getVersionInfo();
+      setState(() {
+        _versionInfo = versionInfo;
+      });
+    } catch (e) {
+      debugPrint('Failed to load version info: $e');
+    }
   }
 
   Future<void> _loadPreferences() async {
@@ -137,6 +151,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         });
                       },
                     ),
+                    const Divider(height: 32),
+                    if (_versionInfo != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Version Information',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildVersionInfoRow(
+                              'App Version',
+                              'v${_versionInfo!.appVersion} (${_versionInfo!.buildNumber})',
+                            ),
+                            if (_versionInfo!.hasGitInfo) ...[
+                              const SizedBox(height: 8),
+                              _buildVersionInfoRow(
+                                'Commit',
+                                _versionInfo!.shortHash,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildVersionInfoRow(
+                                'Branch',
+                                _versionInfo!.branch,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildVersionInfoRow(
+                                'Last Update',
+                                _versionInfo!.commitMessage,
+                                maxLines: 2,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildVersionInfoRow(
+                                'Date',
+                                _versionInfo!.commitDate,
+                                fontSize: 12,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ] else
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -169,6 +236,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildVersionInfoRow(
+    String label,
+    String value, {
+    int maxLines = 1,
+    double fontSize = 14,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: maxLines,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }
