@@ -116,6 +116,7 @@ version-major:
 	@echo "$(COLOR_GREEN)Bumping major version...$(COLOR_RESET)"
 	@cd scripts && ruby update_version.rb major
 
+web-android-deploy: web-build android-beta 
 ## android-beta: Deploy Android to Google Play alpha
 android-beta:
 	@echo "$(COLOR_GREEN)Deploying Android to Google Play alpha track...$(COLOR_RESET)"
