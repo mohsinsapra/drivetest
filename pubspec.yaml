@@ -87,7 +87,7 @@ dev_dependencies:
   # Melos for monorepo management
   melos: ^6.0.0
 
-  # flutter_launcher_icons: "^0.14.2"
+  flutter_launcher_icons: "^0.14.2"
   change_app_package_name: ^1.4.0
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -101,6 +101,11 @@ flutter_icons:
   image_path: "assets/icon/icon.png"
   android: true
   ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#FFFFFF"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

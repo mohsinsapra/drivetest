@@ -25,7 +25,10 @@
       "Bash(fastlane android beta:*)",
       "Bash(fastlane beta:*)",
       "Bash(\"/Users/muhammadmohsin/Library/Java/JavaVirtualMachines/ms-17.0.15/Contents/Home/bin/jlink\" --version)",
-      "Bash(~/.gradle/gradle.properties)"
+      "Bash(~/.gradle/gradle.properties)",
+      "Bash(dart run:*)",
+      "Bash(sips:*)",
+      "Bash(flutter devices:*)"
     ],
     "deny": [],
     "ask": []
