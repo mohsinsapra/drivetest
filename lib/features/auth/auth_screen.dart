@@ -128,7 +128,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Practice and ace your driving test!',
+                        'Practice and prepare your Taxi exams!',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
