@@ -6,6 +6,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
+import 'package:taxi_exam_app/features/support/help_screen.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -153,7 +154,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.help_outline,
               iconColor: Colors.grey[300],
               title: 'Help',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HelpScreen()),
+                );
+              },
             ),
 
             const Divider(thickness: 0.5, color: Color(0xFFE0E0E0)),
