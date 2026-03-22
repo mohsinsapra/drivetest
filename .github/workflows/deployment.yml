@@ -54,13 +54,13 @@ jobs:
           echo "${{ vars.KEYSTORE_BASE64 }}" | base64 --decode > android/app/taxiappkey.jks
 
       - name: Write key.properties
+        env:
+          STORE_PASSWORD: ${{ vars.KEY_STORE_PASSWORD }}
+          KEY_PASS: ${{ vars.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ vars.KEY_ALIAS }}
         run: |
-          cat > android/key.properties <<EOF
-          storePassword=${{ vars.KEY_STORE_PASSWORD }}
-          keyPassword=${{ vars.KEY_PASSWORD }}
-          keyAlias=${{ vars.KEY_ALIAS }}
-          storeFile=app/taxiappkey.jks
-          EOF
+          printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=app/taxiappkey.jks\n' \
+            "$STORE_PASSWORD" "$KEY_PASS" "$KEY_ALIAS" > android/key.properties
 
 
       # On PRs: build only — no Play Store upload

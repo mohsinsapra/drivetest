@@ -1,2 +1,1 @@
-json_key_file(ENV["PLAY_STORE_JSON_KEY_PATH"] || "/Users/muhammadmohsin/Documents/Learning/TAXI/Android signing key/drivetest-fastlane-credentials.json")
 package_name("com.mohsinsapra.drivetest")
