@@ -24,9 +24,13 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    final provider = Provider.of<MainScreenProvider>(context, listen: false);
-    provider.setIndex(0);
     _pageController = PageController(initialPage: 0);
+    // Defer setIndex so it doesn't call notifyListeners during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<MainScreenProvider>(context, listen: false).setIndex(0);
+      }
+    });
   }
 
   @override

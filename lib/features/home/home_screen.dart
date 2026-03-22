@@ -32,6 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic> _stats = {};
   int selectedTabIndex = 0;
   late final VoidCallback _tabListener;
+  // Saved reference so dispose() can safely remove the listener without context
+  MainScreenProvider? _mainScreenProvider;
 
   List<String> get licenceNames =>
       _stats['licenceWithCategories']?.keys.toList() ?? [];
@@ -44,22 +46,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadPreviousAttempts();
     _tabListener = () {
-      final provider =
-          Provider.of<MainScreenProvider>(context, listen: false);
-      if (provider.currentIndex == 0 && mounted) {
+      if (_mainScreenProvider?.currentIndex == 0 && mounted) {
         _loadPreviousAttempts();
       }
     };
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<MainScreenProvider>(context, listen: false)
-          .addListener(_tabListener);
+      if (!mounted) return;
+      _mainScreenProvider = Provider.of<MainScreenProvider>(context, listen: false);
+      _mainScreenProvider!.addListener(_tabListener);
     });
   }
 
   @override
   void dispose() {
-    Provider.of<MainScreenProvider>(context, listen: false)
-        .removeListener(_tabListener);
+    _mainScreenProvider?.removeListener(_tabListener);
     super.dispose();
   }
 
