@@ -5,6 +5,7 @@
 # Environment variables
 .env
 .env.*
+.vars
 !.env.example # Keep example files for team collaboration
 
 # Generated Fastlane files (if applicable)

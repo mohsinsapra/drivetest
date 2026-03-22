@@ -49,7 +49,9 @@
       "Bash(ls -la /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/.env*)",
       "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/ios -name *.plist -o -name *GoogleService*)",
       "Bash(grep -E \"\\\\.dart$\")",
-      "Bash(gh variable:*)"
+      "Bash(gh variable:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
