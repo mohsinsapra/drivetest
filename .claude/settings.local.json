@@ -51,7 +51,10 @@
       "Bash(grep -E \"\\\\.dart$\")",
       "Bash(gh variable:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(python3:*)",
+      "Bash(grep -v \"^Analyzing\\\\|^$\")",
+      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app -name *.dart -path */settings/* -type f)"
     ],
     "deny": [],
     "ask": []

@@ -1,23 +1,27 @@
-// history_screen.dart
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/utils/calculate_stats.dart';
-import 'package:taxi_exam_app/core/widgets/attempt_entry_card.dart';
-import 'package:taxi_exam_app/core/widgets/attempt_group_card.dart';
 import 'package:taxi_exam_app/core/widgets/attempt_spark_widget.dart';
-import 'package:taxi_exam_app/core/widgets/attempt_tabs_widget.dart';
 import 'package:taxi_exam_app/core/widgets/category_pie_chart_widget.dart';
-
-import 'package:taxi_exam_app/core/widgets/user_header_widget.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/home/attempt_detail_screen.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const _kBg = Color(0xFFF5F5F7);
+const _kCard = Colors.white;
+const _kHeroStart = Color(0xFF1A1040);
+const _kHeroEnd = Color(0xFF3D2C8D);
+
+// ─── HomeScreen ──────────────────────────────────────────────────────────────
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,14 +30,18 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   List<TestAttempt> _previousAttempts = [];
   List<TestAttempt> _pausedAttempts = [];
   Map<String, dynamic> _stats = {};
   int selectedTabIndex = 0;
+  bool _isLoading = true;
   late final VoidCallback _tabListener;
-  // Saved reference so dispose() can safely remove the listener without context
   MainScreenProvider? _mainScreenProvider;
+
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
 
   List<String> get licenceNames =>
       _stats['licenceWithCategories']?.keys.toList() ?? [];
@@ -44,6 +52,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fadeAnimation =
+        CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
+
     _loadPreviousAttempts();
     _tabListener = () {
       if (_mainScreenProvider?.currentIndex == 0 && mounted) {
@@ -52,13 +67,15 @@ class _HomeScreenState extends State<HomeScreen> {
     };
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _mainScreenProvider = Provider.of<MainScreenProvider>(context, listen: false);
+      _mainScreenProvider =
+          Provider.of<MainScreenProvider>(context, listen: false);
       _mainScreenProvider!.addListener(_tabListener);
     });
   }
 
   @override
   void dispose() {
+    _fadeController.dispose();
     _mainScreenProvider?.removeListener(_tabListener);
     super.dispose();
   }
@@ -66,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _loadPreviousAttempts() async {
     final box = await Hive.openBox<TestAttempt>('testAttempts');
     _refreshFromBox(box);
-    _syncFromBackend(box); // background — no await
+    _syncFromBackend(box);
   }
 
   void _refreshFromBox(Box<TestAttempt> box) {
@@ -77,7 +94,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
       _previousAttempts = all.where((a) => a.isCompleted).toList();
       _stats = calculateStats(_previousAttempts);
+      _isLoading = false;
     });
+    _fadeController.forward(from: 0);
   }
 
   Future<void> _syncFromBackend(Box<TestAttempt> box) async {
@@ -87,15 +106,12 @@ class _HomeScreenState extends State<HomeScreen> {
     for (final data in remoteList) {
       final id = data['attempt_id'] as String? ?? '';
       if (id.isEmpty || box.containsKey(id)) continue;
-
-      // For paused tests, fetch the exact questions from the backend
-      // so the user can resume on this device too
       List<Question> questions = const [];
       if ((data['status'] as String? ?? '') == 'paused') {
         questions = await apiService.fetchQuestionsForAttempt(id);
       }
-
-      final attempt = apiService.testAttemptFromJson(data, questions: questions);
+      final attempt =
+          apiService.testAttemptFromJson(data, questions: questions);
       if (attempt != null) {
         await box.put(id, attempt);
         changed = true;
@@ -112,53 +128,36 @@ class _HomeScreenState extends State<HomeScreen> {
       _pausedAttempts.clear();
     });
     showAppSnackBar('All tests have been deleted.');
-    // Remove from backend (fire-and-forget — local is already cleared above)
     ApiService().deleteAllTestAttempts();
-  }
-
-  String _buildDateRange(String licence) {
-    final attempts = _previousAttempts
-        .where((a) => a.licenceName == licence)
-        .toList()
-      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-
-    if (attempts.isEmpty) return '';
-
-    final start = attempts.first.dateTime;
-    final end = attempts.last.dateTime;
-    return "${start.day}/${start.month} to ${end.day}/${end.month}";
   }
 
   void _confirmDeletePausedTest(TestAttempt attempt) {
     showDialog(
       context: context,
-      builder: (BuildContext ctx) {
-        return AlertDialog(
-          title: const Text('Delete Progress'),
-          content: const Text(
-              'Are you sure you want to delete this saved test? This action cannot be undone.'),
-          actions: [
-            TextButton(
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Progress'),
+        content: const Text(
+            'Are you sure you want to delete this saved test?'),
+        actions: [
+          TextButton(
               child: const Text('Cancel'),
-              onPressed: () => Navigator.of(ctx).pop(),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Delete', style: TextStyle(color: Colors.white)),
-              onPressed: () async {
-                Navigator.of(ctx).pop();
-                // Remove from UI immediately
-                setState(() => _pausedAttempts.removeWhere((a) => a.testId == attempt.testId));
-                // Remove from local Hive
-                final box = await Hive.openBox<TestAttempt>('testAttempts');
-                await box.delete(attempt.testId);
-                // Remove from backend
-                ApiService().deleteTestAttempt(attempt.testId);
-              },
-            ),
-          ],
-        );
-      },
+              onPressed: () => Navigator.of(ctx).pop()),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child:
+                const Text('Delete', style: TextStyle(color: Colors.white)),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              setState(() => _pausedAttempts
+                  .removeWhere((a) => a.testId == attempt.testId));
+              final box =
+                  await Hive.openBox<TestAttempt>('testAttempts');
+              await box.delete(attempt.testId);
+              ApiService().deleteTestAttempt(attempt.testId);
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -166,317 +165,702 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete All Tests'),
-          content: const Text(
-              'Are you sure you want to delete all test attempts? This action cannot be undone.'),
-          actions: [
-            TextButton(
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete All Tests'),
+        content: const Text(
+            'Are you sure you want to delete all test attempts?'),
+        actions: [
+          TextButton(
               child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-              },
-            ),
-            ElevatedButton(
-              child: const Text('Delete'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-                _deleteAllTests(); // Call the method to delete all tests
-              },
-            ),
-          ],
-        );
-      },
+              onPressed: () => Navigator.of(ctx).pop()),
+          ElevatedButton(
+            child: const Text('Delete'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _deleteAllTests();
+            },
+          ),
+        ],
+      ),
     );
   }
 
   Map<String, int> getDailyAttemptCounts(List<TestAttempt> attempts) {
     final now = DateTime.now();
     final Map<String, int> result = {};
-
     for (int i = 6; i >= 0; i--) {
       final date =
           DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
       final key = "${date.day}/${date.month}";
-      final count = attempts
+      result[key] = attempts
           .where((a) =>
               a.dateTime.year == date.year &&
               a.dateTime.month == date.month &&
               a.dateTime.day == date.day)
           .length;
-      result[key] = count;
     }
-
     return result;
   }
 
   Map<String, int> getMonthlyAttemptCounts(List<TestAttempt> attempts) {
     final now = DateTime.now();
     final Map<String, int> result = {};
-
     for (int i = 5; i >= 0; i--) {
       final date = DateTime(now.year, now.month - i, 1);
       final key = "${date.month}/${date.year}";
-      final count = attempts
+      result[key] = attempts
           .where((a) =>
-              a.dateTime.year == date.year && a.dateTime.month == date.month)
+              a.dateTime.year == date.year &&
+              a.dateTime.month == date.month)
           .length;
-      result[key] = count;
     }
-
     return result;
   }
 
-  Widget _buildPausedSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 8.0),
-          child: Text(
-            'In Progress',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
-        ..._pausedAttempts.map((attempt) => _PausedTestCard(
-              attempt: attempt,
-              canResume: attempt.questions.isNotEmpty,
-              onResume: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => Testscreen(
-                      questions: attempt.questions,
-                      instantMarking: true,
-                      licenceId: attempt.licenceId ?? '',
-                      categoryId: attempt.categoryId ?? '',
-                      licenceName: attempt.licenceName ?? '',
-                      categoryName: attempt.categoryName ?? '',
-                      initialQuestionIndex: attempt.currentQuestionIndex,
-                      userSelections: attempt.userSelections,
-                      resumeTestId: attempt.testId,
-                    ),
-                  ),
-                );
-                _loadPreviousAttempts();
-              },
-              onDelete: () => _confirmDeletePausedTest(attempt),
-            )),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
+  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final bool hasData = _previousAttempts.isNotEmpty;
-    final Map<String, Map<String, int>> licenceWithCategories =
-        Map<String, Map<String, int>>.from(
-            _stats['licenceWithCategories'] ?? {});
-    List<String> licenceNames = licenceWithCategories.keys.toList();
-
-    final dailyCounts = getDailyAttemptCounts(
-      _previousAttempts.where((a) => a.licenceName == selectedLicence).toList(),
-    );
-
-    final monthlyCounts = getMonthlyAttemptCounts(
-      _previousAttempts.where((a) => a.licenceName == selectedLicence).toList(),
-    );
+    final hasData = _previousAttempts.isNotEmpty;
+    final passed = _previousAttempts.where((a) => a.hasPassed).length;
+    final failed = _previousAttempts.length - passed;
+    final avgScore =
+        (_stats['averageScore'] as num?)?.toDouble() ?? 0.0;
+    final licenceWithCategories = Map<String, Map<String, int>>.from(
+        _stats['licenceWithCategories'] ?? {});
+    final licenceNames = licenceWithCategories.keys.toList();
+    final selectedAttempts = _previousAttempts
+        .where((a) => a.licenceName == selectedLicence)
+        .toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    final dailyCounts = getDailyAttemptCounts(selectedAttempts);
+    final monthlyCounts = getMonthlyAttemptCounts(selectedAttempts);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(''),
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, right: 16.0),
-            child: IconButton(
-              icon: const Icon(Icons.notifications_none),
-              onPressed: () {},
+      backgroundColor: _kBg,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 450),
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+                    begin: const Offset(0, 0.04), end: Offset.zero)
+                .animate(CurvedAnimation(
+                    parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          ),
+        ),
+        child: _isLoading
+            ? _buildSkeleton()
+            : SafeArea(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: CustomScrollView(
+                    slivers: [
+                      // Header
+                      SliverToBoxAdapter(child: _buildHeader()),
+
+                      if (hasData) ...[
+                        // Hero card
+                        SliverToBoxAdapter(
+                            child: _buildHeroCard(
+                                avgScore, passed, failed)),
+                        // Quick stats
+                        SliverToBoxAdapter(
+                            child:
+                                _buildQuickStats(passed, failed)),
+                        // In progress
+                        if (_pausedAttempts.isNotEmpty)
+                          SliverToBoxAdapter(
+                              child: _buildInProgressSection()),
+                        // Licence tabs
+                        if (licenceNames.length > 1)
+                          SliverToBoxAdapter(
+                              child: _buildLicenceTabs(licenceNames)),
+                        // Charts
+                        SliverToBoxAdapter(
+                            child: _buildChartsSection(
+                                dailyCounts, monthlyCounts)),
+                        // Pie chart
+                        if (licenceWithCategories[selectedLicence] !=
+                            null)
+                          SliverToBoxAdapter(
+                              child: _buildPieSection(
+                                  licenceWithCategories[selectedLicence]!)),
+                        // Activity header
+                        SliverToBoxAdapter(
+                            child: _buildSectionHeader(
+                                'Recent Activity',
+                                '${selectedAttempts.length} attempts')),
+                        // Activity list
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => _StaggeredItem(
+                              index: index,
+                              child: _buildActivityItem(
+                                  selectedAttempts[index]),
+                            ),
+                            childCount: selectedAttempts.length,
+                          ),
+                        ),
+                        const SliverToBoxAdapter(
+                            child: SizedBox(height: 110)),
+                      ] else if (_pausedAttempts.isNotEmpty) ...[
+                        SliverToBoxAdapter(
+                            child: _buildInProgressSection()),
+                        const SliverToBoxAdapter(
+                            child: SizedBox(height: 110)),
+                      ] else ...[
+                        SliverFillRemaining(
+                            child: _buildEmptyState()),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
+
+  // ── Section widgets ────────────────────────────────────────────────────────
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 12, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Dashboard',
+                    style: TextStyle(
+                        color: Colors.grey.shade500, fontSize: 13)),
+                const Text('My Progress',
+                    style: TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold)),
+              ],
             ),
           ),
-          if (hasData)
+          IconButton(
+            icon: Icon(Icons.notifications_none_rounded,
+                color: Colors.grey.shade700),
+            onPressed: () {},
+          ),
+          if (_previousAttempts.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: Icon(Icons.delete_outline_rounded,
+                  color: Colors.grey.shade700),
               onPressed: _confirmDeleteAllTests,
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+    );
+  }
+
+  Widget _buildHeroCard(double avgScore, int passed, int failed) {
+    return _StaggeredItem(
+      index: 0,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [_kHeroStart, _kHeroEnd],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: _kHeroEnd.withValues(alpha: 0.4),
+              blurRadius: 24,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Overall Score',
+                    style: TextStyle(
+                        color: Colors.white60, fontSize: 13)),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white12,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${_previousAttempts.length} tests',
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: avgScore),
+              duration: const Duration(milliseconds: 1200),
+              curve: Curves.easeOutCubic,
+              builder: (_, v, __) => Text(
+                '${v.toStringAsFixed(1)}%',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 52,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -1,
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: avgScore / 100),
+              duration: const Duration(milliseconds: 1200),
+              curve: Curves.easeOutCubic,
+              builder: (_, v, __) => ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: v,
+                  backgroundColor: Colors.white12,
+                  valueColor:
+                      const AlwaysStoppedAnimation(Colors.orange),
+                  minHeight: 4,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                _HeroStat(
+                    value: passed.toString(),
+                    label: 'Passed',
+                    color: Colors.greenAccent.shade400),
+                const SizedBox(width: 28),
+                _HeroStat(
+                    value: failed.toString(),
+                    label: 'Failed',
+                    color: Colors.red.shade200),
+                const SizedBox(width: 28),
+                _HeroStat(
+                    value: _previousAttempts.length.toString(),
+                    label: 'Total',
+                    color: Colors.white70),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickStats(int passed, int failed) {
+    return _StaggeredItem(
+      index: 1,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: Row(
+          children: [
+            Expanded(
+                child: _QuickStatCard(
+              icon: Icons.check_circle_outline_rounded,
+              value: passed.toString(),
+              label: 'Passed',
+              iconColor: Colors.green.shade500,
+              bgColor: Colors.green.shade50,
+            )),
+            const SizedBox(width: 12),
+            Expanded(
+                child: _QuickStatCard(
+              icon: Icons.cancel_outlined,
+              value: failed.toString(),
+              label: 'Failed',
+              iconColor: Colors.red.shade400,
+              bgColor: Colors.red.shade50,
+            )),
+            const SizedBox(width: 12),
+            Expanded(
+                child: _QuickStatCard(
+              icon: Icons.pause_circle_outline_rounded,
+              value: _pausedAttempts.length.toString(),
+              label: 'Paused',
+              iconColor: Colors.orange.shade500,
+              bgColor: Colors.orange.shade50,
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInProgressSection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Show ~85% of screen per card so the next one peeks; cap at 340
+    final cardWidth = _pausedAttempts.length == 1
+        ? screenWidth - 40
+        : (screenWidth * 0.82).clamp(0.0, 340.0);
+
+    return _StaggeredItem(
+      index: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+              'In Progress', '${_pausedAttempts.length} active'),
+          SizedBox(
+            height: 190,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: _pausedAttempts.length,
+              itemBuilder: (context, index) => _InProgressCard(
+                cardWidth: cardWidth,
+                attempt: _pausedAttempts[index],
+                onResume: () async {
+                  final a = _pausedAttempts[index];
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => Testscreen(
+                        questions: a.questions,
+                        instantMarking: true,
+                        licenceId: a.licenceId ?? '',
+                        categoryId: a.categoryId ?? '',
+                        licenceName: a.licenceName ?? '',
+                        categoryName: a.categoryName ?? '',
+                        initialQuestionIndex: a.currentQuestionIndex,
+                        userSelections: a.userSelections,
+                        resumeTestId: a.testId,
+                      ),
+                    ),
+                  );
+                  _loadPreviousAttempts();
+                },
+                onDelete: () =>
+                    _confirmDeletePausedTest(_pausedAttempts[index]),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLicenceTabs(List<String> names) {
+    return _StaggeredItem(
+      index: 3,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: names.asMap().entries.map((e) {
+            final isActive = selectedTabIndex == e.key;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () =>
+                    setState(() => selectedTabIndex = e.key),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isActive ? _kCard : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color: Colors.black
+                                  .withValues(alpha: 0.06),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            )
+                          ]
+                        : [],
+                  ),
+                  child: Text(
+                    e.value,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isActive
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      color: isActive
+                          ? Colors.black87
+                          : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChartsSection(
+      Map<String, int> daily, Map<String, int> monthly) {
+    return _StaggeredItem(
+      index: 4,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: Row(
+          children: [
+            Expanded(
+              child: _ChartCard(
+                label: 'This Week',
+                child: AttemptCountLineGraph(
+                    data: daily,
+                    lineColor: Colors.deepPurple,
+                    height: 110),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _ChartCard(
+                label: 'This Month',
+                child: AttemptCountLineGraph(
+                    data: monthly,
+                    lineColor: Colors.orange,
+                    height: 110),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPieSection(Map<String, int> data) {
+    return _StaggeredItem(
+      index: 5,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _kCard,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3)),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Always-visible: In Progress tests ─────────────────
-              if (_pausedAttempts.isNotEmpty) _buildPausedSection(),
+              Text('By Category',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Colors.grey.shade800)),
+              const SizedBox(height: 8),
+              CategoryPieChart(data: data),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-              // ── Completed attempts dashboard ───────────────────────
-              if (hasData) ...[
-                UserHeaderWidget(
-                    overallPercentage: _stats['averageScore'] ?? 0),
-                const SizedBox(height: 24),
-                AttemptTabsWidget(
-                  tabNames: licenceNames,
-                  selectedIndex: selectedTabIndex,
-                  onTabChanged: (i) => setState(() => selectedTabIndex = i),
-                ),
-                const SizedBox(height: 16),
-                AttemptGroupCard(
-                  licence: selectedLicence,
-                  status:
-                      (_stats['licenceCounts'][selectedLicence] ?? 0) >= 3
-                          ? "Promoted"
-                          : "In Progress",
-                  dateRange: _buildDateRange(selectedLicence),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            const Text('Today',
-                                style:
-                                    TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            AttemptCountLineGraph(
-                                data: dailyCounts,
-                                lineColor: Colors.redAccent),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            const Text('This month',
-                                style:
-                                    TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            AttemptCountLineGraph(
-                                data: monthlyCounts,
-                                lineColor: Colors.orange),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                if (_stats['licenceWithCategories'] != null &&
-                    _stats['licenceWithCategories'][selectedLicence] != null)
-                  CategoryPieChart(
-                    data: Map<String, int>.from(
-                      _stats['licenceWithCategories'][selectedLicence],
-                    ),
+  Widget _buildSectionHeader(String title, String subtitle) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 17, fontWeight: FontWeight.bold)),
+          Text(subtitle,
+              style: TextStyle(
+                  color: Colors.grey.shade500, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityItem(TestAttempt attempt) {
+    final isPassed = attempt.hasPassed;
+    final color =
+        isPassed ? Colors.green.shade500 : Colors.red.shade400;
+    final bgColor =
+        isPassed ? Colors.green.shade50 : Colors.red.shade50;
+    final dt = attempt.dateTime;
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) =>
+                AttemptDetailScreen(attempt: attempt)),
+      ),
+      child: Container(
+        color: _kCard,
+        padding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration:
+                  BoxDecoration(color: bgColor, shape: BoxShape.circle),
+              child: Icon(
+                isPassed
+                    ? Icons.check_rounded
+                    : Icons.close_rounded,
+                color: color,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    attempt.categoryName ?? 'Unknown',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 15),
                   ),
-                const SizedBox(height: 16),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text(
-                    'Previous Attempts',
+                  const SizedBox(height: 3),
+                  Text(
+                    '${dt.day}/${dt.month}/${dt.year}  ·  ${attempt.licenceName ?? ''}',
                     style: TextStyle(
-                      fontSize: 18,
+                        color: Colors.grey.shade500, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${attempt.score.toInt()}%',
+                  style: TextStyle(
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                      fontSize: 16,
+                      color: color),
                 ),
-                ..._previousAttempts
-                    .where((a) => a.licenceName == selectedLicence)
-                    .map((attempt) => GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    AttemptDetailScreen(attempt: attempt),
-                              ),
-                            );
-                          },
-                          child: AttemptEntryCard(attempt: attempt),
-                        )),
-              ] else if (_pausedAttempts.isEmpty) ...[
-                // Truly nothing yet — no paused, no completed
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          height: 200,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Lottie.asset(
-                              'assets/animations/no_attempts.json',
-                              fit: BoxFit.contain,
-                              repeat: true,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          'No attempts yet!',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Once you complete a quiz, your results will show up here.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 32, vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          onPressed: () {
-                            Provider.of<MainScreenProvider>(context,
-                                    listen: false)
-                                .setIndex(1);
-                          },
-                          child: const Text(
-                            'Take Your First Quiz',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                const SizedBox(height: 2),
+                Text(
+                  isPassed ? 'Passed' : 'Failed',
+                  style: TextStyle(fontSize: 11, color: color),
                 ),
+              ],
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.chevron_right_rounded,
+                color: Colors.grey.shade300, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 200,
+              child: Lottie.asset(
+                'assets/animations/no_attempts.json',
+                fit: BoxFit.contain,
+                repeat: true,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text('No attempts yet!',
+                style: TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(
+              'Once you complete a quiz, your results will show up here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kHeroEnd,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 32, vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => Provider.of<MainScreenProvider>(context,
+                      listen: false)
+                  .setIndex(1),
+              child: const Text('Take Your First Quiz',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkeleton() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(children: [
+                _sBox(140, 40, 8),
+                const Spacer(),
+                _sBox(40, 40, 20),
+              ]),
+              const SizedBox(height: 20),
+              // Hero card
+              _sBox(double.infinity, 190, 24),
+              const SizedBox(height: 16),
+              // Quick stats
+              Row(children: [
+                Expanded(child: _sBox(double.infinity, 90, 16)),
+                const SizedBox(width: 12),
+                Expanded(child: _sBox(double.infinity, 90, 16)),
+                const SizedBox(width: 12),
+                Expanded(child: _sBox(double.infinity, 90, 16)),
+              ]),
+              const SizedBox(height: 24),
+              // Charts
+              Row(children: [
+                Expanded(child: _sBox(double.infinity, 110, 16)),
+                const SizedBox(width: 12),
+                Expanded(child: _sBox(double.infinity, 110, 16)),
+              ]),
+              const SizedBox(height: 24),
+              // Activity items
+              for (int i = 0; i < 4; i++) ...[
+                _sBox(double.infinity, 64, 0),
+                const Divider(height: 1),
               ],
             ],
           ),
@@ -484,54 +868,243 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Widget _sBox(double w, double h, double r) => Container(
+        width: w,
+        height: h,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(r),
+        ),
+      );
 }
 
-class _PausedTestCard extends StatelessWidget {
-  final TestAttempt attempt;
-  final VoidCallback onResume;
-  final VoidCallback onDelete;
-  final bool canResume;
+// ─── Staggered item ──────────────────────────────────────────────────────────
 
-  const _PausedTestCard({
-    required this.attempt,
-    required this.onResume,
-    required this.onDelete,
-    this.canResume = true,
-  });
+class _StaggeredItem extends StatefulWidget {
+  final Widget child;
+  final int index;
+  const _StaggeredItem({required this.child, required this.index});
 
   @override
-  Widget build(BuildContext context) {
-    final answered = attempt.userSelections.length;
-    final total = attempt.questions.length;
-    final progress = total > 0 ? answered / total : 0.0;
-    final dt = attempt.dateTime;
-    final dateStr =
-        '${dt.day}/${dt.month}/${dt.year}  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  State<_StaggeredItem> createState() => _StaggeredItemState();
+}
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange.shade50,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
+class _StaggeredItemState extends State<_StaggeredItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _opacity;
+  late final Animation<Offset> _slide;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
+    _opacity = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _slide = Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero)
+        .animate(
+            CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _scale = Tween<double>(begin: 0.96, end: 1.0).animate(
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
+    Future.delayed(Duration(milliseconds: widget.index * 65),
+        () { if (mounted) _ctrl.forward(); });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+        opacity: _opacity,
+        child: SlideTransition(
+          position: _slide,
+          child: ScaleTransition(scale: _scale, child: widget.child),
+        ),
+      );
+}
+
+// ─── Hero stat chip ──────────────────────────────────────────────────────────
+
+class _HeroStat extends StatelessWidget {
+  final String value, label;
+  final Color color;
+  const _HeroStat(
+      {required this.value, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(value,
+              style: TextStyle(
+                  color: color,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold)),
+          const SizedBox(height: 2),
+          Text(label,
+              style: const TextStyle(color: Colors.white38, fontSize: 11)),
         ],
-      ),
-      child: Padding(
+      );
+}
+
+// ─── Quick stat card ─────────────────────────────────────────────────────────
+
+class _QuickStatCard extends StatelessWidget {
+  final IconData icon;
+  final String value, label;
+  final Color iconColor, bgColor;
+  const _QuickStatCard(
+      {required this.icon,
+      required this.value,
+      required this.label,
+      required this.iconColor,
+      required this.bgColor});
+
+  @override
+  Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: _kCard,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2)),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: iconColor, size: 16),
+            ),
+            const SizedBox(height: 10),
+            Text(value,
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 2),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 11, color: Colors.grey.shade500)),
+          ],
+        ),
+      );
+}
+
+// ─── Chart card wrapper ───────────────────────────────────────────────────────
+
+class _ChartCard extends StatelessWidget {
+  final String label;
+  final Widget child;
+  const _ChartCard({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+        decoration: BoxDecoration(
+          color: _kCard,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600)),
+            child,
+          ],
+        ),
+      );
+}
+
+// ─── In-progress horizontal card ─────────────────────────────────────────────
+
+class _InProgressCard extends StatefulWidget {
+  final TestAttempt attempt;
+  final VoidCallback onResume;
+  final VoidCallback onDelete;
+  final double cardWidth;
+  const _InProgressCard(
+      {required this.attempt,
+      required this.onResume,
+      required this.onDelete,
+      required this.cardWidth});
+
+  @override
+  State<_InProgressCard> createState() => _InProgressCardState();
+}
+
+class _InProgressCardState extends State<_InProgressCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 900))
+      ..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final a = widget.attempt;
+    final answered = a.userSelections.length;
+    final total = a.questions.length;
+    final progress = total > 0 ? answered / total : 0.0;
+
+    return Container(
+      width: widget.cardWidth,
+      margin: const EdgeInsets.only(right: 12, bottom: 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _kCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.orange.shade100),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.orange.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              FadeTransition(
+                opacity: Tween<double>(begin: 0.5, end: 1.0).animate(
+                    CurvedAnimation(
+                        parent: _pulse, curve: Curves.easeInOut)),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade100,
                     borderRadius: BorderRadius.circular(20),
@@ -540,76 +1113,84 @@ class _PausedTestCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.pause_circle_outline,
-                          size: 14, color: Colors.orange.shade700),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Paused',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.orange.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                          size: 11, color: Colors.orange.shade700),
+                      const SizedBox(width: 3),
+                      Text('Paused',
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.orange.shade700,
+                              fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline,
-                      size: 18, color: Colors.grey),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: onDelete,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${attempt.categoryName ?? 'Unknown'} — ${attempt.licenceName ?? ''}',
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '$dateStr  •  Q${attempt.currentQuestionIndex + 1} of $total',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: widget.onDelete,
+                child: Icon(Icons.close,
+                    size: 15, color: Colors.grey.shade400),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            a.categoryName ?? 'Unknown',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 13),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Q${a.currentQuestionIndex + 1} of $total',
+            style:
+                TextStyle(fontSize: 11, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 10),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: progress),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.easeOutCubic,
+            builder: (_, v, __) => ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 6,
-                backgroundColor: Colors.grey.shade200,
+                value: v,
+                minHeight: 4,
+                backgroundColor: Colors.grey.shade100,
                 color: Colors.orange,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              '$answered / $total answered',
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: canResume ? onResume : null,
-                icon: Icon(
-                  canResume ? Icons.play_arrow : Icons.device_unknown,
-                  size: 18,
-                ),
-                label: Text(canResume ? 'Resume Test' : 'Resume on original device'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: canResume ? Colors.orange : Colors.grey,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: a.questions.isNotEmpty ? widget.onResume : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: a.questions.isNotEmpty
+                    ? Colors.orange
+                    : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.play_arrow_rounded,
+                      color: Colors.white, size: 14),
+                  const SizedBox(width: 4),
+                  Text(
+                    a.questions.isNotEmpty ? 'Resume' : 'Unavailable',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600),
                   ),
-                ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

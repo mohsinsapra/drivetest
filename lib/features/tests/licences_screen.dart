@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -10,6 +11,8 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/widgets/category_card_widget.dart';
 import 'package:taxi_exam_app/core/widgets/licence_type_card_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/widgets/test_option_card_widget.dart';
 import 'package:taxi_exam_app/features/payment/payment_method_sheet.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
@@ -114,39 +117,94 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   /*                                 API CALLS                                 */
   /* -------------------------------------------------------------------------- */
 
+  // Cache TTLs
+  static const _licenceTtl = Duration(hours: 24);
+  static const _categoryTtl = Duration(hours: 1);
+
   Future<void> _loadLicenseTypes() async {
-    setState(() => isLoading = true);
+    // 1. Try cache first — show immediately, no loading indicator
+    final prefs = await SharedPreferences.getInstance();
+    final cachedJson = prefs.getString('cache_licences');
+    final cachedAt = prefs.getInt('cache_licences_at') ?? 0;
+    final isFresh = DateTime.now().millisecondsSinceEpoch - cachedAt <
+        _licenceTtl.inMilliseconds;
+
+    if (cachedJson != null && isFresh) {
+      final cached = (jsonDecode(cachedJson) as List).cast<dynamic>();
+      if (mounted) setState(() => licenseTypes = cached);
+      return; // fresh cache — skip network call entirely
+    }
+
+    // 2. Cache stale or missing — fetch from network
+    if (mounted) setState(() => isLoading = true);
     try {
       final licenses = await _apiService.fetchLicenses();
-
       if (!mounted) return;
+      // Persist to cache
+      await prefs.setString('cache_licences', jsonEncode(licenses));
+      await prefs.setInt('cache_licences_at',
+          DateTime.now().millisecondsSinceEpoch);
       setState(() => licenseTypes = licenses);
-      setState(() => isLoading = false);
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar('Error fetching license types. Please try again.');
+      // Fall back to stale cache if available
+      if (cachedJson != null) {
+        setState(() =>
+            licenseTypes = (jsonDecode(cachedJson) as List).cast<dynamic>());
+      } else {
+        showAppSnackBar('Error fetching license types. Please try again.');
+      }
     } finally {
-      if (!mounted) return;
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   Future<void> _loadCategories(String licenceTypeId) async {
-    setState(() => isLoading = true);
+    // 1. Try cache first
+    final prefs = await SharedPreferences.getInstance();
+    final cacheKey = 'cache_categories_$licenceTypeId';
+    final cacheAtKey = 'cache_categories_at_$licenceTypeId';
+    final cachedJson = prefs.getString(cacheKey);
+    final cachedAt = prefs.getInt(cacheAtKey) ?? 0;
+    final isFresh = DateTime.now().millisecondsSinceEpoch - cachedAt <
+        _categoryTtl.inMilliseconds;
+
+    if (cachedJson != null && isFresh) {
+      final cached = (jsonDecode(cachedJson) as List).cast<dynamic>();
+      if (mounted) {
+        setState(() {
+          categories = cached;
+          isShowingCategories = true;
+        });
+      }
+      return;
+    }
+
+    // 2. Fetch from network
+    if (mounted) setState(() => isLoading = true);
     try {
-      final fetchedCategories =
-          await _apiService.fetchCategories(licenceTypeId);
+      final fetched = await _apiService.fetchCategories(licenceTypeId);
       if (!mounted) return;
+      await prefs.setString(cacheKey, jsonEncode(fetched));
+      await prefs.setInt(
+          cacheAtKey, DateTime.now().millisecondsSinceEpoch);
       setState(() {
-        categories = fetchedCategories;
+        categories = fetched;
         isShowingCategories = true;
       });
-      setState(() => isLoading = false);
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar('Error fetching categories. Please try again.');
+      if (cachedJson != null) {
+        setState(() {
+          categories =
+              (jsonDecode(cachedJson) as List).cast<dynamic>();
+          isShowingCategories = true;
+        });
+      } else {
+        showAppSnackBar('Error fetching categories. Please try again.');
+      }
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -435,14 +493,33 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       ),
       body: Stack(
         children: [
-          if (isLoading)
-            const Center(child: CircularProgressIndicator())
-          else if (isShowingTestOptions)
-            _buildTestOptionsView()
-          else if (isShowingCategories)
-            _buildCategoriesView()
-          else
-            _buildLicenseTypesView(),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 380),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.06, 0),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(
+                    parent: animation, curve: Curves.easeOutCubic)),
+                child: child,
+              ),
+            ),
+            child: isLoading
+                ? _buildLoadingShimmer()
+                : isShowingTestOptions
+                    ? KeyedSubtree(
+                        key: const ValueKey('testOptions'),
+                        child: _buildTestOptionsView())
+                    : isShowingCategories
+                        ? KeyedSubtree(
+                            key: const ValueKey('categories'),
+                            child: _buildCategoriesView())
+                        : KeyedSubtree(
+                            key: const ValueKey('licences'),
+                            child: _buildLicenseTypesView()),
+          ),
           _buildConfettiOverlays(),
         ],
       ),
@@ -451,26 +528,63 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
 
   /* ----------------------------- Sub‑Views ------------------------------ */
 
+  Widget _buildLoadingShimmer() {
+    return Shimmer.fromColors(
+      key: const ValueKey('loading'),
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Center(
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.center,
+            children: List.generate(
+              6,
+              (_) => Container(
+                width: 180,
+                height: 240,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildLicenseTypesView() {
+    const double tileWidth = 180;
+    const double tileHeight = 240;
+
     return RefreshIndicator(
       onRefresh: _loadLicenseTypes,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
-        child: GridView.builder(
-          itemCount: licenseTypes.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.75,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Center(
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.center,
+            children: licenseTypes.asMap().entries.map((e) {
+              final licenseType = e.value;
+              return _LicenceStaggeredItem(
+                index: e.key,
+                child: SizedBox(
+                  width: tileWidth,
+                  height: tileHeight,
+                  child: LicenseTypeCard(
+                    licenseType: licenseType,
+                    onTap: () => _onLicenseTypePressed(licenseType),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
-          itemBuilder: (context, index) {
-            final licenseType = licenseTypes[index];
-            return LicenseTypeCard(
-              licenseType: licenseType,
-              onTap: () => _onLicenseTypePressed(licenseType),
-            );
-          },
         ),
       ),
     );
@@ -482,9 +596,12 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       itemCount: categories.length,
       itemBuilder: (context, index) {
         final category = categories[index];
-        return CategoryCard(
-          category: category,
-          onTap: () => {_onCategoryPressed(category)},
+        return _LicenceStaggeredItem(
+          index: index,
+          child: CategoryCard(
+            category: category,
+            onTap: () => _onCategoryPressed(category),
+          ),
         );
       },
     );
@@ -578,11 +695,14 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       ),
       itemBuilder: (context, index) {
         final option = testOptions[index];
-        return TestOptionCard(
-          label: option['label'],
-          icon: option['icon'],
-          color: option['color'],
-          onTap: option['onPressed'],
+        return _LicenceStaggeredItem(
+          index: index,
+          child: TestOptionCard(
+            label: option['label'],
+            icon: option['icon'],
+            color: option['color'],
+            onTap: option['onPressed'],
+          ),
         );
       },
     );
@@ -760,4 +880,54 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   /* -------------------------------------------------------------------------- */
 
 
+}
+
+// ─── Staggered entrance for licence/category/option items ────────────────────
+
+class _LicenceStaggeredItem extends StatefulWidget {
+  final int index;
+  final Widget child;
+  const _LicenceStaggeredItem({required this.index, required this.child});
+
+  @override
+  State<_LicenceStaggeredItem> createState() => _LicenceStaggeredItemState();
+}
+
+class _LicenceStaggeredItemState extends State<_LicenceStaggeredItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+  late final Animation<double> _scale;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _scale = Tween<double>(begin: 0.92, end: 1.0).animate(
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
+    _slide =
+        Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
+            CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+
+    Future.delayed(Duration(milliseconds: widget.index * 70),
+        () { if (mounted) _ctrl.forward(); });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+        opacity: _fade,
+        child: SlideTransition(
+          position: _slide,
+          child: ScaleTransition(scale: _scale, child: widget.child),
+        ),
+      );
 }

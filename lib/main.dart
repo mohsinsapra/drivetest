@@ -15,7 +15,6 @@ import 'package:taxi_exam_app/main_screen.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:clarity_flutter/clarity_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 
