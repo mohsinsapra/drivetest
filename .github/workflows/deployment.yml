@@ -62,12 +62,6 @@ jobs:
           storeFile=app/taxiappkey.jks
           EOF
 
-      - name: Write Play Store JSON Key
-        run: |
-          echo "${{ vars.PLAY_STORE_JSON_KEY_B64 }}" | base64 --decode > android/fastlane/play-store-key.json
-          echo "File size: $(wc -c < android/fastlane/play-store-key.json) bytes"
-          echo "First 100 chars: $(head -c 100 android/fastlane/play-store-key.json)"
-          python3 -c "import json; json.load(open('android/fastlane/play-store-key.json')); print('JSON valid ✓')"
 
       # On PRs: build only — no Play Store upload
       - name: Build APK (PR check)
@@ -97,7 +91,7 @@ jobs:
         if: github.event_name == 'push'
         working-directory: android
         env:
-          PLAY_STORE_JSON_KEY_PATH: fastlane/play-store-key.json
+          PLAY_STORE_JSON_KEY: ${{ vars.PLAY_STORE_JSON_KEY }}
           FLUTTER_DART_DEFINES: >-
             --dart-define=FIREBASE_API_KEY=${{ vars.FIREBASE_API_KEY }}
             --dart-define=FIREBASE_AUTH_DOMAIN=${{ vars.FIREBASE_AUTH_DOMAIN }}

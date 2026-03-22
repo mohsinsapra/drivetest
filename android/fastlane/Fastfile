@@ -4,7 +4,8 @@ platform :android do
   desc "Deploy Beta"
   lane :beta do
     previous_build_number = google_play_track_version_codes(
-      track: "alpha"
+      track: "alpha",
+      json_key_data: ENV["PLAY_STORE_JSON_KEY"]
     ).max
 
     current_build_number = previous_build_number + 1
@@ -31,6 +32,7 @@ platform :android do
       skip_upload_images: true,
       version_code: current_build_number,
       aab: "../build/app/outputs/bundle/release/app-release.aab",
+      json_key_data: ENV["PLAY_STORE_JSON_KEY"]
     )
 
     # Tag the release
