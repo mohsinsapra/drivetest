@@ -56,20 +56,39 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MainScreenProvider>(context);
+    final mq = MediaQuery.of(context);
+    // Tell child screens' SafeArea to reserve space for the floating nav
+    // (66px pill area + device bottom inset). Main scaffold is transparent
+    // so the child screens' own backgrounds show edge-to-edge with no white strip.
+    const navHeight = 66.0;
 
     return Scaffold(
-      // extendBody lets PageView render behind the transparent bottomNavigationBar
-      // so scroll-aware widgets (ListView, SingleChildScrollView) still pad correctly
-      extendBody: true,
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: _onPageChanged,
-        physics: const ClampingScrollPhysics(),
-        children: _screens,
-      ),
-      bottomNavigationBar: _FloatingNavArea(
-        currentIndex: provider.currentIndex,
-        onTap: (i) => provider.setIndex(i),
+      backgroundColor: Colors.transparent,
+      body: MediaQuery(
+        data: mq.copyWith(
+          padding: mq.padding.copyWith(
+            bottom: mq.padding.bottom + navHeight,
+          ),
+        ),
+        child: Stack(
+          children: [
+            PageView(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              physics: const ClampingScrollPhysics(),
+              children: _screens,
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _FloatingNavArea(
+                currentIndex: provider.currentIndex,
+                onTap: (i) => provider.setIndex(i),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -88,18 +107,17 @@ class _FloatingNavArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _FloatingNavPill(
-              currentIndex: currentIndex,
-              onTap: onTap,
-            ),
-          ],
-        ),
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset + 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _FloatingNavPill(
+            currentIndex: currentIndex,
+            onTap: onTap,
+          ),
+        ],
       ),
     );
   }
@@ -117,7 +135,6 @@ class _FloatingNavPill extends StatelessWidget {
     (icon: LucideIcons.user, label: 'Profile'),
   ];
 
-  // Fixed dimensions so AnimatedPositioned can calculate offsets
   static const double _itemW = 56;
   static const double _itemH = 44;
   static const double _pad = 5;
@@ -167,7 +184,7 @@ class _FloatingNavPill extends StatelessWidget {
                 ),
               ),
             ),
-            // Icons (rendered on top of the indicator)
+            // Icons
             Row(
               children: _items.asMap().entries.map((e) {
                 final isActive = currentIndex == e.key;

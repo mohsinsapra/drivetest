@@ -494,12 +494,12 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       body: Stack(
         children: [
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 380),
+            duration: const Duration(milliseconds: 220),
             transitionBuilder: (child, animation) => FadeTransition(
               opacity: animation,
               child: SlideTransition(
                 position: Tween<Offset>(
-                  begin: const Offset(0.06, 0),
+                  begin: const Offset(0.03, 0),
                   end: Offset.zero,
                 ).animate(CurvedAnimation(
                     parent: animation, curve: Curves.easeOutCubic)),
@@ -904,15 +904,15 @@ class _LicenceStaggeredItemState extends State<_LicenceStaggeredItem>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500));
+        vsync: this, duration: const Duration(milliseconds: 280));
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _scale = Tween<double>(begin: 0.92, end: 1.0).animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
+    _scale = Tween<double>(begin: 0.95, end: 1.0).animate(
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
     _slide =
-        Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero).animate(
             CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
 
-    Future.delayed(Duration(milliseconds: widget.index * 70),
+    Future.delayed(Duration(milliseconds: widget.index * 35),
         () { if (mounted) _ctrl.forward(); });
   }
 
@@ -923,11 +923,13 @@ class _LicenceStaggeredItemState extends State<_LicenceStaggeredItem>
   }
 
   @override
-  Widget build(BuildContext context) => FadeTransition(
-        opacity: _fade,
-        child: SlideTransition(
-          position: _slide,
-          child: ScaleTransition(scale: _scale, child: widget.child),
+  Widget build(BuildContext context) => RepaintBoundary(
+        child: FadeTransition(
+          opacity: _fade,
+          child: SlideTransition(
+            position: _slide,
+            child: ScaleTransition(scale: _scale, child: widget.child),
+          ),
         ),
       );
 }

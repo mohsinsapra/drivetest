@@ -34,29 +34,29 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 500),
     );
 
-    _avatarScale = Tween<double>(begin: 0.5, end: 1.0).animate(
+    _avatarScale = Tween<double>(begin: 0.7, end: 1.0).animate(
       CurvedAnimation(
           parent: _ctrl,
-          curve: const Interval(0.0, 0.55, curve: Curves.elasticOut)),
+          curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack)),
     );
     _avatarFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
           parent: _ctrl,
-          curve: const Interval(0.0, 0.3, curve: Curves.easeOut)),
+          curve: const Interval(0.0, 0.4, curve: Curves.easeOut)),
     );
     _headerSlide =
-        Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
       CurvedAnimation(
           parent: _ctrl,
-          curve: const Interval(0.25, 0.65, curve: Curves.easeOutCubic)),
+          curve: const Interval(0.2, 0.7, curve: Curves.easeOutCubic)),
     );
     _headerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
           parent: _ctrl,
-          curve: const Interval(0.25, 0.55, curve: Curves.easeOut)),
+          curve: const Interval(0.2, 0.6, curve: Curves.easeOut)),
     );
 
     _loadUserFromPrefs();
@@ -115,20 +115,22 @@ class _ProfileScreenState extends State<ProfileScreen>
             const SizedBox(height: 24),
 
             // ── Animated avatar ────────────────────────────────────────
-            FadeTransition(
-              opacity: _avatarFade,
-              child: ScaleTransition(
-                scale: _avatarScale,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 48,
-                      backgroundColor: Theme.of(context).primaryColor,
-                      child: const Icon(LucideIcons.user,
-                          size: 48, color: Colors.white),
-                    ),
-                  ],
+            RepaintBoundary(
+              child: FadeTransition(
+                opacity: _avatarFade,
+                child: ScaleTransition(
+                  scale: _avatarScale,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 48,
+                        backgroundColor: Theme.of(context).primaryColor,
+                        child: const Icon(LucideIcons.user,
+                            size: 48, color: Colors.white),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -337,14 +339,14 @@ class _ProfileTileState extends State<_ProfileTile>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 450));
+        vsync: this, duration: const Duration(milliseconds: 280));
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
     _slide = Tween<Offset>(
-            begin: const Offset(0.08, 0), end: Offset.zero)
+            begin: const Offset(0.05, 0), end: Offset.zero)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
 
     Future.delayed(
-        Duration(milliseconds: 350 + widget.index * 60),
+        Duration(milliseconds: 150 + widget.index * 35),
         () { if (mounted) _ctrl.forward(); });
   }
 
@@ -355,9 +357,11 @@ class _ProfileTileState extends State<_ProfileTile>
   }
 
   @override
-  Widget build(BuildContext context) => FadeTransition(
-        opacity: _fade,
-        child: SlideTransition(position: _slide, child: widget.child),
+  Widget build(BuildContext context) => RepaintBoundary(
+        child: FadeTransition(
+          opacity: _fade,
+          child: SlideTransition(position: _slide, child: widget.child),
+        ),
       );
 }
 
