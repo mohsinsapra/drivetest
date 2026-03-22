@@ -84,12 +84,17 @@ class ApiService {
 
   Future<List<Question>> fetchQuestions(String licenceId, String categoryId,
       {int pageSize = 20, bool randomize = false}) async {
+    final params = <String, dynamic>{
+      'page_size': pageSize,
+      'randomize': randomize,
+    };
+    // Bust the cache for randomized requests so each fetch returns a fresh shuffle.
+    if (randomize) {
+      params['_t'] = DateTime.now().millisecondsSinceEpoch;
+    }
     final response = await _dio.get(
         'api/licences/$licenceId/categories/$categoryId/questions/',
-        queryParameters: {
-          'page_size': pageSize,
-          'randomize': randomize,
-        });
+        queryParameters: params);
 
     return response.data['results'];
   }

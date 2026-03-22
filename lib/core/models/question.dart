@@ -16,6 +16,8 @@ class Question extends HiveObject {
   final String answerExplanation;
   @HiveField(4)
   final List<Option> options;
+  @HiveField(5)
+  final String questionId;
 
   Question({
     required this.text,
@@ -23,6 +25,7 @@ class Question extends HiveObject {
     required this.correctAnswer,
     required this.answerExplanation,
     required this.options,
+    this.questionId = '',
   });
 
   factory Question.fromMap(
@@ -32,6 +35,7 @@ class Question extends HiveObject {
       imageUrl: map['image_url'] ?? '',
       correctAnswer: map['correct_answer'] ?? '',
       answerExplanation: map['answer_explanation'] ?? '',
+      questionId: map['question_id']?.toString() ?? '',
       options: List<Option>.from(
         (map['options'] ?? []).map((option) => Option.fromMap(option)),
       ),
@@ -44,5 +48,6 @@ class Question extends HiveObject {
         imageUrl: imageUrl,
         correctAnswer: correctAnswer,
         answerExplanation: answerExplanation,
+        questionId: questionId,
       );
 }

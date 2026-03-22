@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -6,6 +7,7 @@ import 'package:taxi_exam_app/core/constants/language_options.dart';
 import 'package:taxi_exam_app/core/models/image_viewer.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
 import 'package:no_screenshot/no_screenshot.dart';
@@ -27,7 +29,9 @@ class Testscreen extends StatefulWidget {
   final String categoryName;
   final int initialQuestionIndex;
   final Map<int, String>? userSelections;
-  final bool isReviewMode; // New parameter
+  final bool isReviewMode;
+  final bool isTimed;
+  final int timeLimitMinutes;
 
   const Testscreen({
     super.key,
@@ -39,7 +43,9 @@ class Testscreen extends StatefulWidget {
     this.categoryName = '',
     this.initialQuestionIndex = 0,
     this.userSelections,
-    this.isReviewMode = false, // Default to false
+    this.isReviewMode = false,
+    this.isTimed = false,
+    this.timeLimitMinutes = 10,
   });
 
   @override
@@ -52,18 +58,22 @@ class _TestscreenState extends State<Testscreen> {
   final ApiService _apiService = ApiService();
 
   final ttsService = TtsService();
-  // Add PageController
   late PageController _pageController;
 
   // Translation variables
   final translator = GoogleTranslator();
-  bool isEnglish = true; // Track current language
+  bool isEnglish = true;
   Map<int, String> translatedQuestions = {};
   Map<int, List<String>> translatedOptions = {};
-
   Map<String, List<Question>> translatedQuestionsWithOptions = {};
-
   String currentLanguageCode = 'SV';
+
+  // Timer
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0;
+
+  // Saved questions
+  Set<String> _savedQuestionIds = {};
 
   final _noScreenshot = NoScreenshot.instance;
 
@@ -72,18 +82,61 @@ class _TestscreenState extends State<Testscreen> {
     super.initState();
     currentQuestionIndex = widget.initialQuestionIndex;
     userSelections = widget.userSelections ?? {};
-
-    // Initialize PageController
     _pageController = PageController(initialPage: currentQuestionIndex);
-
     disableScreenshot();
+
+    if (widget.isTimed && !widget.isReviewMode) {
+      _remainingSeconds = widget.timeLimitMinutes * 60;
+      _startTimer();
+    }
+
+    _loadSavedQuestionIds();
+  }
+
+  Future<void> _loadSavedQuestionIds() async {
+    final ids = await SavedQuestionsService.getSavedIds();
+    if (mounted) setState(() => _savedQuestionIds = ids);
+  }
+
+  void _startTimer() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _remainingSeconds--);
+      if (_remainingSeconds <= 0) {
+        timer.cancel();
+        _onTimerExpired();
+      }
+    });
+  }
+
+  void _onTimerExpired() {
+    showAppSnackBar('Time is up! Submitting your test.');
+    _saveTestAttempt();
+    showResultDialog(
+      context: context,
+      hasPassed: _calculateResult(),
+      questions: widget.questions,
+      userSelections: userSelections,
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+    );
+  }
+
+  String get _timerDisplay {
+    final m = _remainingSeconds ~/ 60;
+    final s = _remainingSeconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _pageController.dispose();
-    ttsService.flutterTts.stop(); // Stop TTS when disposing
-    ttsService.ttsState = TtsState.stopped; // Reset TTS state
+    ttsService.flutterTts.stop();
+    ttsService.ttsState = TtsState.stopped;
     super.dispose();
   }
 
@@ -295,6 +348,52 @@ class _TestscreenState extends State<Testscreen> {
         ),
         centerTitle: true,
         actions: [
+          // Timer display
+          if (widget.isTimed && !widget.isReviewMode)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _remainingSeconds <= 60
+                        ? Colors.red[50]
+                        : Colors.grey[50],
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _remainingSeconds <= 60
+                          ? Colors.red
+                          : Colors.grey[300]!,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.timer,
+                        size: 14,
+                        color: _remainingSeconds <= 60
+                            ? Colors.red
+                            : Colors.grey[600],
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _timerDisplay,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: _remainingSeconds <= 60
+                              ? Colors.red
+                              : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          // Language selector
           Container(
             margin: const EdgeInsets.only(right: 8),
             child: PopupMenuButton<String>(
@@ -323,8 +422,8 @@ class _TestscreenState extends State<Testscreen> {
                 ),
               ),
               onSelected: (String value) async {
-                ttsService.flutterTts.stop(); // Stop TTS when changing language
-                ttsService.ttsState = TtsState.stopped; // Reset TTS state
+                ttsService.flutterTts.stop();
+                ttsService.ttsState = TtsState.stopped;
                 String targetLang = value.toLowerCase();
                 if (targetLang != currentLanguageCode.toLowerCase()) {
                   await _translateQuestion(currentQuestionIndex, targetLang);
@@ -461,7 +560,66 @@ class _TestscreenState extends State<Testscreen> {
                     );
                   }).toList(),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  // Bookmark button
+                  if (!widget.isReviewMode &&
+                      widget.questions[index].questionId.isNotEmpty)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () async {
+                          final qId = widget.questions[index].questionId;
+                          final isSaved =
+                              await SavedQuestionsService.toggleSaved(qId);
+                          final ids =
+                              await SavedQuestionsService.getSavedIds();
+                          if (mounted) {
+                            setState(() => _savedQuestionIds = ids);
+                            showAppSnackBar(isSaved
+                                ? 'Question saved'
+                                : 'Question removed from saved');
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _savedQuestionIds.contains(
+                                        widget.questions[index].questionId)
+                                    ? Icons.bookmark
+                                    : Icons.bookmark_border,
+                                color: _savedQuestionIds.contains(
+                                        widget.questions[index].questionId)
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey[600],
+                                size: 20,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _savedQuestionIds.contains(
+                                        widget.questions[index].questionId)
+                                    ? 'Saved'
+                                    : 'Save question',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: _savedQuestionIds.contains(
+                                          widget.questions[index].questionId)
+                                      ? Theme.of(context).primaryColor
+                                      : Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 8),
 
                   // Explanation (scrollable)
                   if (widget.instantMarking &&
