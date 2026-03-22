@@ -63,9 +63,7 @@ jobs:
           EOF
 
       - name: Write Play Store JSON Key
-        env:
-          PLAY_STORE_JSON: ${{ vars.PLAY_STORE_JSON_KEY }}
-        run: echo "$PLAY_STORE_JSON" > android/fastlane/play-store-key.json
+        run: echo "${{ vars.PLAY_STORE_JSON_KEY_B64 }}" | base64 --decode > android/fastlane/play-store-key.json
 
       # On PRs: build only — no Play Store upload
       - name: Build APK (PR check)
