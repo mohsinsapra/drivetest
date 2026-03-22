@@ -57,21 +57,10 @@ class MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<MainScreenProvider>(context);
     final mq = MediaQuery.of(context);
-    // Tell child screens' SafeArea to reserve space for the floating nav
-    // (66px pill area + device bottom inset). Main scaffold is transparent
-    // so the child screens' own backgrounds show edge-to-edge with no white strip.
-    const navHeight = 66.0;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: MediaQuery(
-        data: mq.copyWith(
-          padding: mq.padding.copyWith(
-            bottom: mq.padding.bottom + navHeight,
-          ),
-        ),
-        child: Stack(
-          children: [
+      body: Stack(
+        children: [
             PageView(
               controller: _pageController,
               onPageChanged: _onPageChanged,
@@ -85,11 +74,11 @@ class MainScreenState extends State<MainScreen> {
               child: _FloatingNavArea(
                 currentIndex: provider.currentIndex,
                 onTap: (i) => provider.setIndex(i),
+                bottomInset: mq.padding.bottom,
               ),
             ),
           ],
         ),
-      ),
     );
   }
 }
@@ -99,19 +88,22 @@ class MainScreenState extends State<MainScreen> {
 class _FloatingNavArea extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final double bottomInset;
 
   const _FloatingNavArea({
     required this.currentIndex,
     required this.onTap,
+    required this.bottomInset,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).padding.bottom;
     return Padding(
+    
       padding: EdgeInsets.only(bottom: bottomInset + 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
+        
         children: [
           _FloatingNavPill(
             currentIndex: currentIndex,
