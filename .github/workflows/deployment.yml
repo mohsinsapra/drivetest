@@ -63,7 +63,11 @@ jobs:
           EOF
 
       - name: Write Play Store JSON Key
-        run: echo "${{ vars.PLAY_STORE_JSON_KEY_B64 }}" | base64 --decode > android/fastlane/play-store-key.json
+        run: |
+          echo "${{ vars.PLAY_STORE_JSON_KEY_B64 }}" | base64 --decode > android/fastlane/play-store-key.json
+          echo "File size: $(wc -c < android/fastlane/play-store-key.json) bytes"
+          echo "First 100 chars: $(head -c 100 android/fastlane/play-store-key.json)"
+          python3 -c "import json; json.load(open('android/fastlane/play-store-key.json')); print('JSON valid ✓')"
 
       # On PRs: build only — no Play Store upload
       - name: Build APK (PR check)
