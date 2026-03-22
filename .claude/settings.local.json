@@ -45,7 +45,10 @@
       "Bash(source env/bin/activate)",
       "Bash(python manage.py shell -c \":*)",
       "Bash(python:*)",
-      "Bash(source venv/bin/activate)"
+      "Bash(source venv/bin/activate)",
+      "Bash(ls -la /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/.env*)",
+      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/ios -name *.plist -o -name *GoogleService*)",
+      "Bash(grep -E \"\\\\.dart$\")"
     ],
     "deny": [],
     "ask": []

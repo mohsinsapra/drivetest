@@ -3,21 +3,12 @@ default_platform(:android)
 platform :android do
   desc "Deploy Beta"
   lane :beta do
-    ENV["JAVA_HOME"] = "/Users/muhammadmohsin/Library/Java/JavaVirtualMachines/ms-17.0.15/Contents/Home" # Java 17 (compatible with Java 11 target)
-    sh "java -version" # Verify the version being used
-
-    # Update version in pubspec.yaml and CHANGELOG.md
-    # update_flutter_version
-
     previous_build_number = google_play_track_version_codes(
       track: "alpha"
     ).max
 
     current_build_number = previous_build_number + 1
     puts "Current build number: #{current_build_number}"
-
-    # Update local.properties instead of build.gradle
-    update_local_properties_version(build_number: current_build_number)
 
     # Get changelog from CHANGELOG.md for this version
     changelog_text = get_latest_changelog_entry
@@ -29,13 +20,17 @@ platform :android do
     changelog_path = "metadata/android/en-US/changelogs/#{current_build_number}.txt"
     File.write(changelog_path, changelog_text)
 
-    # gradle(task: "assembleRelease") # This will build the APK
-    gradle(task: "bundleRelease")
-    upload_to_play_store(track: "alpha", skip_upload_metadata: true,
-      # track_promote_to: "alpha",
-    skip_upload_images: true, version_code:current_build_number,
+    # Use Flutter CLI to build — works on both local and CI without local.properties setup
+    # FLUTTER_DART_DEFINES is set by CI; locally it's empty (app falls back to hardcoded defaults)
+    dart_defines = ENV["FLUTTER_DART_DEFINES"] || ""
+    sh("cd .. && flutter build appbundle --release --build-number=#{current_build_number} #{dart_defines}")
 
-     aab: "../build/app/outputs/bundle/release/app-release.aab",
+    upload_to_play_store(
+      track: "alpha",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      version_code: current_build_number,
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
     )
 
     # Tag the release

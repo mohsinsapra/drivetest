@@ -1,0 +1,12 @@
+Added
+• Firebase Analytics integration for purchase tracking
+• Analytics events for Buy Now button clicks
+• Complete purchase funnel tracking (dialog shown, payment method selected, success/failure)
+• User behavior monitoring for subscription flow
+
+Changed
+• Updated Firebase dependencies (firebase_core, firebase_analytics)
+• Removed AD_ID permission to comply with Google Play requirements
+
+Fixed
+• Google Play Console AD_ID permission declaration error
