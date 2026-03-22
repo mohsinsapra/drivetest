@@ -170,6 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
                   onPressed: () {
+                    final outerContext = context;
                     showModalBottomSheet(
                       context: context,
                       shape: const RoundedRectangleBorder(
@@ -226,7 +227,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                                         await Hive.deleteFromDisk();
 
-                                        Navigator.of(context)
+                                        if (!outerContext.mounted) return;
+                                        Navigator.of(outerContext)
                                             .pushAndRemoveUntil(
                                           MaterialPageRoute(
                                               builder: (_) =>

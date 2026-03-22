@@ -13,7 +13,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
   late PageController _pageController;
 
   final List<Widget> _screens = [
@@ -25,8 +24,9 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    Provider.of<MainScreenProvider>(context, listen: false);
-    _pageController = PageController(initialPage: _currentIndex);
+    final provider = Provider.of<MainScreenProvider>(context, listen: false);
+    provider.setIndex(0);
+    _pageController = PageController(initialPage: 0);
   }
 
   @override
@@ -49,9 +49,7 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void _onPageChanged(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    Provider.of<MainScreenProvider>(context, listen: false).setIndex(index);
   }
 
   @override
