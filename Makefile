@@ -66,6 +66,7 @@ web-build:
 	@echo "$(COLOR_YELLOW)Base URL: $(WEB_BASE_HREF)$(COLOR_RESET)"
 	@if [ -d "$(WEB_BUILD_DIR)/.git" ]; then \
 		echo "$(COLOR_YELLOW)Backing up .git folder...$(COLOR_RESET)"; \
+		rm -rf /tmp/build_web_git_backup; \
 		cp -R $(WEB_BUILD_DIR)/.git /tmp/build_web_git_backup; \
 	fi
 	@flutter build web --release \

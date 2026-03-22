@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'dio_client.dart';
 
@@ -38,7 +37,7 @@ class ApiService {
 
   Future<dynamic> fetchCurrentUser() async {
     try {
-      final response = await _dio.get('api/user/self');
+      final response = await _dio.get('api/user/self/');
       return response.data;
     } catch (e) {
       throw Exception('Failed to fetch current user: $e');

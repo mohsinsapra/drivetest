@@ -65,7 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setString('user', jsonEncode(user));
       }
       await Hive.deleteFromDisk();
-      await DioClient().reloadTokens();
 
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(

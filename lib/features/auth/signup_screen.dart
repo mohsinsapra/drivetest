@@ -6,7 +6,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/main_screen.dart';
@@ -61,7 +60,6 @@ class _SignupScreenState extends State<SignupScreen> {
         await prefs.setString('user', jsonEncode(user));
       }
       await Hive.deleteFromDisk();
-      await DioClient().reloadTokens();
 
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
