@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,6 +29,62 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _authError;
   bool _rememberMe = false;
   bool _obscurePassword = true;
+
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+      _authError = null;
+    });
+
+    try {
+      final googleSignIn = GoogleSignIn(
+        clientId: '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
+        serverClientId: kIsWeb ? null : '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
+      );
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        // User cancelled
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      final accessToken = googleAuth.accessToken;
+      if (idToken == null && accessToken == null) {
+        throw Exception('No authentication token received');
+      }
+
+      await _apiService.googleAuth(idToken: idToken, accessToken: accessToken);
+
+      if (!mounted) return;
+
+      final user = await _apiService.fetchCurrentUser();
+      if (user != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', jsonEncode(user));
+      }
+      await Hive.deleteFromDisk();
+      await DioClient().reloadTokens();
+
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (Route<dynamic> route) => false,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('GOOGLE AUTH ERROR: ${e.toString()}');
+      setState(() {
+        _authError = 'Google sign-in failed: ${e.toString()}';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   Future<void> _loginAsDemo() async {
     // Set demo credentials
@@ -237,6 +296,47 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+              const SizedBox(height: 24),
+
+              // Divider
+              const Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'OR',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Divider()),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Google Sign-In button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _signInWithGoogle,
+                  icon: const FaIcon(FontAwesomeIcons.google, size: 18),
+                  label: const Text(
+                    'Continue with Google',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 16),
 
               // Sign-up prompt
@@ -265,45 +365,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 24),
 
-              // Divider
-              const Row(
-                children: [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'OR',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Divider()),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
               // Skip for now button (Demo login)
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton.icon(
+                child: TextButton.icon(
                   onPressed: _isLoading ? null : _loginAsDemo,
-                  icon: const Icon(Icons.preview),
-                  label: const Text(
-                    'Skip for now (Try Demo)',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1.5,
-                    ),
+                  icon: const Icon(Icons.preview, size: 16),
+                  label: const Text('Skip for now (Try Demo)'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.grey,
+                    textStyle: const TextStyle(fontSize: 13),
                   ),
                 ),
               ),

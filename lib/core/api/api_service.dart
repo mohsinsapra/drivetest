@@ -123,6 +123,21 @@ class ApiService {
     }
   }
 
+  Future<void> googleAuth({String? idToken, String? accessToken}) async {
+    try {
+      final data = idToken != null
+          ? {'id_token': idToken}
+          : {'access_token': accessToken};
+      final response = await _dio.post('api/user/google-auth/', data: data);
+      await _dioClient.setTokens(
+        access: response.data['access'],
+        refresh: response.data['refresh'],
+      );
+    } catch (e) {
+      throw Exception('Google authentication failed: $e');
+    }
+  }
+
   Future<void> requestPasswordReset(String email) async {
     try {
       await _dio.post(
