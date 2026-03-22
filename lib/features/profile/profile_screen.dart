@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/support/help_screen.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
@@ -84,22 +85,20 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
-    const menuItems = [
-      (icon: Icons.person, color: Color(0xFFFFCDD2), title: 'Edit profile'),
-      (icon: Icons.bar_chart, color: Color(0xFFE1BEE7), title: 'My stats'),
-      (icon: Icons.settings, color: Color(0xFFFFE0B2), title: 'Settings'),
+    final t = Translations.of(context);
+    final menuItems = [
+      (icon: Icons.person, color: const Color(0xFFFFCDD2), title: t.profile_edit),
+      (icon: Icons.bar_chart, color: const Color(0xFFE1BEE7), title: t.profile_stats),
+      (icon: Icons.settings, color: const Color(0xFFFFE0B2), title: t.profile_settings),
     ];
-    const secondaryItems = [
-      (icon: Icons.person_add_alt, color: Color(0xFFE0E0E0), title: 'Invite a friend'),
-      (icon: Icons.help_outline, color: Color(0xFFE0E0E0), title: 'Help'),
+    final secondaryItems = [
+      (icon: Icons.person_add_alt, color: const Color(0xFFE0E0E0), title: t.profile_invite),
+      (icon: Icons.help_outline, color: const Color(0xFFE0E0E0), title: t.profile_help),
     ];
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text('Profile'),
+        title: Text(t.profile),
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.settings),
@@ -149,8 +148,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                         color: Colors.pinkAccent.shade100,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
-                        'STUDENT',
+                      child: Text(
+                        t.profile_student,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -160,7 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _username ?? 'Loading...',
+                      _username ?? t.loading,
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.bold),
                     ),
@@ -243,15 +242,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('Logout',
-                                  style: TextStyle(
+                              Text(t.logout,
+                                  style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.red)),
                               const SizedBox(height: 12),
-                              const Text(
-                                  'Are you sure you want to log out?',
-                                  style: TextStyle(fontSize: 16)),
+                              Text(t.profile_logout_confirm,
+                                  style: const TextStyle(fontSize: 16)),
                               const SizedBox(height: 24),
                               Row(
                                 children: [
@@ -267,7 +265,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                             color: Theme.of(context)
                                                 .primaryColor),
                                       ),
-                                      child: const Text('Cancel'),
+                                      child: Text(t.cancel),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
@@ -288,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       },
                                       style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.red),
-                                      child: const Text('Yes, Logout'),
+                                      child: Text(t.profile_yes_logout),
                                     ),
                                   ),
                                 ],
@@ -306,8 +304,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                           borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: const Icon(Icons.logout, size: 20),
-                    label: const Text('Logout',
-                        style: TextStyle(fontSize: 15)),
+                    label: Text(t.logout,
+                        style: const TextStyle(fontSize: 15)),
                   ),
                 ),
               ),

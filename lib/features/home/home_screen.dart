@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -16,8 +17,7 @@ import 'package:taxi_exam_app/main_screen.dart';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const _kBg = Color(0xFFF5F5F7);
-const _kCard = Colors.white;
+// Background and card colours are theme-aware (see build methods)
 const _kHeroStart = Color(0xFF1A1040);
 const _kHeroEnd = Color(0xFF3D2C8D);
 
@@ -81,9 +81,14 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _loadPreviousAttempts() async {
-    final box = await Hive.openBox<TestAttempt>('testAttempts');
-    _refreshFromBox(box);
-    _syncFromBackend(box);
+    try {
+      final box = await Hive.openBox<TestAttempt>('testAttempts');
+      _refreshFromBox(box);
+      _syncFromBackend(box);
+    } catch (e) {
+      debugPrint('HomeScreen: error loading attempts: $e');
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _refreshFromBox(Box<TestAttempt> box) {
@@ -221,6 +226,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final hasData = _previousAttempts.isNotEmpty;
     final passed = _previousAttempts.where((a) => a.hasPassed).length;
     final failed = _previousAttempts.length - passed;
@@ -237,7 +243,6 @@ class _HomeScreenState extends State<HomeScreen>
     final monthlyCounts = getMonthlyAttemptCounts(selectedAttempts);
 
     return Scaffold(
-      backgroundColor: _kBg,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 450),
         transitionBuilder: (child, animation) => FadeTransition(
@@ -251,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
         child: _isLoading
-            ? _buildSkeleton()
+            ? _buildSkeleton() // show shimmer immediately, no translation needed
             : SafeArea(
                 child: FadeTransition(
                   opacity: _fadeAnimation,
@@ -272,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen>
                         // In progress
                         if (_pausedAttempts.isNotEmpty)
                           SliverToBoxAdapter(
-                              child: _buildInProgressSection()),
+                              child: _buildInProgressSection(t)),
                         // Licence tabs
                         if (licenceNames.length > 1)
                           SliverToBoxAdapter(
@@ -280,18 +285,18 @@ class _HomeScreenState extends State<HomeScreen>
                         // Charts
                         SliverToBoxAdapter(
                             child: _buildChartsSection(
-                                dailyCounts, monthlyCounts)),
+                                dailyCounts, monthlyCounts, t)),
                         // Pie chart
                         if (licenceWithCategories[selectedLicence] !=
                             null)
                           SliverToBoxAdapter(
                               child: _buildPieSection(
-                                  licenceWithCategories[selectedLicence]!)),
+                                  licenceWithCategories[selectedLicence]!, t)),
                         // Activity header
                         SliverToBoxAdapter(
                             child: _buildSectionHeader(
-                                'Recent Activity',
-                                '${selectedAttempts.length} attempts')),
+                                t.home_recent_activity,
+                                '${selectedAttempts.length} ${t.home_attempts}')),
                         // Activity list
                         SliverList(
                           delegate: SliverChildBuilderDelegate(
@@ -307,12 +312,12 @@ class _HomeScreenState extends State<HomeScreen>
                             child: SizedBox(height: 110)),
                       ] else if (_pausedAttempts.isNotEmpty) ...[
                         SliverToBoxAdapter(
-                            child: _buildInProgressSection()),
+                            child: _buildInProgressSection(t)),
                         const SliverToBoxAdapter(
                             child: SizedBox(height: 110)),
                       ] else ...[
                         SliverFillRemaining(
-                            child: _buildEmptyState()),
+                            child: _buildEmptyState(t)),
                       ],
                     ],
                   ),
@@ -325,6 +330,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── Section widgets ────────────────────────────────────────────────────────
 
   Widget _buildHeader() {
+    final t = Translations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 12, 4),
       child: Row(
@@ -333,11 +339,11 @@ class _HomeScreenState extends State<HomeScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Dashboard',
+                Text(t.home_dashboard,
                     style: TextStyle(
                         color: Colors.grey.shade500, fontSize: 13)),
-                const Text('My Progress',
-                    style: TextStyle(
+                Text(t.home_my_progress,
+                    style: const TextStyle(
                         fontSize: 22, fontWeight: FontWeight.bold)),
               ],
             ),
@@ -385,8 +391,8 @@ class _HomeScreenState extends State<HomeScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Overall Score',
-                    style: TextStyle(
+                Text(Translations.of(context).home_overall_score,
+                    style: const TextStyle(
                         color: Colors.white60, fontSize: 13)),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -396,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen>
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '${_previousAttempts.length} tests',
+                    '${_previousAttempts.length} ${Translations.of(context).home_tests}',
                     style: const TextStyle(
                         color: Colors.white70, fontSize: 12),
                   ),
@@ -439,17 +445,17 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 _HeroStat(
                     value: passed.toString(),
-                    label: 'Passed',
+                    label: Translations.of(context).home_passed,
                     color: Colors.greenAccent.shade400),
                 const SizedBox(width: 28),
                 _HeroStat(
                     value: failed.toString(),
-                    label: 'Failed',
+                    label: Translations.of(context).home_failed,
                     color: Colors.red.shade200),
                 const SizedBox(width: 28),
                 _HeroStat(
                     value: _previousAttempts.length.toString(),
-                    label: 'Total',
+                    label: Translations.of(context).home_total,
                     color: Colors.white70),
               ],
             ),
@@ -470,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen>
                 child: _QuickStatCard(
               icon: Icons.check_circle_outline_rounded,
               value: passed.toString(),
-              label: 'Passed',
+              label: Translations.of(context).home_passed,
               iconColor: Colors.green.shade500,
               bgColor: Colors.green.shade50,
             )),
@@ -479,7 +485,7 @@ class _HomeScreenState extends State<HomeScreen>
                 child: _QuickStatCard(
               icon: Icons.cancel_outlined,
               value: failed.toString(),
-              label: 'Failed',
+              label: Translations.of(context).home_failed,
               iconColor: Colors.red.shade400,
               bgColor: Colors.red.shade50,
             )),
@@ -488,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen>
                 child: _QuickStatCard(
               icon: Icons.pause_circle_outline_rounded,
               value: _pausedAttempts.length.toString(),
-              label: 'Paused',
+              label: Translations.of(context).home_paused,
               iconColor: Colors.orange.shade500,
               bgColor: Colors.orange.shade50,
             )),
@@ -498,9 +504,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildInProgressSection() {
+  Widget _buildInProgressSection(Translations t) {
     final screenWidth = MediaQuery.of(context).size.width;
-    // Show ~85% of screen per card so the next one peeks; cap at 340
     final cardWidth = _pausedAttempts.length == 1
         ? screenWidth - 40
         : (screenWidth * 0.82).clamp(0.0, 340.0);
@@ -511,7 +516,7 @@ class _HomeScreenState extends State<HomeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader(
-              'In Progress', '${_pausedAttempts.length} active'),
+              t.home_in_progress, '${_pausedAttempts.length} ${t.home_active}'),
           SizedBox(
             height: 190,
             child: ListView.builder(
@@ -574,7 +579,7 @@ class _HomeScreenState extends State<HomeScreen>
                   padding:
                       const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: isActive ? _kCard : Colors.transparent,
+                    color: isActive ? Theme.of(context).colorScheme.surface : Colors.transparent,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: isActive
                         ? [
@@ -610,7 +615,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildChartsSection(
-      Map<String, int> daily, Map<String, int> monthly) {
+      Map<String, int> daily, Map<String, int> monthly, Translations t) {
     return _StaggeredItem(
       index: 4,
       child: Padding(
@@ -619,7 +624,7 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             Expanded(
               child: _ChartCard(
-                label: 'This Week',
+                label: t.home_this_week,
                 child: AttemptCountLineGraph(
                     data: daily,
                     lineColor: Colors.deepPurple,
@@ -629,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen>
             const SizedBox(width: 12),
             Expanded(
               child: _ChartCard(
-                label: 'This Month',
+                label: t.home_this_month,
                 child: AttemptCountLineGraph(
                     data: monthly,
                     lineColor: Colors.orange,
@@ -642,7 +647,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildPieSection(Map<String, int> data) {
+  Widget _buildPieSection(Map<String, int> data, Translations t) {
     return _StaggeredItem(
       index: 5,
       child: Padding(
@@ -650,7 +655,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: _kCard,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -662,7 +667,7 @@ class _HomeScreenState extends State<HomeScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('By Category',
+              Text(t.home_by_category,
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -709,7 +714,7 @@ class _HomeScreenState extends State<HomeScreen>
                 AttemptDetailScreen(attempt: attempt)),
       ),
       child: Container(
-        color: _kCard,
+        color: Theme.of(context).colorScheme.surface,
         padding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(
@@ -772,7 +777,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(Translations t) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -788,12 +793,12 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const SizedBox(height: 24),
-            const Text('No attempts yet!',
-                style: TextStyle(
+            Text(t.home_no_attempts,
+                style: const TextStyle(
                     fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
-              'Once you complete a quiz, your results will show up here.',
+              t.home_no_attempts_sub,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
             ),
@@ -809,8 +814,8 @@ class _HomeScreenState extends State<HomeScreen>
               onPressed: () => Provider.of<MainScreenProvider>(context,
                       listen: false)
                   .setIndex(1),
-              child: const Text('Take Your First Quiz',
-                  style: TextStyle(
+              child: Text(t.home_take_quiz,
+                  style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white)),
@@ -969,7 +974,7 @@ class _QuickStatCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: _kCard,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -1012,7 +1017,7 @@ class _ChartCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
         decoration: BoxDecoration(
-          color: _kCard,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -1083,7 +1088,7 @@ class _InProgressCardState extends State<_InProgressCard>
       margin: const EdgeInsets.only(right: 12, bottom: 4),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _kCard,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.orange.shade100),
         boxShadow: [
@@ -1115,7 +1120,7 @@ class _InProgressCardState extends State<_InProgressCard>
                       Icon(Icons.pause_circle_outline,
                           size: 11, color: Colors.orange.shade700),
                       const SizedBox(width: 3),
-                      Text('Paused',
+                      Text(Translations.of(context).home_paused,
                           style: TextStyle(
                               fontSize: 10,
                               color: Colors.orange.shade700,
@@ -1180,7 +1185,7 @@ class _InProgressCardState extends State<_InProgressCard>
                       color: Colors.white, size: 14),
                   const SizedBox(width: 4),
                   Text(
-                    a.questions.isNotEmpty ? 'Resume' : 'Unavailable',
+                    a.questions.isNotEmpty ? Translations.of(context).home_resume : 'Unavailable',
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,

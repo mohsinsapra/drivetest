@@ -17,6 +17,8 @@ import 'package:clarity_flutter/clarity_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
+import 'package:taxi_exam_app/core/providers/theme_provider.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
 void main() async {
 
@@ -90,23 +92,100 @@ void main() async {
         : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
 
     await Upgrader.clearSavedSettings();
+
+    // Restore saved locale
+    final prefs = await SharedPreferences.getInstance();
+    final savedLang = prefs.getString('language') ?? 'en';
+    LocaleSettings.setLocale(
+        savedLang == 'sv' ? AppLocale.sv : AppLocale.en);
   } catch (e) {
     print('Initialization error: $e');
-    // Continue with basic initialization
   }
 
   runApp(
     ClarityWidget(
-    clarityConfig: config,
-    app: MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-      ],
-      child: MyApp(),
-    ),
+      clarityConfig: config,
+      app: TranslationProvider(
+        child: MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => MainScreenProvider()),
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ],
+          child: MyApp(),
+        ),
+      ),
     ),
   );
 }
+
+final darkTheme = ThemeData(
+  fontFamily: 'NudMoto',
+  brightness: Brightness.dark,
+  colorScheme: const ColorScheme(
+    primary: Color(0xFF5AADFF),
+    primaryContainer: Color(0xFF2779BC),
+    secondary: Colors.green,
+    secondaryContainer: Colors.greenAccent,
+    surface: Color(0xFF1C1C1E),
+    background: Color(0xFF0F0F0F),
+    error: Colors.redAccent,
+    onPrimary: Colors.white,
+    onSecondary: Colors.white,
+    onSurface: Colors.white,
+    onBackground: Colors.white,
+    onError: Colors.white,
+    brightness: Brightness.dark,
+  ),
+  scaffoldBackgroundColor: const Color(0xFF0F0F0F),
+  cardColor: const Color(0xFF1C1C1E),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF1C1C1E),
+    elevation: 0,
+    iconTheme: IconThemeData(color: Colors.white),
+    titleTextStyle: TextStyle(
+      color: Colors.white,
+      fontSize: 20,
+      fontFamily: 'NudMoto',
+      fontWeight: FontWeight.w600,
+    ),
+    toolbarTextStyle: TextStyle(
+      color: Colors.white,
+      fontSize: 18,
+      fontFamily: 'NudMoto',
+    ),
+  ),
+  inputDecorationTheme: InputDecorationTheme(
+    labelStyle: const TextStyle(color: Color(0xFF9E9E9E), fontFamily: 'NudMoto'),
+    hintStyle: const TextStyle(color: Color(0xFF757575), fontFamily: 'NudMoto'),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF3A3A3C), width: 0.5),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF3A3A3C), width: 0.5),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF5AADFF), width: 1),
+    ),
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF5AADFF),
+      foregroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+      ),
+    ),
+  ),
+  bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    selectedItemColor: Color(0xFF5AADFF),
+    unselectedItemColor: Colors.grey,
+    backgroundColor: Color(0xFF1C1C1E),
+  ),
+  dividerColor: const Color(0xFF2C2C2E),
+);
 
 final customTheme = ThemeData(
   fontFamily: 'NudMoto',
@@ -269,10 +348,18 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    // Read locale from slang's InheritedWidget so MaterialApp rebuilds on locale change
+    final locale = InheritedLocaleData.of<AppLocale, Translations>(context)
+        .locale
+        .flutterLocale;
     return MaterialApp(
       navigatorKey: NavigationService.navigatorKey,
+      locale: locale,
       theme: customTheme,
-      debugShowCheckedModeBanner: false, // Remove the debug banner
+      darkTheme: darkTheme,
+      themeMode: themeProvider.themeMode,
+      debugShowCheckedModeBanner: false,
       home: UpgradeAlert(
         showIgnore: false,
         showLater: true,

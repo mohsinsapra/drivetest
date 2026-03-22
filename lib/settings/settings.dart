@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/services/version_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
@@ -31,9 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadVersionInfo() async {
     try {
       final versionInfo = await VersionService.getVersionInfo();
-      setState(() {
-        _versionInfo = versionInfo;
-      });
+      setState(() => _versionInfo = versionInfo);
     } catch (e) {
       debugPrint('Failed to load version info: $e');
     }
@@ -44,7 +45,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       isTimed = prefs.getBool('isTimed') ?? false;
       isInstantMarking = prefs.getBool('isInstantMarking') ?? false;
-      includeSavedQuestions = prefs.getBool('includeSavedQuestions') ?? false;
+      includeSavedQuestions =
+          prefs.getBool('includeSavedQuestions') ?? false;
       numberOfQuestions = prefs.getInt('numberOfQuestions') ?? 10;
       _numberOfQuestionsController.text = numberOfQuestions.toString();
     });
@@ -58,214 +60,331 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setInt('numberOfQuestions', numberOfQuestions);
   }
 
+  Future<void> _setLocale(AppLocale locale) async {
+    LocaleSettings.setLocale(locale);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', locale.languageCode);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final currentLocale = LocaleSettings.currentLocale;
+    final isDark = themeProvider.isDark;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Default Settings')),
+      appBar: AppBar(title: Text(t.settings_title)),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ListView(
-                  children: [
-                    SwitchListTile(
-                      title: const Text('Timed Test'),
-                      subtitle: const Text('Enable a time limit for the test'),
-                      value: isTimed,
-                      onChanged: (value) {
-                        setState(() {
-                          isTimed = value;
-                        });
-                      },
+              child: ListView(
+                children: [
+                  // ── Appearance ──────────────────────────────────────────
+                  _SectionHeader(t.settings_appearance),
+
+                  // Dark mode
+                  SwitchListTile(
+                    title: Text(t.settings_dark_mode),
+                    subtitle: Text(t.settings_dark_mode_sub),
+                    value: isDark,
+                    onChanged: (_) => themeProvider.toggle(),
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.indigo.shade900
+                            : Colors.amber.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        isDark
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                        color: isDark ? Colors.white : Colors.amber.shade700,
+                        size: 20,
+                      ),
                     ),
-                    const Divider(),
-                    SwitchListTile(
-                      title: const Text('Instant Marking'),
-                      subtitle:
-                          const Text('Show correct answer after each question'),
-                      value: isInstantMarking,
-                      onChanged: (value) {
-                        setState(() {
-                          isInstantMarking = value;
-                        });
-                      },
+                  ),
+
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+
+                  // Language
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.language_rounded,
+                          color: Colors.blue.shade600, size: 20),
                     ),
-                    const Divider(),
-                    ListTile(
-                      title: const Text('Number of Questions'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Slider(
-                            value: numberOfQuestions.toDouble(),
-                            min: 1,
-                            max: maxQuestions.toDouble(),
-                            divisions: maxQuestions - 1,
-                            label: '$numberOfQuestions',
-                            onChanged: (value) {
-                              setState(() {
-                                numberOfQuestions = value.toInt();
-                                _numberOfQuestionsController.text =
-                                    numberOfQuestions.toString();
-                              });
-                            },
-                          ),
-                          Row(
-                            children: [
-                              const Expanded(
-                                  child: Text('Enter number of questions:')),
-                              SizedBox(
-                                width: 100,
-                                child: TextField(
-                                  controller: _numberOfQuestionsController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                      hintText: 'e.g. 10'),
-                                  onChanged: (value) {
-                                    final int? newValue = int.tryParse(value);
-                                    if (newValue != null &&
-                                        newValue > 0 &&
-                                        newValue <= maxQuestions) {
-                                      setState(() {
-                                        numberOfQuestions = newValue;
-                                      });
-                                    }
-                                  },
-                                ),
+                    title: Text(t.settings_language),
+                    subtitle: Text(t.settings_language_sub),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _LangChip(
+                          label: '🇬🇧 EN',
+                          selected: currentLocale == AppLocale.en,
+                          onTap: () => _setLocale(AppLocale.en),
+                        ),
+                        const SizedBox(width: 8),
+                        _LangChip(
+                          label: '🇸🇪 SV',
+                          selected: currentLocale == AppLocale.sv,
+                          onTap: () => _setLocale(AppLocale.sv),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // ── Test Preferences ────────────────────────────────────
+                  _SectionHeader(t.settings_test_prefs),
+
+                  SwitchListTile(
+                    title: Text(t.settings_timed_test),
+                    subtitle: Text(t.settings_timed_test_sub),
+                    value: isTimed,
+                    onChanged: (v) => setState(() => isTimed = v),
+                  ),
+
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+
+                  SwitchListTile(
+                    title: Text(t.settings_instant_marking),
+                    subtitle: Text(t.settings_instant_marking_sub),
+                    value: isInstantMarking,
+                    onChanged: (v) => setState(() => isInstantMarking = v),
+                  ),
+
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+
+                  ListTile(
+                    title: Text(t.settings_num_questions),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Slider(
+                          value: numberOfQuestions.toDouble(),
+                          min: 1,
+                          max: maxQuestions.toDouble(),
+                          divisions: maxQuestions - 1,
+                          label: '$numberOfQuestions',
+                          onChanged: (value) {
+                            setState(() {
+                              numberOfQuestions = value.toInt();
+                              _numberOfQuestionsController.text =
+                                  numberOfQuestions.toString();
+                            });
+                          },
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                                child: Text(t.settings_enter_num)),
+                            SizedBox(
+                              width: 80,
+                              child: TextField(
+                                controller: _numberOfQuestionsController,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                    hintText: 'e.g. 10',
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 8)),
+                                onChanged: (value) {
+                                  final n = int.tryParse(value);
+                                  if (n != null &&
+                                      n > 0 &&
+                                      n <= maxQuestions) {
+                                    setState(() => numberOfQuestions = n);
+                                  }
+                                },
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+
+                  SwitchListTile(
+                    title: Text(t.settings_include_saved),
+                    subtitle: Text(t.settings_include_saved_sub),
+                    value: includeSavedQuestions,
+                    onChanged: (v) =>
+                        setState(() => includeSavedQuestions = v),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // ── Version Info ─────────────────────────────────────────
+                  _SectionHeader(t.settings_version),
+
+                  if (_versionInfo != null) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      child: Column(
+                        children: [
+                          _VersionRow(t.settings_app_version,
+                              'v${_versionInfo!.appVersion} (${_versionInfo!.buildNumber})'),
+                          if (_versionInfo!.hasGitInfo) ...[
+                            _VersionRow(
+                                t.settings_commit, _versionInfo!.shortHash),
+                            _VersionRow(
+                                t.settings_branch, _versionInfo!.branch),
+                            _VersionRow(t.settings_last_update,
+                                _versionInfo!.commitMessage,
+                                maxLines: 2),
+                            _VersionRow(
+                                t.settings_date, _versionInfo!.commitDate,
+                                small: true),
+                          ],
                         ],
                       ),
                     ),
-                    const Divider(),
-                    SwitchListTile(
-                      title: const Text('Include Saved Questions'),
-                      subtitle:
-                          const Text('Include questions you previously saved'),
-                      value: includeSavedQuestions,
-                      onChanged: (value) {
-                        setState(() {
-                          includeSavedQuestions = value;
-                        });
-                      },
+                  ] else
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: CircularProgressIndicator(),
+                      ),
                     ),
-                    const Divider(height: 32),
-                    if (_versionInfo != null) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Version Information',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildVersionInfoRow(
-                              'App Version',
-                              'v${_versionInfo!.appVersion} (${_versionInfo!.buildNumber})',
-                            ),
-                            if (_versionInfo!.hasGitInfo) ...[
-                              const SizedBox(height: 8),
-                              _buildVersionInfoRow(
-                                'Commit',
-                                _versionInfo!.shortHash,
-                              ),
-                              const SizedBox(height: 8),
-                              _buildVersionInfoRow(
-                                'Branch',
-                                _versionInfo!.branch,
-                              ),
-                              const SizedBox(height: 8),
-                              _buildVersionInfoRow(
-                                'Last Update',
-                                _versionInfo!.commitMessage,
-                                maxLines: 2,
-                              ),
-                              const SizedBox(height: 8),
-                              _buildVersionInfoRow(
-                                'Date',
-                                _versionInfo!.commitDate,
-                                fontSize: 12,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ] else
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                  ],
-                ),
+                ],
               ),
             ),
+
+            // Save button
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  label: const Text('Save'),
+                child: ElevatedButton(
                   onPressed: () async {
                     await _savePreferences();
                     if (!mounted) return;
-                    showAppSnackBar('Settings saved successfully');
+                    showAppSnackBar(t.settings_saved);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                   ),
+                  child: Text(t.save),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildVersionInfoRow(
-    String label,
-    String value, {
-    int maxLines = 1,
-    double fontSize = 14,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 100,
+// ── Section header ────────────────────────────────────────────────────────────
+
+class _SectionHeader extends StatelessWidget {
+  final String label;
+  const _SectionHeader(this.label);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 6),
+        child: Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: Theme.of(context).colorScheme.primary,
+            letterSpacing: 1.0,
+          ),
+        ),
+      );
+}
+
+// ── Language chip ─────────────────────────────────────────────────────────────
+
+class _LangChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _LangChip(
+      {required this.label,
+      required this.selected,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: selected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.grey.shade300,
+            ),
+          ),
           child: Text(
             label,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
             style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.w500,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: selected
+                  ? Colors.white
+                  : Theme.of(context).colorScheme.onSurface,
             ),
-            maxLines: maxLines,
-            overflow: TextOverflow.ellipsis,
           ),
         ),
-      ],
-    );
-  }
+      );
+}
+
+// ── Version info row ──────────────────────────────────────────────────────────
+
+class _VersionRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final int maxLines;
+  final bool small;
+  const _VersionRow(this.label, this.value,
+      {this.maxLines = 1, this.small = false});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 110,
+              child: Text(label,
+                  style: TextStyle(
+                      color: Colors.grey.shade500, fontSize: 13)),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(
+                    fontSize: small ? 12 : 13,
+                    fontWeight: FontWeight.w500),
+                maxLines: maxLines,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
 }
