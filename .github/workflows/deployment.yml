@@ -49,6 +49,15 @@ jobs:
       - name: Install Flutter Dependencies
         run: flutter pub get
 
+      - name: Create local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          echo "flutter.sdk=$FLUTTER_ROOT" >> android/local.properties
+          echo "flutter.compileSdkVersion=35" >> android/local.properties
+          echo "flutter.minSdkVersion=21" >> android/local.properties
+          echo "flutter.targetSdkVersion=35" >> android/local.properties
+          echo "flutter.ndkVersion=27.0.12077973" >> android/local.properties
+
       - name: Decode Keystore
         run: |
           echo "${{ vars.KEYSTORE_BASE64 }}" | base64 --decode > android/app/taxiappkey.jks
