@@ -63,7 +63,13 @@ void main() async {
   }
 
   await DioClient().init();
-  
+
+  // Hive must always init — runs before any try/catch so web storage works too
+  await Hive.initFlutter();
+  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(TestAttemptAdapter());
+  if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(QuestionAdapter());
+  if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(OptionAdapter());
+
   try {
     if (kIsWeb) {
       // For web, load from .env - try different paths
@@ -79,20 +85,11 @@ void main() async {
       // Load .env for mobile/desktop
       await dotenv.load();
     }
-    
+
     Stripe.publishableKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY').isNotEmpty
         ? const String.fromEnvironment('STRIPE_PUBLISHABLE_KEY')
         : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
 
-    
-    if (!kIsWeb) {
-      await Hive.initFlutter();
-      // Register adapters
-      Hive.registerAdapter(TestAttemptAdapter());
-      Hive.registerAdapter(QuestionAdapter());
-      Hive.registerAdapter(OptionAdapter());
-    }
-    
     await Upgrader.clearSavedSettings();
   } catch (e) {
     print('Initialization error: $e');

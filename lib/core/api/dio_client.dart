@@ -40,31 +40,20 @@ class DioClient {
   
   Future<void> init() async {
     if (_initialized) return; // Prevent multiple initializations
-
-    if (kIsWeb) {
-      // On web, use SharedPreferences only — FlutterSecureStorage uses IndexedDB
-      // which is unreliable on mobile web browsers (especially Safari).
+    // Load both tokens from secure storage
+    refreshToken = await _secureStorage.read(key: 'refreshToken');
+    accessToken = await _secureStorage.read(key: 'accessToken');
+    
+    // Fallback to SharedPreferences if not found in secure storage
+    if (refreshToken == null || accessToken == null) {
       final prefs = await SharedPreferences.getInstance();
-      refreshToken = prefs.getString('refreshToken');
-      accessToken = prefs.getString('accessToken');
-    } else {
-      // On mobile/desktop, use secure storage with SharedPreferences fallback
-      try {
-        refreshToken = await _secureStorage.read(key: 'refreshToken');
-        accessToken = await _secureStorage.read(key: 'accessToken');
-      } catch (_) {}
-
-      if (refreshToken == null || accessToken == null) {
-        final prefs = await SharedPreferences.getInstance();
-        refreshToken ??= prefs.getString('refreshToken');
-        accessToken ??= prefs.getString('accessToken');
-
-        if (refreshToken != null && accessToken != null) {
-          try {
-            await _secureStorage.write(key: 'refreshToken', value: refreshToken!);
-            await _secureStorage.write(key: 'accessToken', value: accessToken!);
-          } catch (_) {}
-        }
+      refreshToken ??= prefs.getString('refreshToken');
+      accessToken ??= prefs.getString('accessToken');
+      
+      // If found in SharedPreferences, migrate to secure storage
+      if (refreshToken != null && accessToken != null) {
+        await _secureStorage.write(key: 'refreshToken', value: refreshToken!);
+        await _secureStorage.write(key: 'accessToken', value: accessToken!);
       }
     }
 
@@ -168,23 +157,15 @@ class DioClient {
   }
 
   Future<void> reloadTokens() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    if (kIsWeb) {
-      // On web use only SharedPreferences
-      refreshToken = prefs.getString('refreshToken');
-      accessToken = prefs.getString('accessToken');
-    } else {
-      // On mobile/desktop, try secure storage first then fall back
-      try {
-        refreshToken = await _secureStorage.read(key: 'refreshToken');
-        accessToken = await _secureStorage.read(key: 'accessToken');
-      } catch (_) {}
-
-      if (refreshToken == null || accessToken == null) {
-        refreshToken ??= prefs.getString('refreshToken');
-        accessToken ??= prefs.getString('accessToken');
-      }
+    // Just reload tokens without full reinitialization
+    refreshToken = await _secureStorage.read(key: 'refreshToken');
+    accessToken = await _secureStorage.read(key: 'accessToken');
+    
+    // Fallback to SharedPreferences if not found in secure storage
+    if (refreshToken == null || accessToken == null) {
+      final prefs = await SharedPreferences.getInstance();
+      refreshToken ??= prefs.getString('refreshToken');
+      accessToken ??= prefs.getString('accessToken');
     }
   }
 
@@ -231,32 +212,21 @@ class DioClient {
     accessToken = access;
     refreshToken = refresh;
 
-    // Save to SharedPreferences first (reliable on all platforms including mobile web)
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('refreshToken', refresh);
-    await prefs.setString('accessToken', access);
-
-    // Also save to secure storage (best effort — may silently fail on mobile web)
-    try {
-      await _secureStorage.write(key: 'refreshToken', value: refresh);
-      await _secureStorage.write(key: 'accessToken', value: access);
-    } catch (_) {}
+    // Save both tokens securely
+    await _secureStorage.write(key: 'refreshToken', value: refresh);
+    await _secureStorage.write(key: 'accessToken', value: access);
   }
 
   Future<void> logout() async {
     accessToken = null;
     refreshToken = null;
 
+    // Remove tokens from both storage locations
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('refreshToken');
     await prefs.remove('accessToken');
-
-    if (!kIsWeb) {
-      try {
-        await _secureStorage.delete(key: 'refreshToken');
-        await _secureStorage.delete(key: 'accessToken');
-      } catch (_) {}
-    }
+    await _secureStorage.delete(key: 'refreshToken');
+    await _secureStorage.delete(key: 'accessToken');
   }
 
   List<Question> _decryptQuestions(List<dynamic> data) {
@@ -268,6 +238,7 @@ class DioClient {
         correctAnswer: questionMap['correct_answer'] ?? '',
         answerExplanation:
             _decryptField(questionMap['answer_explanation'] ?? ''),
+        questionId: questionMap['question_id']?.toString() ?? '',
         options: (questionMap['options'] as List<dynamic>).map((optionMap) {
           return Option(
             optionLabel: optionMap['option_label'] ?? '',

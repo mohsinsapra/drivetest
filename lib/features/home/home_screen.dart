@@ -14,6 +14,7 @@ import 'package:taxi_exam_app/core/widgets/category_pie_chart_widget.dart';
 import 'package:taxi_exam_app/core/widgets/user_header_widget.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/home/attempt_detail_screen.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -25,25 +26,49 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<TestAttempt> _previousAttempts = [];
+  List<TestAttempt> _pausedAttempts = [];
   Map<String, dynamic> _stats = {};
   int selectedTabIndex = 0;
+  late final VoidCallback _tabListener;
 
   List<String> get licenceNames =>
       _stats['licenceWithCategories']?.keys.toList() ?? [];
 
   String get selectedLicence =>
       licenceNames.isNotEmpty ? licenceNames[selectedTabIndex] : '';
+
   @override
   void initState() {
     super.initState();
     _loadPreviousAttempts();
+    _tabListener = () {
+      final provider =
+          Provider.of<MainScreenProvider>(context, listen: false);
+      if (provider.currentIndex == 0 && mounted) {
+        _loadPreviousAttempts();
+      }
+    };
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MainScreenProvider>(context, listen: false)
+          .addListener(_tabListener);
+    });
+  }
+
+  @override
+  void dispose() {
+    Provider.of<MainScreenProvider>(context, listen: false)
+        .removeListener(_tabListener);
+    super.dispose();
   }
 
   void _loadPreviousAttempts() async {
     var box = await Hive.openBox<TestAttempt>('testAttempts');
+    final all = box.values.toList().cast<TestAttempt>();
 
     setState(() {
-      _previousAttempts = box.values.toList().cast<TestAttempt>();
+      _pausedAttempts = all.where((a) => a.isPaused).toList()
+        ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      _previousAttempts = all.where((a) => a.isCompleted).toList();
       _stats = calculateStats(_previousAttempts);
     });
   }
@@ -140,6 +165,50 @@ class _HomeScreenState extends State<HomeScreen> {
     return result;
   }
 
+  Widget _buildPausedSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 8.0),
+          child: Text(
+            'In Progress',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ),
+        ..._pausedAttempts.map((attempt) => _PausedTestCard(
+              attempt: attempt,
+              onResume: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => Testscreen(
+                      questions: attempt.questions,
+                      instantMarking: true,
+                      licenceId: attempt.licenceId ?? '',
+                      categoryId: attempt.categoryId ?? '',
+                      licenceName: attempt.licenceName ?? '',
+                      categoryName: attempt.categoryName ?? '',
+                      initialQuestionIndex: attempt.currentQuestionIndex,
+                      userSelections: attempt.userSelections,
+                      resumeTestId: attempt.testId,
+                    ),
+                  ),
+                );
+                _loadPreviousAttempts();
+              },
+              onDelete: () async {
+                final box =
+                    await Hive.openBox<TestAttempt>('testAttempts');
+                await box.delete(attempt.testId);
+                _loadPreviousAttempts();
+              },
+            )),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool hasData = _previousAttempts.isNotEmpty;
@@ -147,8 +216,6 @@ class _HomeScreenState extends State<HomeScreen> {
         Map<String, Map<String, int>>.from(
             _stats['licenceWithCategories'] ?? {});
     List<String> licenceNames = licenceWithCategories.keys.toList();
-
-    // Filter attempts for today and this month
 
     final dailyCounts = getDailyAttemptCounts(
       _previousAttempts.where((a) => a.licenceName == selectedLicence).toList(),
@@ -169,9 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.only(top: 8.0, right: 16.0),
             child: IconButton(
               icon: const Icon(Icons.notifications_none),
-              onPressed: () {
-                // Add your notification logic here
-              },
+              onPressed: () {},
             ),
           ),
           if (hasData)
@@ -181,187 +246,307 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ],
       ),
-      body: hasData
-          ? Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Always-visible: In Progress tests ─────────────────
+              if (_pausedAttempts.isNotEmpty) _buildPausedSection(),
+
+              // ── Completed attempts dashboard ───────────────────────
+              if (hasData) ...[
+                UserHeaderWidget(
+                    overallPercentage: _stats['averageScore'] ?? 0),
+                const SizedBox(height: 24),
+                AttemptTabsWidget(
+                  tabNames: licenceNames,
+                  selectedIndex: selectedTabIndex,
+                  onTabChanged: (i) => setState(() => selectedTabIndex = i),
+                ),
+                const SizedBox(height: 16),
+                AttemptGroupCard(
+                  licence: selectedLicence,
+                  status:
+                      (_stats['licenceCounts'][selectedLicence] ?? 0) >= 3
+                          ? "Promoted"
+                          : "In Progress",
+                  dateRange: _buildDateRange(selectedLicence),
+                ),
+                const SizedBox(height: 24),
+                Row(
                   children: [
-                    // 🔹 User Header with overall average score
-                    UserHeaderWidget(
-                        overallPercentage: _stats['averageScore'] ?? 0),
-                    const SizedBox(height: 24),
-
-                    // 🔹 Tabs for each licence type
-                    AttemptTabsWidget(
-                      tabNames: licenceNames,
-                      selectedIndex: selectedTabIndex,
-                      onTabChanged: (i) => setState(() => selectedTabIndex = i),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text('Today',
+                                style:
+                                    TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            AttemptCountLineGraph(
+                                data: dailyCounts,
+                                lineColor: Colors.redAccent),
+                          ],
+                        ),
+                      ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    // 🔹 Group card for selected licence
-                    AttemptGroupCard(
-                      licence: selectedLicence,
-                      status:
-                          (_stats['licenceCounts'][selectedLicence] ?? 0) >= 3
-                              ? "Promoted"
-                              : "In Progress",
-                      dateRange: _buildDateRange(selectedLicence),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text('This month',
+                                style:
+                                    TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            AttemptCountLineGraph(
+                                data: monthlyCounts,
+                                lineColor: Colors.orange),
+                          ],
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 24),
-                    Row(
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (_stats['licenceWithCategories'] != null &&
+                    _stats['licenceWithCategories'][selectedLicence] != null)
+                  CategoryPieChart(
+                    data: Map<String, int>.from(
+                      _stats['licenceWithCategories'][selectedLicence],
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    'Previous Attempts',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                ..._previousAttempts
+                    .where((a) => a.licenceName == selectedLicence)
+                    .map((attempt) => GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    AttemptDetailScreen(attempt: attempt),
+                              ),
+                            );
+                          },
+                          child: AttemptEntryCard(attempt: attempt),
+                        )),
+              ] else if (_pausedAttempts.isEmpty) ...[
+                // Truly nothing yet — no paused, no completed
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                const Text("Today",
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8),
-                                AttemptCountLineGraph(
-                                    data: dailyCounts,
-                                    lineColor: Colors.redAccent),
-                              ],
+                        SizedBox(
+                          height: 200,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Lottie.asset(
+                              'assets/animations/no_attempts.json',
+                              fit: BoxFit.contain,
+                              repeat: true,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'No attempts yet!',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Once you complete a quiz, your results will show up here.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 32, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Column(
-                              children: [
-                                const Text("This month",
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8),
-                                AttemptCountLineGraph(
-                                    data: monthlyCounts,
-                                    lineColor: Colors.orange),
-                              ],
+                          ),
+                          onPressed: () {
+                            Provider.of<MainScreenProvider>(context,
+                                    listen: false)
+                                .setIndex(1);
+                          },
+                          child: const Text(
+                            'Take Your First Quiz',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 8),
-
-                    // 🔹 Optional charts if needed
-
-                    if (_stats['licenceWithCategories'] != null &&
-                        _stats['licenceWithCategories'][selectedLicence] !=
-                            null)
-                      CategoryPieChart(
-                        data: Map<String, int>.from(
-                          _stats['licenceWithCategories'][selectedLicence],
-                        ),
-                      ),
-                    const SizedBox(height: 16),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        "Previous Attempts",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    // 🔹 Attempts List filtered by selected licence
-                    ..._previousAttempts
-                        .where((a) => a.licenceName == selectedLicence)
-                        .map((attempt) => GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        AttemptDetailScreen(attempt: attempt),
-                                  ),
-                                );
-                              },
-                              child: AttemptEntryCard(attempt: attempt),
-                            )),
-                  ],
+                  ),
                 ),
-              ),
-            )
-          : Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Lottie.asset(
-                          'assets/animations/no_attempts.json',
-                          fit: BoxFit.contain,
-                          repeat: true,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      "No attempts yet!",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Once you complete a quiz, your results will show up here.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () {
-                        // Navigate to quiz list or start quiz
-                        Provider.of<MainScreenProvider>(context, listen: false)
-                            .setIndex(1);
-                      },
-                      child: const Text(
-                        'Take Your First Quiz',
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PausedTestCard extends StatelessWidget {
+  final TestAttempt attempt;
+  final VoidCallback onResume;
+  final VoidCallback onDelete;
+
+  const _PausedTestCard({
+    required this.attempt,
+    required this.onResume,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final answered = attempt.userSelections.length;
+    final total = attempt.questions.length;
+    final progress = total > 0 ? answered / total : 0.0;
+    final dt = attempt.dateTime;
+    final dateStr =
+        '${dt.day}/${dt.month}/${dt.year}  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.shade50,
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.pause_circle_outline,
+                          size: 14, color: Colors.orange.shade700),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Paused',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 12,
+                          color: Colors.orange.shade700,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline,
+                      size: 18, color: Colors.grey),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: onDelete,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${attempt.categoryName ?? 'Unknown'} — ${attempt.licenceName ?? ''}',
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$dateStr  •  Q${attempt.currentQuestionIndex + 1} of $total',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: Colors.grey.shade200,
+                color: Colors.orange,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$answered / $total answered',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onResume,
+                icon: const Icon(Icons.play_arrow, size: 18),
+                label: const Text('Resume Test'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),
+          ],
+        ),
+      ),
     );
   }
 }

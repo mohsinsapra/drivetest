@@ -30,6 +30,18 @@ class TestAttempt extends HiveObject {
   @HiveField(7)
   String? categoryName;
 
+  @HiveField(8)
+  String status; // 'completed' or 'paused'
+
+  @HiveField(9)
+  int currentQuestionIndex;
+
+  @HiveField(10)
+  String? licenceId;
+
+  @HiveField(11)
+  String? categoryId;
+
   TestAttempt({
     required this.testId,
     required this.dateTime,
@@ -39,5 +51,12 @@ class TestAttempt extends HiveObject {
     required this.questions,
     required this.licenceName,
     required this.categoryName,
+    this.status = 'completed',
+    this.currentQuestionIndex = 0,
+    this.licenceId,
+    this.categoryId,
   });
+
+  bool get isPaused => status == 'paused';
+  bool get isCompleted => status == 'completed';
 }

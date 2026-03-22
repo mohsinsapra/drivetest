@@ -32,6 +32,7 @@ class Testscreen extends StatefulWidget {
   final bool isReviewMode;
   final bool isTimed;
   final int timeLimitMinutes;
+  final String? resumeTestId;
 
   const Testscreen({
     super.key,
@@ -46,6 +47,7 @@ class Testscreen extends StatefulWidget {
     this.isReviewMode = false,
     this.isTimed = false,
     this.timeLimitMinutes = 10,
+    this.resumeTestId,
   });
 
   @override
@@ -75,6 +77,10 @@ class _TestscreenState extends State<Testscreen> {
   // Saved questions
   Set<String> _savedQuestionIds = {};
 
+  // Test session identity
+  late String _testId;
+  late DateTime _startTime;
+
   final _noScreenshot = NoScreenshot.instance;
 
   @override
@@ -83,6 +89,8 @@ class _TestscreenState extends State<Testscreen> {
     currentQuestionIndex = widget.initialQuestionIndex;
     userSelections = widget.userSelections ?? {};
     _pageController = PageController(initialPage: currentQuestionIndex);
+    _testId = widget.resumeTestId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    _startTime = DateTime.now();
     disableScreenshot();
 
     if (widget.isTimed && !widget.isReviewMode) {
@@ -227,28 +235,77 @@ class _TestscreenState extends State<Testscreen> {
     }
 
     double scorePercentage = (correctAnswers / widget.questions.length) * 100;
-    bool hasPassed = scorePercentage >= 70; // Adjust as needed
+    bool hasPassed = scorePercentage >= 70;
 
-    // Create a TestAttempt object
-    TestAttempt attempt = TestAttempt(
-      testId: DateTime.now().millisecondsSinceEpoch.toString(), // Unique ID
-      dateTime: DateTime.now(),
+    final attempt = TestAttempt(
+      testId: _testId,
+      dateTime: _startTime,
       userSelections: userSelections,
       score: scorePercentage,
       hasPassed: hasPassed,
-      questions: widget.questions, // Save questions for detailed view
+      questions: widget.questions,
       licenceName: widget.licenceName,
       categoryName: widget.categoryName,
+      status: 'completed',
+      currentQuestionIndex: 0,
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
     );
 
-    // Open a Hive box
-    var box = await Hive.openBox<TestAttempt>('testAttempts');
+    final box = await Hive.openBox<TestAttempt>('testAttempts');
+    await box.put(_testId, attempt); // put by testId overwrites any paused version
+  }
 
-    // Save the attempt
-    await box.add(attempt);
+  Future<void> _savePausedTest() async {
+    final attempt = TestAttempt(
+      testId: _testId,
+      dateTime: _startTime,
+      userSelections: Map<int, String>.from(userSelections),
+      score: 0,
+      hasPassed: false,
+      questions: widget.questions,
+      licenceName: widget.licenceName,
+      categoryName: widget.categoryName,
+      status: 'paused',
+      currentQuestionIndex: currentQuestionIndex,
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+    );
 
-    // Close the box (optional)
-    await box.close();
+    final box = await Hive.openBox<TestAttempt>('testAttempts');
+    await box.put(_testId, attempt);
+  }
+
+  Future<void> _showExitDialog() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Exit Test'),
+        content: const Text('Would you like to save your progress?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'cancel'),
+            child: const Text('Keep Going'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'exit'),
+            child: const Text('Exit'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, 'save'),
+            child: const Text('Save & Exit'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    if (result == 'save') {
+      await _savePausedTest();
+      if (mounted) Navigator.of(context).pop();
+    } else if (result == 'exit') {
+      Navigator.of(context).pop();
+    }
   }
 
   Future<List<Question>> translateQuestionsOnce(
@@ -332,14 +389,30 @@ class _TestscreenState extends State<Testscreen> {
   @override
   Widget build(BuildContext context) {
     disableScreenshot();
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (widget.isReviewMode) {
+          Navigator.of(context).pop();
+          return;
+        }
+        _showExitDialog();
+      },
+      child: Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            if (widget.isReviewMode) {
+              Navigator.of(context).pop();
+            } else {
+              _showExitDialog();
+            }
+          },
         ),
         title: QuestionProgressHeader(
           currentIndex: currentQuestionIndex,
@@ -687,8 +760,9 @@ class _TestscreenState extends State<Testscreen> {
           );
         },
       ),
-    );
-  }
+    ), // Scaffold
+    ); // PopScope
+  } // build
 
 // Add this helper method for language flags
 
