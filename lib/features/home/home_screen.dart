@@ -4,6 +4,8 @@ import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/utils/calculate_stats.dart';
 import 'package:taxi_exam_app/core/widgets/attempt_entry_card.dart';
 import 'package:taxi_exam_app/core/widgets/attempt_group_card.dart';
@@ -62,9 +64,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadPreviousAttempts() async {
-    var box = await Hive.openBox<TestAttempt>('testAttempts');
-    final all = box.values.toList().cast<TestAttempt>();
+    final box = await Hive.openBox<TestAttempt>('testAttempts');
+    _refreshFromBox(box);
+    _syncFromBackend(box); // background — no await
+  }
 
+  void _refreshFromBox(Box<TestAttempt> box) {
+    if (!mounted) return;
+    final all = box.values.toList().cast<TestAttempt>();
     setState(() {
       _pausedAttempts = all.where((a) => a.isPaused).toList()
         ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
@@ -73,17 +80,40 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _deleteAllTests() async {
-    var box = await Hive.openBox<TestAttempt>('testAttempts');
-    await box.clear(); // This deletes all entries in the box
-    await box.close();
+  Future<void> _syncFromBackend(Box<TestAttempt> box) async {
+    final apiService = ApiService();
+    final remoteList = await apiService.fetchTestAttempts();
+    bool changed = false;
+    for (final data in remoteList) {
+      final id = data['attempt_id'] as String? ?? '';
+      if (id.isEmpty || box.containsKey(id)) continue;
 
-    // Optionally, update the UI or notify the user
+      // For paused tests, fetch the exact questions from the backend
+      // so the user can resume on this device too
+      List<Question> questions = const [];
+      if ((data['status'] as String? ?? '') == 'paused') {
+        questions = await apiService.fetchQuestionsForAttempt(id);
+      }
+
+      final attempt = apiService.testAttemptFromJson(data, questions: questions);
+      if (attempt != null) {
+        await box.put(id, attempt);
+        changed = true;
+      }
+    }
+    if (changed) _refreshFromBox(box);
+  }
+
+  Future<void> _deleteAllTests() async {
+    final box = await Hive.openBox<TestAttempt>('testAttempts');
+    await box.clear();
     setState(() {
       _previousAttempts.clear();
+      _pausedAttempts.clear();
     });
-
     showAppSnackBar('All tests have been deleted.');
+    // Remove from backend (fire-and-forget — local is already cleared above)
+    ApiService().deleteAllTestAttempts();
   }
 
   String _buildDateRange(String licence) {
@@ -97,6 +127,39 @@ class _HomeScreenState extends State<HomeScreen> {
     final start = attempts.first.dateTime;
     final end = attempts.last.dateTime;
     return "${start.day}/${start.month} to ${end.day}/${end.month}";
+  }
+
+  void _confirmDeletePausedTest(TestAttempt attempt) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Delete Progress'),
+          content: const Text(
+              'Are you sure you want to delete this saved test? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(ctx).pop(),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                // Remove from UI immediately
+                setState(() => _pausedAttempts.removeWhere((a) => a.testId == attempt.testId));
+                // Remove from local Hive
+                final box = await Hive.openBox<TestAttempt>('testAttempts');
+                await box.delete(attempt.testId);
+                // Remove from backend
+                ApiService().deleteTestAttempt(attempt.testId);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _confirmDeleteAllTests() {
@@ -178,6 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         ..._pausedAttempts.map((attempt) => _PausedTestCard(
               attempt: attempt,
+              canResume: attempt.questions.isNotEmpty,
               onResume: () async {
                 await Navigator.push(
                   context,
@@ -197,12 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
                 _loadPreviousAttempts();
               },
-              onDelete: () async {
-                final box =
-                    await Hive.openBox<TestAttempt>('testAttempts');
-                await box.delete(attempt.testId);
-                _loadPreviousAttempts();
-              },
+              onDelete: () => _confirmDeletePausedTest(attempt),
             )),
         const SizedBox(height: 16),
       ],
@@ -281,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.05),
+                          color: Colors.red.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -431,11 +490,13 @@ class _PausedTestCard extends StatelessWidget {
   final TestAttempt attempt;
   final VoidCallback onResume;
   final VoidCallback onDelete;
+  final bool canResume;
 
   const _PausedTestCard({
     required this.attempt,
     required this.onResume,
     required this.onDelete,
+    this.canResume = true,
   });
 
   @override
@@ -532,11 +593,14 @@ class _PausedTestCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: onResume,
-                icon: const Icon(Icons.play_arrow, size: 18),
-                label: const Text('Resume Test'),
+                onPressed: canResume ? onResume : null,
+                icon: Icon(
+                  canResume ? Icons.play_arrow : Icons.device_unknown,
+                  size: 18,
+                ),
+                label: Text(canResume ? 'Resume Test' : 'Resume on original device'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
+                  backgroundColor: canResume ? Colors.orange : Colors.grey,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

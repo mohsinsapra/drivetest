@@ -81,13 +81,17 @@ class _TestscreenState extends State<Testscreen> {
   late String _testId;
   late DateTime _startTime;
 
+  // Snapshot of selections at load time — used to detect changes on resume
+  late final Map<int, String> _initialSelections;
+
   final _noScreenshot = NoScreenshot.instance;
 
   @override
   void initState() {
     super.initState();
     currentQuestionIndex = widget.initialQuestionIndex;
-    userSelections = widget.userSelections ?? {};
+    userSelections = Map<int, String>.from(widget.userSelections ?? {});
+    _initialSelections = Map<int, String>.from(userSelections);
     _pageController = PageController(initialPage: currentQuestionIndex);
     _testId = widget.resumeTestId ?? DateTime.now().millisecondsSinceEpoch.toString();
     _startTime = DateTime.now();
@@ -99,6 +103,8 @@ class _TestscreenState extends State<Testscreen> {
     }
 
     _loadSavedQuestionIds();
+    // Pre-open the Hive box so saves never hang waiting for it to open
+    Hive.openBox<TestAttempt>('testAttempts');
   }
 
   Future<void> _loadSavedQuestionIds() async {
@@ -252,8 +258,11 @@ class _TestscreenState extends State<Testscreen> {
       categoryId: widget.categoryId,
     );
 
-    final box = await Hive.openBox<TestAttempt>('testAttempts');
+    final box = Hive.isBoxOpen('testAttempts')
+        ? Hive.box<TestAttempt>('testAttempts')
+        : await Hive.openBox<TestAttempt>('testAttempts');
     await box.put(_testId, attempt); // put by testId overwrites any paused version
+    _apiService.syncTestAttempt(attempt); // best-effort backend sync
   }
 
   Future<void> _savePausedTest() async {
@@ -272,11 +281,29 @@ class _TestscreenState extends State<Testscreen> {
       categoryId: widget.categoryId,
     );
 
-    final box = await Hive.openBox<TestAttempt>('testAttempts');
+    // Use already-open box if available to avoid potential deadlock
+    final box = Hive.isBoxOpen('testAttempts')
+        ? Hive.box<TestAttempt>('testAttempts')
+        : await Hive.openBox<TestAttempt>('testAttempts');
+
     await box.put(_testId, attempt);
+    _apiService.syncTestAttempt(attempt); // best-effort backend sync
+  }
+
+  bool get _hasChanges {
+    if (userSelections.length != _initialSelections.length) return true;
+    for (final entry in userSelections.entries) {
+      if (_initialSelections[entry.key] != entry.value) return true;
+    }
+    return false;
   }
 
   Future<void> _showExitDialog() async {
+    // Resumed test with no answer changes — nothing new to save, just exit
+    if (widget.resumeTestId != null && !_hasChanges) {
+      Navigator.of(context).pop();
+      return;
+    }
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -300,9 +327,22 @@ class _TestscreenState extends State<Testscreen> {
     );
 
     if (!mounted) return;
+
     if (result == 'save') {
-      await _savePausedTest();
-      if (mounted) Navigator.of(context).pop();
+      // Show saving indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+      try {
+        await _savePausedTest().timeout(const Duration(seconds: 5));
+      } catch (e) {
+        debugPrint('Save failed: $e');
+      } finally {
+        if (mounted) Navigator.of(context).pop(); // close loading
+        if (mounted) Navigator.of(context).pop(); // close test screen
+      }
     } else if (result == 'exit') {
       Navigator.of(context).pop();
     }
@@ -378,7 +418,7 @@ class _TestscreenState extends State<Testscreen> {
     } catch (e) {
       showAppSnackBar('Translation failed. Please try again.');
     } finally {
-      Navigator.of(context).pop();
+      if (mounted) Navigator.of(context).pop();
     }
   }
 
@@ -388,7 +428,6 @@ class _TestscreenState extends State<Testscreen> {
 
   @override
   Widget build(BuildContext context) {
-    disableScreenshot();
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -586,7 +625,7 @@ class _TestscreenState extends State<Testscreen> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -631,7 +670,7 @@ class _TestscreenState extends State<Testscreen> {
                       onTap: () => _selectOption(option.optionLabel, index),
                       languageCode: currentLanguageCode,
                     );
-                  }).toList(),
+                  }),
 
                   const SizedBox(height: 16),
 
@@ -843,7 +882,7 @@ class _TestscreenState extends State<Testscreen> {
                               color: isCurrent
                                   ? Theme.of(context)
                                       .primaryColor
-                                      .withOpacity(0.1)
+                                      .withValues(alpha: 0.1)
                                   : Colors.grey[50],
                               border: Border.all(
                                 color: isCurrent

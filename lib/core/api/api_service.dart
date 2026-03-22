@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'dio_client.dart';
 
 class ApiService {
@@ -127,6 +129,102 @@ class ApiService {
     }
   }
 
+  /// Push one attempt to the backend (fire-and-forget — never throws).
+  /// Only stores IDs and selections — not full question data.
+  Future<void> syncTestAttempt(TestAttempt attempt) async {
+    try {
+      final selections =
+          attempt.userSelections.map((k, v) => MapEntry(k.toString(), v));
+      final questionIds =
+          attempt.questions.map((q) => q.questionId).toList();
+
+      await _dio.post('api/user/test-attempts/', data: {
+        'attempt_id': attempt.testId,
+        'licence_id': attempt.licenceId ?? '',
+        'category_id': attempt.categoryId ?? '',
+        'date_time': attempt.dateTime.toUtc().toIso8601String(),
+        'score': attempt.score,
+        'has_passed': attempt.hasPassed,
+        'status': attempt.status,
+        'current_question_index': attempt.currentQuestionIndex,
+        'user_selections': selections,
+        'question_ids': questionIds,
+      });
+    } catch (e) {
+      debugPrint('[syncTestAttempt] backend sync failed: $e');
+      // Local Hive is the primary store — backend sync is best-effort
+    }
+  }
+
+  /// Fetch all attempts for the current user from the backend.
+  /// Returns an empty list on any error (offline-safe).
+  Future<List<Map<String, dynamic>>> fetchTestAttempts() async {
+    try {
+      // Cache-bust so we never get a stale cached list
+      final response = await _dio.get(
+        'api/user/test-attempts/',
+        queryParameters: {'_t': DateTime.now().millisecondsSinceEpoch},
+      );
+      final data = response.data;
+      if (data is List) return data.cast<Map<String, dynamic>>();
+      if (data is Map && data['results'] is List) {
+        return (data['results'] as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[fetchTestAttempts] failed: $e');
+      return [];
+    }
+  }
+
+  /// Fetch the exact questions for a saved attempt using only its [attemptId].
+  /// The backend looks up its own stored question_ids and returns them in order.
+  /// Returns empty list on any error (offline-safe).
+  Future<List<Question>> fetchQuestionsForAttempt(String attemptId) async {
+    try {
+      final response = await _dio.post(
+        'api/questions/for-attempt/',
+        data: {'attempt_id': attemptId},
+      );
+      final results = response.data['results'];
+      if (results is List) return results.cast<Question>();
+      return [];
+    } catch (e) {
+      debugPrint('[fetchQuestionsForAttempt] failed: $e');
+      return [];
+    }
+  }
+
+  /// Convert a backend JSON map into a [TestAttempt] for local Hive storage.
+  /// Pass [questions] if you have already fetched them; otherwise they'll be empty.
+  TestAttempt? testAttemptFromJson(Map<String, dynamic> data,
+      {List<Question> questions = const []}) {
+    try {
+      final selectionsJson =
+          (data['user_selections'] as Map<String, dynamic>? ?? {});
+      final selections = selectionsJson
+          .map((k, v) => MapEntry(int.tryParse(k) ?? 0, v.toString()));
+
+      return TestAttempt(
+        testId: data['attempt_id'] as String,
+        dateTime: DateTime.parse(data['date_time'] as String).toLocal(),
+        userSelections: selections,
+        score: (data['score'] as num?)?.toDouble() ?? 0,
+        hasPassed: data['has_passed'] as bool? ?? false,
+        questions: questions,
+        licenceName: data['licence_name'] as String?,
+        categoryName: data['category_name'] as String?,
+        status: data['status'] as String? ?? 'completed',
+        currentQuestionIndex: data['current_question_index'] as int? ?? 0,
+        licenceId: data['licence_id'] as String?,
+        categoryId: data['category_id'] as String?,
+      );
+    } catch (e) {
+      debugPrint('[testAttemptFromJson] parse error: $e');
+      return null;
+    }
+  }
+
   Future<void> googleAuth({String? idToken, String? accessToken}) async {
     try {
       final data = idToken != null
@@ -139,6 +237,30 @@ class ApiService {
       );
     } catch (e) {
       throw Exception('Google authentication failed: $e');
+    }
+  }
+
+  /// Delete a single attempt from the backend. Returns true on success.
+  Future<bool> deleteTestAttempt(String attemptId) async {
+    try {
+      await _dio.delete('api/user/test-attempts/$attemptId/');
+      return true;
+    } catch (e) {
+      debugPrint('[deleteTestAttempt] failed: $e');
+      return false;
+    }
+  }
+
+  /// Delete all attempts for the current user from the backend.
+  Future<void> deleteAllTestAttempts() async {
+    try {
+      final attempts = await fetchTestAttempts();
+      for (final a in attempts) {
+        final id = a['attempt_id'] as String? ?? '';
+        if (id.isNotEmpty) await _dio.delete('api/user/test-attempts/$id/');
+      }
+    } catch (e) {
+      debugPrint('[deleteAllTestAttempts] failed: $e');
     }
   }
 

@@ -38,7 +38,14 @@
       "Bash(git push:*)",
       "Bash(flutter analyze:*)",
       "Bash(make web-deploy:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend -not -path */env/* -not -path */__pycache__/* -not -path */migrations/*)",
+      "Bash(python manage.py makemigrations user_management)",
+      "Bash(python manage.py migrate)",
+      "Bash(source env/bin/activate)",
+      "Bash(python manage.py shell -c \":*)",
+      "Bash(python:*)",
+      "Bash(source venv/bin/activate)"
     ],
     "deny": [],
     "ask": []
