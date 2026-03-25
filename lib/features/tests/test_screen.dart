@@ -348,41 +348,96 @@ class _TestscreenState extends State<Testscreen> {
     }
   }
 
+  /// Returns true if [s] is translatable text (not an image URL/path).
+  bool _isTranslatableText(String s) {
+    if (s.isEmpty) return false;
+    if (s.startsWith('http://') || s.startsWith('https://')) return false;
+    if (!s.contains(' ') &&
+        RegExp(r'\.(png|jpg|jpeg|gif|webp)$', caseSensitive: false).hasMatch(s)) {
+      return false;
+    }
+    return true;
+  }
+
+  /// Strip HTML tags and decode common entities for clean translation input.
+  String _stripHtml(String s) {
+    s = s.replaceAll(RegExp(r'<[^>]+>'), ' ');
+    const entities = {
+      '&amp;': '&', '&lt;': '<', '&gt;': '>',
+      '&quot;': '"', '&#39;': "'", '&nbsp;': ' ',
+      '&auml;': 'ä', '&Auml;': 'Ä', '&ouml;': 'ö', '&Ouml;': 'Ö',
+      '&aring;': 'å', '&Aring;': 'Å',
+    };
+    for (final e in entities.entries) {
+      s = s.replaceAll(e.key, e.value);
+    }
+    return s.replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  /// Translate a single string, returning the original on error.
+  Future<String> _safeTranslate(
+      String text, String fromLang, String toLang, GoogleTranslator translator) async {
+    try {
+      final result = await translator.translate(text, from: fromLang, to: toLang);
+      return result.text;
+    } catch (_) {
+      return text;
+    }
+  }
+
   Future<List<Question>> translateQuestionsOnce(
     List<Question> questions, {
     required String fromLang,
     required String toLang,
     required GoogleTranslator translator,
   }) async {
-    // 1 ─ Gather all strings that need translation (order matters!)
-    final List<String> buffer = [];
+    // 1 ─ Build main buffer (question text + options only)
+    final List<String> mainBuffer = [];
     for (final q in questions) {
-      buffer.add(q.text);
-      buffer.addAll(q.options.map((o) => o.text));
+      mainBuffer.add(q.text);
+      mainBuffer.addAll(q.options.map((o) => o.text));
     }
 
-    // 2 ─ Kick off *one* asynchronous batch of requests.
-    //     Each element in `results` keeps the same index it had in `buffer`.
-    final results = await Future.wait(
-      buffer
-          .map((txt) => translator.translate(txt, from: fromLang, to: toLang)),
-    ); // ← single await point :contentReference[oaicite:0]{index=0}
+    // 2 ─ Translate main buffer in one batch (throws on failure)
+    final mainResults = await Future.wait(
+      mainBuffer.map((txt) => translator.translate(txt, from: fromLang, to: toLang)),
+    );
 
-    // 3 ─ Walk through the original structure and replace the texts.
+    // 3 ─ Reassemble question text + options
     var idx = 0;
-    return questions.map((q) {
-      final translatedQuestionText = results[idx++].text;
-
+    final partialTranslated = <Question>[];
+    for (final q in questions) {
+      final translatedText = mainResults[idx++].text;
       final translatedOptions = q.options.map((o) {
-        final translatedOptText = results[idx++].text;
-        return o.copyWith(text: translatedOptText);
-        // …or Option(optionLabel: o.optionLabel, text: translatedOptText, imageUrl: o.imageUrl);
+        return o.copyWith(text: mainResults[idx++].text);
       }).toList();
+      partialTranslated.add(q.copyWith(text: translatedText, options: translatedOptions));
+    }
 
-      return q.copyWith(
-          text: translatedQuestionText, options: translatedOptions);
-      // …or Question(text: translatedQuestionText, imageUrl: q.imageUrl, …);
+    // 4 ─ Translate explanations separately — each one with its own error handling
+    //     so a bad explanation cannot break the whole translation batch.
+    final List<String?> expTexts = questions.map((q) {
+      final t = _stripHtml(q.answerExplanation);
+      return _isTranslatableText(t) ? t : null;
     }).toList();
+
+    final expFutures = expTexts.map((t) {
+      if (t == null) return Future<String?>.value(null);
+      return _safeTranslate(t, fromLang, toLang, translator)
+          .then<String?>((v) => v);
+    }).toList();
+
+    final expResults = await Future.wait(expFutures);
+
+    // 5 ─ Final assembly
+    final translated = <Question>[];
+    for (var i = 0; i < partialTranslated.length; i++) {
+      final translatedExp = expResults[i];
+      translated.add(translatedExp != null
+          ? partialTranslated[i].copyWith(answerExplanation: translatedExp)
+          : partialTranslated[i]);
+    }
+    return translated;
   }
 
   Future<void> _translateQuestion(int index, String targetLang) async {
@@ -538,10 +593,18 @@ class _TestscreenState extends State<Testscreen> {
                 ttsService.ttsState = TtsState.stopped;
                 String targetLang = value.toLowerCase();
                 if (targetLang != currentLanguageCode.toLowerCase()) {
-                  await _translateQuestion(currentQuestionIndex, targetLang);
-                  setState(() {
-                    currentLanguageCode = value;
-                  });
+                  if (targetLang == 'sv') {
+                    // Switching back to Swedish — use originals, no translation needed
+                    setState(() {
+                      currentLanguageCode = value;
+                      isEnglish = false;
+                    });
+                  } else {
+                    await _translateQuestion(currentQuestionIndex, targetLang);
+                    setState(() {
+                      currentLanguageCode = value;
+                    });
+                  }
                 }
               },
               itemBuilder: (BuildContext context) => languageOptions

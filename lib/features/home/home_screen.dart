@@ -790,6 +790,8 @@ class _HomeScreenState extends State<HomeScreen>
                 'assets/animations/no_attempts.json',
                 fit: BoxFit.contain,
                 repeat: true,
+                renderCache: RenderCache.raster,
+                options: LottieOptions(enableMergePaths: false),
               ),
             ),
             const SizedBox(height: 24),
@@ -831,7 +833,9 @@ class _HomeScreenState extends State<HomeScreen>
       baseColor: Colors.grey.shade200,
       highlightColor: Colors.grey.shade50,
       child: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -869,6 +873,7 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ],
           ),
+        ),
         ),
       ),
     );

@@ -204,6 +204,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           'assets/animations/signup.json',
                           fit: BoxFit.contain,
                           repeat: true,
+                          renderCache: RenderCache.raster,
+                          options: LottieOptions(enableMergePaths: false),
                         ),
                       ),
                     ),

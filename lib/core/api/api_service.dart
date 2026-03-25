@@ -102,11 +102,12 @@ class ApiService {
   }
 
   String fetchImage(
-      String licenceId, String categoryId, String imagePath)  {
-    final imageUrl =
-        '${_dio.options.baseUrl}secure-media/$licenceId/$categoryId/$imagePath/';
-
-    return imageUrl;
+      String licenceId, String categoryId, String imagePath) {
+    // BCD images are already full URLs — return them directly
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    return '${_dio.options.baseUrl}secure-media/$licenceId/$categoryId/$imagePath/';
   }
 
   Future<String> createPaymentIntent(int amount, String paymentMethod,
@@ -263,6 +264,78 @@ class ApiService {
       debugPrint('[deleteAllTestAttempts] failed: $e');
     }
   }
+
+  // ─── BCD v2 endpoints ──────────────────────────────────────────────────────
+
+  /// Safely extract a list from a DRF response, handling both plain lists
+  /// and paginated `{"results": [...]}` shapes.
+  List<dynamic> _asList(dynamic data) {
+    if (data is List) return data;
+    if (data is Map && data['results'] is List) return data['results'] as List<dynamic>;
+    return [];
+  }
+
+  Future<List<dynamic>> fetchBCDAllCategories() async {
+    final response = await _dio.get('api/v2/categories/');
+    return _asList(response.data);
+  }
+
+  Future<List<dynamic>> fetchBCDSubcategories(int parentCategoryBcdId) async {
+    final response = await _dio.get('api/v2/categories/$parentCategoryBcdId/subcategories/');
+    return _asList(response.data);
+  }
+
+  Future<List<dynamic>> fetchBCDTests(int categoryId) async {
+    final response = await _dio.get('api/v2/categories/$categoryId/tests/');
+    return _asList(response.data);
+  }
+
+  Future<List<dynamic>> fetchBCDTestQuestions(int testId) async {
+    final response = await _dio.get('api/v2/tests/$testId/questions/');
+    return _asList(response.data);
+  }
+
+  Future<List<dynamic>> fetchBCDTrafficSigns() async {
+    final response = await _dio.get('api/v2/traffic-signs/');
+    return _asList(response.data);
+  }
+
+  Future<List<dynamic>> fetchBCDDocuments(int categoryId) async {
+    final response = await _dio.get('api/v2/categories/$categoryId/documents/');
+    return _asList(response.data);
+  }
+
+  Future<List<dynamic>> fetchBCDChecklists(int categoryId) async {
+    final response = await _dio.get('api/v2/categories/$categoryId/checklists/');
+    return _asList(response.data);
+  }
+
+  Future<List<dynamic>> fetchMyBCDSubscriptions() async {
+    final response = await _dio.get('api/v2/my-subscriptions/');
+    return response.data as List<dynamic>;
+  }
+
+  Future<List<dynamic>> fetchBCDSubscriptionProducts() async {
+    final response = await _dio.get('api/v2/subscription-products/');
+    return _asList(response.data);
+  }
+
+  Future<String> createBCDPaymentIntent(int productId) async {
+    final response = await _dio.post(
+      'api/payment/bcd/create-intent/',
+      data: {'product_id': productId},
+    );
+    return response.data['clientSecret'] as String;
+  }
+
+  /// Build a full URL for a BCD media file (image or document).
+  /// [path] is the relative path stored in the DB, e.g. 'bcd/images/foo.png'
+  String bcdMediaUrl(String path) {
+    final base = _dio.options.baseUrl.replaceAll(RegExp(r'/$'), '');
+    return '$base/api/bcd-media/$path/';
+  }
+
+  // ─── End BCD endpoints ──────────────────────────────────────────────────────
 
   Future<void> requestPasswordReset(String email) async {
     try {

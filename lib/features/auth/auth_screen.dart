@@ -112,6 +112,8 @@ class _AuthScreenState extends State<AuthScreen> {
                             'assets/animations/welcome.json',
                             fit: BoxFit.contain,
                             repeat: true,
+                            renderCache: RenderCache.raster,
+                            options: LottieOptions(enableMergePaths: false),
                           ),
                         ),
                       ),

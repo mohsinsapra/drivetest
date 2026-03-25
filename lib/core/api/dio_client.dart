@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
@@ -80,16 +79,24 @@ class DioClient {
       priority: CachePriority.normal,
       // Default. Body and headers encryption with your own algorithm.
       cipher: null,
-      // Default. Key builder to retrieve requests.
-      keyBuilder: CacheOptions.defaultCacheKeyBuilder,
+      // Custom key builder: include Authorization header so per-user endpoints
+      // (e.g. my-subscriptions) are cached separately per user.
+      keyBuilder: ({required Uri url, Map<String, String>? headers}) {
+        final auth = headers?['Authorization'] ?? headers?['authorization'] ?? '';
+        final authHash = auth.isNotEmpty
+            ? auth.hashCode.toRadixString(16)
+            : '';
+        final baseKey = CacheOptions.defaultCacheKeyBuilder(url: url);
+        return authHash.isNotEmpty ? '${baseKey}_$authHash' : baseKey;
+      },
       // Default. Allows to cache POST requests.
       // Overriding [keyBuilder] is strongly recommended when [true].
       allowPostMethod: false,
     );
     _dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',
-      // baseUrl: 'http://192.168.1.130:8010/',
-      baseUrl: 'https://taxiexam.hayatpoetry.com/',
+      baseUrl: 'http://192.168.1.130:8010/',
+      // baseUrl: 'https://taxiexam.hayatpoetry.com/',
       connectTimeout: const Duration(milliseconds: 5000),
       receiveTimeout: const Duration(milliseconds: 20000),
     ));
@@ -103,8 +110,9 @@ class DioClient {
         return handler.next(options);
       },
       onResponse: (response, handler) {
-        // Check if the API is the questions endpoint
-        if (response.requestOptions.path.contains('/questions/')) {
+        // Only decrypt legacy questions endpoint (not v2 BCD endpoints)
+        final path = response.requestOptions.path;
+        if (path.contains('/questions/') && !path.contains('v2/')) {
           response.data['results'] =
               _decryptQuestions(response.data['results']);
         }

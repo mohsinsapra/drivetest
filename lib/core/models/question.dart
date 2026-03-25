@@ -42,12 +42,12 @@ class Question extends HiveObject {
     );
   }
 
-    Question copyWith({String? text, List<Option>? options}) => Question(
+    Question copyWith({String? text, List<Option>? options, String? answerExplanation}) => Question(
         text: text ?? this.text,
         options: options ?? this.options,
         imageUrl: imageUrl,
         correctAnswer: correctAnswer,
-        answerExplanation: answerExplanation,
+        answerExplanation: answerExplanation ?? this.answerExplanation,
         questionId: questionId,
       );
 }

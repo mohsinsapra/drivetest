@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_screen.dart';
 import 'package:taxi_exam_app/features/profile/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const LicenceTypesScreen(),
+    const BCDScreen(),
     const ProfileScreen(),
   ];
 
@@ -124,6 +126,7 @@ class _FloatingNavPill extends StatelessWidget {
   static const _items = [
     (icon: LucideIcons.home, label: 'Home'),
     (icon: LucideIcons.bookOpenCheck, label: 'Tests'),
+    (icon: LucideIcons.graduationCap, label: 'BCD'),
     (icon: LucideIcons.user, label: 'Profile'),
   ];
 

@@ -54,7 +54,9 @@
       "Bash(git commit:*)",
       "Bash(python3:*)",
       "Bash(grep -v \"^Analyzing\\\\|^$\")",
-      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app -name *.dart -path */settings/* -type f)"
+      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app -name *.dart -path */settings/* -type f)",
+      "Bash(pod install:*)",
+      "Bash(pod cache:*)"
     ],
     "deny": [],
     "ask": []

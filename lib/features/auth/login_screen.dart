@@ -184,6 +184,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     'assets/animations/login.json',
                     fit: BoxFit.contain,
                     repeat: true,
+                    renderCache: RenderCache.raster,
+                    options: LottieOptions(enableMergePaths: false),
                   ),
                 ),
               ),

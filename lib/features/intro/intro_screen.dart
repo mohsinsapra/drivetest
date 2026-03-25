@@ -56,7 +56,9 @@ class IntroScreen extends StatelessWidget {
       child: Lottie.asset(
         assetName,
         width: 700,
-        repeat: true, // Animation plays only once
+        repeat: true,
+        renderCache: RenderCache.raster,
+        options: LottieOptions(enableMergePaths: false),
       ),
     );
   }
