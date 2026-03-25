@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_screen.dart';
 import 'package:taxi_exam_app/features/profile/profile_screen.dart';
+
+class _NavEntry {
+  final IconData icon;
+  final String label;
+  final Widget screen;
+
+  const _NavEntry({
+    required this.icon,
+    required this.label,
+    required this.screen,
+  });
+}
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,18 +30,57 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   late PageController _pageController;
+  final ApiService _apiService = ApiService();
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const LicenceTypesScreen(),
-    const BCDScreen(),
-    const ProfileScreen(),
-  ];
+  bool _showLegacyTests = true;
+  bool _showBcdTests = false;
+  bool _listenerAttached = false;
+
+  List<_NavEntry> get _navEntries {
+    final items = <_NavEntry>[
+      const _NavEntry(
+        icon: LucideIcons.home,
+        label: 'Home',
+        screen: HomeScreen(),
+      ),
+    ];
+
+    if (_showLegacyTests) {
+      items.add(
+        const _NavEntry(
+          icon: LucideIcons.bookOpenCheck,
+          label: 'Tests',
+          screen: LicenceTypesScreen(),
+        ),
+      );
+    }
+
+    if (_showBcdTests) {
+      items.add(
+        const _NavEntry(
+          icon: LucideIcons.graduationCap,
+          label: 'BCD',
+          screen: BCDScreen(),
+        ),
+      );
+    }
+
+    items.add(
+      const _NavEntry(
+        icon: LucideIcons.user,
+        label: 'Profile',
+        screen: ProfileScreen(),
+      ),
+    );
+
+    return items;
+  }
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    _loadTabFlags();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Provider.of<MainScreenProvider>(context, listen: false).setIndex(0);
@@ -34,14 +88,63 @@ class MainScreenState extends State<MainScreen> {
     });
   }
 
+  bool _flag(dynamic value, bool fallback) {
+    if (value is bool) return value;
+    return fallback;
+  }
+
+  Future<void> _applyFlagsFromMap(Map<String, dynamic> userData) async {
+    if (!mounted) return;
+    setState(() {
+      _showLegacyTests = _flag(userData['show_legacy_tests'], true);
+      _showBcdTests = _flag(userData['show_bcd_tests'], false);
+    });
+    _ensureValidIndex();
+  }
+
+  void _ensureValidIndex() {
+    if (!mounted) return;
+    final provider = Provider.of<MainScreenProvider>(context, listen: false);
+    final maxIndex = _navEntries.length - 1;
+    final safeIndex = provider.currentIndex.clamp(0, maxIndex);
+    if (safeIndex != provider.currentIndex) {
+      provider.setIndex(safeIndex);
+      _pageController.jumpToPage(safeIndex);
+    }
+  }
+
+  Future<void> _loadTabFlags() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('user');
+      if (userJson != null && userJson.isNotEmpty) {
+        final parsed = jsonDecode(userJson);
+        if (parsed is Map<String, dynamic>) {
+          await _applyFlagsFromMap(parsed);
+        }
+      }
+
+      final fresh = await _apiService.fetchCurrentUser();
+      if (fresh is Map<String, dynamic>) {
+        await prefs.setString('user', jsonEncode(fresh));
+        await _applyFlagsFromMap(fresh);
+      }
+    } catch (_) {
+      // Keep defaults if loading flags fails.
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_listenerAttached) return;
+    _listenerAttached = true;
     Provider.of<MainScreenProvider>(context).addListener(() {
       if (!mounted) return;
       final index =
           Provider.of<MainScreenProvider>(context, listen: false).currentIndex;
-      _pageController.jumpToPage(index);
+      final safeIndex = index.clamp(0, _navEntries.length - 1);
+      _pageController.jumpToPage(safeIndex);
     });
   }
 
@@ -58,29 +161,32 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MainScreenProvider>(context);
+    final entries = _navEntries;
+    final selectedIndex = provider.currentIndex.clamp(0, entries.length - 1);
     final mq = MediaQuery.of(context);
 
     return Scaffold(
       body: Stack(
         children: [
-            PageView(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              physics: const ClampingScrollPhysics(),
-              children: _screens,
+          PageView(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            physics: const ClampingScrollPhysics(),
+            children: entries.map((e) => e.screen).toList(),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _FloatingNavArea(
+              currentIndex: selectedIndex,
+              items: entries,
+              onTap: (i) => provider.setIndex(i),
+              bottomInset: mq.padding.bottom,
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: _FloatingNavArea(
-                currentIndex: provider.currentIndex,
-                onTap: (i) => provider.setIndex(i),
-                bottomInset: mq.padding.bottom,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -89,11 +195,13 @@ class MainScreenState extends State<MainScreen> {
 
 class _FloatingNavArea extends StatelessWidget {
   final int currentIndex;
+  final List<_NavEntry> items;
   final ValueChanged<int> onTap;
   final double bottomInset;
 
   const _FloatingNavArea({
     required this.currentIndex,
+    required this.items,
     required this.onTap,
     required this.bottomInset,
   });
@@ -101,14 +209,13 @@ class _FloatingNavArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-    
       padding: EdgeInsets.only(bottom: bottomInset + 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        
         children: [
           _FloatingNavPill(
             currentIndex: currentIndex,
+            items: items,
             onTap: onTap,
           ),
         ],
@@ -121,14 +228,8 @@ class _FloatingNavArea extends StatelessWidget {
 
 class _FloatingNavPill extends StatelessWidget {
   final int currentIndex;
+  final List<_NavEntry> items;
   final ValueChanged<int> onTap;
-
-  static const _items = [
-    (icon: LucideIcons.home, label: 'Home'),
-    (icon: LucideIcons.bookOpenCheck, label: 'Tests'),
-    (icon: LucideIcons.graduationCap, label: 'BCD'),
-    (icon: LucideIcons.user, label: 'Profile'),
-  ];
 
   static const double _itemW = 56;
   static const double _itemH = 44;
@@ -136,6 +237,7 @@ class _FloatingNavPill extends StatelessWidget {
 
   const _FloatingNavPill({
     required this.currentIndex,
+    required this.items,
     required this.onTap,
   });
 
@@ -160,7 +262,7 @@ class _FloatingNavPill extends StatelessWidget {
         ],
       ),
       child: SizedBox(
-        width: _items.length * _itemW,
+        width: items.length * _itemW,
         height: _itemH,
         child: Stack(
           children: [
@@ -181,7 +283,7 @@ class _FloatingNavPill extends StatelessWidget {
             ),
             // Icons
             Row(
-              children: _items.asMap().entries.map((e) {
+              children: items.asMap().entries.map((e) {
                 final isActive = currentIndex == e.key;
                 return GestureDetector(
                   onTap: () => onTap(e.key),
@@ -192,9 +294,7 @@ class _FloatingNavPill extends StatelessWidget {
                     child: Icon(
                       e.value.icon,
                       size: 22,
-                      color: isActive
-                          ? Colors.black87
-                          : Colors.grey.shade500,
+                      color: isActive ? Colors.black87 : Colors.grey.shade500,
                     ),
                   ),
                 );
