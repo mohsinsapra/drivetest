@@ -90,14 +90,27 @@ class MainScreenState extends State<MainScreen> {
 
   bool _flag(dynamic value, bool fallback) {
     if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final v = value.trim().toLowerCase();
+      if (v == 'true' || v == '1' || v == 'yes') return true;
+      if (v == 'false' || v == '0' || v == 'no') return false;
+    }
     return fallback;
   }
 
   Future<void> _applyFlagsFromMap(Map<String, dynamic> userData) async {
     if (!mounted) return;
+    final isAdmin = _flag(userData['is_administrator'], false);
+
     setState(() {
-      _showLegacyTests = _flag(userData['show_legacy_tests'], true);
-      _showBcdTests = _flag(userData['show_bcd_tests'], false);
+      if (isAdmin) {
+        _showLegacyTests = true;
+        _showBcdTests = true;
+      } else {
+        _showLegacyTests = _flag(userData['show_legacy_tests'], true);
+        _showBcdTests = _flag(userData['show_bcd_tests'], false);
+      }
     });
     _ensureValidIndex();
   }
