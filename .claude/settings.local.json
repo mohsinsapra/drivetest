@@ -56,7 +56,8 @@
       "Bash(grep -v \"^Analyzing\\\\|^$\")",
       "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app -name *.dart -path */settings/* -type f)",
       "Bash(pod install:*)",
-      "Bash(pod cache:*)"
+      "Bash(pod cache:*)",
+      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/models -type f -name *.dart)"
     ],
     "deny": [],
     "ask": []

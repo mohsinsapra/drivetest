@@ -14,8 +14,10 @@ import 'package:taxi_exam_app/core/widgets/licence_type_card_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/widgets/test_option_card_widget.dart';
+import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/features/payment/payment_method_sheet.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
+import 'package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -142,8 +144,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       if (!mounted) return;
       // Persist to cache
       await prefs.setString('cache_licences', jsonEncode(licenses));
-      await prefs.setInt('cache_licences_at',
-          DateTime.now().millisecondsSinceEpoch);
+      await prefs.setInt(
+          'cache_licences_at', DateTime.now().millisecondsSinceEpoch);
       setState(() => licenseTypes = licenses);
     } catch (e) {
       if (!mounted) return;
@@ -186,8 +188,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       final fetched = await _apiService.fetchCategories(licenceTypeId);
       if (!mounted) return;
       await prefs.setString(cacheKey, jsonEncode(fetched));
-      await prefs.setInt(
-          cacheAtKey, DateTime.now().millisecondsSinceEpoch);
+      await prefs.setInt(cacheAtKey, DateTime.now().millisecondsSinceEpoch);
       setState(() {
         categories = fetched;
         isShowingCategories = true;
@@ -196,8 +197,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       if (!mounted) return;
       if (cachedJson != null) {
         setState(() {
-          categories =
-              (jsonDecode(cachedJson) as List).cast<dynamic>();
+          categories = (jsonDecode(cachedJson) as List).cast<dynamic>();
           isShowingCategories = true;
         });
       } else {
@@ -608,6 +608,47 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   }
 
   Widget _buildTestOptionsView() {
+    Future<void> openSavedQuestions() async {
+      setState(() => isLoading = true);
+      try {
+        final fetchedQuestions = await _apiService.fetchQuestions(
+          selectedLicenseType?['licence_id'],
+          selectedCategory?['category_id'],
+          pageSize: 5000,
+          randomize: false,
+        );
+        final savedIds = await SavedQuestionsService.refreshFromBackend(
+          licenceId: selectedLicenseType?['licence_id'],
+          categoryId: selectedCategory?['category_id'],
+        );
+        final saved = fetchedQuestions
+            .where((q) => savedIds.contains(q.questionId))
+            .toList();
+
+        if (!mounted) return;
+        if (saved.isEmpty) {
+          showAppSnackBar('No saved questions found in this category.');
+          return;
+        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SavedQuestionsPreviewScreen(
+              questions: saved,
+              licenceId: selectedLicenseType?['licence_id'],
+              categoryId: selectedCategory?['category_id'],
+              licenceName: selectedLicenseType?['name'],
+              categoryName: selectedCategory?['name'] ?? 'Saved Questions',
+            ),
+          ),
+        );
+      } catch (_) {
+        if (mounted) showAppSnackBar('Failed to load saved questions.');
+      } finally {
+        if (mounted) setState(() => isLoading = false);
+      }
+    }
+
     final List<Map<String, dynamic>> testOptions = [
       {
         'label': 'Start Practice Test',
@@ -656,10 +697,9 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       },
       {
         'label': 'Saved Questions',
-        'icon': LucideIcons.bookmark,
-        'color': Colors.purpleAccent,
-        'onPressed': () => showAppSnackBar(
-            'This feature is not yet implemented.'),
+        'icon': LucideIcons.bookOpenCheck,
+        'color': Colors.teal,
+        'onPressed': openSavedQuestions,
       },
     ];
 
@@ -878,8 +918,6 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   /* -------------------------------------------------------------------------- */
   /*                              UTILITIES                                     */
   /* -------------------------------------------------------------------------- */
-
-
 }
 
 // ─── Staggered entrance for licence/category/option items ────────────────────
@@ -906,14 +944,14 @@ class _LicenceStaggeredItemState extends State<_LicenceStaggeredItem>
     _ctrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 280));
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _scale = Tween<double>(begin: 0.95, end: 1.0).animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-    _slide =
-        Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero).animate(
-            CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _scale = Tween<double>(begin: 0.95, end: 1.0)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _slide = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
 
-    Future.delayed(Duration(milliseconds: widget.index * 35),
-        () { if (mounted) _ctrl.forward(); });
+    Future.delayed(Duration(milliseconds: widget.index * 35), () {
+      if (mounted) _ctrl.forward();
+    });
   }
 
   @override

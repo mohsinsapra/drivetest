@@ -87,8 +87,9 @@ void main() async {
       await dotenv.load();
     }
 
-    Stripe.publishableKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY').isNotEmpty
-        ? const String.fromEnvironment('STRIPE_PUBLISHABLE_KEY')
+    const stripeKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
+    Stripe.publishableKey = stripeKey.isNotEmpty
+        ? stripeKey
         : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
 
     await Upgrader.clearSavedSettings();

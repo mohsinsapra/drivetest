@@ -119,7 +119,10 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
             )
             .timeout(const Duration(seconds: 30));
 
-        final savedIds = await SavedQuestionsService.getSavedIds();
+        final savedIds = await SavedQuestionsService.refreshFromBackend(
+          licenceId: widget.licenceId,
+          categoryId: widget.categoryId,
+        );
 
         if (savedIds.isEmpty) {
           if (_isLoadingDialogDisplayed && mounted) {
@@ -139,8 +142,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
             Navigator.pop(context);
             _isLoadingDialogDisplayed = false;
           }
-          showAppSnackBar(
-              'None of your saved questions are in this category.');
+          showAppSnackBar('None of your saved questions are in this category.');
           return;
         }
 
@@ -262,7 +264,9 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Slider(
-                      value: timerMinutes.toDouble().clamp(1, maxTimerMinutes.toDouble()),
+                      value: timerMinutes
+                          .toDouble()
+                          .clamp(1, maxTimerMinutes.toDouble()),
                       min: 1,
                       max: maxTimerMinutes.toDouble(),
                       divisions: maxTimerMinutes - 1,
@@ -288,9 +292,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
                                 const InputDecoration(hintText: 'e.g. 10'),
                             onChanged: (value) {
                               final int? v = int.tryParse(value);
-                              if (v != null &&
-                                  v > 0 &&
-                                  v <= maxTimerMinutes) {
+                              if (v != null && v > 0 && v <= maxTimerMinutes) {
                                 setState(() => timerMinutes = v);
                                 _savePreferences();
                               }
@@ -398,8 +400,8 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
             // ── Include Saved Questions ───────────────────────────────
             SwitchListTile(
               title: const Text('Include Saved Questions'),
-              subtitle: const Text(
-                  'Use only questions you bookmarked during tests'),
+              subtitle:
+                  const Text('Use only questions you bookmarked during tests'),
               value: includeSavedQuestions,
               onChanged: (value) {
                 setState(() => includeSavedQuestions = value);

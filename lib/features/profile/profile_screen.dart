@@ -6,7 +6,9 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
+import 'package:taxi_exam_app/features/profile/stats_screen.dart';
 import 'package:taxi_exam_app/features/support/help_screen.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
 
@@ -83,17 +85,130 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  Future<void> _showAppFeedbackDialog() async {
+    final subjectCtrl = TextEditingController();
+    final messageCtrl = TextEditingController();
+    String feedbackType = 'app_issue';
+
+    final payload = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Send feedback'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                initialValue: feedbackType,
+                decoration: const InputDecoration(labelText: 'Type'),
+                items: const [
+                  DropdownMenuItem(
+                      value: 'app_issue', child: Text('App issue')),
+                  DropdownMenuItem(
+                      value: 'feature_request', child: Text('Feature request')),
+                  DropdownMenuItem(
+                      value: 'payment_issue', child: Text('Payment issue')),
+                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                ],
+                onChanged: (v) {
+                  if (v == null) return;
+                  setDialogState(() => feedbackType = v);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: subjectCtrl,
+                decoration:
+                    const InputDecoration(labelText: 'Subject (optional)'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: messageCtrl,
+                minLines: 3,
+                maxLines: 6,
+                decoration: const InputDecoration(
+                  labelText: 'Message',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, {
+                'subject': subjectCtrl.text.trim(),
+                'message': messageCtrl.text.trim(),
+                'type': feedbackType,
+              }),
+              child: const Text('Submit'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || payload == null) return;
+    final msg = (payload['message'] ?? '').trim();
+    if (msg.isEmpty) return;
+
+    final ok = await _apiService.submitAppFeedback(
+      message: msg,
+      subject: payload['subject'] ?? '',
+      screenContext: 'profile',
+      feedbackType: payload['type'] ?? 'app_issue',
+      contactEmail: _email ?? '',
+    );
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok
+            ? 'Thanks! Your feedback was sent.'
+            : 'Could not send feedback. Please try again.'),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
     final menuItems = [
-      (icon: Icons.person, color: const Color(0xFFFFCDD2), title: t.profile_edit),
-      (icon: Icons.bar_chart, color: const Color(0xFFE1BEE7), title: t.profile_stats),
-      (icon: Icons.settings, color: const Color(0xFFFFE0B2), title: t.profile_settings),
+      (
+        icon: Icons.person,
+        color: const Color(0xFFFFCDD2),
+        title: t.profile_edit
+      ),
+      (
+        icon: Icons.bar_chart,
+        color: const Color(0xFFE1BEE7),
+        title: t.profile_stats
+      ),
+      (
+        icon: Icons.settings,
+        color: const Color(0xFFFFE0B2),
+        title: t.profile_settings
+      ),
     ];
     final secondaryItems = [
-      (icon: Icons.person_add_alt, color: const Color(0xFFE0E0E0), title: t.profile_invite),
-      (icon: Icons.help_outline, color: const Color(0xFFE0E0E0), title: t.profile_help),
+      (
+        icon: Icons.person_add_alt,
+        color: const Color(0xFFE0E0E0),
+        title: t.profile_invite
+      ),
+      (
+        icon: Icons.help_outline,
+        color: const Color(0xFFE0E0E0),
+        title: t.profile_help
+      ),
+      (
+        icon: Icons.feedback_outlined,
+        color: const Color(0xFFE0E0E0),
+        title: 'Send Feedback'
+      ),
     ];
 
     return Scaffold(
@@ -183,20 +298,25 @@ class _ProfileScreenState extends State<ProfileScreen>
                     icon: e.value.icon,
                     iconColor: e.value.color,
                     title: e.value.title,
-                    onTap: e.value.title == 'Settings'
+                    onTap: e.key == 1
                         ? () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (_) => const SettingsScreen()),
+                                  builder: (_) => const StatsScreen()),
                             )
-                        : () {},
+                        : e.key == 2
+                            ? () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const SettingsScreen()),
+                                )
+                            : () {},
                   ),
                 )),
 
             _ProfileTile(
               index: menuItems.length,
-              child: const Divider(
-                  thickness: 0.5, color: Color(0xFFE0E0E0)),
+              child: const Divider(thickness: 0.5, color: Color(0xFFE0E0E0)),
             ),
 
             ...secondaryItems.asMap().entries.map((e) => _ProfileTile(
@@ -206,38 +326,38 @@ class _ProfileScreenState extends State<ProfileScreen>
                     icon: e.value.icon,
                     iconColor: e.value.color,
                     title: e.value.title,
-                    onTap: e.value.title == 'Help'
-                        ? () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const HelpScreen()),
-                            )
-                        : () {},
+                    onTap: e.value.title == 'Send Feedback'
+                        ? _showAppFeedbackDialog
+                        : e.value.title == 'Help'
+                            ? () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const HelpScreen()),
+                                )
+                            : () {},
                   ),
                 )),
 
             _ProfileTile(
               index: menuItems.length + secondaryItems.length + 1,
-              child: const Divider(
-                  thickness: 0.5, color: Color(0xFFE0E0E0)),
+              child: const Divider(thickness: 0.5, color: Color(0xFFE0E0E0)),
             ),
 
             // ── Logout ─────────────────────────────────────────────────
             _ProfileTile(
               index: menuItems.length + secondaryItems.length + 2,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 24),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton.icon(
                     onPressed: () {
-                      final outerContext = context;
                       showModalBottomSheet(
                         context: context,
                         shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24)),
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(24)),
                         ),
                         builder: (context) => Padding(
                           padding: const EdgeInsets.all(24),
@@ -257,15 +377,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 children: [
                                   Expanded(
                                     child: ElevatedButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context),
+                                      onPressed: () => Navigator.pop(context),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.white,
                                         foregroundColor:
                                             Theme.of(context).primaryColor,
                                         side: BorderSide(
-                                            color: Theme.of(context)
-                                                .primaryColor),
+                                            color:
+                                                Theme.of(context).primaryColor),
                                       ),
                                       child: Text(t.cancel),
                                     ),
@@ -275,11 +394,46 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     child: ElevatedButton(
                                       onPressed: () async {
                                         Navigator.pop(context);
-                                        await _apiService.logout();
-                                        await Hive.deleteFromDisk();
-                                        if (!outerContext.mounted) return;
-                                        Navigator.of(outerContext)
-                                            .pushAndRemoveUntil(
+
+                                        // Best-effort cleanup — errors must not block navigation
+                                        try {
+                                          await _apiService.logout();
+                                        } catch (_) {}
+
+                                        try {
+                                          final prefs = await SharedPreferences
+                                              .getInstance();
+                                          final lang =
+                                              prefs.getString('language');
+                                          final isDark =
+                                              prefs.getBool('dark_mode');
+                                          final onboardingDone = prefs
+                                              .getBool('onboarding_complete');
+                                          await prefs.clear();
+                                          if (lang != null) {
+                                            await prefs.setString(
+                                                'language', lang);
+                                          }
+                                          if (isDark != null) {
+                                            await prefs.setBool(
+                                                'dark_mode', isDark);
+                                          }
+                                          if (onboardingDone != null) {
+                                            await prefs.setBool(
+                                                'onboarding_complete',
+                                                onboardingDone);
+                                          }
+                                        } catch (_) {}
+
+                                        try {
+                                          await Hive.close();
+                                          await Hive.deleteFromDisk();
+                                        } catch (_) {}
+
+                                        // Use global navigator key — avoids context-mounted issues
+                                        final nav = NavigationService
+                                            .navigatorKey.currentState;
+                                        nav?.pushAndRemoveUntil(
                                           MaterialPageRoute(
                                               builder: (_) =>
                                                   const AuthScreen()),
@@ -306,8 +460,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: const Icon(Icons.logout, size: 20),
-                    label: Text(t.logout,
-                        style: const TextStyle(fontSize: 15)),
+                    label: Text(t.logout, style: const TextStyle(fontSize: 15)),
                   ),
                 ),
               ),
@@ -341,13 +494,12 @@ class _ProfileTileState extends State<_ProfileTile>
     _ctrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 280));
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _slide = Tween<Offset>(
-            begin: const Offset(0.05, 0), end: Offset.zero)
+    _slide = Tween<Offset>(begin: const Offset(0.05, 0), end: Offset.zero)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
 
-    Future.delayed(
-        Duration(milliseconds: 150 + widget.index * 35),
-        () { if (mounted) _ctrl.forward(); });
+    Future.delayed(Duration(milliseconds: 150 + widget.index * 35), () {
+      if (mounted) _ctrl.forward();
+    });
   }
 
   @override

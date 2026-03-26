@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-import 'package:lottie/lottie.dart';
+import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
 
 class IntroScreen extends StatelessWidget {
   const IntroScreen({super.key});
@@ -14,19 +14,19 @@ class IntroScreen extends StatelessWidget {
         PageViewModel(
           title: "Welcome to TaxiQuiz",
           body: "Learn and practice for your taxi license with ease.",
-          image: _buildLottie('assets/animations/animation1.json'),
+          image: _buildLottie('animations/animation1.json'),
           decoration: _getPageDecoration(),
         ),
         PageViewModel(
           title: "Interactive Tests",
           body: "Practice tests with real-time feedback and explanations.",
-          image: _buildLottie('assets/animations/animation2.json'),
+          image: _buildLottie('animations/animation2.json'),
           decoration: _getPageDecoration(),
         ),
         PageViewModel(
           title: "Get Certified",
           body: "Ace your exams and become a certified taxi driver.",
-          image: _buildLottie('assets/animations/animation3.json'),
+          image: _buildLottie('animations/animation3.json'),
           decoration: _getPageDecoration(),
         ),
       ],
@@ -53,12 +53,9 @@ class IntroScreen extends StatelessWidget {
 
   Widget _buildLottie(String assetName) {
     return Center(
-      child: Lottie.asset(
-        assetName,
+      child: AppLottie(
+        asset: assetName,
         width: 700,
-        repeat: true,
-        renderCache: RenderCache.raster,
-        options: LottieOptions(enableMergePaths: false),
       ),
     );
   }

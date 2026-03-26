@@ -6,13 +6,19 @@ import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/models/option.dart';
+import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:vibration/vibration.dart';
+
+import 'package:taxi_exam_app/features/profile/stats_screen.dart';
 
 import 'bcd_document_viewer_screen.dart';
 import 'bcd_test_screen.dart';
 import 'bcd_text_utils.dart';
 import 'bcd_traffic_signs_screen.dart';
+import '../tests/saved_questions_preview_screen.dart';
 
 /// Hub screen shown after tapping a category.
 class BCDCategoryHubScreen extends StatefulWidget {
@@ -121,6 +127,8 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
             testName: test['name']?.toString() ?? 'Practice',
             passScore: test['pass_score'] as int? ?? 0,
             timeLimit: test['time_limit'] as int? ?? 0,
+            parentCategoryName: _categoryName,
+            parentCategoryBcdId: _categoryBcdId,
           ),
         ),
       );
@@ -131,10 +139,107 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
     }
   }
 
+  Future<void> _openSavedQuestions() async {
+    try {
+      final savedIds = await SavedQuestionsService.refreshFromBackend(
+        bcdCategoryId: _categoryBcdId,
+      );
+      if (savedIds.isEmpty) {
+        if (mounted) {
+          showAppSnackBar('No saved questions in this category yet.');
+        }
+        return;
+      }
+
+      final tests = await _api.fetchBCDTests(_categoryBcdId);
+      if (tests.isEmpty) {
+        if (mounted) showAppSnackBar('No tests available for this category.');
+        return;
+      }
+
+      final testIds =
+          tests.map((t) => t['bcd_id'] as int?).whereType<int>().toList();
+      if (testIds.isEmpty) {
+        if (mounted) showAppSnackBar('No tests available for this category.');
+        return;
+      }
+      final questionLists = await Future.wait(
+          testIds.map((id) => _api.fetchBCDTestQuestions(id)).toList());
+
+      final allRaw = <dynamic>[];
+      for (final list in questionLists) {
+        allRaw.addAll(list);
+      }
+      final seen = <String>{};
+      final savedQuestions = <Question>[];
+      for (final raw in allRaw) {
+        final q = _toQuestion(raw);
+        if (q.questionId.isEmpty || seen.contains(q.questionId)) continue;
+        seen.add(q.questionId);
+        if (savedIds.contains(q.questionId)) {
+          savedQuestions.add(q);
+        }
+      }
+
+      if (!mounted) return;
+      if (savedQuestions.isEmpty) {
+        showAppSnackBar('No saved questions found in this category.');
+        return;
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SavedQuestionsPreviewScreen(
+            questions: savedQuestions,
+            licenceId: '',
+            categoryId: '',
+            licenceName: _categoryName,
+            categoryName: _categoryName,
+            bcdCategoryId: _categoryBcdId,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) showAppSnackBar('Failed to load saved questions.');
+    }
+  }
+
+  Question _toQuestion(dynamic raw) {
+    final q = raw as Map<String, dynamic>;
+    final answers = (q['bcd_answers'] as List<dynamic>?) ?? [];
+    final options = answers.map((a) {
+      final ans = a as Map<String, dynamic>;
+      return Option(
+        optionLabel: ans['label']?.toString() ?? '',
+        text: cleanBcdText(ans['content']?.toString() ?? ''),
+        imageUrl: '',
+      );
+    }).toList();
+    final rawImagePath = q['image_url']?.toString() ?? '';
+    final imageUrl =
+        rawImagePath.isNotEmpty ? _api.bcdMediaUrl(rawImagePath) : '';
+    return Question(
+      questionId: q['bcd_id']?.toString() ?? '',
+      text: cleanBcdText(q['content']?.toString() ?? ''),
+      imageUrl: imageUrl,
+      correctAnswer: q['correct_answer']?.toString() ?? '',
+      answerExplanation: cleanBcdText(q['explanation']?.toString() ?? ''),
+      options: options,
+    );
+  }
+
   /* ── Navigation ───────────────────────────────────────────────────────────── */
 
   // Tiles that are always free (no subscription needed)
-  static const _freeTiles = {'practice', 'traffic_signs', 'documents', 'checklists', 'tests'};
+  static const _freeTiles = {
+    'practice',
+    'traffic_signs',
+    'documents',
+    'checklists',
+    'tests',
+    'saved_questions',
+  };
 
   void _onTileTap(String tile) {
     // Only statistics is gated — everything else navigates freely
@@ -149,39 +254,58 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         break;
       case 'tests':
         // Always navigate — tests list shows banner + locked items if not subscribed
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_) => _BCDTestsListScreen(
-            categoryBcdId: _categoryBcdId,
-            categoryName: _categoryName,
-            practiceOnly: false,
-            subscribed: _subscribed,
-            onBuySubscription: _showPaywall,
-          ),
-        ));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => _BCDTestsListScreen(
+                categoryBcdId: _categoryBcdId,
+                categoryName: _categoryName,
+                practiceOnly: false,
+                subscribed: _subscribed,
+                onBuySubscription: _showPaywall,
+                parentCategoryBcdId: _categoryBcdId,
+              ),
+            ));
         break;
       case 'documents':
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_) => _BCDDocumentsScreen(
-            categoryBcdId: _categoryBcdId,
-            categoryName: _categoryName,
-          ),
-        ));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => _BCDDocumentsScreen(
+                categoryBcdId: _categoryBcdId,
+                categoryName: _categoryName,
+              ),
+            ));
         break;
       case 'traffic_signs':
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_) => const BCDTrafficSignsScreen(),
-        ));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const BCDTrafficSignsScreen(),
+            ));
         break;
       case 'checklists':
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_) => _BCDChecklistsScreen(
-            categoryBcdId: _categoryBcdId,
-            categoryName: _categoryName,
-          ),
-        ));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => _BCDChecklistsScreen(
+                categoryBcdId: _categoryBcdId,
+                categoryName: _categoryName,
+              ),
+            ));
         break;
       case 'statistics':
-        showAppSnackBar('Statistics coming soon.');
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StatsScreen(
+                subtitle: _categoryName,
+                licenceNameFilter: _categoryName,
+              ),
+            ));
+        break;
+      case 'saved_questions':
+        _openSavedQuestions();
         break;
     }
   }
@@ -246,6 +370,12 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
                   locked: !_subscribed,
                   onTap: () => _onTileTap('statistics'),
                 ),
+                _HubTile(
+                  icon: LucideIcons.bookmark,
+                  label: 'Saved\nQuestions',
+                  locked: false,
+                  onTap: () => _onTileTap('saved_questions'),
+                ),
               ],
             ),
           ],
@@ -267,7 +397,8 @@ class _SubscriptionBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFBEB),
-        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
+        border:
+            Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -366,13 +497,13 @@ class _HubTile extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: loading
-                    ? SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: color),
-                      )
-                    : Icon(icon, color: color, size: 24),
+                        ? SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: color),
+                          )
+                        : Icon(icon, color: color, size: 24),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -410,6 +541,7 @@ class _BCDTestsListScreen extends StatefulWidget {
   final bool practiceOnly;
   final bool subscribed;
   final VoidCallback onBuySubscription;
+  final int? parentCategoryBcdId;
 
   const _BCDTestsListScreen({
     required this.categoryBcdId,
@@ -417,6 +549,7 @@ class _BCDTestsListScreen extends StatefulWidget {
     required this.practiceOnly,
     required this.subscribed,
     required this.onBuySubscription,
+    this.parentCategoryBcdId,
   });
 
   @override
@@ -470,6 +603,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
           testName: test['name']?.toString() ?? 'Test',
           passScore: test['pass_score'] as int? ?? 0,
           timeLimit: test['time_limit'] as int? ?? 0,
+          parentCategoryName: widget.categoryName,
         ),
       ),
     );
@@ -496,8 +630,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
               : Column(
                   children: [
                     if (!widget.subscribed && !widget.practiceOnly)
-                      _TestsSubscriptionBanner(
-                          onBuy: widget.onBuySubscription),
+                      _TestsSubscriptionBanner(onBuy: widget.onBuySubscription),
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.all(16),
@@ -543,8 +676,8 @@ class _TestsSubscriptionBanner extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFBEB),
-        border: Border.all(
-            color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
+        border:
+            Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -615,7 +748,12 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
   void initState() {
     super.initState();
     _api.fetchBCDDocuments(widget.categoryBcdId).then((data) {
-      if (mounted) setState(() { _docs = data; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _docs = data;
+          _loading = false;
+        });
+      }
     }).catchError((_) {
       if (mounted) setState(() => _loading = false);
     });
@@ -624,8 +762,7 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(title: Text('Theory Documents – ${widget.categoryName}')),
+      appBar: AppBar(title: Text('Theory Documents – ${widget.categoryName}')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _docs.isEmpty
@@ -650,7 +787,8 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
                                   MaterialPageRoute(
                                     builder: (_) => BCDDocumentViewerScreen(
                                       title: cleanBcdText(
-                                          doc['title']?.toString() ?? 'Document'),
+                                          doc['title']?.toString() ??
+                                              'Document'),
                                       url: _api.bcdMediaUrl(fileName),
                                     ),
                                   ),
@@ -659,7 +797,8 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF3B5F8A).withValues(alpha: 0.1),
+                            color:
+                                const Color(0xFF3B5F8A).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(LucideIcons.fileText,
@@ -669,7 +808,8 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
                           cleanBcdText(doc['title']?.toString() ?? ''),
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
-                        trailing: const Icon(LucideIcons.externalLink, size: 18),
+                        trailing:
+                            const Icon(LucideIcons.externalLink, size: 18),
                       ),
                     );
                   },
@@ -699,7 +839,12 @@ class _BCDChecklistsScreenState extends State<_BCDChecklistsScreen> {
   void initState() {
     super.initState();
     _api.fetchBCDChecklists(widget.categoryBcdId).then((data) {
-      if (mounted) setState(() { _items = data; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _items = data;
+          _loading = false;
+        });
+      }
     }).catchError((_) {
       if (mounted) setState(() => _loading = false);
     });
@@ -729,18 +874,14 @@ class _BCDChecklistsScreenState extends State<_BCDChecklistsScreen> {
                             color: Color(0xFF3B5F8A)),
                         title: Text(
                           cleanBcdText(item['title']?.toString() ?? ''),
-                          style:
-                              const TextStyle(fontWeight: FontWeight.w600),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         children: [
                           Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                             child: Text(
-                              cleanBcdText(
-                                  item['content']?.toString() ?? ''),
-                              style: const TextStyle(
-                                  fontSize: 14, height: 1.5),
+                              cleanBcdText(item['content']?.toString() ?? ''),
+                              style: const TextStyle(fontSize: 14, height: 1.5),
                             ),
                           ),
                         ],
@@ -758,7 +899,10 @@ class _TestCard extends StatelessWidget {
   final dynamic test;
   final VoidCallback onTap;
   final bool forceUnsubscribed;
-  const _TestCard({required this.test, required this.onTap, this.forceUnsubscribed = false});
+  const _TestCard(
+      {required this.test,
+      required this.onTap,
+      this.forceUnsubscribed = false});
 
   @override
   Widget build(BuildContext context) {
@@ -811,23 +955,19 @@ class _TestCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Row(children: [
-                      _Chip(
-                          label:
-                              '${test['question_count'] ?? 0} questions'),
+                      _Chip(label: '${test['question_count'] ?? 0} questions'),
                       const SizedBox(width: 6),
                       _Chip(label: 'Pass ${test['pass_score'] ?? 0}%'),
                       if (isFree) ...[
                         const SizedBox(width: 6),
-                        _Chip(
-                            label: 'FREE',
-                            color: const Color(0xFF059669)),
+                        _Chip(label: 'FREE', color: const Color(0xFF059669)),
                       ],
                     ]),
                   ],
                 ),
               ),
-              Icon(LucideIcons.chevronRight, size: 18,
-                  color: subscribed ? null : Colors.grey.shade400),
+              Icon(LucideIcons.chevronRight,
+                  size: 18, color: subscribed ? null : Colors.grey.shade400),
             ],
           ),
         ),
@@ -851,8 +991,8 @@ class _Chip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(label,
-          style: TextStyle(
-              fontSize: 11, color: c, fontWeight: FontWeight.w500)),
+          style:
+              TextStyle(fontSize: 11, color: c, fontWeight: FontWeight.w500)),
     );
   }
 }
@@ -873,63 +1013,65 @@ class _PaywallSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
-      builder: (_, scrollController) => Container(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Icon(LucideIcons.lock, size: 40, color: Color(0xFF4F46E5)),
-          const SizedBox(height: 12),
-          Text('Subscription Required',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 6),
-          Text(
-            'Subscribe to access "$categoryName" and all its content.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade600),
-          ),
-          const SizedBox(height: 20),
-          if (products.isEmpty)
-            const CircularProgressIndicator()
-          else
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: products
-                      .where((p) => p['is_active'] == true)
-                      .map((p) => _ProductTile(product: p, onBuy: () => onBuy(p)))
-                      .toList(),
-                ),
+        expand: false,
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        builder: (_, scrollController) => Container(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
-            ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Not now'),
-          ),
-        ],
-      ),
-    ));
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Icon(LucideIcons.lock,
+                      size: 40, color: Color(0xFF4F46E5)),
+                  const SizedBox(height: 12),
+                  Text('Subscription Required',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Subscribe to access "$categoryName" and all its content.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 20),
+                  if (products.isEmpty)
+                    const CircularProgressIndicator()
+                  else
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: products
+                              .where((p) => p['is_active'] == true)
+                              .map((p) => _ProductTile(
+                                  product: p, onBuy: () => onBuy(p)))
+                              .toList(),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Not now'),
+                  ),
+                ],
+              ),
+            ));
   }
 }
 
@@ -944,8 +1086,8 @@ class _ProductTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(
-            color: const Color(0xFF4F46E5).withValues(alpha: 0.3)),
+        border:
+            Border.all(color: const Color(0xFF4F46E5).withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -959,8 +1101,7 @@ class _ProductTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   '${product['price']} ${product['currency']} · ${product['duration_days']} days',
-                  style: TextStyle(
-                      fontSize: 13, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
               ],
             ),

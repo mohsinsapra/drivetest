@@ -31,9 +31,8 @@ class ApiService {
   Future<void> logout() async {
     try {
       await _dioClient.logout();
-
     } catch (e) {
-      throw Exception('Authentication failed: $e');
+      debugPrint('Logout error (non-fatal): $e');
     }
   }
 
@@ -101,8 +100,7 @@ class ApiService {
     return response.data['results'];
   }
 
-  String fetchImage(
-      String licenceId, String categoryId, String imagePath) {
+  String fetchImage(String licenceId, String categoryId, String imagePath) {
     // BCD images are already full URLs — return them directly
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
@@ -136,13 +134,19 @@ class ApiService {
     try {
       final selections =
           attempt.userSelections.map((k, v) => MapEntry(k.toString(), v));
-      final questionIds =
-          attempt.questions.map((q) => q.questionId).toList();
+      final questionIds = attempt.questions.map((q) => q.questionId).toList();
 
       await _dio.post('api/user/test-attempts/', data: {
+        'bcd_test_id': attempt.bcdCategoryId != null
+            ? int.tryParse(attempt.categoryId ?? '')
+            : null,
         'attempt_id': attempt.testId,
         'licence_id': attempt.licenceId ?? '',
+        'licence_name': attempt.licenceName ?? '',
         'category_id': attempt.categoryId ?? '',
+        'category_name': attempt.categoryName ?? '',
+        'bcd_category_id': attempt.bcdCategoryId,
+        'bcd_category_name': attempt.categoryName ?? '',
         'date_time': attempt.dateTime.toUtc().toIso8601String(),
         'score': attempt.score,
         'has_passed': attempt.hasPassed,
@@ -150,6 +154,7 @@ class ApiService {
         'current_question_index': attempt.currentQuestionIndex,
         'user_selections': selections,
         'question_ids': questionIds,
+        'duration_seconds': attempt.durationSeconds ?? 0,
       });
     } catch (e) {
       debugPrint('[syncTestAttempt] backend sync failed: $e');
@@ -175,6 +180,139 @@ class ApiService {
     } catch (e) {
       debugPrint('[fetchTestAttempts] failed: $e');
       return [];
+    }
+  }
+
+  /// Fetch aggregated progress per legacy category and BCD category.
+  Future<List<Map<String, dynamic>>> fetchUserProgress() async {
+    try {
+      final response = await _dio.get(
+        'api/user/progress/',
+        queryParameters: {'_t': DateTime.now().millisecondsSinceEpoch},
+      );
+      final data = response.data;
+      if (data is List) return data.cast<Map<String, dynamic>>();
+      if (data is Map && data['results'] is List) {
+        return (data['results'] as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[fetchUserProgress] failed: $e');
+      return [];
+    }
+  }
+
+  Future<bool> submitQuestionFeedback({
+    required String questionId,
+    required String questionText,
+    required String feedbackText,
+    required String scopeType,
+    String feedbackType = 'question_issue',
+    String? licenceId,
+    String? categoryId,
+    int? bcdCategoryId,
+    int? bcdTestId,
+    String? licenceName,
+    String? categoryName,
+  }) async {
+    try {
+      await _dio.post('api/user/question-feedback/', data: {
+        'question_id': questionId,
+        'question_text': questionText,
+        'feedback_text': feedbackText,
+        'scope_type': scopeType,
+        'feedback_type': feedbackType,
+        'licence_id': licenceId ?? '',
+        'category_id': categoryId ?? '',
+        'bcd_category_id': bcdCategoryId,
+        'bcd_test_id': bcdTestId,
+        'licence_name': licenceName ?? '',
+        'category_name': categoryName ?? '',
+      });
+      return true;
+    } catch (e) {
+      debugPrint('[submitQuestionFeedback] failed: $e');
+      return false;
+    }
+  }
+
+  Future<bool> submitAppFeedback({
+    required String message,
+    String subject = '',
+    String screenContext = '',
+    String feedbackType = 'app_issue',
+    String contactEmail = '',
+  }) async {
+    try {
+      await _dio.post('api/user/app-feedback/', data: {
+        'message': message,
+        'subject': subject,
+        'screen_context': screenContext,
+        'feedback_type': feedbackType,
+        'contact_email': contactEmail,
+      });
+      return true;
+    } catch (e) {
+      debugPrint('[submitAppFeedback] failed: $e');
+      return false;
+    }
+  }
+
+  Future<Set<String>> fetchSavedQuestionIds({
+    required String scopeType,
+    String? licenceId,
+    String? categoryId,
+    int? bcdCategoryId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        'api/user/saved-questions/',
+        queryParameters: {
+          'scope_type': scopeType,
+          'licence_id': licenceId ?? '',
+          'category_id': categoryId ?? '',
+          'bcd_category_id': bcdCategoryId,
+        },
+      );
+      final data = response.data;
+      final list = data is List
+          ? data
+          : (data is Map && data['results'] is List)
+              ? data['results'] as List
+              : <dynamic>[];
+      return list
+          .map((e) =>
+              (e as Map<String, dynamic>)['question_id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet();
+    } catch (e) {
+      debugPrint('[fetchSavedQuestionIds] failed: $e');
+      return <String>{};
+    }
+  }
+
+  Future<bool?> toggleSavedQuestion({
+    required String questionId,
+    required String scopeType,
+    String? licenceId,
+    String? categoryId,
+    int? bcdCategoryId,
+    String questionText = '',
+  }) async {
+    try {
+      final response =
+          await _dio.post('api/user/saved-questions/toggle/', data: {
+        'question_id': questionId,
+        'question_text': questionText,
+        'scope_type': scopeType,
+        'licence_id': licenceId ?? '',
+        'category_id': categoryId ?? '',
+        'bcd_category_id': bcdCategoryId,
+      });
+      return response.data['is_saved'] as bool?;
+    } catch (e) {
+      debugPrint('[toggleSavedQuestion] failed: $e');
+      return null;
     }
   }
 
@@ -219,6 +357,9 @@ class ApiService {
         currentQuestionIndex: data['current_question_index'] as int? ?? 0,
         licenceId: data['licence_id'] as String?,
         categoryId: data['category_id'] as String?,
+        durationSeconds: data['duration_seconds'] as int?,
+        bcdCategoryId: (data['bcd_category_id'] as num?)?.toInt() ??
+            int.tryParse((data['bcd_category_id'] ?? '').toString()),
       );
     } catch (e) {
       debugPrint('[testAttemptFromJson] parse error: $e');
@@ -271,7 +412,9 @@ class ApiService {
   /// and paginated `{"results": [...]}` shapes.
   List<dynamic> _asList(dynamic data) {
     if (data is List) return data;
-    if (data is Map && data['results'] is List) return data['results'] as List<dynamic>;
+    if (data is Map && data['results'] is List) {
+      return data['results'] as List<dynamic>;
+    }
     return [];
   }
 
@@ -281,7 +424,8 @@ class ApiService {
   }
 
   Future<List<dynamic>> fetchBCDSubcategories(int parentCategoryBcdId) async {
-    final response = await _dio.get('api/v2/categories/$parentCategoryBcdId/subcategories/');
+    final response =
+        await _dio.get('api/v2/categories/$parentCategoryBcdId/subcategories/');
     return _asList(response.data);
   }
 
@@ -306,7 +450,8 @@ class ApiService {
   }
 
   Future<List<dynamic>> fetchBCDChecklists(int categoryId) async {
-    final response = await _dio.get('api/v2/categories/$categoryId/checklists/');
+    final response =
+        await _dio.get('api/v2/categories/$categoryId/checklists/');
     return _asList(response.data);
   }
 

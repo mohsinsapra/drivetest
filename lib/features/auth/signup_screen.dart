@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/main_screen.dart';
@@ -34,8 +34,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
     try {
       final googleSignIn = GoogleSignIn(
-        clientId: '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
-        serverClientId: kIsWeb ? null : '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
+        clientId:
+            '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
+        serverClientId: kIsWeb
+            ? null
+            : '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
       );
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
@@ -170,6 +173,101 @@ class _SignupScreenState extends State<SignupScreen> {
     return null;
   }
 
+  Future<void> _showAppFeedbackDialog() async {
+    final emailCtrl = TextEditingController(text: _emailController.text.trim());
+    final subjectCtrl = TextEditingController(text: 'Signup issue');
+    final messageCtrl = TextEditingController();
+    String feedbackType = 'signup_issue';
+
+    final payload = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Contact support'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: feedbackType,
+                  decoration: const InputDecoration(labelText: 'Type'),
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'signup_issue', child: Text('Signup issue')),
+                    DropdownMenuItem(
+                        value: 'app_issue', child: Text('App issue')),
+                    DropdownMenuItem(
+                        value: 'feature_request',
+                        child: Text('Feature request')),
+                    DropdownMenuItem(value: 'other', child: Text('Other')),
+                  ],
+                  onChanged: (v) {
+                    if (v == null) return;
+                    setDialogState(() => feedbackType = v);
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration:
+                      const InputDecoration(labelText: 'Email (optional)'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: subjectCtrl,
+                  decoration:
+                      const InputDecoration(labelText: 'Subject (optional)'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: messageCtrl,
+                  minLines: 3,
+                  maxLines: 6,
+                  decoration: const InputDecoration(
+                    labelText: 'Message',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, {
+                'email': emailCtrl.text.trim(),
+                'subject': subjectCtrl.text.trim(),
+                'message': messageCtrl.text.trim(),
+                'type': feedbackType,
+              }),
+              child: const Text('Submit'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || payload == null) return;
+    final msg = (payload['message'] ?? '').trim();
+    if (msg.isEmpty) return;
+
+    final ok = await _apiService.submitAppFeedback(
+      message: msg,
+      subject: payload['subject'] ?? '',
+      screenContext: 'signup',
+      feedbackType: payload['type'] ?? 'signup_issue',
+      contactEmail: payload['email'] ?? '',
+    );
+    if (!mounted) return;
+    showAppSnackBar(ok
+        ? 'Thanks! Your feedback was sent.'
+        : 'Could not send feedback. Please try again.');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -183,6 +281,13 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.support_agent),
+            onPressed: _showAppFeedbackDialog,
+            tooltip: 'Contact support',
+          ),
+        ],
       ),
       body: Container(
         color: Colors.white,
@@ -200,12 +305,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       height: 200,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Lottie.asset(
-                          'assets/animations/signup.json',
+                        child: AppLottie(
+                          asset: 'animations/signup.json',
                           fit: BoxFit.contain,
-                          repeat: true,
-                          renderCache: RenderCache.raster,
-                          options: LottieOptions(enableMergePaths: false),
                         ),
                       ),
                     ),
@@ -250,7 +352,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                 child: ElevatedButton(
                                   onPressed: _signup,
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -266,7 +369,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                 children: [
                                   Expanded(child: Divider()),
                                   Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 16),
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 16),
                                     child: Text(
                                       'OR',
                                       style: TextStyle(
@@ -283,13 +387,15 @@ class _SignupScreenState extends State<SignupScreen> {
                                 width: double.infinity,
                                 child: OutlinedButton.icon(
                                   onPressed: _signInWithGoogle,
-                                  icon: const FaIcon(FontAwesomeIcons.google, size: 18),
+                                  icon: const FaIcon(FontAwesomeIcons.google,
+                                      size: 18),
                                   label: const Text(
                                     'Continue with Google',
                                     style: TextStyle(fontSize: 16),
                                   ),
                                   style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),

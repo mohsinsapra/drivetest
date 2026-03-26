@@ -228,13 +228,15 @@ class DioClient {
   Future<void> logout() async {
     accessToken = null;
     refreshToken = null;
+    _initialized = false; // Force full re-init on next login (fresh Dio + cache)
 
-    // Remove tokens from both storage locations
+    // Wipe all secure storage
+    await _secureStorage.deleteAll();
+
+    // Remove tokens from SharedPreferences (rest is cleared by the caller)
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('refreshToken');
     await prefs.remove('accessToken');
-    await _secureStorage.delete(key: 'refreshToken');
-    await _secureStorage.delete(key: 'accessToken');
   }
 
   List<Question> _decryptQuestions(List<dynamic> data) {

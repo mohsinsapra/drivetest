@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/main_screen.dart';
@@ -38,8 +38,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final googleSignIn = GoogleSignIn(
-        clientId: '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
-        serverClientId: kIsWeb ? null : '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
+        clientId:
+            '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
+        serverClientId: kIsWeb
+            ? null
+            : '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
       );
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
@@ -64,7 +67,9 @@ class _LoginScreenState extends State<LoginScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user', jsonEncode(user));
       }
+      await Hive.close();
       await Hive.deleteFromDisk();
+      await DioClient().init();
 
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
@@ -107,9 +112,10 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (!mounted) return;
-      
+
       // Debug: Check if tokens are properly set
-      debugPrint('Login successful: AccessToken: ${DioClient().accessToken != null}, RefreshToken: ${DioClient().refreshToken != null}');
+      debugPrint(
+          'Login successful: AccessToken: ${DioClient().accessToken != null}, RefreshToken: ${DioClient().refreshToken != null}');
 
       // Cache user information
       final user = await _apiService.fetchCurrentUser();
@@ -117,14 +123,15 @@ class _LoginScreenState extends State<LoginScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user', jsonEncode(user));
       }
+      await Hive.close();
       await Hive.deleteFromDisk();
-      
+
       // Tokens are already stored in secure storage by ApiService.authenticate()
       // Only store in SharedPreferences if Remember Me is checked for backward compatibility
       if (_rememberMe) {
         final refreshToken = DioClient().refreshToken;
         final accessToken = DioClient().accessToken;
-        
+
         if (refreshToken != null && accessToken != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('refreshToken', refreshToken);
@@ -132,11 +139,11 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
 
-      // Reload tokens to ensure DioClient has the latest tokens
-      await DioClient().reloadTokens();
-      
+      // Re-initialize DioClient to get a fresh Dio instance + cache
+      await DioClient().init();
+
       if (mounted) {
-        // Navigate directly to MainScreen  
+        // Navigate directly to MainScreen
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainScreen()),
           (Route<dynamic> route) => false,
@@ -157,6 +164,105 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _showAppFeedbackDialog() async {
+    final emailCtrl = TextEditingController();
+    final subjectCtrl = TextEditingController(text: 'Login issue');
+    final messageCtrl = TextEditingController();
+    String feedbackType = 'login_issue';
+
+    final payload = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Contact support'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: feedbackType,
+                  decoration: const InputDecoration(labelText: 'Type'),
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'login_issue', child: Text('Login issue')),
+                    DropdownMenuItem(
+                        value: 'app_issue', child: Text('App issue')),
+                    DropdownMenuItem(
+                        value: 'feature_request',
+                        child: Text('Feature request')),
+                    DropdownMenuItem(value: 'other', child: Text('Other')),
+                  ],
+                  onChanged: (v) {
+                    if (v == null) return;
+                    setDialogState(() => feedbackType = v);
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration:
+                      const InputDecoration(labelText: 'Email (optional)'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: subjectCtrl,
+                  decoration:
+                      const InputDecoration(labelText: 'Subject (optional)'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: messageCtrl,
+                  minLines: 3,
+                  maxLines: 6,
+                  decoration: const InputDecoration(
+                    labelText: 'Message',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, {
+                'email': emailCtrl.text.trim(),
+                'subject': subjectCtrl.text.trim(),
+                'message': messageCtrl.text.trim(),
+                'type': feedbackType,
+              }),
+              child: const Text('Submit'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || payload == null) return;
+    final msg = (payload['message'] ?? '').trim();
+    if (msg.isEmpty) return;
+
+    final ok = await _apiService.submitAppFeedback(
+      message: msg,
+      subject: payload['subject'] ?? '',
+      screenContext: 'login',
+      feedbackType: payload['type'] ?? 'login_issue',
+      contactEmail: payload['email'] ?? '',
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok
+            ? 'Thanks! Your feedback was sent.'
+            : 'Could not send feedback. Please try again.'),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _usernameController.dispose();
@@ -169,7 +275,16 @@ class _LoginScreenState extends State<LoginScreen> {
     // _usernameController.text = 'mohsinsapra';
     // _passwordController.text = "Sarach@123";
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(
+        title: const Text('Login'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.support_agent),
+            onPressed: _showAppFeedbackDialog,
+            tooltip: 'Contact support',
+          ),
+        ],
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -180,12 +295,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 250,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Lottie.asset(
-                    'assets/animations/login.json',
+                  child: AppLottie(
+                    asset: 'animations/login.json',
                     fit: BoxFit.contain,
-                    repeat: true,
-                    renderCache: RenderCache.raster,
-                    options: LottieOptions(enableMergePaths: false),
                   ),
                 ),
               ),
@@ -230,7 +342,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {

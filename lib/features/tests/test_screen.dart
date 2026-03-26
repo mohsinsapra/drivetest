@@ -32,7 +32,13 @@ class Testscreen extends StatefulWidget {
   final bool isReviewMode;
   final bool isTimed;
   final int timeLimitMinutes;
+  final double passScorePercent;
   final String? resumeTestId;
+  final int? bcdTestId;
+  final Set<String>? initiallySavedQuestionIds;
+
+  /// BCD parent-category ID — only set for BCD tests; null for legacy tests.
+  final int? bcdCategoryId;
 
   const Testscreen({
     super.key,
@@ -47,7 +53,11 @@ class Testscreen extends StatefulWidget {
     this.isReviewMode = false,
     this.isTimed = false,
     this.timeLimitMinutes = 10,
+    this.passScorePercent = 70,
     this.resumeTestId,
+    this.bcdCategoryId,
+    this.bcdTestId,
+    this.initiallySavedQuestionIds,
   });
 
   @override
@@ -93,7 +103,8 @@ class _TestscreenState extends State<Testscreen> {
     userSelections = Map<int, String>.from(widget.userSelections ?? {});
     _initialSelections = Map<int, String>.from(userSelections);
     _pageController = PageController(initialPage: currentQuestionIndex);
-    _testId = widget.resumeTestId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    _testId =
+        widget.resumeTestId ?? DateTime.now().millisecondsSinceEpoch.toString();
     _startTime = DateTime.now();
     disableScreenshot();
 
@@ -102,14 +113,28 @@ class _TestscreenState extends State<Testscreen> {
       _startTimer();
     }
 
+    _savedQuestionIds =
+        Set<String>.from(widget.initiallySavedQuestionIds ?? {});
+
     _loadSavedQuestionIds();
     // Pre-open the Hive box so saves never hang waiting for it to open
     Hive.openBox<TestAttempt>('testAttempts');
   }
 
   Future<void> _loadSavedQuestionIds() async {
-    final ids = await SavedQuestionsService.getSavedIds();
-    if (mounted) setState(() => _savedQuestionIds = ids);
+    final localIds = await SavedQuestionsService.getSavedIdsScoped(
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+      bcdCategoryId: widget.bcdCategoryId,
+    );
+    if (mounted) setState(() => _savedQuestionIds = localIds);
+
+    final remoteIds = await SavedQuestionsService.refreshFromBackend(
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+      bcdCategoryId: widget.bcdCategoryId,
+    );
+    if (mounted) setState(() => _savedQuestionIds = remoteIds);
   }
 
   void _startTimer() {
@@ -224,7 +249,7 @@ class _TestscreenState extends State<Testscreen> {
     }
 
     double scorePercentage = (correctAnswers / widget.questions.length) * 100;
-    return scorePercentage >= 70; // Assume passing score is 70%
+    return scorePercentage >= widget.passScorePercent;
   }
 
   void _saveTestAttempt() async {
@@ -241,7 +266,7 @@ class _TestscreenState extends State<Testscreen> {
     }
 
     double scorePercentage = (correctAnswers / widget.questions.length) * 100;
-    bool hasPassed = scorePercentage >= 70;
+    bool hasPassed = scorePercentage >= widget.passScorePercent;
 
     final attempt = TestAttempt(
       testId: _testId,
@@ -256,12 +281,15 @@ class _TestscreenState extends State<Testscreen> {
       currentQuestionIndex: 0,
       licenceId: widget.licenceId,
       categoryId: widget.categoryId,
+      durationSeconds: DateTime.now().difference(_startTime).inSeconds,
+      bcdCategoryId: widget.bcdCategoryId,
     );
 
     final box = Hive.isBoxOpen('testAttempts')
         ? Hive.box<TestAttempt>('testAttempts')
         : await Hive.openBox<TestAttempt>('testAttempts');
-    await box.put(_testId, attempt); // put by testId overwrites any paused version
+    await box.put(
+        _testId, attempt); // put by testId overwrites any paused version
     _apiService.syncTestAttempt(attempt); // best-effort backend sync
   }
 
@@ -279,6 +307,8 @@ class _TestscreenState extends State<Testscreen> {
       currentQuestionIndex: currentQuestionIndex,
       licenceId: widget.licenceId,
       categoryId: widget.categoryId,
+      durationSeconds: DateTime.now().difference(_startTime).inSeconds,
+      bcdCategoryId: widget.bcdCategoryId,
     );
 
     // Use already-open box if available to avoid potential deadlock
@@ -348,12 +378,110 @@ class _TestscreenState extends State<Testscreen> {
     }
   }
 
+  Future<void> _showFeedbackDialog() async {
+    final q = widget.questions[currentQuestionIndex];
+    if (q.questionId.isEmpty) {
+      showAppSnackBar('Feedback is unavailable for this question.');
+      return;
+    }
+    final controller = TextEditingController();
+    String feedbackType = 'question_issue';
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Feedback'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                initialValue: feedbackType,
+                decoration: const InputDecoration(labelText: 'Type'),
+                items: const [
+                  DropdownMenuItem(
+                      value: 'question_issue', child: Text('Question issue')),
+                  DropdownMenuItem(
+                      value: 'wrong_answer', child: Text('Wrong answer')),
+                  DropdownMenuItem(
+                      value: 'typo', child: Text('Typo/text issue')),
+                  DropdownMenuItem(
+                      value: 'image_issue', child: Text('Image issue')),
+                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                ],
+                onChanged: (v) {
+                  if (v == null) return;
+                  setDialogState(() => feedbackType = v);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                minLines: 3,
+                maxLines: 6,
+                decoration: const InputDecoration(
+                  hintText: 'Tell us what is wrong with this question...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, {
+                'text': controller.text.trim(),
+                'type': feedbackType,
+              }),
+              child: const Text('Submit'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final text = (result?['text'] ?? '').trim();
+    final type = (result?['type'] ?? 'question_issue').trim();
+    if (!mounted || text.isEmpty) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final isBcd = widget.bcdCategoryId != null;
+    final ok = await _apiService.submitQuestionFeedback(
+      questionId: q.questionId,
+      questionText: q.text,
+      feedbackText: text,
+      scopeType: isBcd ? 'bcd' : 'legacy',
+      feedbackType: type,
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+      bcdCategoryId: widget.bcdCategoryId,
+      bcdTestId: widget.bcdTestId,
+      licenceName: widget.licenceName,
+      categoryName: widget.categoryName,
+    );
+
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    showAppSnackBar(ok
+        ? 'Thanks! Your feedback was submitted.'
+        : 'Could not submit feedback. Please try again.');
+  }
+
   /// Returns true if [s] is translatable text (not an image URL/path).
   bool _isTranslatableText(String s) {
     if (s.isEmpty) return false;
     if (s.startsWith('http://') || s.startsWith('https://')) return false;
     if (!s.contains(' ') &&
-        RegExp(r'\.(png|jpg|jpeg|gif|webp)$', caseSensitive: false).hasMatch(s)) {
+        RegExp(r'\.(png|jpg|jpeg|gif|webp)$', caseSensitive: false)
+            .hasMatch(s)) {
       return false;
     }
     return true;
@@ -363,10 +491,18 @@ class _TestscreenState extends State<Testscreen> {
   String _stripHtml(String s) {
     s = s.replaceAll(RegExp(r'<[^>]+>'), ' ');
     const entities = {
-      '&amp;': '&', '&lt;': '<', '&gt;': '>',
-      '&quot;': '"', '&#39;': "'", '&nbsp;': ' ',
-      '&auml;': 'ä', '&Auml;': 'Ä', '&ouml;': 'ö', '&Ouml;': 'Ö',
-      '&aring;': 'å', '&Aring;': 'Å',
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&nbsp;': ' ',
+      '&auml;': 'ä',
+      '&Auml;': 'Ä',
+      '&ouml;': 'ö',
+      '&Ouml;': 'Ö',
+      '&aring;': 'å',
+      '&Aring;': 'Å',
     };
     for (final e in entities.entries) {
       s = s.replaceAll(e.key, e.value);
@@ -375,10 +511,11 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   /// Translate a single string, returning the original on error.
-  Future<String> _safeTranslate(
-      String text, String fromLang, String toLang, GoogleTranslator translator) async {
+  Future<String> _safeTranslate(String text, String fromLang, String toLang,
+      GoogleTranslator translator) async {
     try {
-      final result = await translator.translate(text, from: fromLang, to: toLang);
+      final result =
+          await translator.translate(text, from: fromLang, to: toLang);
       return result.text;
     } catch (_) {
       return text;
@@ -400,7 +537,8 @@ class _TestscreenState extends State<Testscreen> {
 
     // 2 ─ Translate main buffer in one batch (throws on failure)
     final mainResults = await Future.wait(
-      mainBuffer.map((txt) => translator.translate(txt, from: fromLang, to: toLang)),
+      mainBuffer
+          .map((txt) => translator.translate(txt, from: fromLang, to: toLang)),
     );
 
     // 3 ─ Reassemble question text + options
@@ -411,7 +549,8 @@ class _TestscreenState extends State<Testscreen> {
       final translatedOptions = q.options.map((o) {
         return o.copyWith(text: mainResults[idx++].text);
       }).toList();
-      partialTranslated.add(q.copyWith(text: translatedText, options: translatedOptions));
+      partialTranslated
+          .add(q.copyWith(text: translatedText, options: translatedOptions));
     }
 
     // 4 ─ Translate explanations separately — each one with its own error handling
@@ -494,375 +633,408 @@ class _TestscreenState extends State<Testscreen> {
         _showExitDialog();
       },
       child: Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () {
-            if (widget.isReviewMode) {
-              Navigator.of(context).pop();
-            } else {
-              _showExitDialog();
-            }
-          },
-        ),
-        title: QuestionProgressHeader(
-          currentIndex: currentQuestionIndex,
-          total: widget.questions.length,
-          onTap: _showQuestionNavigationSheet,
-        ),
-        centerTitle: true,
-        actions: [
-          // Timer display
-          if (widget.isTimed && !widget.isReviewMode)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Center(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _remainingSeconds <= 60
-                        ? Colors.red[50]
-                        : Colors.grey[50],
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () {
+              if (widget.isReviewMode) {
+                Navigator.of(context).pop();
+              } else {
+                _showExitDialog();
+              }
+            },
+          ),
+          title: QuestionProgressHeader(
+            currentIndex: currentQuestionIndex,
+            total: widget.questions.length,
+            onTap: _showQuestionNavigationSheet,
+          ),
+          centerTitle: true,
+          actions: [
+            // Timer display
+            if (widget.isTimed && !widget.isReviewMode)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Center(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
                       color: _remainingSeconds <= 60
-                          ? Colors.red
-                          : Colors.grey[300]!,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.timer,
-                        size: 14,
+                          ? Colors.red[50]
+                          : Colors.grey[50],
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
                         color: _remainingSeconds <= 60
                             ? Colors.red
-                            : Colors.grey[600],
+                            : Colors.grey[300]!,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _timerDisplay,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.timer,
+                          size: 14,
                           color: _remainingSeconds <= 60
                               ? Colors.red
-                              : Colors.black87,
+                              : Colors.grey[600],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          // Language selector
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: PopupMenuButton<String>(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey[200]!, width: 1),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      ttsService.getLanguageFlag(currentLanguageCode),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      LucideIcons.languages,
-                      size: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ],
-                ),
-              ),
-              onSelected: (String value) async {
-                ttsService.flutterTts.stop();
-                ttsService.ttsState = TtsState.stopped;
-                String targetLang = value.toLowerCase();
-                if (targetLang != currentLanguageCode.toLowerCase()) {
-                  if (targetLang == 'sv') {
-                    // Switching back to Swedish — use originals, no translation needed
-                    setState(() {
-                      currentLanguageCode = value;
-                      isEnglish = false;
-                    });
-                  } else {
-                    await _translateQuestion(currentQuestionIndex, targetLang);
-                    setState(() {
-                      currentLanguageCode = value;
-                    });
-                  }
-                }
-              },
-              itemBuilder: (BuildContext context) => languageOptions
-                  .map((lang) => PopupMenuItem<String>(
-                        value: lang['code'],
-                        child: Text(lang['label']!),
-                      ))
-                  .toList(),
-            ),
-          ),
-        ],
-      ),
-      body: PageView.builder(
-        controller: _pageController,
-        onPageChanged: _onPageChanged,
-        itemCount: widget.questions.length,
-        itemBuilder: (context, index) {
-          final translatedList =
-              translatedQuestionsWithOptions[currentLanguageCode.toLowerCase()];
-          final question =
-              (translatedList != null && translatedList.length > index)
-                  ? translatedList[index]
-                  : widget.questions[index];
-          var questionUrl = _apiService.fetchImage(
-            widget.licenceId,
-            widget.categoryId,
-            widget.questions[index].imageUrl,
-          );
-          // Sort options if necessary
-          question.options
-              .sort((a, b) => a.optionLabel.compareTo(b.optionLabel));
-
-          // Get translated question text if available
-          String questionText = question.text;
-
-          // Get translated options if available
-          List<String> optionTexts = [];
-          optionTexts = question.options.map((e) => e.text).toList();
-
-          return Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Question header
-
-                  // Question text
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                        height: 1.3,
-                        fontFamily: 'NudMoto',
-                      ),
-                      children: [
-                        TextSpan(text: questionText),
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.middle,
-                          child: TtsButton(
-                            textToSpeak: questionText,
-                            languageCode: currentLanguageCode,
-                            iconSize: 24, // adjust for visual balance
-                            tooltip: 'Read aloud',
-                            // NEW: toggle icon
+                        const SizedBox(width: 4),
+                        Text(
+                          _timerDisplay,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: _remainingSeconds <= 60
+                                ? Colors.red
+                                : Colors.black87,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                ),
+              ),
+            // Language selector
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: PopupMenuButton<String>(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey[200]!, width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        ttsService.getLanguageFlag(currentLanguageCode),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        LucideIcons.languages,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ],
+                  ),
+                ),
+                onSelected: (String value) async {
+                  ttsService.flutterTts.stop();
+                  ttsService.ttsState = TtsState.stopped;
+                  String targetLang = value.toLowerCase();
+                  if (targetLang != currentLanguageCode.toLowerCase()) {
+                    if (targetLang == 'sv') {
+                      // Switching back to Swedish — use originals, no translation needed
+                      setState(() {
+                        currentLanguageCode = value;
+                        isEnglish = false;
+                      });
+                    } else {
+                      await _translateQuestion(
+                          currentQuestionIndex, targetLang);
+                      setState(() {
+                        currentLanguageCode = value;
+                      });
+                    }
+                  }
+                },
+                itemBuilder: (BuildContext context) => languageOptions
+                    .map((lang) => PopupMenuItem<String>(
+                          value: lang['code'],
+                          child: Text(lang['label']!),
+                        ))
+                    .toList(),
+              ),
+            ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.black87),
+              onSelected: (value) {
+                if (value == 'feedback') {
+                  _showFeedbackDialog();
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem<String>(
+                  value: 'feedback',
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, size: 18),
+                      SizedBox(width: 8),
+                      Text('Feedback'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        body: PageView.builder(
+          controller: _pageController,
+          onPageChanged: _onPageChanged,
+          itemCount: widget.questions.length,
+          itemBuilder: (context, index) {
+            final translatedList = translatedQuestionsWithOptions[
+                currentLanguageCode.toLowerCase()];
+            final question =
+                (translatedList != null && translatedList.length > index)
+                    ? translatedList[index]
+                    : widget.questions[index];
+            var questionUrl = _apiService.fetchImage(
+              widget.licenceId,
+              widget.categoryId,
+              widget.questions[index].imageUrl,
+            );
+            // Sort options if necessary
+            question.options
+                .sort((a, b) => a.optionLabel.compareTo(b.optionLabel));
 
-                  // Question image (if available)
-                  if (question.imageUrl.isNotEmpty)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 24),
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+            // Get translated question text if available
+            String questionText = question.text;
+
+            // Get translated options if available
+            List<String> optionTexts = [];
+            optionTexts = question.options.map((e) => e.text).toList();
+
+            return Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Question header
+
+                    // Question text
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                          height: 1.3,
+                          fontFamily: 'NudMoto',
+                        ),
+                        children: [
+                          TextSpan(text: questionText),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: TtsButton(
+                              textToSpeak: questionText,
+                              languageCode: currentLanguageCode,
+                              iconSize: 24, // adjust for visual balance
+                              tooltip: 'Read aloud',
+                              // NEW: toggle icon
+                            ),
                           ),
                         ],
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: GestureDetector(
-                          onTap: () => showImageViewer(context, questionUrl),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxHeight:
-                                  MediaQuery.of(context).size.height * 0.4,
-                              maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Question image (if available)
+                    if (question.imageUrl.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 24),
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
                             ),
-                            child:
-                                Image.network(questionUrl, fit: BoxFit.contain),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: GestureDetector(
+                            onTap: () => showImageViewer(context, questionUrl),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.of(context).size.height * 0.4,
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.9,
+                              ),
+                              child: Image.network(questionUrl,
+                                  fit: BoxFit.contain),
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // Options
-                  ...question.options.asMap().entries.map((entry) {
-                    int optIndex = entry.key;
-                    var option = entry.value;
-                    String optionText = optionTexts[optIndex];
-                    bool isSelected =
-                        userSelections[index] == option.optionLabel;
+                    // Options
+                    ...question.options.asMap().entries.map((entry) {
+                      int optIndex = entry.key;
+                      var option = entry.value;
+                      String optionText = optionTexts[optIndex];
+                      bool isSelected =
+                          userSelections[index] == option.optionLabel;
 
-                    return Option(
-                      text: optionText,
-                      optionLabel: option.optionLabel,
-                      imageUrl: option.imageUrl,
-                      isSelected: isSelected,
-                      showInstantMarking: widget.instantMarking &&
-                          userSelections[index] != null,
-                      isCorrectAnswer:
-                          option.optionLabel == question.correctAnswer,
-                      onTap: () => _selectOption(option.optionLabel, index),
-                      languageCode: currentLanguageCode,
-                    );
-                  }),
+                      return Option(
+                        text: optionText,
+                        optionLabel: option.optionLabel,
+                        imageUrl: option.imageUrl,
+                        isSelected: isSelected,
+                        showInstantMarking: widget.instantMarking &&
+                            userSelections[index] != null,
+                        isCorrectAnswer:
+                            option.optionLabel == question.correctAnswer,
+                        onTap: () => _selectOption(option.optionLabel, index),
+                        languageCode: currentLanguageCode,
+                      );
+                    }),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // Bookmark button
-                  if (!widget.isReviewMode &&
-                      widget.questions[index].questionId.isNotEmpty)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () async {
-                          final qId = widget.questions[index].questionId;
-                          final isSaved =
-                              await SavedQuestionsService.toggleSaved(qId);
-                          final ids =
-                              await SavedQuestionsService.getSavedIds();
-                          if (mounted) {
-                            setState(() => _savedQuestionIds = ids);
-                            showAppSnackBar(isSaved
-                                ? 'Question saved'
-                                : 'Question removed from saved');
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _savedQuestionIds.contains(
-                                        widget.questions[index].questionId)
-                                    ? Icons.bookmark
-                                    : Icons.bookmark_border,
-                                color: _savedQuestionIds.contains(
-                                        widget.questions[index].questionId)
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.grey[600],
-                                size: 20,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _savedQuestionIds.contains(
-                                        widget.questions[index].questionId)
-                                    ? 'Saved'
-                                    : 'Save question',
-                                style: TextStyle(
-                                  fontSize: 13,
+                    // Bookmark button
+                    if (!widget.isReviewMode &&
+                        widget.questions[index].questionId.isNotEmpty)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () async {
+                            final qId = widget.questions[index].questionId;
+                            final isSaved =
+                                await SavedQuestionsService.toggleSavedScoped(
+                              qId,
+                              questionText: widget.questions[index].text,
+                              licenceId: widget.licenceId,
+                              categoryId: widget.categoryId,
+                              bcdCategoryId: widget.bcdCategoryId,
+                            );
+                            final ids =
+                                await SavedQuestionsService.getSavedIdsScoped(
+                              licenceId: widget.licenceId,
+                              categoryId: widget.categoryId,
+                              bcdCategoryId: widget.bcdCategoryId,
+                            );
+                            if (mounted) {
+                              setState(() => _savedQuestionIds = ids);
+                              showAppSnackBar(isSaved
+                                  ? 'Question saved'
+                                  : 'Question removed from saved');
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _savedQuestionIds.contains(
+                                          widget.questions[index].questionId)
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border,
                                   color: _savedQuestionIds.contains(
                                           widget.questions[index].questionId)
                                       ? Theme.of(context).primaryColor
                                       : Colors.grey[600],
+                                  size: 20,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  _savedQuestionIds.contains(
+                                          widget.questions[index].questionId)
+                                      ? 'Saved'
+                                      : 'Save question',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: _savedQuestionIds.contains(
+                                            widget.questions[index].questionId)
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
-                  // Explanation (scrollable)
-                  if (widget.instantMarking &&
-                      userSelections[index] != null &&
-                      question.answerExplanation.isNotEmpty)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 20),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue[200]!, width: 1),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            constraints: const BoxConstraints(),
-                            child: ExplanationWidget(
-                              question: question,
-                              licenceId: widget.licenceId,
-                              categoryId: widget.categoryId,
-                              apiService: _apiService,
+                    // Explanation (scrollable)
+                    if (widget.instantMarking &&
+                        userSelections[index] != null &&
+                        question.answerExplanation.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 20),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border:
+                              Border.all(color: Colors.blue[200]!, width: 1),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              constraints: const BoxConstraints(),
+                              child: ExplanationWidget(
+                                question: question,
+                                licenceId: widget.licenceId,
+                                categoryId: widget.categoryId,
+                                apiService: _apiService,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      ),
-      bottomNavigationBar: NavigationControls(
-        atFirst: currentQuestionIndex == 0,
-        atLast: currentQuestionIndex == widget.questions.length - 1,
-        onBack: _previousQuestion,
-        // Decide at runtime whether we go to the next page or open the dialogs.
-        onNextOrFinish: () {
-          if (currentQuestionIndex < widget.questions.length - 1) {
-            _nextQuestion();
-            return;
-          }
+            );
+          },
+        ),
+        bottomNavigationBar: NavigationControls(
+          atFirst: currentQuestionIndex == 0,
+          atLast: currentQuestionIndex == widget.questions.length - 1,
+          onBack: _previousQuestion,
+          // Decide at runtime whether we go to the next page or open the dialogs.
+          onNextOrFinish: () {
+            if (currentQuestionIndex < widget.questions.length - 1) {
+              _nextQuestion();
+              return;
+            }
 
-          // Last question → show the confirmation dialog
-          showFinishConfirmationDialog(
-            context: context,
-            unansweredCount: widget.questions.length - userSelections.length,
-            onCancel: () {}, // nothing extra on “No”
-            onConfirm: () {
-              _saveTestAttempt(); // store Hive record
-              final passed = _calculateResult();
+            // Last question → show the confirmation dialog
+            showFinishConfirmationDialog(
+              context: context,
+              unansweredCount: widget.questions.length - userSelections.length,
+              onCancel: () {}, // nothing extra on “No”
+              onConfirm: () {
+                _saveTestAttempt(); // store Hive record
+                final passed = _calculateResult();
 
-              // After saving, show the pass/fail dialog
-              showResultDialog(
-                context: context,
-                hasPassed: passed,
-                questions: widget.questions,
-                userSelections: userSelections,
-                licenceId: widget.licenceId,
-                categoryId: widget.categoryId,
-              );
-            },
-          );
-        },
-      ),
-    ), // Scaffold
+                // After saving, show the pass/fail dialog
+                showResultDialog(
+                  context: context,
+                  hasPassed: passed,
+                  questions: widget.questions,
+                  userSelections: userSelections,
+                  licenceId: widget.licenceId,
+                  categoryId: widget.categoryId,
+                );
+              },
+            );
+          },
+        ),
+      ), // Scaffold
     ); // PopScope
   } // build
 

@@ -42,6 +42,12 @@ class TestAttempt extends HiveObject {
   @HiveField(11)
   String? categoryId;
 
+  @HiveField(12)
+  int? durationSeconds;
+
+  @HiveField(13)
+  int? bcdCategoryId;
+
   TestAttempt({
     required this.testId,
     required this.dateTime,
@@ -55,6 +61,8 @@ class TestAttempt extends HiveObject {
     this.currentQuestionIndex = 0,
     this.licenceId,
     this.categoryId,
+    this.durationSeconds,
+    this.bcdCategoryId,
   });
 
   bool get isPaused => status == 'paused';

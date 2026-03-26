@@ -16,6 +16,8 @@ class BCDTestScreen extends StatefulWidget {
   final String testName;
   final int passScore;
   final int timeLimit; // minutes; 0 = untimed
+  final String parentCategoryName;
+  final int? parentCategoryBcdId;
 
   const BCDTestScreen({
     super.key,
@@ -23,6 +25,8 @@ class BCDTestScreen extends StatefulWidget {
     required this.testName,
     required this.passScore,
     required this.timeLimit,
+    this.parentCategoryName = '',
+    this.parentCategoryBcdId,
   });
 
   @override
@@ -60,8 +64,11 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
             instantMarking: true,
             licenceId: '',
             categoryId: widget.testId.toString(),
-            licenceName: '',
+            licenceName: widget.parentCategoryName,
             categoryName: widget.testName,
+            bcdCategoryId: widget.parentCategoryBcdId,
+            bcdTestId: widget.testId,
+            passScorePercent: widget.passScore.toDouble(),
             isTimed: widget.timeLimit > 0,
             timeLimitMinutes: widget.timeLimit > 0 ? widget.timeLimit : 10,
           ),
@@ -99,9 +106,8 @@ Question _toQuestion(dynamic raw) {
 
   // Build full URL for question image if present
   final rawImagePath = q['image_url']?.toString() ?? '';
-  final imageUrl = rawImagePath.isNotEmpty
-      ? _api.bcdMediaUrl(rawImagePath)
-      : '';
+  final imageUrl =
+      rawImagePath.isNotEmpty ? _api.bcdMediaUrl(rawImagePath) : '';
 
   return Question(
     questionId: q['bcd_id']?.toString() ?? '',

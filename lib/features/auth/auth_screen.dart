@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:lottie/lottie.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
@@ -62,10 +62,11 @@ class _AuthScreenState extends State<AuthScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user', jsonEncode(user));
       }
+      await Hive.close();
       await Hive.deleteFromDisk();
 
-      // Reload tokens to ensure DioClient has the latest tokens
-      await DioClient().reloadTokens();
+      // Re-initialize DioClient to get a fresh Dio instance + cache
+      await DioClient().init();
 
       if (mounted) {
         // Navigate directly to MainScreen
@@ -108,12 +109,9 @@ class _AuthScreenState extends State<AuthScreen> {
                         height: 250,
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Lottie.asset(
-                            'assets/animations/welcome.json',
+                          child: AppLottie(
+                            asset: 'animations/welcome.json',
                             fit: BoxFit.contain,
-                            repeat: true,
-                            renderCache: RenderCache.raster,
-                            options: LottieOptions(enableMergePaths: false),
                           ),
                         ),
                       ),

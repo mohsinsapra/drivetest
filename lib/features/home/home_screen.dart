@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
@@ -31,7 +31,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   List<TestAttempt> _previousAttempts = [];
   List<TestAttempt> _pausedAttempts = [];
   Map<String, dynamic> _stats = {};
@@ -141,22 +141,19 @@ class _HomeScreenState extends State<HomeScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Progress'),
-        content: const Text(
-            'Are you sure you want to delete this saved test?'),
+        content: const Text('Are you sure you want to delete this saved test?'),
         actions: [
           TextButton(
               child: const Text('Cancel'),
               onPressed: () => Navigator.of(ctx).pop()),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child:
-                const Text('Delete', style: TextStyle(color: Colors.white)),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
             onPressed: () async {
               Navigator.of(ctx).pop();
               setState(() => _pausedAttempts
                   .removeWhere((a) => a.testId == attempt.testId));
-              final box =
-                  await Hive.openBox<TestAttempt>('testAttempts');
+              final box = await Hive.openBox<TestAttempt>('testAttempts');
               await box.delete(attempt.testId);
               ApiService().deleteTestAttempt(attempt.testId);
             },
@@ -172,8 +169,8 @@ class _HomeScreenState extends State<HomeScreen>
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete All Tests'),
-        content: const Text(
-            'Are you sure you want to delete all test attempts?'),
+        content:
+            const Text('Are you sure you want to delete all test attempts?'),
         actions: [
           TextButton(
               child: const Text('Cancel'),
@@ -215,8 +212,7 @@ class _HomeScreenState extends State<HomeScreen>
       final key = "${date.month}/${date.year}";
       result[key] = attempts
           .where((a) =>
-              a.dateTime.year == date.year &&
-              a.dateTime.month == date.month)
+              a.dateTime.year == date.year && a.dateTime.month == date.month)
           .length;
     }
     return result;
@@ -225,13 +221,16 @@ class _HomeScreenState extends State<HomeScreen>
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final t = Translations.of(context);
     final hasData = _previousAttempts.isNotEmpty;
     final passed = _previousAttempts.where((a) => a.hasPassed).length;
     final failed = _previousAttempts.length - passed;
-    final avgScore =
-        (_stats['averageScore'] as num?)?.toDouble() ?? 0.0;
+    final avgScore = (_stats['averageScore'] as num?)?.toDouble() ?? 0.0;
     final licenceWithCategories = Map<String, Map<String, int>>.from(
         _stats['licenceWithCategories'] ?? {});
     final licenceNames = licenceWithCategories.keys.toList();
@@ -248,10 +247,10 @@ class _HomeScreenState extends State<HomeScreen>
         transitionBuilder: (child, animation) => FadeTransition(
           opacity: animation,
           child: SlideTransition(
-            position: Tween<Offset>(
-                    begin: const Offset(0, 0.04), end: Offset.zero)
-                .animate(CurvedAnimation(
-                    parent: animation, curve: Curves.easeOutCubic)),
+            position:
+                Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero)
+                    .animate(CurvedAnimation(
+                        parent: animation, curve: Curves.easeOutCubic)),
             child: child,
           ),
         ),
@@ -268,16 +267,13 @@ class _HomeScreenState extends State<HomeScreen>
                       if (hasData) ...[
                         // Hero card
                         SliverToBoxAdapter(
-                            child: _buildHeroCard(
-                                avgScore, passed, failed)),
+                            child: _buildHeroCard(avgScore, passed, failed)),
                         // Quick stats
                         SliverToBoxAdapter(
-                            child:
-                                _buildQuickStats(passed, failed)),
+                            child: _buildQuickStats(passed, failed)),
                         // In progress
                         if (_pausedAttempts.isNotEmpty)
-                          SliverToBoxAdapter(
-                              child: _buildInProgressSection(t)),
+                          SliverToBoxAdapter(child: _buildInProgressSection(t)),
                         // Licence tabs
                         if (licenceNames.length > 1)
                           SliverToBoxAdapter(
@@ -287,37 +283,31 @@ class _HomeScreenState extends State<HomeScreen>
                             child: _buildChartsSection(
                                 dailyCounts, monthlyCounts, t)),
                         // Pie chart
-                        if (licenceWithCategories[selectedLicence] !=
-                            null)
+                        if (licenceWithCategories[selectedLicence] != null)
                           SliverToBoxAdapter(
                               child: _buildPieSection(
                                   licenceWithCategories[selectedLicence]!, t)),
                         // Activity header
                         SliverToBoxAdapter(
-                            child: _buildSectionHeader(
-                                t.home_recent_activity,
+                            child: _buildSectionHeader(t.home_recent_activity,
                                 '${selectedAttempts.length} ${t.home_attempts}')),
                         // Activity list
                         SliverList(
                           delegate: SliverChildBuilderDelegate(
                             (context, index) => _StaggeredItem(
                               index: index,
-                              child: _buildActivityItem(
-                                  selectedAttempts[index]),
+                              child:
+                                  _buildActivityItem(selectedAttempts[index]),
                             ),
                             childCount: selectedAttempts.length,
                           ),
                         ),
-                        const SliverToBoxAdapter(
-                            child: SizedBox(height: 110)),
+                        const SliverToBoxAdapter(child: SizedBox(height: 110)),
                       ] else if (_pausedAttempts.isNotEmpty) ...[
-                        SliverToBoxAdapter(
-                            child: _buildInProgressSection(t)),
-                        const SliverToBoxAdapter(
-                            child: SizedBox(height: 110)),
+                        SliverToBoxAdapter(child: _buildInProgressSection(t)),
+                        const SliverToBoxAdapter(child: SizedBox(height: 110)),
                       ] else ...[
-                        SliverFillRemaining(
-                            child: _buildEmptyState(t)),
+                        SliverFillRemaining(child: _buildEmptyState(t)),
                       ],
                     ],
                   ),
@@ -340,8 +330,8 @@ class _HomeScreenState extends State<HomeScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(t.home_dashboard,
-                    style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: 13)),
+                    style:
+                        TextStyle(color: Colors.grey.shade500, fontSize: 13)),
                 Text(t.home_my_progress,
                     style: const TextStyle(
                         fontSize: 22, fontWeight: FontWeight.bold)),
@@ -392,19 +382,18 @@ class _HomeScreenState extends State<HomeScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(Translations.of(context).home_overall_score,
-                    style: const TextStyle(
-                        color: Colors.white60, fontSize: 13)),
+                    style:
+                        const TextStyle(color: Colors.white60, fontSize: 13)),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white12,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     '${_previousAttempts.length} ${Translations.of(context).home_tests}',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 12),
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ),
               ],
@@ -434,8 +423,7 @@ class _HomeScreenState extends State<HomeScreen>
                 child: LinearProgressIndicator(
                   value: v,
                   backgroundColor: Colors.white12,
-                  valueColor:
-                      const AlwaysStoppedAnimation(Colors.orange),
+                  valueColor: const AlwaysStoppedAnimation(Colors.orange),
                   minHeight: 4,
                 ),
               ),
@@ -541,6 +529,7 @@ class _HomeScreenState extends State<HomeScreen>
                         initialQuestionIndex: a.currentQuestionIndex,
                         userSelections: a.userSelections,
                         resumeTestId: a.testId,
+                        bcdCategoryId: a.bcdCategoryId,
                       ),
                     ),
                   );
@@ -571,21 +560,20 @@ class _HomeScreenState extends State<HomeScreen>
             final isActive = selectedTabIndex == e.key;
             return Expanded(
               child: GestureDetector(
-                onTap: () =>
-                    setState(() => selectedTabIndex = e.key),
+                onTap: () => setState(() => selectedTabIndex = e.key),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: isActive ? Theme.of(context).colorScheme.surface : Colors.transparent,
+                    color: isActive
+                        ? Theme.of(context).colorScheme.surface
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: isActive
                         ? [
                             BoxShadow(
-                              color: Colors.black
-                                  .withValues(alpha: 0.06),
+                              color: Colors.black.withValues(alpha: 0.06),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             )
@@ -597,12 +585,9 @@ class _HomeScreenState extends State<HomeScreen>
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: isActive
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      color: isActive
-                          ? Colors.black87
-                          : Colors.grey.shade600,
+                      fontWeight:
+                          isActive ? FontWeight.w600 : FontWeight.normal,
+                      color: isActive ? Colors.black87 : Colors.grey.shade600,
                     ),
                   ),
                 ),
@@ -626,9 +611,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: _ChartCard(
                 label: t.home_this_week,
                 child: AttemptCountLineGraph(
-                    data: daily,
-                    lineColor: Colors.deepPurple,
-                    height: 110),
+                    data: daily, lineColor: Colors.deepPurple, height: 110),
               ),
             ),
             const SizedBox(width: 12),
@@ -636,9 +619,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: _ChartCard(
                 label: t.home_this_month,
                 child: AttemptCountLineGraph(
-                    data: monthly,
-                    lineColor: Colors.orange,
-                    height: 110),
+                    data: monthly, lineColor: Colors.orange, height: 110),
               ),
             ),
           ],
@@ -688,11 +669,10 @@ class _HomeScreenState extends State<HomeScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title,
-              style: const TextStyle(
-                  fontSize: 17, fontWeight: FontWeight.bold)),
+              style:
+                  const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
           Text(subtitle,
-              style: TextStyle(
-                  color: Colors.grey.shade500, fontSize: 13)),
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
         ],
       ),
     );
@@ -700,34 +680,27 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildActivityItem(TestAttempt attempt) {
     final isPassed = attempt.hasPassed;
-    final color =
-        isPassed ? Colors.green.shade500 : Colors.red.shade400;
-    final bgColor =
-        isPassed ? Colors.green.shade50 : Colors.red.shade50;
+    final color = isPassed ? Colors.green.shade500 : Colors.red.shade400;
+    final bgColor = isPassed ? Colors.green.shade50 : Colors.red.shade50;
     final dt = attempt.dateTime;
 
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (_) =>
-                AttemptDetailScreen(attempt: attempt)),
+            builder: (_) => AttemptDetailScreen(attempt: attempt)),
       ),
       child: Container(
         color: Theme.of(context).colorScheme.surface,
-        padding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(
           children: [
             Container(
               width: 44,
               height: 44,
-              decoration:
-                  BoxDecoration(color: bgColor, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
               child: Icon(
-                isPassed
-                    ? Icons.check_rounded
-                    : Icons.close_rounded,
+                isPassed ? Icons.check_rounded : Icons.close_rounded,
                 color: color,
                 size: 20,
               ),
@@ -745,8 +718,7 @@ class _HomeScreenState extends State<HomeScreen>
                   const SizedBox(height: 3),
                   Text(
                     '${dt.day}/${dt.month}/${dt.year}  ·  ${attempt.licenceName ?? ''}',
-                    style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: 12),
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                   ),
                 ],
               ),
@@ -757,9 +729,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Text(
                   '${attempt.score.toInt()}%',
                   style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: color),
+                      fontWeight: FontWeight.bold, fontSize: 16, color: color),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -786,18 +756,15 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             SizedBox(
               height: 200,
-              child: Lottie.asset(
-                'assets/animations/no_attempts.json',
+              child: AppLottie(
+                asset: 'animations/no_attempts.json',
                 fit: BoxFit.contain,
-                repeat: true,
-                renderCache: RenderCache.raster,
-                options: LottieOptions(enableMergePaths: false),
               ),
             ),
             const SizedBox(height: 24),
             Text(t.home_no_attempts,
-                style: const TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.bold)),
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
               t.home_no_attempts_sub,
@@ -808,14 +775,14 @@ class _HomeScreenState extends State<HomeScreen>
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kHeroEnd,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 32, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: () => Provider.of<MainScreenProvider>(context,
-                      listen: false)
-                  .setIndex(1),
+              onPressed: () =>
+                  Provider.of<MainScreenProvider>(context, listen: false)
+                      .setIndex(1),
               child: Text(t.home_take_quiz,
                   style: const TextStyle(
                       fontSize: 16,
@@ -836,44 +803,44 @@ class _HomeScreenState extends State<HomeScreen>
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(children: [
-                _sBox(140, 40, 8),
-                const Spacer(),
-                _sBox(40, 40, 20),
-              ]),
-              const SizedBox(height: 20),
-              // Hero card
-              _sBox(double.infinity, 190, 24),
-              const SizedBox(height: 16),
-              // Quick stats
-              Row(children: [
-                Expanded(child: _sBox(double.infinity, 90, 16)),
-                const SizedBox(width: 12),
-                Expanded(child: _sBox(double.infinity, 90, 16)),
-                const SizedBox(width: 12),
-                Expanded(child: _sBox(double.infinity, 90, 16)),
-              ]),
-              const SizedBox(height: 24),
-              // Charts
-              Row(children: [
-                Expanded(child: _sBox(double.infinity, 110, 16)),
-                const SizedBox(width: 12),
-                Expanded(child: _sBox(double.infinity, 110, 16)),
-              ]),
-              const SizedBox(height: 24),
-              // Activity items
-              for (int i = 0; i < 4; i++) ...[
-                _sBox(double.infinity, 64, 0),
-                const Divider(height: 1),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(children: [
+                  _sBox(140, 40, 8),
+                  const Spacer(),
+                  _sBox(40, 40, 20),
+                ]),
+                const SizedBox(height: 20),
+                // Hero card
+                _sBox(double.infinity, 190, 24),
+                const SizedBox(height: 16),
+                // Quick stats
+                Row(children: [
+                  Expanded(child: _sBox(double.infinity, 90, 16)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _sBox(double.infinity, 90, 16)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _sBox(double.infinity, 90, 16)),
+                ]),
+                const SizedBox(height: 24),
+                // Charts
+                Row(children: [
+                  Expanded(child: _sBox(double.infinity, 110, 16)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _sBox(double.infinity, 110, 16)),
+                ]),
+                const SizedBox(height: 24),
+                // Activity items
+                for (int i = 0; i < 4; i++) ...[
+                  _sBox(double.infinity, 64, 0),
+                  const Divider(height: 1),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -914,12 +881,12 @@ class _StaggeredItemState extends State<_StaggeredItem>
         vsync: this, duration: const Duration(milliseconds: 500));
     _opacity = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
     _slide = Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero)
-        .animate(
-            CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-    _scale = Tween<double>(begin: 0.96, end: 1.0).animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
-    Future.delayed(Duration(milliseconds: widget.index * 65),
-        () { if (mounted) _ctrl.forward(); });
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _scale = Tween<double>(begin: 0.96, end: 1.0)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
+    Future.delayed(Duration(milliseconds: widget.index * 65), () {
+      if (mounted) _ctrl.forward();
+    });
   }
 
   @override
@@ -952,9 +919,7 @@ class _HeroStat extends StatelessWidget {
         children: [
           Text(value,
               style: TextStyle(
-                  color: color,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold)),
+                  color: color, fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 2),
           Text(label,
               style: const TextStyle(color: Colors.white38, fontSize: 11)),
@@ -994,18 +959,16 @@ class _QuickStatCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(10)),
+                  color: bgColor, borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, color: iconColor, size: 16),
             ),
             const SizedBox(height: 10),
             Text(value,
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold)),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
             Text(label,
-                style: TextStyle(
-                    fontSize: 11, color: Colors.grey.shade500)),
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
           ],
         ),
       );
@@ -1070,8 +1033,7 @@ class _InProgressCardState extends State<_InProgressCard>
   void initState() {
     super.initState();
     _pulse = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 900))
+        vsync: this, duration: const Duration(milliseconds: 900))
       ..repeat(reverse: true);
   }
 
@@ -1110,11 +1072,10 @@ class _InProgressCardState extends State<_InProgressCard>
             children: [
               FadeTransition(
                 opacity: Tween<double>(begin: 0.5, end: 1.0).animate(
-                    CurvedAnimation(
-                        parent: _pulse, curve: Curves.easeInOut)),
+                    CurvedAnimation(parent: _pulse, curve: Curves.easeInOut)),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 7, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade100,
                     borderRadius: BorderRadius.circular(20),
@@ -1137,8 +1098,7 @@ class _InProgressCardState extends State<_InProgressCard>
               const Spacer(),
               GestureDetector(
                 onTap: widget.onDelete,
-                child: Icon(Icons.close,
-                    size: 15, color: Colors.grey.shade400),
+                child: Icon(Icons.close, size: 15, color: Colors.grey.shade400),
               ),
             ],
           ),
@@ -1147,14 +1107,12 @@ class _InProgressCardState extends State<_InProgressCard>
             a.categoryName ?? 'Unknown',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 13),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
           const SizedBox(height: 2),
           Text(
             'Q${a.currentQuestionIndex + 1} of $total',
-            style:
-                TextStyle(fontSize: 11, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
           ),
           const SizedBox(height: 10),
           TweenAnimationBuilder<double>(
@@ -1175,8 +1133,7 @@ class _InProgressCardState extends State<_InProgressCard>
           GestureDetector(
             onTap: a.questions.isNotEmpty ? widget.onResume : null,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: a.questions.isNotEmpty
                     ? Colors.orange
@@ -1190,7 +1147,9 @@ class _InProgressCardState extends State<_InProgressCard>
                       color: Colors.white, size: 14),
                   const SizedBox(width: 4),
                   Text(
-                    a.questions.isNotEmpty ? Translations.of(context).home_resume : 'Unavailable',
+                    a.questions.isNotEmpty
+                        ? Translations.of(context).home_resume
+                        : 'Unavailable',
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
