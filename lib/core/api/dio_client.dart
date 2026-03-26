@@ -28,27 +28,28 @@ class DioClient {
 
   String? accessToken;
   String? refreshToken;
-  
+  Future<bool>? _refreshFuture;
+
   Dio get dio => _dio!;
   List<int> get key => _key!;
   CryptoService get cryptoService => _cryptoService!;
-  
+
   factory DioClient() {
     return _instance;
   }
-  
+
   Future<void> init() async {
     if (_initialized) return; // Prevent multiple initializations
     // Load both tokens from secure storage
     refreshToken = await _secureStorage.read(key: 'refreshToken');
     accessToken = await _secureStorage.read(key: 'accessToken');
-    
+
     // Fallback to SharedPreferences if not found in secure storage
     if (refreshToken == null || accessToken == null) {
       final prefs = await SharedPreferences.getInstance();
       refreshToken ??= prefs.getString('refreshToken');
       accessToken ??= prefs.getString('accessToken');
-      
+
       // If found in SharedPreferences, migrate to secure storage
       if (refreshToken != null && accessToken != null) {
         await _secureStorage.write(key: 'refreshToken', value: refreshToken!);
@@ -82,10 +83,9 @@ class DioClient {
       // Custom key builder: include Authorization header so per-user endpoints
       // (e.g. my-subscriptions) are cached separately per user.
       keyBuilder: ({required Uri url, Map<String, String>? headers}) {
-        final auth = headers?['Authorization'] ?? headers?['authorization'] ?? '';
-        final authHash = auth.isNotEmpty
-            ? auth.hashCode.toRadixString(16)
-            : '';
+        final auth =
+            headers?['Authorization'] ?? headers?['authorization'] ?? '';
+        final authHash = auth.isNotEmpty ? auth.hashCode.toRadixString(16) : '';
         final baseKey = CacheOptions.defaultCacheKeyBuilder(url: url);
         return authHash.isNotEmpty ? '${baseKey}_$authHash' : baseKey;
       },
@@ -95,16 +95,16 @@ class DioClient {
     );
     _dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',
-      baseUrl: 'http://192.168.1.130:8010/',
-      // baseUrl: 'https://taxiexam.hayatpoetry.com/',
+      // baseUrl: 'http://192.168.1.130:8010/',
+      baseUrl: 'https://taxiexam.hayatpoetry.com/',
       connectTimeout: const Duration(milliseconds: 5000),
       receiveTimeout: const Duration(milliseconds: 20000),
     ));
     _dio!.interceptors.add(DioCacheInterceptor(options: options));
     _dio!.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        options.extra ??= <String, dynamic>{};
-        if (accessToken != null) {
+        final skipAuth = options.extra['skipAuth'] == true;
+        if (!skipAuth && accessToken != null) {
           options.headers['Authorization'] = 'Bearer $accessToken';
         }
         return handler.next(options);
@@ -120,31 +120,49 @@ class DioClient {
       },
       onError: (error, handler) async {
         if (error.response?.statusCode == 401) {
+          final requestOptions = error.requestOptions;
+          final skipRefresh = requestOptions.extra['skipRefresh'] == true;
+          final isRefreshEndpoint =
+              requestOptions.path.contains('api/token/refresh/');
+
+          // Never try to refresh for refresh endpoint itself (prevents loop storm).
+          if (skipRefresh || isRefreshEndpoint) {
+            await logoutAndRedirect();
+            return handler.next(error);
+          }
+
           final responseData = error.response?.data;
           if (responseData is Map &&
               responseData['detail'] ==
                   'You have been logged out because your account was used on another device.') {
             await logoutAndRedirect();
-            return handler.resolve(
-                Response(requestOptions: error.requestOptions, statusCode: 200));
+            return handler.resolve(Response(
+                requestOptions: error.requestOptions, statusCode: 200));
           } else if (responseData is Map &&
               responseData['code'] == 'token_not_valid') {
-            final refreshSuccess = await _refreshAccessToken();
+            if (requestOptions.extra['__retried__'] == true) {
+              await logoutAndRedirect();
+              return handler.next(error);
+            }
+
+            final refreshSuccess = await _refreshAccessTokenSingleFlight();
             if (refreshSuccess) {
-              final requestOptions = error.requestOptions;
               requestOptions.headers['Authorization'] = 'Bearer $accessToken';
+              requestOptions.extra['__retried__'] = true;
               final response = await dio.fetch(requestOptions);
               return handler.resolve(response);
+            } else {
+              await logoutAndRedirect();
             }
           }
         }
         return handler.next(error);
       },
     ));
-    
+
     _initialized = true;
   }
-  
+
   Future<void> logoutAndRedirect() async {
     await logout();
     final context = NavigationService.navigatorKey.currentContext;
@@ -168,7 +186,7 @@ class DioClient {
     // Just reload tokens without full reinitialization
     refreshToken = await _secureStorage.read(key: 'refreshToken');
     accessToken = await _secureStorage.read(key: 'accessToken');
-    
+
     // Fallback to SharedPreferences if not found in secure storage
     if (refreshToken == null || accessToken == null) {
       final prefs = await SharedPreferences.getInstance();
@@ -183,12 +201,19 @@ class DioClient {
     try {
       final response = await dio.post(
         'api/token/refresh/',
+        options: Options(
+          extra: {
+            'skipAuth': true,
+            'skipRefresh': true,
+          },
+        ),
         data: {
           'refresh': refreshToken,
         },
       );
 
       accessToken = response.data['access'];
+      await _secureStorage.write(key: 'accessToken', value: accessToken);
 
       // If a new refresh token is provided, update and save it
       if (response.data.containsKey('refresh')) {
@@ -215,6 +240,18 @@ class DioClient {
     }
   }
 
+  Future<bool> _refreshAccessTokenSingleFlight() async {
+    if (_refreshFuture != null) {
+      return _refreshFuture!;
+    }
+    _refreshFuture = _refreshAccessToken();
+    try {
+      return await _refreshFuture!;
+    } finally {
+      _refreshFuture = null;
+    }
+  }
+
   Future<void> setTokens(
       {required String access, required String refresh}) async {
     accessToken = access;
@@ -228,7 +265,8 @@ class DioClient {
   Future<void> logout() async {
     accessToken = null;
     refreshToken = null;
-    _initialized = false; // Force full re-init on next login (fresh Dio + cache)
+    _initialized =
+        false; // Force full re-init on next login (fresh Dio + cache)
 
     // Wipe all secure storage
     await _secureStorage.deleteAll();
