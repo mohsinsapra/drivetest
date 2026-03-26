@@ -29,6 +29,11 @@ class DioClient {
   String? accessToken;
   String? refreshToken;
   Future<bool>? _refreshFuture;
+  String? _lastFailedRefreshToken;
+  DateTime? _lastFailedRefreshAt;
+  String? _last401Fingerprint;
+  int _same401Count = 0;
+  bool _logoutTriggeredFrom401 = false;
 
   Dio get dio => _dio!;
   List<int> get key => _key!;
@@ -95,8 +100,8 @@ class DioClient {
     );
     _dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',
-      // baseUrl: 'http://192.168.1.130:8010/',
-      baseUrl: 'https://taxiexam.hayatpoetry.com/',
+      baseUrl: 'http://192.168.1.130:8010/',
+      // baseUrl: 'https://taxiexam.hayatpoetry.com/',
       connectTimeout: const Duration(milliseconds: 5000),
       receiveTimeout: const Duration(milliseconds: 20000),
     ));
@@ -110,6 +115,11 @@ class DioClient {
         return handler.next(options);
       },
       onResponse: (response, handler) {
+        // Any successful response resets repeated-401 tracking.
+        _last401Fingerprint = null;
+        _same401Count = 0;
+        _logoutTriggeredFrom401 = false;
+
         // Only decrypt legacy questions endpoint (not v2 BCD endpoints)
         final path = response.requestOptions.path;
         if (path.contains('/questions/') && !path.contains('v2/')) {
@@ -121,6 +131,22 @@ class DioClient {
       onError: (error, handler) async {
         if (error.response?.statusCode == 401) {
           final requestOptions = error.requestOptions;
+          final fp = _build401Fingerprint(error);
+          if (_last401Fingerprint == fp) {
+            _same401Count += 1;
+          } else {
+            _last401Fingerprint = fp;
+            _same401Count = 1;
+          }
+
+          if (_same401Count >= 10) {
+            if (!_logoutTriggeredFrom401) {
+              _logoutTriggeredFrom401 = true;
+              await logoutAndRedirect();
+            }
+            return handler.next(error);
+          }
+
           final skipRefresh = requestOptions.extra['skipRefresh'] == true;
           final isRefreshEndpoint =
               requestOptions.path.contains('api/token/refresh/');
@@ -140,6 +166,11 @@ class DioClient {
                 requestOptions: error.requestOptions, statusCode: 200));
           } else if (responseData is Map &&
               responseData['code'] == 'token_not_valid') {
+            if (_shouldSkipRefreshAttempt()) {
+              await logoutAndRedirect();
+              return handler.next(error);
+            }
+
             if (requestOptions.extra['__retried__'] == true) {
               await logoutAndRedirect();
               return handler.next(error);
@@ -150,6 +181,9 @@ class DioClient {
               requestOptions.headers['Authorization'] = 'Bearer $accessToken';
               requestOptions.extra['__retried__'] = true;
               final response = await dio.fetch(requestOptions);
+              _last401Fingerprint = null;
+              _same401Count = 0;
+              _logoutTriggeredFrom401 = false;
               return handler.resolve(response);
             } else {
               await logoutAndRedirect();
@@ -214,6 +248,8 @@ class DioClient {
 
       accessToken = response.data['access'];
       await _secureStorage.write(key: 'accessToken', value: accessToken);
+      _lastFailedRefreshToken = null;
+      _lastFailedRefreshAt = null;
 
       // If a new refresh token is provided, update and save it
       if (response.data.containsKey('refresh')) {
@@ -224,6 +260,8 @@ class DioClient {
       return true;
     } catch (e) {
       debugPrint('Failed to refresh token: $e');
+      _lastFailedRefreshToken = refreshToken;
+      _lastFailedRefreshAt = DateTime.now();
 
       // Check if token is blacklisted
       if (e is DioException && e.response != null) {
@@ -238,6 +276,28 @@ class DioClient {
 
       return false;
     }
+  }
+
+  bool _shouldSkipRefreshAttempt() {
+    if (refreshToken == null) return true;
+    if (_lastFailedRefreshToken == null || _lastFailedRefreshAt == null) {
+      return false;
+    }
+    final sameToken = _lastFailedRefreshToken == refreshToken;
+    final withinCooldown = DateTime.now().difference(_lastFailedRefreshAt!) <
+        const Duration(minutes: 5);
+    return sameToken && withinCooldown;
+  }
+
+  String _build401Fingerprint(DioException error) {
+    final path = error.requestOptions.path;
+    final data = error.response?.data;
+    if (data is Map) {
+      final code = data['code']?.toString() ?? '';
+      final detail = data['detail']?.toString() ?? '';
+      return '401|$path|$code|$detail';
+    }
+    return '401|$path|${data?.toString() ?? ''}';
   }
 
   Future<bool> _refreshAccessTokenSingleFlight() async {
