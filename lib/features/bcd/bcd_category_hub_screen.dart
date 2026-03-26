@@ -6,9 +6,6 @@ import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/models/option.dart';
-import 'package:taxi_exam_app/core/models/question.dart';
-import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:vibration/vibration.dart';
 
@@ -141,44 +138,15 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
 
   Future<void> _openSavedQuestions() async {
     try {
-      final savedIds = await SavedQuestionsService.refreshFromBackend(
+      final savedQuestions = await _api.fetchSavedQuestionsResolved(
+        scopeType: 'bcd',
         bcdCategoryId: _categoryBcdId,
       );
-      if (savedIds.isEmpty) {
+      if (savedQuestions.isEmpty) {
         if (mounted) {
           showAppSnackBar('No saved questions in this category yet.');
         }
         return;
-      }
-
-      final tests = await _api.fetchBCDTests(_categoryBcdId);
-      if (tests.isEmpty) {
-        if (mounted) showAppSnackBar('No tests available for this category.');
-        return;
-      }
-
-      final testIds =
-          tests.map((t) => t['bcd_id'] as int?).whereType<int>().toList();
-      if (testIds.isEmpty) {
-        if (mounted) showAppSnackBar('No tests available for this category.');
-        return;
-      }
-      final questionLists = await Future.wait(
-          testIds.map((id) => _api.fetchBCDTestQuestions(id)).toList());
-
-      final allRaw = <dynamic>[];
-      for (final list in questionLists) {
-        allRaw.addAll(list);
-      }
-      final seen = <String>{};
-      final savedQuestions = <Question>[];
-      for (final raw in allRaw) {
-        final q = _toQuestion(raw);
-        if (q.questionId.isEmpty || seen.contains(q.questionId)) continue;
-        seen.add(q.questionId);
-        if (savedIds.contains(q.questionId)) {
-          savedQuestions.add(q);
-        }
       }
 
       if (!mounted) return;
@@ -203,30 +171,6 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
     } catch (_) {
       if (mounted) showAppSnackBar('Failed to load saved questions.');
     }
-  }
-
-  Question _toQuestion(dynamic raw) {
-    final q = raw as Map<String, dynamic>;
-    final answers = (q['bcd_answers'] as List<dynamic>?) ?? [];
-    final options = answers.map((a) {
-      final ans = a as Map<String, dynamic>;
-      return Option(
-        optionLabel: ans['label']?.toString() ?? '',
-        text: cleanBcdText(ans['content']?.toString() ?? ''),
-        imageUrl: '',
-      );
-    }).toList();
-    final rawImagePath = q['image_url']?.toString() ?? '';
-    final imageUrl =
-        rawImagePath.isNotEmpty ? _api.bcdMediaUrl(rawImagePath) : '';
-    return Question(
-      questionId: q['bcd_id']?.toString() ?? '',
-      text: cleanBcdText(q['content']?.toString() ?? ''),
-      imageUrl: imageUrl,
-      correctAnswer: q['correct_answer']?.toString() ?? '',
-      answerExplanation: cleanBcdText(q['explanation']?.toString() ?? ''),
-      options: options,
-    );
   }
 
   /* ── Navigation ───────────────────────────────────────────────────────────── */

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
-class SavedQuestionsPreviewScreen extends StatelessWidget {
+class SavedQuestionsPreviewScreen extends StatefulWidget {
   final List<Question> questions;
   final String licenceId;
   final String categoryId;
@@ -21,6 +22,78 @@ class SavedQuestionsPreviewScreen extends StatelessWidget {
   });
 
   @override
+  State<SavedQuestionsPreviewScreen> createState() =>
+      _SavedQuestionsPreviewScreenState();
+}
+
+class _SavedQuestionsPreviewScreenState
+    extends State<SavedQuestionsPreviewScreen> {
+  late List<Question> _questions;
+  final Set<String> _expandedKeys = <String>{};
+
+  String _itemKey(Question q, int index) =>
+      q.questionId.isNotEmpty ? q.questionId : 'idx_$index';
+
+  String _correctAnswerText(Question q) {
+    final matches = q.options.where((o) => o.optionLabel == q.correctAnswer);
+    if (matches.isNotEmpty) {
+      return matches.first.text;
+    }
+    return q.correctAnswer;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _questions = List<Question>.from(widget.questions);
+  }
+
+  Future<void> _unsaveWithUndo(int index) async {
+    if (index < 0 || index >= _questions.length) return;
+    final q = _questions[index];
+    if (q.questionId.isEmpty) return;
+
+    final isSaved = await SavedQuestionsService.toggleSavedScoped(
+      q.questionId,
+      questionText: q.text,
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+      bcdCategoryId: widget.bcdCategoryId,
+    );
+
+    if (!mounted) return;
+    if (isSaved) return;
+
+    setState(() {
+      _expandedKeys.remove(_itemKey(q, index));
+      _questions.removeAt(index);
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Question removed from saved'),
+        action: SnackBarAction(
+          label: 'UNDO',
+          onPressed: () async {
+            final restored = await SavedQuestionsService.toggleSavedScoped(
+              q.questionId,
+              questionText: q.text,
+              licenceId: widget.licenceId,
+              categoryId: widget.categoryId,
+              bcdCategoryId: widget.bcdCategoryId,
+            );
+            if (!mounted || !restored) return;
+            setState(() {
+              final insertAt = index.clamp(0, _questions.length);
+              _questions.insert(insertAt, q);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Saved Questions')),
@@ -35,62 +108,152 @@ class SavedQuestionsPreviewScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              '${questions.length} saved question(s) in this category',
+              '${_questions.length} saved question(s) in this category',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              itemCount: questions.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final q = questions[index];
-                return ListTile(
-                  tileColor: Colors.grey.shade50,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Colors.grey.shade200),
+            child: _questions.isEmpty
+                ? Center(
+                    child: Text(
+                      'No saved questions in this category.',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    itemCount: _questions.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final q = _questions[index];
+                      final answerText = _correctAnswerText(q);
+                      final key = _itemKey(q, index);
+                      final expanded = _expandedKeys.contains(key);
+                      return Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () {
+                            setState(() {
+                              if (expanded) {
+                                _expandedKeys.remove(key);
+                              } else {
+                                _expandedKeys.add(key);
+                              }
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              border:
+                                  Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            padding: const EdgeInsets.all(14),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 14,
+                                      backgroundColor: const Color(0xFFDBEAFE),
+                                      child: Text('${index + 1}',
+                                          style: const TextStyle(fontSize: 11)),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        q.text,
+                                        maxLines: expanded ? null : 2,
+                                        overflow: expanded
+                                            ? TextOverflow.visible
+                                            : TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Unsave',
+                                      icon: const Icon(
+                                          Icons.bookmark_remove_outlined),
+                                      onPressed: () => _unsaveWithUndo(index),
+                                    ),
+                                    Icon(
+                                      expanded
+                                          ? Icons.keyboard_arrow_up
+                                          : Icons.keyboard_arrow_down,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ],
+                                ),
+                                if (answerText.isNotEmpty) ...[
+                                  const SizedBox(height: 10),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF0FDF4),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                          color: const Color(0xFFBBF7D0)),
+                                    ),
+                                    child: Text(
+                                      'Correct answer: $answerText',
+                                      style: const TextStyle(
+                                        color: Color(0xFF166534),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                if (expanded) ...[
+                                  const SizedBox(height: 10),
+                                  Divider(
+                                      color: Colors.grey.shade300, height: 1),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    q.answerExplanation.isNotEmpty
+                                        ? q.answerExplanation
+                                        : 'No explanation available.',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade800,
+                                      height: 1.45,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  leading: CircleAvatar(
-                    radius: 14,
-                    backgroundColor: const Color(0xFFDBEAFE),
-                    child: Text('${index + 1}',
-                        style: const TextStyle(fontSize: 11)),
-                  ),
-                  title: Text(
-                    q.text,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: q.questionId.isNotEmpty
-                      ? Text('ID: ${q.questionId}',
-                          maxLines: 1, overflow: TextOverflow.ellipsis)
-                      : null,
-                );
-              },
-            ),
           ),
         ],
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: ElevatedButton.icon(
-          onPressed: questions.isEmpty
+          onPressed: _questions.isEmpty
               ? null
               : () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => Testscreen(
-                        questions: questions,
+                        questions: _questions,
                         instantMarking: true,
-                        licenceId: licenceId,
-                        categoryId: categoryId,
-                        licenceName: licenceName,
-                        categoryName: '$categoryName • Saved',
-                        bcdCategoryId: bcdCategoryId,
-                        initiallySavedQuestionIds: questions
+                        licenceId: widget.licenceId,
+                        categoryId: widget.categoryId,
+                        licenceName: widget.licenceName,
+                        categoryName: '${widget.categoryName} • Saved',
+                        bcdCategoryId: widget.bcdCategoryId,
+                        initiallySavedQuestionIds: _questions
                             .map((q) => q.questionId)
                             .where((id) => id.isNotEmpty)
                             .toSet(),

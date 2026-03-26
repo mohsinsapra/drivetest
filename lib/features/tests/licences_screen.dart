@@ -14,7 +14,6 @@ import 'package:taxi_exam_app/core/widgets/licence_type_card_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/widgets/test_option_card_widget.dart';
-import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/features/payment/payment_method_sheet.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
 import 'package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart';
@@ -611,19 +610,11 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     Future<void> openSavedQuestions() async {
       setState(() => isLoading = true);
       try {
-        final fetchedQuestions = await _apiService.fetchQuestions(
-          selectedLicenseType?['licence_id'],
-          selectedCategory?['category_id'],
-          pageSize: 5000,
-          randomize: false,
-        );
-        final savedIds = await SavedQuestionsService.refreshFromBackend(
+        final saved = await _apiService.fetchSavedQuestionsResolved(
+          scopeType: 'legacy',
           licenceId: selectedLicenseType?['licence_id'],
           categoryId: selectedCategory?['category_id'],
         );
-        final saved = fetchedQuestions
-            .where((q) => savedIds.contains(q.questionId))
-            .toList();
 
         if (!mounted) return;
         if (saved.isEmpty) {

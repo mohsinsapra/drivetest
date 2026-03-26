@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'dio_client.dart';
@@ -289,6 +292,96 @@ class ApiService {
       debugPrint('[fetchSavedQuestionIds] failed: $e');
       return <String>{};
     }
+  }
+
+  Future<List<Question>> fetchSavedQuestionsResolved({
+    required String scopeType,
+    String? licenceId,
+    String? categoryId,
+    int? bcdCategoryId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        'api/user/saved-questions/resolved-questions/',
+        queryParameters: {
+          'scope_type': scopeType,
+          'licence_id': licenceId ?? '',
+          'category_id': categoryId ?? '',
+          'bcd_category_id': bcdCategoryId,
+        },
+      );
+      final data = response.data;
+      final list = data is List
+          ? data
+          : (data is Map && data['results'] is List)
+              ? data['results'] as List
+              : <dynamic>[];
+
+      return list.map((raw) {
+        final m = raw as Map<String, dynamic>;
+        final options = (m['options'] as List<dynamic>? ?? []).map((o) {
+          final map = Map<String, dynamic>.from(o as Map<String, dynamic>);
+          map['text'] = _cleanSavedText((map['text'] ?? '').toString());
+          return Option.fromMap(map);
+        }).toList();
+        final isBcd = m['is_bcd'] == true;
+        final rawImage = (m['image_url'] ?? '').toString();
+        final image = isBcd &&
+                rawImage.isNotEmpty &&
+                !rawImage.startsWith('http://') &&
+                !rawImage.startsWith('https://')
+            ? bcdMediaUrl(rawImage)
+            : rawImage;
+        return Question(
+          questionId: (m['question_id'] ?? '').toString(),
+          text: _cleanSavedText((m['text'] ?? '').toString()),
+          imageUrl: image,
+          correctAnswer: (m['correct_answer'] ?? '').toString(),
+          answerExplanation:
+              _cleanSavedText((m['answer_explanation'] ?? '').toString()),
+          options: options,
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint('[fetchSavedQuestionsResolved] failed: $e');
+      return [];
+    }
+  }
+
+  String _cleanSavedText(String raw) {
+    var text = raw;
+    if (text.codeUnits.isNotEmpty && text.codeUnits.every((c) => c < 256)) {
+      try {
+        text = utf8.decode(text.codeUnits.toList());
+      } catch (_) {}
+    }
+    return text
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'</li>', caseSensitive: false), '\n')
+        .replaceAll('\\n', '\n')
+        .replaceAll(RegExp(r'<[^>]+>'), ' ')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&auml;', 'ä')
+        .replaceAll('&ouml;', 'ö')
+        .replaceAll('&aring;', 'å')
+        .replaceAll('&Auml;', 'Ä')
+        .replaceAll('&Ouml;', 'Ö')
+        .replaceAll('&Aring;', 'Å')
+        .replaceAll('&eacute;', 'é')
+        .replaceAll('&egrave;', 'è')
+        .replaceAll('&uuml;', 'ü')
+        .replaceAll(RegExp(r'[ \t]+'), ' ')
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .join('\n')
+        .trim();
   }
 
   Future<bool?> toggleSavedQuestion({

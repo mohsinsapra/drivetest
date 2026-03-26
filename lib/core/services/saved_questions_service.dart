@@ -3,6 +3,10 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 
 class SavedQuestionsService {
   static final ApiService _api = ApiService();
+  static const Duration _syncCooldown = Duration(seconds: 45);
+  static final Map<String, Set<String>> _memoryCache = {};
+  static final Map<String, DateTime> _lastSyncedAt = {};
+  static final Map<String, Future<Set<String>>> _inFlightSync = {};
 
   static String _scopeKey(
       {String? licenceId, String? categoryId, int? bcdCategoryId}) {
@@ -23,6 +27,13 @@ class SavedQuestionsService {
 
   static Future<void> _setSavedIds(Set<String> ids,
       {String? licenceId, String? categoryId, int? bcdCategoryId}) async {
+    final scope = _scopeKey(
+      licenceId: licenceId,
+      categoryId: categoryId,
+      bcdCategoryId: bcdCategoryId,
+    );
+    _memoryCache[scope] = Set<String>.from(ids);
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
       _storageKey(
@@ -35,28 +46,76 @@ class SavedQuestionsService {
 
   static Future<Set<String>> getSavedIdsScoped(
       {String? licenceId, String? categoryId, int? bcdCategoryId}) async {
+    final scope = _scopeKey(
+      licenceId: licenceId,
+      categoryId: categoryId,
+      bcdCategoryId: bcdCategoryId,
+    );
+    final mem = _memoryCache[scope];
+    if (mem != null) {
+      return Set<String>.from(mem);
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final list = prefs.getStringList(_storageKey(
             licenceId: licenceId,
             categoryId: categoryId,
             bcdCategoryId: bcdCategoryId)) ??
         [];
-    return list.toSet();
+    final saved = list.toSet();
+    _memoryCache[scope] = Set<String>.from(saved);
+    return saved;
   }
 
   static Future<Set<String>> refreshFromBackend(
-      {String? licenceId, String? categoryId, int? bcdCategoryId}) async {
-    final remoteIds = await _api.fetchSavedQuestionIds(
-      scopeType: _scopeType(bcdCategoryId: bcdCategoryId),
+      {String? licenceId,
+      String? categoryId,
+      int? bcdCategoryId,
+      bool force = false}) async {
+    final scope = _scopeKey(
       licenceId: licenceId,
       categoryId: categoryId,
       bcdCategoryId: bcdCategoryId,
     );
-    await _setSavedIds(remoteIds,
+
+    if (!force) {
+      final inFlight = _inFlightSync[scope];
+      if (inFlight != null) return inFlight;
+
+      final lastSynced = _lastSyncedAt[scope];
+      if (lastSynced != null &&
+          DateTime.now().difference(lastSynced) < _syncCooldown) {
+        return getSavedIdsScoped(
+          licenceId: licenceId,
+          categoryId: categoryId,
+          bcdCategoryId: bcdCategoryId,
+        );
+      }
+    }
+
+    final future = () async {
+      final remoteIds = await _api.fetchSavedQuestionIds(
+        scopeType: _scopeType(bcdCategoryId: bcdCategoryId),
         licenceId: licenceId,
         categoryId: categoryId,
-        bcdCategoryId: bcdCategoryId);
-    return remoteIds;
+        bcdCategoryId: bcdCategoryId,
+      );
+      await _setSavedIds(
+        remoteIds,
+        licenceId: licenceId,
+        categoryId: categoryId,
+        bcdCategoryId: bcdCategoryId,
+      );
+      _lastSyncedAt[scope] = DateTime.now();
+      return remoteIds;
+    }();
+
+    _inFlightSync[scope] = future;
+    try {
+      return await future;
+    } finally {
+      _inFlightSync.remove(scope);
+    }
   }
 
   static Future<bool> toggleSavedScoped(
