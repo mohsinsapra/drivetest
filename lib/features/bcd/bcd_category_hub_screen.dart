@@ -870,6 +870,16 @@ class _BCDChecklistsScreenState extends State<_BCDChecklistsScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
                       child: ExpansionTile(
+                        shape: const RoundedRectangleBorder(
+                          side: BorderSide.none,
+                        ),
+                        collapsedShape: const RoundedRectangleBorder(
+                          side: BorderSide.none,
+                        ),
+                        expandedAlignment: Alignment.centerLeft,
+                        expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                        childrenPadding:
+                            const EdgeInsets.fromLTRB(16, 0, 16, 16),
                         leading: const Icon(LucideIcons.clipboardCheck,
                             color: Color(0xFF3B5F8A)),
                         title: Text(
@@ -877,12 +887,10 @@ class _BCDChecklistsScreenState extends State<_BCDChecklistsScreen> {
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                            child: Text(
-                              cleanBcdText(item['content']?.toString() ?? ''),
-                              style: const TextStyle(fontSize: 14, height: 1.5),
-                            ),
+                          Text(
+                            cleanBcdMultilineText(
+                                item['content']?.toString() ?? ''),
+                            style: const TextStyle(fontSize: 14, height: 1.5),
                           ),
                         ],
                       ),

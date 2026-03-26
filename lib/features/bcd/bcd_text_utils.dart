@@ -34,3 +34,37 @@ String cleanBcdText(String raw) {
       .replaceAll('&apos;', "'")
       .trim();
 }
+
+/// Similar to [cleanBcdText] but keeps meaningful line breaks.
+/// Useful for checklist/document-like content where `\n` should render as new lines.
+String cleanBcdMultilineText(String raw) {
+  final text = fixBcdEncoding(raw)
+      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+      .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n')
+      .replaceAll(RegExp(r'</li>', caseSensitive: false), '\n')
+      .replaceAll('\\n', '\n')
+      .replaceAll(RegExp(r'<[^>]+>'), ' ')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'")
+      .replaceAll('&auml;', 'ä')
+      .replaceAll('&ouml;', 'ö')
+      .replaceAll('&aring;', 'å')
+      .replaceAll('&Auml;', 'Ä')
+      .replaceAll('&Ouml;', 'Ö')
+      .replaceAll('&Aring;', 'Å')
+      .replaceAll('&eacute;', 'é')
+      .replaceAll('&egrave;', 'è')
+      .replaceAll('&uuml;', 'ü')
+      .replaceAll('&apos;', "'");
+
+  return text
+      .split('\n')
+      .map((line) => line.replaceAll(RegExp(r'[ \t]+'), ' ').trim())
+      .where((line) => line.isNotEmpty)
+      .join('\n')
+      .trim();
+}
