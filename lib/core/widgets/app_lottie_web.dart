@@ -17,8 +17,8 @@ Widget buildWebLottie({
 
   if (!_registered.contains(viewType)) {
     _registered.add(viewType);
-    // assets are served at /assets/<path> in Flutter web builds
-    final src = 'assets/$asset';
+    // Flutter web builds serve assets at assets/assets/<path>
+    final src = 'assets/assets/$asset';
     ui.platformViewRegistry.registerViewFactory(viewType, (int _) {
       final el = html.Element.tag('lottie-player')
         ..setAttribute('src', src)

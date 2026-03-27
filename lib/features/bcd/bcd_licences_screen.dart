@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -17,10 +19,16 @@ class BCDLicencesScreen extends StatefulWidget {
 class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
   final _api = ApiService();
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
 
   List<dynamic> _categories = [];
   bool _loading = false;
+  bool _animateList = true;
   String _searchQuery = '';
+  double _savedScrollOffset = 0;
+  Timer? _refreshTimer;
+
+  static const _autoRefreshInterval = Duration(hours: 1);
 
   List<dynamic> get _filtered {
     if (_searchQuery.isEmpty) return _categories;
@@ -36,21 +44,25 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
     _loadCategories();
     _searchController.addListener(
         () => setState(() => _searchQuery = _searchController.text));
+    _refreshTimer = Timer.periodic(_autoRefreshInterval, (_) => _silentRefresh());
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   Future<void> _loadCategories() async {
     setState(() => _loading = true);
     try {
-      // is_subscribed is computed server-side from BCDUserSubscription
-      // (PAID, not expired, covers that category) — no client-side logic needed.
       final categories = await _api.fetchBCDAllCategories();
-      if (mounted) setState(() => _categories = categories);
+      if (mounted) setState(() {
+        _categories = categories;
+        _animateList = false;
+      });
     } catch (e) {
       if (mounted) showAppSnackBar('Failed to load categories');
     } finally {
@@ -58,7 +70,20 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
     }
   }
 
+  // Refreshes data in the background without showing the shimmer loader.
+  Future<void> _silentRefresh() async {
+    try {
+      final categories = await _api.fetchBCDAllCategories();
+      if (mounted) setState(() => _categories = categories);
+    } catch (_) {
+      // silent — don't bother the user if background refresh fails
+    }
+  }
+
   void _onCategoryTap(dynamic category) {
+    _savedScrollOffset =
+        _scrollController.hasClients ? _scrollController.offset : 0;
+
     final hasChildren = category['has_children'] == true;
     final cat = Map<String, dynamic>.from(category);
 
@@ -66,7 +91,15 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
         ? MaterialPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
         : MaterialPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat));
 
-    Navigator.push(context, route).then((_) => _loadCategories());
+    Navigator.push(context, route).then((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(
+            _savedScrollOffset.clamp(0, _scrollController.position.maxScrollExtent),
+          );
+        }
+      });
+    });
   }
 
   @override
@@ -102,26 +135,38 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
           Expanded(
             child: _loading
                 ? _Shimmer()
-                : _filtered.isEmpty
-                    ? Center(
-                        child: Text(
-                          _searchQuery.isNotEmpty
-                              ? 'No categories match "$_searchQuery"'
-                              : 'No categories available.',
-                          style: TextStyle(color: Colors.grey.shade500),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _filtered.length,
-                        itemBuilder: (_, i) => _StaggeredItem(
-                          index: i,
-                          child: _CategoryCard(
-                            category: _filtered[i],
-                            onTap: () => _onCategoryTap(_filtered[i]),
+                : RefreshIndicator(
+                    onRefresh: _loadCategories,
+                    child: _filtered.isEmpty
+                        ? ListView(
+                            children: [
+                              SizedBox(
+                                height: 300,
+                                child: Center(
+                                  child: Text(
+                                    _searchQuery.isNotEmpty
+                                        ? 'No categories match "$_searchQuery"'
+                                        : 'No categories available.',
+                                    style: TextStyle(color: Colors.grey.shade500),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _filtered.length,
+                            itemBuilder: (_, i) => _StaggeredItem(
+                              index: i,
+                              animate: _animateList,
+                              child: _CategoryCard(
+                                category: _filtered[i],
+                                onTap: () => _onCategoryTap(_filtered[i]),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                  ),
           ),
         ],
       ),
@@ -222,7 +267,8 @@ class _Shimmer extends StatelessWidget {
 class _StaggeredItem extends StatefulWidget {
   final int index;
   final Widget child;
-  const _StaggeredItem({required this.index, required this.child});
+  final bool animate;
+  const _StaggeredItem({required this.index, required this.child, this.animate = true});
 
   @override
   State<_StaggeredItem> createState() => _StaggeredItemState();
@@ -243,8 +289,12 @@ class _StaggeredItemState extends State<_StaggeredItem>
     _slide = Tween<Offset>(
             begin: const Offset(0, 0.05), end: Offset.zero)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-    Future.delayed(Duration(milliseconds: widget.index * 35),
-        () { if (mounted) _ctrl.forward(); });
+    if (widget.animate) {
+      Future.delayed(Duration(milliseconds: widget.index * 35),
+          () { if (mounted) _ctrl.forward(); });
+    } else {
+      _ctrl.value = 1.0;
+    }
   }
 
   @override
