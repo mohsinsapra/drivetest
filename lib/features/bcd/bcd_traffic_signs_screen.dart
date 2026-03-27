@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -149,13 +150,29 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
 
 // ── Group card ─────────────────────────────────────────────────────────────────
 
-class _SignGroupCard extends StatelessWidget {
+class _SignGroupCard extends StatefulWidget {
   final dynamic sign;
   final VoidCallback onTap;
   const _SignGroupCard({required this.sign, required this.onTap});
 
   @override
+  State<_SignGroupCard> createState() => _SignGroupCardState();
+}
+
+class _SignGroupCardState extends State<_SignGroupCard> {
+  final _pageController = PageController();
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final sign = widget.sign;
+    final onTap = widget.onTap;
     final title = cleanBcdText(sign['title']?.toString() ?? '');
     final content = cleanBcdText(sign['content']?.toString() ?? '');
     final images = (sign['images'] as List<dynamic>? ?? []);
@@ -179,26 +196,24 @@ class _SignGroupCard extends StatelessWidget {
       }
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image collage area
-            ClipRRect(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image area (not wrapped in GestureDetector so PageView can swipe)
+          ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(20)),
               child: previewUrls.isEmpty
@@ -224,149 +239,160 @@ class _SignGroupCard extends StatelessWidget {
                                 color: Colors.grey.shade300),
                           ),
                         )
-                      : Container(
-                          height: 170,
-                          width: double.infinity,
-                          color: const Color(0xFFF8F8FA),
-                          child: _ImageCollage(urls: previewUrls),
+                      : _ImageSlider(
+                          urls: previewUrls,
+                          controller: _pageController,
+                          currentPage: _currentPage,
+                          onPageChanged: (i) =>
+                              setState(() => _currentPage = i),
                         ),
             ),
             // Divider
             Divider(height: 1, color: Colors.grey.shade100),
-            // Text content
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: Color(0xFF111827))),
-                  if (content.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      content.length > 110
-                          ? '${content.substring(0, 110)}…'
-                          : content,
-                      style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                          height: 1.45),
-                    ),
-                  ],
-                  if (signCount > 0) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Icon(LucideIcons.alertTriangle,
-                            size: 13, color: Colors.grey.shade400),
-                        const SizedBox(width: 5),
-                        Text('$signCount traffic signs',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade500,
-                                fontWeight: FontWeight.w500)),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF0F4FF),
-                            borderRadius: BorderRadius.circular(20),
+            // Text content — tap navigates into the group
+            GestureDetector(
+              onTap: onTap,
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: Color(0xFF111827))),
+                    if (content.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        content.length > 110
+                            ? '${content.substring(0, 110)}…'
+                            : content,
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                            height: 1.45),
+                      ),
+                    ],
+                    if (signCount > 0) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Icon(LucideIcons.alertTriangle,
+                              size: 13, color: Colors.grey.shade400),
+                          const SizedBox(width: 5),
+                          Text('$signCount traffic signs',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade500,
+                                  fontWeight: FontWeight.w500)),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F4FF),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('View',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF3B5BDB),
+                                        fontWeight: FontWeight.w600)),
+                                SizedBox(width: 3),
+                                Icon(LucideIcons.chevronRight,
+                                    size: 13, color: Color(0xFF3B5BDB)),
+                              ],
+                            ),
                           ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('View',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF3B5BDB),
-                                      fontWeight: FontWeight.w600)),
-                              SizedBox(width: 3),
-                              Icon(LucideIcons.chevronRight,
-                                  size: 13, color: Color(0xFF3B5BDB)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],
         ),
-      ),
+
     );
   }
 }
 
-// Overlapping image collage
-class _ImageCollage extends StatelessWidget {
+// Modern image slider with dots
+class _ImageSlider extends StatelessWidget {
   final List<String> urls;
-  const _ImageCollage({required this.urls});
+  final PageController controller;
+  final int currentPage;
+  final ValueChanged<int> onPageChanged;
+  const _ImageSlider({
+    required this.urls,
+    required this.controller,
+    required this.currentPage,
+    required this.onPageChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (urls.length == 1) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: _NetImg(url: urls[0], size: 120),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          height: 180,
+          color: const Color(0xFFF8F8FA),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+          child: ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+            }),
+            child: PageView.builder(
+            controller: controller,
+            itemCount: urls.length,
+            onPageChanged: onPageChanged,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (_, i) => Image.network(
+              urls[i],
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Icon(
+                  LucideIcons.image,
+                  size: 48,
+                  color: Colors.grey.shade300),
+            ),
+          )),
         ),
-      );
-    }
-    return Center(
-      child: SizedBox(
-        width: 220,
-        height: 170,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (urls.length >= 3)
-              Positioned(
-                  left: 0,
-                  bottom: 16,
-                  child: _NetImg(url: urls[2], size: 78, opacity: 0.80)),
-            if (urls.length >= 2)
-              Positioned(
-                  right: 0,
-                  top: 12,
-                  child: _NetImg(url: urls[1], size: 90)),
-            Positioned(
-                left: 40,
-                top: 16,
-                child: _NetImg(url: urls[0], size: 108)),
-          ],
+        Container(
+          color: const Color(0xFFF8F8FA),
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(urls.length, (i) {
+              final active = i == currentPage;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOut,
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: active ? 18 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: active
+                      ? const Color(0xFF3B5BDB)
+                      : Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              );
+            }),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
 
-class _NetImg extends StatelessWidget {
-  final String url;
-  final double size;
-  final double opacity;
-  const _NetImg({required this.url, required this.size, this.opacity = 1.0});
-
-  @override
-  Widget build(BuildContext context) {
-    return Opacity(
-      opacity: opacity,
-      child: Image.network(
-        url,
-        width: size,
-        height: size,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Icon(LucideIcons.image,
-            size: size * 0.4, color: Colors.grey.shade300),
-      ),
-    );
-  }
-}
 
 // ── Detail screen ──────────────────────────────────────────────────────────────
 
