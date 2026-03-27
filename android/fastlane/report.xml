@@ -5,12 +5,84 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000261">
+      <testcase classname="fastlane.lanes" name="00: default_platform" time="0.000167">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: upload_to_play_store" time="4.393343">
+      <testcase classname="fastlane.lanes" name="01: Switch to android beta lane" time="5.3e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="02: Switch to android resolve_play_store_json_key lane" time="4.1e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="03: Switch to android load_root_env lane" time="4.3e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="04: google_play_track_version_codes" time="1.476176">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="05: Switch to android get_latest_changelog_entry lane" time="0.000105">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="06: Switch to android resolve_flutter_dart_defines lane" time="7.9e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="07: Switch to android load_root_env lane" time="6.4e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="08: cd .. &amp;&amp; flutter build appbundle --release --build-number=65 --dart-define=GOOGLE_SERVER_CLIENT_ID=678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com" time="19.181033">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="09: upload_to_play_store" time="67.2899">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="10: Switch to android tag_release lane" time="0.000105">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="11: git tag v1.0.3-64" time="0.011974">
+        
+          <failure message="/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/actions/actions_helper.rb:67:in `execute_action'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/fast_file.rb:224:in `sh'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/fast_file.rb:216:in `sh'&#10;Fastfile:199:in `block (2 levels) in parsing_binding'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane.rb:41:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:204:in `try_switch_to_lane'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:146:in `trigger_action_by_name'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/fast_file.rb:159:in `method_missing'&#10;Fastfile:41:in `block (2 levels) in parsing_binding'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane.rb:41:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:204:in `try_switch_to_lane'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:146:in `trigger_action_by_name'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/fast_file.rb:159:in `method_missing'&#10;Fastfile:46:in `block (2 levels) in parsing_binding'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane.rb:41:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:49:in `block in execute'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:45:in `chdir'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:45:in `execute'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane_manager.rb:46:in `cruise_lane'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/command_line_handler.rb:34:in `handle'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:110:in `block (2 levels) in run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/command.rb:187:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/command.rb:157:in `run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/runner.rb:444:in `run_active_command'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane_core/lib/fastlane_core/ui/fastlane_runner.rb:124:in `run!'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/delegates.rb:18:in `run!'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:363:in `run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:43:in `start'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/cli_tools_distributor.rb:123:in `take_off'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/bin/fastlane:23:in `&lt;top (required)&gt;'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/fastlane:23:in `load'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/fastlane:23:in `&lt;main&gt;'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/ruby_executable_hooks:22:in `eval'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/ruby_executable_hooks:22:in `&lt;main&gt;'&#10;&#10;Exit status of command 'git tag v1.0.3-64' was 128 instead of 0.&#10;fatal: tag 'v1.0.3-64' already exists&#10;" />
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="12: Switch to android production lane" time="8.0e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="13: Switch to android resolve_play_store_json_key lane" time="4.7e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="14: Switch to android load_root_env lane" time="5.4e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="15: upload_to_play_store" time="5.2596">
         
       </testcase>
     

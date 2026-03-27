@@ -85,7 +85,8 @@ jobs:
             --dart-define=FIREBASE_APP_ID=${{ vars.FIREBASE_APP_ID }} \
             --dart-define=FIREBASE_MEASUREMENT_ID=${{ vars.FIREBASE_MEASUREMENT_ID }} \
             --dart-define=STRIPE_PUBLISHABLE_KEY=${{ vars.STRIPE_PUBLISHABLE_KEY }} \
-            --dart-define=ENCRYPTION_PASSPHRASE=${{ vars.ENCRYPTION_PASSPHRASE }}
+            --dart-define=ENCRYPTION_PASSPHRASE=${{ vars.ENCRYPTION_PASSPHRASE }} \
+            --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ vars.GOOGLE_SERVER_CLIENT_ID }}
 
       - name: Upload APK (PR check)
         if: github.event_name == 'pull_request'
@@ -111,4 +112,5 @@ jobs:
             --dart-define=FIREBASE_MEASUREMENT_ID=${{ vars.FIREBASE_MEASUREMENT_ID }}
             --dart-define=STRIPE_PUBLISHABLE_KEY=${{ vars.STRIPE_PUBLISHABLE_KEY }}
             --dart-define=ENCRYPTION_PASSPHRASE=${{ vars.ENCRYPTION_PASSPHRASE }}
+            --dart-define=GOOGLE_SERVER_CLIENT_ID=${{ vars.GOOGLE_SERVER_CLIENT_ID }}
         run: bundle exec fastlane beta

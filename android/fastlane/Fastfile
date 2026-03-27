@@ -3,9 +3,11 @@ default_platform(:android)
 platform :android do
   desc "Deploy Beta"
   lane :beta do
+    play_store_json_key = resolve_play_store_json_key
+
     previous_build_number = google_play_track_version_codes(
       track: "alpha",
-      json_key_data: ENV["PLAY_STORE_JSON_KEY"]
+      json_key_data: play_store_json_key
     ).max
 
     current_build_number = previous_build_number + 1
@@ -22,8 +24,8 @@ platform :android do
     File.write(changelog_path, changelog_text)
 
     # Use Flutter CLI to build — works on both local and CI without local.properties setup
-    # FLUTTER_DART_DEFINES is set by CI; locally it's empty (app falls back to hardcoded defaults)
-    dart_defines = ENV["FLUTTER_DART_DEFINES"] || ""
+    # FLUTTER_DART_DEFINES is set by CI; locally this falls back to .env values.
+    dart_defines = resolve_flutter_dart_defines
     sh("cd .. && flutter build appbundle --release --build-number=#{current_build_number} #{dart_defines}")
 
     upload_to_play_store(
@@ -32,11 +34,11 @@ platform :android do
       skip_upload_images: true,
       version_code: current_build_number,
       aab: "../build/app/outputs/bundle/release/app-release.aab",
-      json_key_data: ENV["PLAY_STORE_JSON_KEY"]
+      json_key_data: play_store_json_key
     )
 
     # Tag the release
-    tag_release
+    tag_release(build_number: current_build_number)
   end
 
   desc "Build, upload to alpha, then promote to production"
@@ -56,7 +58,7 @@ platform :android do
       skip_upload_changelogs: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
-      json_key_data: ENV["PLAY_STORE_JSON_KEY"]
+      json_key_data: resolve_play_store_json_key
     )
   end
 
@@ -147,13 +149,52 @@ end
     changelog_text
   end
 
-  private_lane :tag_release do
+  private_lane :resolve_play_store_json_key do
+    return ENV["PLAY_STORE_JSON_KEY"] unless ENV["PLAY_STORE_JSON_KEY"].to_s.strip.empty?
+
+    env_vars = load_root_env
+    json_key_path = env_vars["PLAY_STORE_JSON_KEY_PATH"].to_s.strip
+
+    UI.user_error!("Missing PLAY_STORE_JSON_KEY or PLAY_STORE_JSON_KEY_PATH") if json_key_path.empty?
+    UI.user_error!("PLAY_STORE_JSON_KEY_PATH not found: #{json_key_path}") unless File.exist?(json_key_path)
+
+    File.read(json_key_path)
+  end
+
+  private_lane :resolve_flutter_dart_defines do
+    explicit_defines = ENV["FLUTTER_DART_DEFINES"].to_s.strip
+    return explicit_defines unless explicit_defines.empty?
+
+    env_vars = load_root_env
+    google_server_client_id = env_vars["GOOGLE_SERVER_CLIENT_ID"].to_s.strip
+
+    return "" if google_server_client_id.empty?
+
+    "--dart-define=GOOGLE_SERVER_CLIENT_ID=#{google_server_client_id}"
+  end
+
+  private_lane :load_root_env do
+    env_path = File.expand_path("../../.env", __dir__)
+    return {} unless File.exist?(env_path)
+
+    File.readlines(env_path).each_with_object({}) do |line, vars|
+      next if line.strip.empty? || line.lstrip.start_with?("#")
+
+      key, value = line.split("=", 2)
+      next if key.nil? || value.nil?
+
+      vars[key.strip] = value.strip
+    end
+  end
+
+  private_lane :tag_release do |options|
     pubspec_path = "../../pubspec.yaml"
     pubspec_content = File.read(pubspec_path)
 
     version_match = pubspec_content.match(/^version:\s*(.+)\+(\d+)/)
     if version_match
-      version_tag = "v#{version_match[1]}-#{version_match[2]}"
+      build_number = options[:build_number] || version_match[2]
+      version_tag = "v#{version_match[1]}-#{build_number}"
 
       begin
         sh("git tag #{version_tag}")

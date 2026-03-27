@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help web-build web-deploy web-run clean version-patch version-minor version-major
+.PHONY: help web-build web-deploy web-run clean version-patch version-minor version-major android-beta android-deploy ios-beta
 
 # Colors for output
 COLOR_RESET = \033[0m
@@ -40,6 +40,7 @@ help:
 	@echo ""
 	@echo "$(COLOR_GREEN)Mobile Deployment:$(COLOR_RESET)"
 	@echo "  make android-beta     - Deploy Android to Google Play alpha"
+	@echo "  make android-deploy   - Deploy Android to alpha, then promote to production"
 	@echo "  make ios-beta         - Deploy iOS to TestFlight"
 	@echo ""
 	@echo "$(COLOR_GREEN)Utility Commands:$(COLOR_RESET)"
@@ -131,7 +132,12 @@ web-android-deploy: web-build android-beta
 ## android-beta: Deploy Android to Google Play alpha
 android-beta:
 	@echo "$(COLOR_GREEN)Deploying Android to Google Play alpha track...$(COLOR_RESET)"
-	@cd android && fastlane beta
+	@cd android && bundle exec fastlane android beta
+
+## android-deploy: Deploy Android to alpha and promote to production
+android-deploy:
+	@echo "$(COLOR_GREEN)Deploying Android to alpha and promoting to production...$(COLOR_RESET)"
+	@cd android && bundle exec fastlane android deploy
 
 ## ios-beta: Deploy iOS to TestFlight
 ios-beta:
