@@ -177,8 +177,7 @@ class _SignGroupCardState extends State<_SignGroupCard> {
     final content = cleanBcdText(sign['content']?.toString() ?? '');
     final images = (sign['images'] as List<dynamic>? ?? []);
     final children = (sign['children'] as List<dynamic>? ?? []);
-    final signCount =
-        children.isNotEmpty ? children.length : images.length;
+    final signCount = children.isNotEmpty ? children.length : images.length;
 
     // Collect up to 3 preview image URLs
     final previewUrls = <String>[];
@@ -194,6 +193,42 @@ class _SignGroupCardState extends State<_SignGroupCard> {
           if (fn.isNotEmpty) previewUrls.add(ApiService().bcdMediaUrl(fn));
         }
       }
+    }
+
+    Widget imageArea;
+    if (previewUrls.isEmpty) {
+      imageArea = Container(
+        height: 120,
+        width: double.infinity,
+        color: const Color(0xFFF8F8FA),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(LucideIcons.imageOff, size: 36, color: Colors.grey.shade300),
+            const SizedBox(height: 8),
+            Text('No image', style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
+          ],
+        ),
+      );
+    } else if (previewUrls.length == 1) {
+      imageArea = Container(
+        width: double.infinity,
+        color: const Color(0xFFF8F8FA),
+        padding: const EdgeInsets.all(24),
+        child: Image.network(
+          previewUrls[0],
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) =>
+              Icon(LucideIcons.imageOff, size: 48, color: Colors.grey.shade300),
+        ),
+      );
+    } else {
+      imageArea = _ImageSlider(
+        urls: previewUrls,
+        controller: _pageController,
+        currentPage: _currentPage,
+        onPageChanged: (i) => setState(() => _currentPage = i),
+      );
     }
 
     return Container(
@@ -212,113 +247,71 @@ class _SignGroupCardState extends State<_SignGroupCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image area (not wrapped in GestureDetector so PageView can swipe)
+          // Image area — not wrapped in GestureDetector so PageView can swipe
           ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-              child: previewUrls.isEmpty
-                  ? Container(
-                      height: 120,
-                      width: double.infinity,
-                      color: const Color(0xFFF8F8FA),
-                      child: Center(
-                          child: Icon(LucideIcons.alertTriangle,
-                              size: 60, color: Colors.grey.shade300)),
-                    )
-                  : previewUrls.length == 1
-                      ? Container(
-                          width: double.infinity,
-                          color: const Color(0xFFF8F8FA),
-                          padding: const EdgeInsets.all(24),
-                          child: Image.network(
-                            previewUrls[0],
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => Icon(
-                                LucideIcons.image,
-                                size: 48,
-                                color: Colors.grey.shade300),
-                          ),
-                        )
-                      : _ImageSlider(
-                          urls: previewUrls,
-                          controller: _pageController,
-                          currentPage: _currentPage,
-                          onPageChanged: (i) =>
-                              setState(() => _currentPage = i),
-                        ),
-            ),
-            // Divider
-            Divider(height: 1, color: Colors.grey.shade100),
-            // Text content — tap navigates into the group
-            GestureDetector(
-              onTap: onTap,
-              behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                            color: Color(0xFF111827))),
-                    if (content.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        content.length > 110
-                            ? '${content.substring(0, 110)}…'
-                            : content,
-                        style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade600,
-                            height: 1.45),
-                      ),
-                    ],
-                    if (signCount > 0) ...[
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Icon(LucideIcons.alertTriangle,
-                              size: 13, color: Colors.grey.shade400),
-                          const SizedBox(width: 5),
-                          Text('$signCount traffic signs',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                  fontWeight: FontWeight.w500)),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF0F4FF),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('View',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF3B5BDB),
-                                        fontWeight: FontWeight.w600)),
-                                SizedBox(width: 3),
-                                Icon(LucideIcons.chevronRight,
-                                    size: 13, color: Color(0xFF3B5BDB)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: imageArea,
+          ),
+          Divider(height: 1, color: Colors.grey.shade100),
+          // Text content — tap navigates into the group
+          GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  if (content.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      content.length > 110 ? '${content.substring(0, 110)}…' : content,
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.45),
+                    ),
                   ],
-                ),
+                  if (signCount > 0) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(LucideIcons.alertTriangle, size: 13, color: Colors.grey.shade400),
+                        const SizedBox(width: 5),
+                        Text(
+                          '$signCount traffic signs',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F4FF),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('View', style: TextStyle(fontSize: 12, color: Color(0xFF3B5BDB), fontWeight: FontWeight.w600)),
+                              SizedBox(width: 3),
+                              Icon(LucideIcons.chevronRight, size: 13, color: Color(0xFF3B5BDB)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
               ),
             ),
-          ],
-        ),
-
+          ),
+        ],
+      ),
     );
   }
 }
