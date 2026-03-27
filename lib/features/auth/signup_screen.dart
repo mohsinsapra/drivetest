@@ -1,13 +1,12 @@
 import 'dart:convert'; // For json.decode
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/auth/google_sign_in_helper.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -33,13 +32,7 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final googleSignIn = GoogleSignIn(
-        clientId:
-            '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
-        serverClientId: kIsWeb
-            ? null
-            : '678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com',
-      );
+      final googleSignIn = GoogleSignInHelper.create();
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         setState(() => _isLoading = false);
@@ -72,7 +65,7 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar('Google sign-in failed. Please try again.');
+      showAppSnackBar(GoogleSignInHelper.userMessage(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
