@@ -29,7 +29,7 @@ Deploy Beta
 [bundle exec] fastlane android production
 ```
 
-Deploy Production
+Promote alpha to production
 
 ### android promote_internal_to_alpha
 

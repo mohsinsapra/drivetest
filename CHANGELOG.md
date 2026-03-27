@@ -7,14 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.0.2+19] - 2026-03-27
+
 ### Added
-- Update alerts
+- Traffic signs redesigned with modern card UI, image slider with dot indicators, and swipe navigation
+- Traffic sign detail view with per-sign image viewer, progress bar, and prev/next navigation
 
 ### Changed
--
+- Categories page no longer reloads on back navigation — scroll position is preserved
+- Categories animate only on first load; returning feels instant
+- Pull-to-refresh on categories page; auto-refreshes silently every hour
 
 ### Fixed
-- Blank screen
+- Traffic sign images returning 404 due to double path prefix in database
+- Lottie animations on web returning 404 (wrong asset path)
 
 ---
 

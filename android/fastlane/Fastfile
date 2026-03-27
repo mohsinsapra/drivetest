@@ -39,10 +39,25 @@ platform :android do
     tag_release
   end
 
-  desc "Deploy Production"
+  desc "Build, upload to alpha, then promote to production"
+  lane :deploy do
+    beta
+    production
+  end
+
+  desc "Promote alpha to production"
   lane :production do
-    gradle(task: "assembleRelease")
-    upload_to_play_store(track: "production")
+    upload_to_play_store(
+      track: 'alpha',
+      track_promote_to: 'production',
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      json_key_data: ENV["PLAY_STORE_JSON_KEY"]
+    )
   end
 
   desc "promote from internal to alpha"
