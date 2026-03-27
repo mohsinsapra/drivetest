@@ -98,10 +98,13 @@ class DioClient {
       // Overriding [keyBuilder] is strongly recommended when [true].
       allowPostMethod: false,
     );
+    final baseUrl = kReleaseMode
+        ? 'https://taxiexam.hayatpoetry.com/'
+        : 'http://192.168.1.130:8010/';
+
     _dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',
-      baseUrl: 'http://192.168.1.130:8010/',
-      // baseUrl: 'https://taxiexam.hayatpoetry.com/',
+      baseUrl: baseUrl,
       connectTimeout: const Duration(milliseconds: 5000),
       receiveTimeout: const Duration(milliseconds: 20000),
     ));
