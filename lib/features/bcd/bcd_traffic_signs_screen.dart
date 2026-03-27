@@ -201,16 +201,35 @@ class _SignGroupCard extends StatelessWidget {
             ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(20)),
-              child: Container(
-                height: 170,
-                width: double.infinity,
-                color: const Color(0xFFF8F8FA),
-                child: previewUrls.isEmpty
-                    ? Center(
-                        child: Icon(LucideIcons.alertTriangle,
-                            size: 60, color: Colors.grey.shade300))
-                    : _ImageCollage(urls: previewUrls),
-              ),
+              child: previewUrls.isEmpty
+                  ? Container(
+                      height: 120,
+                      width: double.infinity,
+                      color: const Color(0xFFF8F8FA),
+                      child: Center(
+                          child: Icon(LucideIcons.alertTriangle,
+                              size: 60, color: Colors.grey.shade300)),
+                    )
+                  : previewUrls.length == 1
+                      ? Container(
+                          width: double.infinity,
+                          color: const Color(0xFFF8F8FA),
+                          padding: const EdgeInsets.all(24),
+                          child: Image.network(
+                            previewUrls[0],
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => Icon(
+                                LucideIcons.image,
+                                size: 48,
+                                color: Colors.grey.shade300),
+                          ),
+                        )
+                      : Container(
+                          height: 170,
+                          width: double.infinity,
+                          color: const Color(0xFFF8F8FA),
+                          child: _ImageCollage(urls: previewUrls),
+                        ),
             ),
             // Divider
             Divider(height: 1, color: Colors.grey.shade100),
