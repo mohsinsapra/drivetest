@@ -67,7 +67,8 @@
       "Bash(git:*)",
       "Bash(firebase:*)",
       "Bash(gcloud projects:*)",
-      "Bash(keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android)"
+      "Bash(keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android)",
+      "Bash(grep -n \"user_is_app_administrator\\\\|user_can_see_bcd\\\\|show_all_content\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/user_management/*.py)"
     ],
     "deny": [],
     "ask": []
