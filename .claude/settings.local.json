@@ -57,7 +57,15 @@
       "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app -name *.dart -path */settings/* -type f)",
       "Bash(pod install:*)",
       "Bash(pod cache:*)",
-      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/models -type f -name *.dart)"
+      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/models -type f -name *.dart)",
+      "Bash(grep -r \"google_sign_in\\\\|GoogleSignIn\\\\|signInWithGoogle\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib --include=*.dart)",
+      "Bash(grep -r \"GOOGLE_WEB_CLIENT_ID\\\\|GOOGLE_SERVER_CLIENT_ID\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app --include=*.dart --include=*.gradle --include=*.xml)",
+      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app -type f -name *.md)",
+      "Bash(keytool -list -v -keystore \"/Users/muhammadmohsin/Documents/Learning/TAXI/Android signing key/taxiappkey\" -storepass '$Arach@1@#')",
+      "Bash(grep -r \"ApiException\\\\|sign_in_failed\\\\|error\\\\|exception\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib --include=*.dart)",
+      "Bash(git -C /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app log --oneline --all)",
+      "Bash(git:*)",
+      "Bash(firebase:*)"
     ],
     "deny": [],
     "ask": []

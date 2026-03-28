@@ -12,7 +12,12 @@
           "package_name": "com.mohsinsapra.drivetest"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "640394192831-e6hi0ho85923epa77ir6402ggl8pgrff.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCtlRhQoGh04eMaefKzMUNTl7oI3D1HY5k"
