@@ -83,8 +83,12 @@ void main() async {
         dotenv.env['ENCRYPTION_PASSPHRASE'] = 'this_is_the_project_for_taxi';
       }
     } else {
-      // Load .env for mobile/desktop
-      await dotenv.load();
+      // Load .env for mobile/desktop (may not exist in CI/Play Store builds)
+      try {
+        await dotenv.load();
+      } catch (e) {
+        print('Failed to load .env (using dart-defines instead): $e');
+      }
     }
 
     const stripeKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');

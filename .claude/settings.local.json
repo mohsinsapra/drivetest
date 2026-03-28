@@ -68,7 +68,12 @@
       "Bash(firebase:*)",
       "Bash(gcloud projects:*)",
       "Bash(keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android)",
-      "Bash(grep -n \"user_is_app_administrator\\\\|user_can_see_bcd\\\\|show_all_content\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/user_management/*.py)"
+      "Bash(grep -n \"user_is_app_administrator\\\\|user_can_see_bcd\\\\|show_all_content\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/user_management/*.py)",
+      "Bash(grep -n \"FLUTTER_DART_DEFINES\\\\|STRIPE\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/.github/workflows/*.yml)",
+      "Bash(gh secret:*)",
+      "Bash(bundle exec:*)",
+      "Bash(keytool -list -v -keystore android/app/debug.keystore -alias androiddebugkey -storepass android -keypass android)",
+      "Bash(keytool -list -v -keystore \"/Users/muhammadmohsin/Documents/Learning/TAXI/Android signing key/taxiappkey\" -alias taxiflutterapp -storepass '$Arach@1@#')"
     ],
     "deny": [],
     "ask": []
