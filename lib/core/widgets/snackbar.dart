@@ -1,115 +1,60 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:taxi_exam_app/core/services/navigation_service.dart';
+import 'package:toastification/toastification.dart';
 
-void showAppSnackBar(String message, {Color? backgroundColor}) {
-  debugPrint('showAppSnackBar called with message: $message');
-  final context = NavigationService.navigatorKey.currentContext;
-  if (context == null) return;
-  final overlay = NavigationService.navigatorKey.currentState!.overlay!;
-  late OverlayEntry overlayEntry;
+enum SnackBarType { info, success, error }
 
-  overlayEntry = OverlayEntry(builder: (context) {
-    return _TopSnackBar(
-      key: UniqueKey(),
-      message: message,
-      backgroundColor: backgroundColor,
-      onDismissed: () {
-        overlayEntry.remove();
-      },
-    );
-  });
+/// Shows a pill-shaped top-centered toast notification.
+///
+/// [type] controls the icon and accent colour:
+///   - [SnackBarType.success] → green check
+///   - [SnackBarType.error]   → red alert
+///   - [SnackBarType.info]    → neutral (default)
+void showAppSnackBar(String message, {SnackBarType type = SnackBarType.info}) {
+  final ToastificationType toastType = switch (type) {
+    SnackBarType.success => ToastificationType.success,
+    SnackBarType.error => ToastificationType.error,
+    SnackBarType.info => ToastificationType.info,
+  };
 
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    overlay.insert(overlayEntry);
-  });
-}
-
-class _TopSnackBar extends StatefulWidget {
-  final String message;
-  final Color? backgroundColor;
-  final VoidCallback onDismissed;
-
-  const _TopSnackBar({
-    super.key,
-    required this.message,
-    this.backgroundColor,
-    required this.onDismissed,
-  });
-
-  @override
-  _TopSnackBarState createState() => _TopSnackBarState();
-}
-
-class _TopSnackBarState extends State<_TopSnackBar>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _offsetAnimation;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _offsetAnimation = Tween<Offset>(
-      begin: const Offset(0, -1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
-
-    _controller.forward();
-
-    _timer = Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        _controller.reverse().then((_) {
-          widget.onDismissed();
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
-    return Positioned(
-      top: topPadding + 10,
-      left: 20.0,
-      right: 20.0,
-      child: SlideTransition(
-        position: _offsetAnimation,
-        child: Material(
-          color: Colors.transparent,
-          child: DefaultTextStyle(
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: widget.backgroundColor ?? Colors.black.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                widget.message,
-              ),
-            ),
-          ),
-        ),
+  toastification.show(
+    type: toastType,
+    style: ToastificationStyle.flat,
+    alignment: Alignment.topCenter,
+    title: Text(
+      message,
+      style: const TextStyle(
+        fontSize: 13.5,
+        fontWeight: FontWeight.w500,
+        height: 1.3,
       ),
-    );
-  }
+    ),
+    autoCloseDuration: const Duration(seconds: 3),
+    animationDuration: const Duration(milliseconds: 300),
+    animationBuilder: (context, animation, alignment, child) {
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, -1.5),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+        ),
+        child: FadeTransition(opacity: animation, child: child),
+      );
+    },
+    borderRadius: BorderRadius.circular(50),
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    showProgressBar: false,
+    showIcon: type != SnackBarType.info,
+    closeButtonShowType: CloseButtonShowType.none,
+    closeOnClick: true,
+    dragToClose: true,
+    applyBlurEffect: false,
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.12),
+        blurRadius: 16,
+        offset: const Offset(0, 4),
+      ),
+    ],
+  );
 }

@@ -566,6 +566,40 @@ class ApiService {
     return response.data['clientSecret'] as String;
   }
 
+  Future<String> createCheckoutSession({
+    required String licenceId,
+    required String categoryId,
+    required String successUrl,
+    required String cancelUrl,
+  }) async {
+    final response = await _dio.post(
+      'api/payment/create-checkout-session/',
+      data: {
+        'licence_id': licenceId,
+        'category_id': categoryId,
+        'success_url': successUrl,
+        'cancel_url': cancelUrl,
+      },
+    );
+    return response.data['checkout_url'] as String;
+  }
+
+  Future<String> createBCDCheckoutSession({
+    required int productId,
+    required String successUrl,
+    required String cancelUrl,
+  }) async {
+    final response = await _dio.post(
+      'api/payment/bcd/create-checkout-session/',
+      data: {
+        'product_id': productId,
+        'success_url': successUrl,
+        'cancel_url': cancelUrl,
+      },
+    );
+    return response.data['checkout_url'] as String;
+  }
+
   /// Build a full URL for a BCD media file (image or document).
   /// [path] is the relative path stored in the DB, e.g. 'bcd/images/foo.png'
   String bcdMediaUrl(String path) {

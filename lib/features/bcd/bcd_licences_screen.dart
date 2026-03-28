@@ -59,10 +59,12 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
     setState(() => _loading = true);
     try {
       final categories = await _api.fetchBCDAllCategories();
-      if (mounted) setState(() {
-        _categories = categories;
-        _animateList = false;
-      });
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _animateList = false;
+        });
+      }
     } catch (e) {
       if (mounted) showAppSnackBar('Failed to load categories');
     } finally {

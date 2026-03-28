@@ -8,11 +8,11 @@ class QuestionHeaderWidget extends StatelessWidget {
   final String currentLanguageCode;
 
   const QuestionHeaderWidget({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.questionImageUrl,
     required this.currentLanguageCode,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class QuestionHeaderWidget extends StatelessWidget {
               fontFamily: 'NudMoto',
             ),
             children: [
-              TextSpan(text: questionText + ' '),
+              TextSpan(text: '$questionText '),
               WidgetSpan(
                 alignment: PlaceholderAlignment.middle,
                 child: TtsButton(
@@ -51,7 +51,7 @@ class QuestionHeaderWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),

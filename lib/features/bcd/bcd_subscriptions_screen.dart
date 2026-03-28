@@ -1,13 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:vibration/vibration.dart';
 
 class BCDSubscriptionsScreen extends StatefulWidget {
   const BCDSubscriptionsScreen({super.key});
@@ -73,11 +70,36 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     if (_buying) return;
     setState(() => _buying = true);
     try {
-      final secret = await _api.createBCDPaymentIntent(product['id'] as int);
-      await _processPayment(secret);
+      final price = product['price']?.toString() ?? '';
+      final currency = product['currency']?.toString() ?? 'SEK';
+      final name = product['name']?.toString() ?? 'BCD Subscription';
+
+      await processStripePayment(
+        context,
+        createIntent: () => _api.createBCDPaymentIntent(product['id'] as int),
+        merchantName: 'TaxiExam BCD',
+        subtitle: name,
+        displayAmount: price,
+        currency: currency,
+      );
+
       if (!mounted) return;
       showAppSnackBar('Payment successful! Subscription activated.');
-      setState(() { _loadingMine = true; });
+      // Optimistic update: immediately mark this product as owned.
+      setState(() {
+        _mySubscriptions = [
+          ..._mySubscriptions,
+          {
+            'product': product,
+            'status': 'paid',
+            'end_date': DateTime.now().add(const Duration(days: 30)).toIso8601String(),
+          },
+        ];
+        _tabController.animateTo(1);
+      });
+      // Reload after a delay to sync webhook-updated status.
+      await Future.delayed(const Duration(seconds: 3));
+      if (!mounted) return;
       await _loadMine();
     } on stripe.StripeException catch (e) {
       if (!mounted) return;
@@ -90,30 +112,6 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       showAppSnackBar('Payment failed. Please try again.');
     } finally {
       if (mounted) setState(() => _buying = false);
-    }
-  }
-
-  Future<void> _processPayment(String clientSecret) async {
-    await stripe.Stripe.instance.initPaymentSheet(
-      paymentSheetParameters: stripe.SetupPaymentSheetParameters(
-        paymentIntentClientSecret: clientSecret,
-        merchantDisplayName: 'TaxiExam BCD',
-        applePay: Platform.isIOS
-            ? const stripe.PaymentSheetApplePay(merchantCountryCode: 'SE')
-            : null,
-        googlePay: Platform.isAndroid
-            ? const stripe.PaymentSheetGooglePay(
-                merchantCountryCode: 'SE', testEnv: false)
-            : null,
-        style: ThemeMode.light,
-      ),
-    );
-    await stripe.Stripe.instance.presentPaymentSheet();
-    if (Platform.isIOS) {
-      HapticFeedback.mediumImpact();
-    } else {
-      final has = await Vibration.hasVibrator();
-      if (has == true) Vibration.vibrate(duration: 300);
     }
   }
 

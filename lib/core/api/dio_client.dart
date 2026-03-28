@@ -203,7 +203,8 @@ class DioClient {
   Future<void> logoutAndRedirect() async {
     await logout();
     final context = NavigationService.navigatorKey.currentContext;
-    if (context != null) {
+    if (context != null && context.mounted) {
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) => const AuthScreen(),
@@ -213,7 +214,7 @@ class DioClient {
       Future.delayed(const Duration(milliseconds: 500), () {
         showAppSnackBar(
           'You have been logged out because your account was used on another device.',
-          backgroundColor: Colors.red,
+          type: SnackBarType.error,
         );
       });
     }

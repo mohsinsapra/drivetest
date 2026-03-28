@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:toastification/toastification.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -72,29 +73,33 @@ void main() async {
   if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(OptionAdapter());
 
   try {
-    if (kIsWeb) {
-      // For web, load from .env - try different paths
-      try {
-        await dotenv.load(fileName: ".env");
-      } catch (e) {
-        print('Failed to load .env: $e');
-        // Set default values for web
-        dotenv.env['STRIPE_PUBLISHABLE_KEY'] = 'pk_live_51QSEQxLdbibfvPzFVwe3hE5seqcH1wQigVXOW60o9KWurHg8ewRFtpekd0c4R16UaiAa51mDZ3MDJFCmIzIRX56i00rZyQBtdD';
-        dotenv.env['ENCRYPTION_PASSPHRASE'] = 'this_is_the_project_for_taxi';
-      }
-    } else {
-      // Load .env for mobile/desktop (may not exist in CI/Play Store builds)
-      try {
-        await dotenv.load();
-      } catch (e) {
-        print('Failed to load .env (using dart-defines instead): $e');
-      }
+    // Load .env.local first (test keys). If it exists, its values are passed as
+    // mergeWith when loading .env — mergeWith lines are appended LAST so they
+    // win over file lines, meaning .env.local values always override .env.
+    // In production .env.local is not bundled, so the catch is hit and we fall
+    // back to plain .env (prod keys).
+    Map<String, String> localOverrides = {};
+    try {
+      await dotenv.load(fileName: '.env.local');
+      localOverrides = Map<String, String>.from(dotenv.env);
+    } catch (_) {}
+    try {
+      await dotenv.load(fileName: '.env', mergeWith: localOverrides);
+    } catch (e) {
+      debugPrint('Failed to load .env: $e');
     }
 
+    // dart-define values (CI / release builds) take final precedence
     const stripeKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
-    Stripe.publishableKey = stripeKey.isNotEmpty
+    final publishableKey = stripeKey.isNotEmpty
         ? stripeKey
         : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
+    Stripe.publishableKey = publishableKey;
+    debugPrint('[Stripe] publishable key loaded: ${publishableKey.substring(0, publishableKey.length > 20 ? 20 : publishableKey.length)}...');
+    // flutter_stripe_web requires applySettings() to initialise Stripe.js
+    if (kIsWeb) {
+      await Stripe.instance.applySettings();
+    }
 
     await Upgrader.clearSavedSettings();
 
@@ -104,7 +109,7 @@ void main() async {
     LocaleSettings.setLocale(
         savedLang == 'sv' ? AppLocale.sv : AppLocale.en);
   } catch (e) {
-    print('Initialization error: $e');
+    debugPrint('Initialization error: $e');
   }
 
   runApp(
@@ -132,12 +137,10 @@ final darkTheme = ThemeData(
     secondary: Colors.green,
     secondaryContainer: Colors.greenAccent,
     surface: Color(0xFF1C1C1E),
-    background: Color(0xFF0F0F0F),
     error: Colors.redAccent,
     onPrimary: Colors.white,
     onSecondary: Colors.white,
     onSurface: Colors.white,
-    onBackground: Colors.white,
     onError: Colors.white,
     brightness: Brightness.dark,
   ),
@@ -205,12 +208,10 @@ final customTheme = ThemeData(
     secondary: Colors.green,
     secondaryContainer: Colors.greenAccent,
     surface: Colors.white,
-    background: Colors.white,
     error: Colors.red,
     onPrimary: Colors.white,
     onSecondary: Colors.white,
     onSurface: Colors.black,
-    onBackground: Colors.black,
     onError: Colors.white,
     brightness: Brightness.light,
   ),
@@ -358,7 +359,9 @@ class _MyAppState extends State<MyApp> {
     final locale = InheritedLocaleData.of<AppLocale, Translations>(context)
         .locale
         .flutterLocale;
-    return MaterialApp(
+    return ToastificationWrapper(
+      config: const ToastificationConfig(itemWidth: 320),
+      child: MaterialApp(
       navigatorKey: NavigationService.navigatorKey,
       locale: locale,
       theme: customTheme,
@@ -405,6 +408,6 @@ class _MyAppState extends State<MyApp> {
           },
         ),
       ),
-    );
+    ));
   }
 }

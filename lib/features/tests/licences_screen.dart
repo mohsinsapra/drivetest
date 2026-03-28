@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
@@ -14,17 +15,13 @@ import 'package:taxi_exam_app/core/widgets/licence_type_card_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/widgets/test_option_card_widget.dart';
-import 'package:taxi_exam_app/features/payment/payment_method_sheet.dart';
+import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
 import 'package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:vibration/vibration.dart';
-
-// import '../widgets/license_type_card_widget.dart';
-// import '../widgets/category_card.dart';
-// import '../widgets/test_option_card.dart';
 
 class LicenceTypesScreen extends StatefulWidget {
   const LicenceTypesScreen({super.key});
@@ -57,7 +54,9 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
 
   // YouTube
   late YoutubePlayerController _controller;
+  // ignore: unused_field
   late PlayerState _playerState;
+  // ignore: unused_field
   late YoutubeMetaData _videoMetaData;
   late TextEditingController _idController;
   late TextEditingController _seekToController;
@@ -306,7 +305,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
                 );
 
                 Navigator.of(context).pop(); // Dismiss the dialog
-                _openPaymentMethodSheet(); // Proceed to payment
+                _initiatePayment(); // Proceed to payment
               },
             ),
           ],
@@ -315,21 +314,35 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     );
   }
 
-  // Updated initiatePayment function with paymentMethod parameter
-  Future<void> initiatePayment(int amount, String paymentMethod) async {
+  Future<void> _initiatePayment() async {
+    _analyticsService.logPaymentMethodSheetOpened(
+      licenceId: selectedLicenseType?['licence_id'] ?? '',
+      categoryId: selectedCategory?['category_id'] ?? '',
+    );
     try {
-      // Step 1: Create Payment Intent
+      final licenceName = selectedLicenseType?['name']?.toString() ?? '';
+      final categoryName = selectedCategory?['name']?.toString() ?? '';
+      final subtitle = [licenceName, categoryName]
+          .where((s) => s.isNotEmpty)
+          .join(' — ');
 
-      String clientSecret = await _apiService.createPaymentIntent(
-          amount,
-          paymentMethod,
+      await processStripePayment(
+        context,
+        createIntent: () => _apiService.createPaymentIntent(
+          10000,
+          'card',
           selectedLicenseType?['licence_id'],
-          selectedCategory?['category_id']);
+          selectedCategory?['category_id'],
+        ),
+        merchantName: 'Drive Test',
+        subtitle: subtitle,
+        displayAmount: '100',
+        currency: 'SEK',
+      );
 
-      // Step 2: Confirm Payment
-      await processPayment(clientSecret);
-
-      // Step 3: Update the category subscription status
+      // Optimistic update — mark subscribed and show test options immediately.
+      // Do NOT call _loadCategories here: it sets isLoading=true (shows shimmer)
+      // then isShowingCategories=true, which resets the view away from test options.
       setState(() {
         if (selectedCategory != null) {
           selectedCategory!['is_subscribed'] = true;
@@ -337,136 +350,66 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         }
       });
 
-      // Step 4: Track successful purchase
+      // Also bust the local SharedPreferences cache so the next time the user
+      // navigates back to categories it fetches fresh data from the server.
+      final licenceId = selectedLicenseType?['licence_id']?.toString();
+      if (licenceId != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('cache_categories_$licenceId');
+        await prefs.remove('cache_categories_at_$licenceId');
+      }
+
       await _analyticsService.logPurchaseSuccess(
         licenceId: selectedLicenseType?['licence_id'] ?? '',
-        licenceName: selectedLicenseType?['name'] ?? '',
+        licenceName: licenceName,
         categoryId: selectedCategory?['category_id'] ?? '',
-        categoryName: selectedCategory?['name'] ?? '',
-        amount: amount / 100.0, // Convert cents to currency
+        categoryName: categoryName,
+        amount: 100.0,
         currency: 'SEK',
         transactionId: DateTime.now().millisecondsSinceEpoch.toString(),
       );
 
-      // Step 5: Trigger Vibration
       await _triggerVibration();
       _confettiControllerLeft.play();
       _confettiControllerBottom.play();
       _confettiControllerTop.play();
-
       _confettiControllerRight.play();
-      // Step 6: Show Success SnackBar
+
       if (!mounted) return;
       showAppSnackBar('Payment successful');
     } catch (e) {
-      // Track failed purchase
       await _analyticsService.logPurchaseFailure(
         licenceId: selectedLicenseType?['licence_id'] ?? '',
         categoryId: selectedCategory?['category_id'] ?? '',
         errorMessage: e.toString(),
       );
-
-      // Handle errors (e.g., show error message to user)
       if (!mounted) return;
-      showAppSnackBar('Payment failed. Please try again.');
+      if (e is stripe.StripeException) {
+        final msg = e.error.localizedMessage ?? '';
+        if (msg.toLowerCase().contains('cancel')) return;
+        showAppSnackBar(msg.isNotEmpty ? msg : 'Payment failed. Please try again.');
+      } else {
+        final msg = e.toString();
+        showAppSnackBar(msg.length > 80 ? msg.substring(0, 80) : msg);
+      }
     }
-  }
-
-  // Function to open the Payment Method Modal Bottom Sheet
-  void _openPaymentMethodSheet() {
-    // Track when payment method sheet is opened
-    _analyticsService.logPaymentMethodSheetOpened(
-      licenceId: selectedLicenseType?['licence_id'] ?? '',
-      categoryId: selectedCategory?['category_id'] ?? '',
-    );
-
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return PaymentMethodSheet(
-          onSelected: (method) {
-            // Track payment method selection
-            _analyticsService.logPaymentMethodSelected(
-              paymentMethod: method,
-              licenceId: selectedLicenseType?['licence_id'] ?? '',
-              categoryId: selectedCategory?['category_id'] ?? '',
-            );
-
-            Navigator.pop(context); // Close the bottom sheet
-            // Initiate payment with the selected method
-            initiatePayment(10000, method);
-          },
-        );
-      },
-    );
   }
 
   Future<void> _triggerVibration() async {
+    if (kIsWeb) return;
     if (Platform.isIOS) {
       for (int i = 0; i < 3; i++) {
-        // Number of repetitions
         HapticFeedback.mediumImpact();
-        await Future.delayed(
-            const Duration(milliseconds: 100)); // Delay between feedbacks
+        await Future.delayed(const Duration(milliseconds: 100));
       }
     } else if (Platform.isAndroid) {
-      // Use Vibration package for Android
       bool? hasVibrator = await Vibration.hasVibrator();
       if (hasVibrator) {
-        Vibration.vibrate(duration: 500); // Vibrate for 500 milliseconds
+        Vibration.vibrate(duration: 500);
       }
     }
   }
 
-  Future<void> processPayment(String clientSecret) async {
-    try {
-      // Initialize the PaymentSheet with the required parameters
-      await stripe.Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: stripe.SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: 'Drive Test',
-          // Configure Apple Pay only on iOS
-          applePay: Platform.isIOS
-              ? const stripe.PaymentSheetApplePay(
-                  merchantCountryCode: 'SV', // Replace with your country code
-                )
-              : null,
-          // Configure Google Pay only on Android
-          googlePay: Platform.isAndroid
-              ? const stripe.PaymentSheetGooglePay(
-                  merchantCountryCode: 'SV', // Replace with your country code
-                  testEnv: false, // Set to false in production
-                  // existingPaymentMethodRequired: false,
-                )
-              : null,
-          style: ThemeMode
-              .light, // Choose between ThemeMode.light or ThemeMode.dark
-          // Optional: Customize the appearance
-          // appearance: PaymentSheetAppearance(
-          //   colors: PaymentSheetAppearanceColors(
-          //     primary: Colors.blue,
-          //   ),
-          // ),
-        ),
-      );
-
-      // Present the PaymentSheet to the user
-      await stripe.Stripe.instance.presentPaymentSheet();
-    } catch (e) {
-      // Handle Stripe-specific errors
-      if (e is stripe.StripeException) {
-        print('Payment canceled or failed: ${e.error.localizedMessage}');
-        if (!mounted) return;
-        showAppSnackBar('Payment failed. Please try again.');
-      } else {
-        // Handle other types of errors
-        print('Payment failed: $e');
-        if (!mounted) return;
-        showAppSnackBar('Payment failed. Please try again.');
-      }
-      throw e; // Re-throw the exception if you need to handle it further up the call stack
-    }
-  }
 
   /* -------------------------------------------------------------------------- */
   /*                                 UI BUILD                                  */

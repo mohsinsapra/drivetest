@@ -6,10 +6,10 @@ class CategoryPieChart extends StatefulWidget {
   final String title;
 
   const CategoryPieChart({
-    Key? key,
+    super.key,
     required this.data,
     this.title = "Categories",
-  }) : super(key: key);
+  });
 
   @override
   State<CategoryPieChart> createState() => _CategoryPieChartState();

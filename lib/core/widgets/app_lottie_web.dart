@@ -1,8 +1,8 @@
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
-import 'dart:ui_web' as ui;
+import 'dart:js_interop';
 
 import 'package:flutter/material.dart';
+import 'package:web/web.dart' as web;
+import 'dart:ui_web' as ui;
 
 final _registered = <String>{};
 
@@ -20,15 +20,15 @@ Widget buildWebLottie({
     // Flutter web builds serve assets at assets/assets/<path>
     final src = 'assets/assets/$asset';
     ui.platformViewRegistry.registerViewFactory(viewType, (int _) {
-      final el = html.Element.tag('lottie-player')
+      final el = web.document.createElement('lottie-player') as web.HTMLElement
         ..setAttribute('src', src)
         ..setAttribute('background', 'transparent')
         ..setAttribute('speed', '1')
         ..setAttribute('loop', '')
-        ..setAttribute('autoplay', '')
-        ..style.width = '100%'
-        ..style.height = '100%';
-      return el;
+        ..setAttribute('autoplay', '');
+      el.style.width = '100%';
+      el.style.height = '100%';
+      return el.toJSBox;
     });
   }
 

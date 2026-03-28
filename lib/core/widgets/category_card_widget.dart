@@ -42,10 +42,10 @@ class CategoryCard extends StatelessWidget {
                 ),
                 CircleAvatar(
                   backgroundColor: category['name'] == 'Karta'
-                      ? Colors.green.withOpacity(0.15)
+                      ? Colors.green.withValues(alpha: 0.15)
                       : (category['is_subscribed'] == false
-                          ? Colors.red.withOpacity(0.15)
-                          : Colors.green.withOpacity(0.15)),
+                          ? Colors.red.withValues(alpha: 0.15)
+                          : Colors.green.withValues(alpha: 0.15)),
                   radius: 18,
                   child: Icon(
                     category['name'] == 'Karta'

@@ -157,7 +157,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               Theme.of(context)
                                   .colorScheme
                                   .primary
-                                  .withOpacity(0.8),
+                                  .withValues(alpha: 0.8),
                               Theme.of(context).colorScheme.primaryContainer,
                             ],
                           ),

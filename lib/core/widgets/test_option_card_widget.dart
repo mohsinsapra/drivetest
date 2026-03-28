@@ -30,7 +30,7 @@ class TestOptionCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircleAvatar(
-                backgroundColor: color.withOpacity(0.1),
+                backgroundColor: color.withValues(alpha: 0.1),
                 radius: 28,
                 child: Icon(icon, color: color, size: 28),
               ),

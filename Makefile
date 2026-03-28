@@ -16,8 +16,13 @@ WEB_REPO_REMOTE ?= origin
 WEB_REPO_BRANCH ?= master
 
 # Load environment variables
+# .env.local overrides .env for local development (test keys, etc.)
 ifneq (,$(wildcard ./.env))
     include .env
+    export
+endif
+ifneq (,$(wildcard ./.env.local))
+    include .env.local
     export
 endif
 

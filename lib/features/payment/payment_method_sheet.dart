@@ -1,6 +1,7 @@
 // features/payment/payment_method_sheet.dart
 
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 class PaymentMethodSheet extends StatelessWidget {
@@ -13,10 +14,10 @@ class PaymentMethodSheet extends StatelessWidget {
       {'id': 'card', 'name': 'Card'},
     ];
 
-    // Add platform-specific payment method
-    if (Platform.isIOS) {
+    // Add platform-specific payment method (not applicable on web)
+    if (!kIsWeb && Platform.isIOS) {
       methods.add({'id': 'apple_pay', 'name': 'Apple Pay'});
-    } else if (Platform.isAndroid) {
+    } else if (!kIsWeb && Platform.isAndroid) {
       methods.add({'id': 'google_pay', 'name': 'Google Pay'});
     }
 

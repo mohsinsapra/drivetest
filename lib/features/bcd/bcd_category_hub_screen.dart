@@ -1,13 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:vibration/vibration.dart';
 
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
 
@@ -30,14 +26,29 @@ class BCDCategoryHubScreen extends StatefulWidget {
 class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
   final _api = ApiService();
   List<dynamic> _products = [];
+  late final ValueNotifier<bool> _subscribedNotifier;
 
   bool get _subscribed => widget.category['is_subscribed'] == true;
   int get _categoryBcdId => widget.category['bcd_id'] as int;
   String get _categoryName => widget.category['name']?.toString() ?? '';
 
+  @override
+  void initState() {
+    super.initState();
+    _subscribedNotifier = ValueNotifier(_subscribed);
+  }
+
+  @override
+  void dispose() {
+    _subscribedNotifier.dispose();
+    super.dispose();
+  }
+
   /* ── Paywall ──────────────────────────────────────────────────────────────── */
 
   Future<void> _showPaywall() async {
+    // Already subscribed — no need to show paywall again
+    if (_subscribed) return;
     // Use the category's own subscription product if available
     final categoryProduct = widget.category['subscription_product'];
     if (categoryProduct != null) {
@@ -61,40 +72,32 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
   }
 
   Future<void> _handleBuy(dynamic product) async {
-    Navigator.pop(context);
+    Navigator.pop(context); // close paywall sheet
     try {
-      final secret = await _api.createBCDPaymentIntent(product['id'] as int);
-      await _processPayment(secret);
+      final name = product['name']?.toString() ?? 'BCD Subscription';
+      final price = product['price']?.toString() ?? '';
+      final currency = product['currency']?.toString() ?? 'SEK';
+
+      await processStripePayment(
+        context,
+        createIntent: () => _api.createBCDPaymentIntent(product['id'] as int),
+        merchantName: 'TaxiExam BCD',
+        subtitle: name,
+        displayAmount: price,
+        currency: currency,
+      );
+
       if (!mounted) return;
       showAppSnackBar('Payment successful! Subscription activated.');
-      Navigator.pop(context); // back to categories so they refresh
-    } catch (e) {
+      // Optimistic update: remove the banner and unlock tiles immediately.
+      // Also notify the tests list screen (if open) via the shared notifier.
+      setState(() => widget.category['is_subscribed'] = true);
+      _subscribedNotifier.value = true;
+    } on Exception catch (e) {
       if (!mounted) return;
+      final msg = e.toString();
+      if (msg.toLowerCase().contains('cancel')) return;
       showAppSnackBar('Payment failed. Please try again.');
-    }
-  }
-
-  Future<void> _processPayment(String clientSecret) async {
-    await stripe.Stripe.instance.initPaymentSheet(
-      paymentSheetParameters: stripe.SetupPaymentSheetParameters(
-        paymentIntentClientSecret: clientSecret,
-        merchantDisplayName: 'TaxiExam BCD',
-        applePay: Platform.isIOS
-            ? const stripe.PaymentSheetApplePay(merchantCountryCode: 'SE')
-            : null,
-        googlePay: Platform.isAndroid
-            ? const stripe.PaymentSheetGooglePay(
-                merchantCountryCode: 'SE', testEnv: false)
-            : null,
-        style: ThemeMode.light,
-      ),
-    );
-    await stripe.Stripe.instance.presentPaymentSheet();
-    if (Platform.isIOS) {
-      HapticFeedback.mediumImpact();
-    } else {
-      final has = await Vibration.hasVibrator();
-      if (has == true) Vibration.vibrate(duration: 300);
     }
   }
 
@@ -197,7 +200,8 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         _startPractice();
         break;
       case 'tests':
-        // Always navigate — tests list shows banner + locked items if not subscribed
+        // Always navigate — tests list shows banner + locked items if not subscribed.
+        // Pass the shared notifier so it updates live when payment completes.
         Navigator.push(
             context,
             MaterialPageRoute(
@@ -205,7 +209,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
                 categoryBcdId: _categoryBcdId,
                 categoryName: _categoryName,
                 practiceOnly: false,
-                subscribed: _subscribed,
+                subscribedNotifier: _subscribedNotifier,
                 onBuySubscription: _showPaywall,
                 parentCategoryBcdId: _categoryBcdId,
               ),
@@ -483,7 +487,7 @@ class _BCDTestsListScreen extends StatefulWidget {
   final int categoryBcdId;
   final String categoryName;
   final bool practiceOnly;
-  final bool subscribed;
+  final ValueNotifier<bool> subscribedNotifier;
   final VoidCallback onBuySubscription;
   final int? parentCategoryBcdId;
 
@@ -491,7 +495,7 @@ class _BCDTestsListScreen extends StatefulWidget {
     required this.categoryBcdId,
     required this.categoryName,
     required this.practiceOnly,
-    required this.subscribed,
+    required this.subscribedNotifier,
     required this.onBuySubscription,
     this.parentCategoryBcdId,
   });
@@ -505,10 +509,23 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
   List<dynamic> _tests = [];
   bool _loading = true;
 
+  bool get _subscribed => widget.subscribedNotifier.value;
+
   @override
   void initState() {
     super.initState();
+    widget.subscribedNotifier.addListener(_onSubscriptionChanged);
     _load();
+  }
+
+  void _onSubscriptionChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    widget.subscribedNotifier.removeListener(_onSubscriptionChanged);
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -533,7 +550,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
   void _onTap(dynamic test) {
     final isFree = test['is_free'] == true;
     // Block non-free tests if not subscribed
-    if (!widget.subscribed && !isFree) {
+    if (!_subscribed && !isFree) {
       widget.onBuySubscription();
       return;
     }
@@ -573,7 +590,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
                 )
               : Column(
                   children: [
-                    if (!widget.subscribed && !widget.practiceOnly)
+                    if (!_subscribed && !widget.practiceOnly)
                       _TestsSubscriptionBanner(onBuy: widget.onBuySubscription),
                     Expanded(
                       child: ListView.builder(
@@ -581,7 +598,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
                         itemCount: _tests.length,
                         itemBuilder: (_, i) => _TestCard(
                           test: _tests[i],
-                          forceUnsubscribed: !widget.subscribed,
+                          forceUnsubscribed: !_subscribed,
                           onTap: () => _onTap(_tests[i]),
                         ),
                       ),

@@ -9,12 +9,12 @@ class TtsButton extends StatefulWidget {
   final String tooltip;
 
   const TtsButton({
-    Key? key,
+    super.key,
     required this.textToSpeak,
     required this.languageCode,
     this.iconSize = 22,
     this.tooltip = 'Read aloud',
-  }) : super(key: key);
+  });
 
   @override
   State<TtsButton> createState() => _TtsButtonState();
