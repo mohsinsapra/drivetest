@@ -71,7 +71,7 @@ web-build:
 	@if [ -d "$(WEB_BUILD_DIR)/.git" ]; then \
 		echo "$(COLOR_YELLOW)Backing up .git folder...$(COLOR_RESET)"; \
 		rm -rf /tmp/build_web_git_backup; \
-		cp -R $(WEB_BUILD_DIR)/.git /tmp/build_web_git_backup; \
+		mv $(WEB_BUILD_DIR)/.git /tmp/build_web_git_backup; \
 	fi
 	@flutter build web --release \
 		--base-href=$(WEB_BASE_HREF) \
@@ -87,8 +87,7 @@ web-build:
 		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)"
 	@if [ -d "/tmp/build_web_git_backup" ]; then \
 		echo "$(COLOR_YELLOW)Restoring .git folder...$(COLOR_RESET)"; \
-		cp -R /tmp/build_web_git_backup $(WEB_BUILD_DIR)/.git; \
-		rm -rf /tmp/build_web_git_backup; \
+		mv /tmp/build_web_git_backup $(WEB_BUILD_DIR)/.git; \
 		echo "$(COLOR_GREEN)✅ .git folder restored!$(COLOR_RESET)"; \
 	fi
 	@echo "$(COLOR_GREEN)✅ Build completed! Output: $(WEB_BUILD_DIR)$(COLOR_RESET)"
