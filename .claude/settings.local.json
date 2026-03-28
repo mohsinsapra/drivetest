@@ -65,7 +65,8 @@
       "Bash(grep -r \"ApiException\\\\|sign_in_failed\\\\|error\\\\|exception\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib --include=*.dart)",
       "Bash(git -C /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app log --oneline --all)",
       "Bash(git:*)",
-      "Bash(firebase:*)"
+      "Bash(firebase:*)",
+      "Bash(gcloud projects:*)"
     ],
     "deny": [],
     "ask": []
