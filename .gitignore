@@ -5,6 +5,10 @@
 # Environment variables
 .env
 .env.*
+
+# Firebase config files (contain API keys)
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
 .vars
 !.env.example # Keep example files for team collaboration
 
