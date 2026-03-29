@@ -99,7 +99,8 @@
       "Bash(do)",
       "Bash(if ! grep -q \"subscription_success_overlay\" \"$f\")",
       "Bash(then)",
-      "Bash(sed -i '' \"1s/^/import ''package:taxi_exam_app\\\\/features\\\\/payment\\\\/subscription_success_overlay.dart'';\\\\n/\" \"$f\")"
+      "Bash(sed -i '' \"1s/^/import ''package:taxi_exam_app\\\\/features\\\\/payment\\\\/subscription_success_overlay.dart'';\\\\n/\" \"$f\")",
+      "Bash(make deploy-all:*)"
     ],
     "deny": [],
     "ask": []
