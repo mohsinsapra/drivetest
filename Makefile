@@ -102,15 +102,18 @@ web-deploy: web-build
 	@echo "$(COLOR_BLUE)Deploying web app to repository...$(COLOR_RESET)"
 	@$(MAKE) -s _deploy-to-web-repo
 
+WEB_REPO_URL ?= https://github.com/mohsinsapra/drivetest
+
 ## _deploy-to-web-repo: Internal target for deploying to web repo
 _deploy-to-web-repo:
 	@echo "$(COLOR_YELLOW)Checking if build/web is a git repository...$(COLOR_RESET)"
 	@if [ ! -d "$(WEB_BUILD_DIR)/.git" ]; then \
 		echo "$(COLOR_YELLOW)Initializing git repository in $(WEB_BUILD_DIR)...$(COLOR_RESET)"; \
 		cd $(WEB_BUILD_DIR) && git init; \
-		echo "$(COLOR_YELLOW)Please add your remote repository:$(COLOR_RESET)"; \
-		echo "  cd $(WEB_BUILD_DIR) && git remote add origin https://github.com/mohsinsapra/drivetest"; \
-		exit 1; \
+	fi
+	@if ! git -C $(WEB_BUILD_DIR) remote get-url $(WEB_REPO_REMOTE) > /dev/null 2>&1; then \
+		echo "$(COLOR_YELLOW)Adding remote origin: $(WEB_REPO_URL)$(COLOR_RESET)"; \
+		git -C $(WEB_BUILD_DIR) remote add $(WEB_REPO_REMOTE) $(WEB_REPO_URL); \
 	fi
 	@echo "$(COLOR_GREEN)Getting last commit message from main repository...$(COLOR_RESET)"
 	@LAST_COMMIT=$$(git log -1 --pretty=%B); \
