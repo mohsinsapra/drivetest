@@ -21,6 +21,8 @@ ifneq (,$(wildcard ./.env))
     include .env
     export
 endif
+# Capture live keys from .env before .env.local can override them
+LIVE_STRIPE_PUBLISHABLE_KEY := $(STRIPE_PUBLISHABLE_KEY)
 ifneq (,$(wildcard ./.env.local))
     include .env.local
     export
@@ -87,7 +89,7 @@ web-build:
 		--dart-define=FIREBASE_MESSAGING_SENDER_ID="$(FIREBASE_MESSAGING_SENDER_ID)" \
 		--dart-define=FIREBASE_APP_ID="$(FIREBASE_APP_ID)" \
 		--dart-define=FIREBASE_MEASUREMENT_ID="$(FIREBASE_MEASUREMENT_ID)" \
-		--dart-define=STRIPE_PUBLISHABLE_KEY="$(STRIPE_PUBLISHABLE_KEY)" \
+		--dart-define=STRIPE_PUBLISHABLE_KEY="$(LIVE_STRIPE_PUBLISHABLE_KEY)" \
 		--dart-define=GOOGLE_WEB_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
 		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)"
 	@if [ -d "/tmp/build_web_git_backup" ]; then \
