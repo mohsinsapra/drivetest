@@ -241,11 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             _VersionRow(
                                 t.settings_branch, _versionInfo!.branch),
                             _VersionRow(t.settings_last_update,
-                                _versionInfo!.commitMessage,
-                                maxLines: 2),
-                            _VersionRow(
-                                t.settings_date, _versionInfo!.commitDate,
-                                small: true),
+                                _versionInfo!.commitDate),
                           ],
                         ],
                       ),
@@ -357,10 +353,7 @@ class _LangChip extends StatelessWidget {
 class _VersionRow extends StatelessWidget {
   final String label;
   final String value;
-  final int maxLines;
-  final bool small;
-  const _VersionRow(this.label, this.value,
-      {this.maxLines = 1, this.small = false});
+  const _VersionRow(this.label, this.value);
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -377,11 +370,8 @@ class _VersionRow extends StatelessWidget {
             Expanded(
               child: Text(
                 value,
-                style: TextStyle(
-                    fontSize: small ? 12 : 13,
-                    fontWeight: FontWeight.w500),
-                maxLines: maxLines,
-                overflow: TextOverflow.ellipsis,
+                style:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
               ),
             ),
           ],

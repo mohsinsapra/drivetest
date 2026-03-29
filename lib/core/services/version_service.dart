@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 const _webAppVersion =
@@ -51,6 +52,26 @@ class VersionInfo {
 }
 
 class VersionService {
+  static String _formatTimestamp(String value) {
+    if (value.isEmpty || value == 'unknown') {
+      return 'unknown';
+    }
+
+    final normalized = value.contains(' ')
+        ? value.replaceFirst(' ', 'T').replaceFirstMapped(
+            RegExp(r'([+-]\d{2})(\d{2})$'),
+            (match) => '${match.group(1)}:${match.group(2)}',
+          )
+        : value;
+    final parsed = DateTime.tryParse(normalized);
+
+    if (parsed == null) {
+      return value;
+    }
+
+    return DateFormat('MMM d, yyyy h:mm a').format(parsed.toLocal());
+  }
+
   static Future<VersionInfo> getVersionInfo() async {
     // Get package info (app version)
     final packageInfo = await PackageInfo.fromPlatform();
@@ -84,9 +105,12 @@ class VersionService {
         branch = _webBranch;
       }
       if (_webCommitDate.isNotEmpty) {
-        commitDate = _webCommitDate;
+        commitDate = _formatTimestamp(_webCommitDate);
       }
-      hasGitInfo = shortHash != 'unknown' || commitHash != 'unknown';
+      hasGitInfo = shortHash != 'unknown' ||
+          commitHash != 'unknown' ||
+          branch != 'unknown' ||
+          commitDate != 'unknown';
     } else {
       try {
         // Get commit hash
@@ -133,11 +157,11 @@ class VersionService {
         // Get commit date
         final dateResult = await Process.run(
           'git',
-          ['log', '-1', '--format=%cd', '--date=iso'],
+          ['log', '-1', '--format=%cd', '--date=iso-strict'],
           runInShell: true,
         );
         if (dateResult.exitCode == 0) {
-          commitDate = (dateResult.stdout as String).trim();
+          commitDate = _formatTimestamp((dateResult.stdout as String).trim());
         }
 
         // Get commit author
@@ -170,7 +194,7 @@ class VersionService {
 
   static Future<String> getVersionString() async {
     final info = await getVersionInfo();
-    if (info.hasGitInfo) {
+    if (info.shortHash != 'unknown') {
       return 'v${info.appVersion} (${info.buildNumber}) - ${info.shortHash}';
     }
     return 'v${info.appVersion} (${info.buildNumber})';

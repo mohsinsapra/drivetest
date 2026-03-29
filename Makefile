@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help web-build web-deploy web-run clean version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all
+.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all
 
 # Colors for output
 COLOR_RESET = \033[0m
@@ -14,12 +14,12 @@ COLOR_BLUE = \033[34m
 WEB_BUILD_DIR = build/web
 WEB_REPO_REMOTE ?= origin
 WEB_REPO_BRANCH ?= master
-APP_VERSION := $(shell sed -nE 's/^version:[[:space:]]*([^+]+)\+(.+)$$/\1/p' pubspec.yaml | head -1)
-APP_BUILD_NUMBER := $(shell sed -nE 's/^version:[[:space:]]*([^+]+)\+(.+)$$/\2/p' pubspec.yaml | head -1)
-GIT_COMMIT_HASH := $(shell git rev-parse HEAD 2>/dev/null)
-GIT_SHORT_HASH := $(shell git rev-parse --short HEAD 2>/dev/null)
-GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
-GIT_COMMIT_DATE := $(shell git log -1 --date=iso-strict --pretty=%cd 2>/dev/null)
+APP_VERSION = $(shell sed -nE 's/^version:[[:space:]]*([^+]+)\+(.+)$$/\1/p' pubspec.yaml | head -1)
+APP_BUILD_NUMBER = $(shell sed -nE 's/^version:[[:space:]]*([^+]+)\+(.+)$$/\2/p' pubspec.yaml | head -1)
+GIT_COMMIT_HASH = $(shell git rev-parse HEAD 2>/dev/null)
+GIT_SHORT_HASH = $(shell git rev-parse --short HEAD 2>/dev/null)
+GIT_BRANCH = $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
+GIT_COMMIT_DATE = $(shell git log -1 --date=iso-strict --pretty=%cd 2>/dev/null)
 
 # Load environment variables
 # .env.local overrides .env for local development (test keys, etc.)
@@ -47,6 +47,7 @@ help:
 	@echo "  make web-deploy       - Build and deploy to web repository"
 	@echo ""
 	@echo "$(COLOR_GREEN)Version Commands:$(COLOR_RESET)"
+	@echo "  make version-build    - Bump build number only (1.0.0+1 -> 1.0.0+2)"
 	@echo "  make version-patch    - Bump patch version (1.0.0 -> 1.0.1)"
 	@echo "  make version-minor    - Bump minor version (1.0.0 -> 1.1.0)"
 	@echo "  make version-major    - Bump major version (1.0.0 -> 2.0.0)"
@@ -132,8 +133,8 @@ _write-web-version-file:
 		'}' > $(WEB_BUILD_DIR)/version.json
 	@echo "$(COLOR_GREEN)✅ Wrote $(WEB_BUILD_DIR)/version.json$(COLOR_RESET)"
 
-## web-deploy: Build and deploy web app to repository
-web-deploy: web-build
+## web-deploy: Bump build number, build and deploy web app to repository
+web-deploy: version-build web-build
 	@echo "$(COLOR_BLUE)Deploying web app to repository...$(COLOR_RESET)"
 	@$(MAKE) -s _deploy-to-web-repo
 
@@ -159,6 +160,11 @@ _deploy-to-web-repo:
 	git push $(WEB_REPO_REMOTE) $(WEB_REPO_BRANCH) --force && \
 	echo "$(COLOR_GREEN)✅ Successfully deployed to web repository!$(COLOR_RESET)" || \
 	echo "$(COLOR_YELLOW)⚠️  Push failed. Check your remote configuration.$(COLOR_RESET)"
+
+## version-build: Bump build number only
+version-build:
+	@echo "$(COLOR_GREEN)Bumping build number...$(COLOR_RESET)"
+	@cd scripts && ruby update_version.rb build
 
 ## version-patch: Bump patch version
 version-patch:
