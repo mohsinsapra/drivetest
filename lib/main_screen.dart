@@ -185,7 +185,7 @@ class MainScreenState extends State<MainScreen> {
             controller: _pageController,
             onPageChanged: _onPageChanged,
             physics: const ClampingScrollPhysics(),
-            children: entries.map((e) => e.screen).toList(),
+            children: entries.map((e) => _KeepAlivePage(child: e.screen)).toList(),
           ),
           Positioned(
             left: 0,
@@ -391,6 +391,31 @@ class _FloatingFabState extends State<_FloatingFab>
         ),
       ),
     );
+  }
+}
+
+// ─── Keep-alive wrapper ──────────────────────────────────────────────────────
+
+/// Keeps a PageView child alive so it isn't rebuilt every time the user
+/// switches tabs. Without this, screens like HomeScreen re-run API calls
+/// on every tab return.
+class _KeepAlivePage extends StatefulWidget {
+  final Widget child;
+  const _KeepAlivePage({required this.child});
+
+  @override
+  State<_KeepAlivePage> createState() => _KeepAlivePageState();
+}
+
+class _KeepAlivePageState extends State<_KeepAlivePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
 

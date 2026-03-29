@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
@@ -58,7 +59,7 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
       // Replace this loader screen with Testscreen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
+        AppPageRoute(
           builder: (_) => Testscreen(
             questions: questions,
             instantMarking: true,

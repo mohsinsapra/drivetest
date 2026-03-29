@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -66,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          AppPageRoute(builder: (context) => const MainScreen()),
           (Route<dynamic> route) => false,
         );
       }
@@ -138,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         // Navigate directly to MainScreen
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          AppPageRoute(builder: (context) => const MainScreen()),
           (Route<dynamic> route) => false,
         );
       }
@@ -368,7 +369,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
+                        AppPageRoute(
                           builder: (_) => const ForgotPasswordScreen(),
                         ),
                       );
@@ -455,7 +456,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   InkWell(
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(
+                        AppPageRoute(
                           builder: (_) => const SignupScreen(),
                         ),
                       );

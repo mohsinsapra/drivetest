@@ -1,10 +1,14 @@
+import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'bcd_category_hub_screen.dart';
+import 'bcd_sub_category_screen.dart';
 
 class BCDSubscriptionsScreen extends StatefulWidget {
   const BCDSubscriptionsScreen({super.key});
@@ -84,21 +88,36 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       );
 
       if (!mounted) return;
-      showAppSnackBar('Payment successful! Subscription activated.');
       // Optimistic update: immediately mark this product as owned.
+      final durationDays = product['duration_days'] as int?;
       setState(() {
         _mySubscriptions = [
           ..._mySubscriptions,
           {
             'product': product,
             'status': 'paid',
-            'end_date': DateTime.now().add(const Duration(days: 30)).toIso8601String(),
+            'end_date': DateTime.now()
+                .add(Duration(days: durationDays ?? 30))
+                .toIso8601String(),
           },
         ];
         _tabController.animateTo(1);
       });
-      // Reload after a delay to sync webhook-updated status.
-      await Future.delayed(const Duration(seconds: 3));
+      final durationLabel = durationDays != null
+          ? (durationDays >= 365
+              ? '${(durationDays / 365).round()} year'
+              : durationDays >= 30
+                  ? '${(durationDays / 30).round()} months'
+                  : '$durationDays days')
+          : null;
+      await showSubscriptionSuccess(
+        context,
+        productName: name,
+        duration: durationLabel,
+        amount: price,
+        currency: currency,
+      );
+      // Reload after overlay closes to sync webhook-updated status.
       if (!mounted) return;
       await _loadMine();
     } on stripe.StripeException catch (e) {
@@ -112,6 +131,55 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       showAppSnackBar('Payment failed. Please try again.');
     } finally {
       if (mounted) setState(() => _buying = false);
+    }
+  }
+
+  bool _navigating = false;
+
+  Future<void> _handleSubscriptionTap(dynamic sub) async {
+    if (_navigating) return;
+    final product = sub['product'];
+    if (product == null) return;
+
+    final rawIds = sub['subscribed_category_bcd_ids'];
+    final ids = rawIds is List ? rawIds : <dynamic>[];
+    if (ids.isEmpty) {
+      showAppSnackBar('No categories linked to this subscription');
+      return;
+    }
+
+    final bcdId = ids.first as int;
+    final productName = product['name']?.toString() ?? 'BCD Subscription';
+
+    setState(() => _navigating = true);
+    try {
+      // Fetch root categories (backend-cached) to resolve has_children
+      final categories = await _api.fetchBCDAllCategories();
+      if (!mounted) return;
+
+      final match = categories.cast<Map<String, dynamic>>().firstWhere(
+        (c) => c['bcd_id'] == bcdId,
+        orElse: () => <String, dynamic>{},
+      );
+
+      final Map<String, dynamic> cat;
+      if (match.isNotEmpty) {
+        cat = Map<String, dynamic>.from(match);
+        cat['is_subscribed'] = true;
+      } else {
+        cat = {'bcd_id': bcdId, 'name': productName, 'is_subscribed': true};
+      }
+
+      final hasChildren = cat['has_children'] == true;
+      final route = hasChildren
+          ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+          : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat));
+
+      Navigator.push(context, route);
+    } catch (_) {
+      if (mounted) showAppSnackBar('Failed to load category');
+    } finally {
+      if (mounted) setState(() => _navigating = false);
     }
   }
 
@@ -145,6 +213,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
               setState(() => _loadingMine = true);
               await _loadMine();
             },
+            onTap: _handleSubscriptionTap,
           ),
         ],
       ),
@@ -308,9 +377,7 @@ class _ProductCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    price.contains('.') || price.contains(',')
-                        ? '$price SEK'
-                        : '$price SEK',
+                    '$price SEK',
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.w700),
                   ),
@@ -361,11 +428,13 @@ class _MySubscriptionsTab extends StatelessWidget {
   final bool loading;
   final List<dynamic> subscriptions;
   final Future<void> Function() onRefresh;
+  final Future<void> Function(dynamic sub) onTap;
 
   const _MySubscriptionsTab({
     required this.loading,
     required this.subscriptions,
     required this.onRefresh,
+    required this.onTap,
   });
 
   @override
@@ -400,7 +469,10 @@ class _MySubscriptionsTab extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: subscriptions.length,
-        itemBuilder: (ctx, i) => _SubscriptionTile(sub: subscriptions[i]),
+        itemBuilder: (ctx, i) => _SubscriptionTile(
+          sub: subscriptions[i],
+          onTap: () => onTap(subscriptions[i]),
+        ),
       ),
     );
   }
@@ -410,7 +482,8 @@ class _MySubscriptionsTab extends StatelessWidget {
 
 class _SubscriptionTile extends StatelessWidget {
   final dynamic sub;
-  const _SubscriptionTile({required this.sub});
+  final VoidCallback onTap;
+  const _SubscriptionTile({required this.sub, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -423,71 +496,80 @@ class _SubscriptionTile extends StatelessWidget {
     final statusColor = isActive ? const Color(0xFF059669) : Colors.grey;
     final statusLabel = isActive ? 'Active' : _capitalize(status);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isActive
-              ? const Color(0xFF059669).withValues(alpha: 0.3)
-              : Colors.grey.shade200,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isActive
+                  ? const Color(0xFF059669).withValues(alpha: 0.3)
+                  : Colors.grey.shade200,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isActive ? LucideIcons.shieldCheck : LucideIcons.shieldOff,
+                  color: statusColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(productName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 14)),
+                    if (endDate.isNotEmpty)
+                      Text(
+                        'Expires ${_formatDate(endDate)}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                      ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: statusColor,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey.shade400),
+            ],
+          ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              isActive ? LucideIcons.shieldCheck : LucideIcons.shieldOff,
-              color: statusColor,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(productName,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14)),
-                if (endDate.isNotEmpty)
-                  Text(
-                    'Expires ${_formatDate(endDate)}',
-                    style:
-                        TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                  ),
-              ],
-            ),
-          ),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(statusLabel,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: statusColor,
-                    fontWeight: FontWeight.w600)),
-          ),
-        ],
       ),
     );
   }

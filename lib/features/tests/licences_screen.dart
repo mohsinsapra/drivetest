@@ -1,3 +1,5 @@
+import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -376,7 +378,13 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       _confettiControllerRight.play();
 
       if (!mounted) return;
-      showAppSnackBar('Payment successful');
+      await showSubscriptionSuccess(
+        context,
+        productName: categoryName.isNotEmpty ? categoryName : licenceName,
+        amount: '100',
+        currency: 'SEK',
+        duration: '30 days',
+      );
     } catch (e) {
       await _analyticsService.logPurchaseFailure(
         licenceId: selectedLicenseType?['licence_id'] ?? '',
@@ -566,7 +574,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         }
         Navigator.push(
           context,
-          MaterialPageRoute(
+          AppPageRoute(
             builder: (_) => SavedQuestionsPreviewScreen(
               questions: saved,
               licenceId: selectedLicenseType?['licence_id'],
@@ -598,7 +606,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           setState(() => isLoading = false);
           Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => Testscreen(
                 questions: fetchedQuestions,
                 instantMarking: true,
@@ -619,7 +627,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           if (!mounted) return;
           Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => CreateCustomTestScreen(
                 licenceId: selectedLicenseType?['licence_id'],
                 categoryId: selectedCategory?['category_id'],

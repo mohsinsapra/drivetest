@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 // result_screen.dart
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -76,7 +77,7 @@ class ResultScreen extends StatelessWidget {
                         // Navigate back to the question for review
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          AppPageRoute(
                             builder: (context) => Testscreen(
                               questions: questions,
                               instantMarking: true,

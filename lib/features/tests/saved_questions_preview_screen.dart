@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
@@ -244,7 +245,7 @@ class _SavedQuestionsPreviewScreenState
               : () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    AppPageRoute(
                       builder: (_) => Testscreen(
                         questions: _questions,
                         instantMarking: true,

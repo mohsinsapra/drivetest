@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async'; // Import for TimeoutException
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -198,7 +199,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
       if (mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(
+          AppPageRoute(
             builder: (context) => Testscreen(
               questions: fetchedQuestions!,
               instantMarking: isInstantMarking,

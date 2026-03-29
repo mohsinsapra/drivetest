@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -90,8 +91,8 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
     final cat = Map<String, dynamic>.from(category);
 
     final route = hasChildren
-        ? MaterialPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
-        : MaterialPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat));
+        ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+        : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat));
 
     Navigator.push(context, route).then((_) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

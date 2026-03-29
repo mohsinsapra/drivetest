@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import '../../features/tests/result_screen.dart';
 import '../models/question.dart';
@@ -93,7 +94,7 @@ Future<void> showResultDialog({
             Navigator.of(ctx).pop(); // close
             Navigator.pushAndRemoveUntil(
               ctx,
-              MaterialPageRoute(
+              AppPageRoute(
                 builder: (_) => ResultScreen(
                   questions: questions,
                   userSelections: userSelections,

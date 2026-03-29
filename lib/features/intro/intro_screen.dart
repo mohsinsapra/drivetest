@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
@@ -97,7 +98,7 @@ class IntroScreen extends StatelessWidget {
     if (context.mounted) {
       // Navigate to Auth Screen
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const AuthScreen()),
+        AppPageRoute(builder: (_) => const AuthScreen()),
       );
     }
   }

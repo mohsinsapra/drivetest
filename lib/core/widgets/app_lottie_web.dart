@@ -1,5 +1,3 @@
-import 'dart:js_interop';
-
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import 'dart:ui_web' as ui;
@@ -28,7 +26,7 @@ Widget buildWebLottie({
         ..setAttribute('autoplay', '');
       el.style.width = '100%';
       el.style.height = '100%';
-      return el.toJSBox;
+      return el as Object;
     });
   }
 

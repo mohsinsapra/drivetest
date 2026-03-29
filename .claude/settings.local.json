@@ -91,7 +91,15 @@
       "Bash(find ~/.pub-cache/hosted/pub.dev -maxdepth 1 -name toastification* -type d)",
       "Bash(find ~/.pub-cache/hosted/pub.dev -path *toastification* -name toastification.dart)",
       "Bash(gem list:*)",
-      "Bash(ls /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/.env*)"
+      "Bash(ls /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/.env*)",
+      "Bash(xcrun simctl:*)",
+      "Bash(grep -v \"^$\")",
+      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets -name *.json -o -name *.lottie)",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(if ! grep -q \"subscription_success_overlay\" \"$f\")",
+      "Bash(then)",
+      "Bash(sed -i '' \"1s/^/import ''package:taxi_exam_app\\\\/features\\\\/payment\\\\/subscription_success_overlay.dart'';\\\\n/\" \"$f\")"
     ],
     "deny": [],
     "ask": []

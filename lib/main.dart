@@ -292,6 +292,14 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  late final Future<Map<String, bool>> _initFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFuture = _initializeApp();
+  }
+
   // Combined initialization to check onboarding and authentication
   Future<Map<String, bool>> _initializeApp() async {
     try {
@@ -375,7 +383,7 @@ class _MyAppState extends State<MyApp> {
         //   debugDisplayAlways: true, // Force display for testing
         // ),
         child: FutureBuilder<Map<String, bool>>(
-          future: _initializeApp(),
+          future: _initFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData) {
               return const Scaffold(

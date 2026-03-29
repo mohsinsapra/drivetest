@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert'; // For json.decode
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -59,7 +60,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          AppPageRoute(builder: (context) => const MainScreen()),
           (Route<dynamic> route) => false,
         );
       }

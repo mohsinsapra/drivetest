@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -206,7 +207,7 @@ class DioClient {
     if (context != null && context.mounted) {
       // ignore: use_build_context_synchronously
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
+        AppPageRoute(
           builder: (context) => const AuthScreen(),
         ),
         (Route<dynamic> route) => false,

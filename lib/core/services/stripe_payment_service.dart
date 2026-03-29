@@ -73,13 +73,6 @@ Future<void> _mobilePayment(
     paymentSheetParameters: stripe.SetupPaymentSheetParameters(
       paymentIntentClientSecret: secret,
       merchantDisplayName: merchantName,
-      applePay: Platform.isIOS
-          ? const stripe.PaymentSheetApplePay(merchantCountryCode: 'SE')
-          : null,
-      googlePay: Platform.isAndroid
-          ? const stripe.PaymentSheetGooglePay(
-              merchantCountryCode: 'SE', testEnv: false)
-          : null,
       style: ThemeMode.light,
     ),
   );

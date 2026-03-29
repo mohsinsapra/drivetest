@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
@@ -132,7 +133,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
                             sign: _filtered[i],
                             onTap: () => Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              AppPageRoute(
                                 builder: (_) => _SignGroupDetailScreen(
                                   group: _filtered[i],
                                 ),

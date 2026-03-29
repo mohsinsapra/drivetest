@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'bcd_licences_screen.dart';
@@ -17,7 +18,7 @@ class BCDScreen extends StatelessWidget {
         subtitle: 'Licences, categories & tests',
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const BCDLicencesScreen()),
+          AppPageRoute(builder: (_) => const BCDLicencesScreen()),
         ),
       ),
       _Section(
@@ -27,7 +28,7 @@ class BCDScreen extends StatelessWidget {
         subtitle: 'Browse all traffic signs',
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
+          AppPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
         ),
       ),
       _Section(
@@ -37,7 +38,7 @@ class BCDScreen extends StatelessWidget {
         subtitle: 'View plans & manage access',
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const BCDSubscriptionsScreen()),
+          AppPageRoute(builder: (_) => const BCDSubscriptionsScreen()),
         ),
       ),
     ];

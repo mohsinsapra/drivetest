@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/features/auth/verify_code_screen.dart';
@@ -37,7 +38,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
+          AppPageRoute(
             builder: (_) => VerifyCodeScreen(
               email: _emailController.text.trim(),
             ),

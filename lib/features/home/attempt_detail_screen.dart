@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 // attempt_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
@@ -44,7 +45,7 @@ class AttemptDetailScreen extends StatelessWidget {
                 // Open Testscreen at the selected question
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  AppPageRoute(
                     builder: (context) => Testscreen(
                       questions: questions,
                       instantMarking: true, // Enable instant marking for review

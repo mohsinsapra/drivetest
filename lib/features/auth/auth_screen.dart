@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -71,7 +72,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (mounted) {
         // Navigate directly to MainScreen
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          AppPageRoute(builder: (context) => const MainScreen()),
           (Route<dynamic> route) => false,
         );
       }

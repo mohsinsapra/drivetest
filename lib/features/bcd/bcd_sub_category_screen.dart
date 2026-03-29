@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -60,7 +61,7 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
   void _onCategoryTap(dynamic category) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => BCDCategoryHubScreen(
           category: Map<String, dynamic>.from(category),
         ),

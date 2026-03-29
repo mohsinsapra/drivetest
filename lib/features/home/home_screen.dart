@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
@@ -519,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen>
                   final a = _pausedAttempts[index];
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    AppPageRoute(
                       builder: (_) => Testscreen(
                         questions: a.questions,
                         instantMarking: true,
@@ -688,7 +689,7 @@ class _HomeScreenState extends State<HomeScreen>
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
+        AppPageRoute(
             builder: (_) => AttemptDetailScreen(attempt: attempt)),
       ),
       child: Container(

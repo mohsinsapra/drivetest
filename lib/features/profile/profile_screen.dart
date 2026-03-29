@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -219,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             icon: const Icon(LucideIcons.settings),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              AppPageRoute(builder: (_) => const SettingsScreen()),
             ),
           )
         ],
@@ -301,13 +302,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                     onTap: e.key == 1
                         ? () => Navigator.push(
                               context,
-                              MaterialPageRoute(
+                              AppPageRoute(
                                   builder: (_) => const StatsScreen()),
                             )
                         : e.key == 2
                             ? () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(
+                                  AppPageRoute(
                                       builder: (_) => const SettingsScreen()),
                                 )
                             : () {},
@@ -331,7 +332,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         : e.value.title == 'Help'
                             ? () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(
+                                  AppPageRoute(
                                       builder: (_) => const HelpScreen()),
                                 )
                             : () {},
@@ -434,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         final nav = NavigationService
                                             .navigatorKey.currentState;
                                         nav?.pushAndRemoveUntil(
-                                          MaterialPageRoute(
+                                          AppPageRoute(
                                               builder: (_) =>
                                                   const AuthScreen()),
                                           (route) => false,

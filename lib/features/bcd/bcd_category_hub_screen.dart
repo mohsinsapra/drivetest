@@ -1,3 +1,5 @@
+import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -88,11 +90,25 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       );
 
       if (!mounted) return;
-      showAppSnackBar('Payment successful! Subscription activated.');
       // Optimistic update: remove the banner and unlock tiles immediately.
       // Also notify the tests list screen (if open) via the shared notifier.
       setState(() => widget.category['is_subscribed'] = true);
       _subscribedNotifier.value = true;
+      final durationDays = product['duration_days'] as int?;
+      final durationLabel = durationDays != null
+          ? (durationDays >= 365
+              ? '${(durationDays / 365).round()} year'
+              : durationDays >= 30
+                  ? '${(durationDays / 30).round()} months'
+                  : '$durationDays days')
+          : null;
+      await showSubscriptionSuccess(
+        context,
+        productName: name,
+        duration: durationLabel,
+        amount: price,
+        currency: currency,
+      );
     } on Exception catch (e) {
       if (!mounted) return;
       final msg = e.toString();
@@ -121,7 +137,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       if (bcdId == null) return;
       Navigator.push(
         context,
-        MaterialPageRoute(
+        AppPageRoute(
           builder: (_) => BCDTestScreen(
             testId: bcdId,
             testName: test['name']?.toString() ?? 'Practice',
@@ -160,7 +176,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
 
       Navigator.push(
         context,
-        MaterialPageRoute(
+        AppPageRoute(
           builder: (_) => SavedQuestionsPreviewScreen(
             questions: savedQuestions,
             licenceId: '',
@@ -204,7 +220,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         // Pass the shared notifier so it updates live when payment completes.
         Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => _BCDTestsListScreen(
                 categoryBcdId: _categoryBcdId,
                 categoryName: _categoryName,
@@ -218,7 +234,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       case 'documents':
         Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => _BCDDocumentsScreen(
                 categoryBcdId: _categoryBcdId,
                 categoryName: _categoryName,
@@ -228,14 +244,14 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       case 'traffic_signs':
         Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => const BCDTrafficSignsScreen(),
             ));
         break;
       case 'checklists':
         Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => _BCDChecklistsScreen(
                 categoryBcdId: _categoryBcdId,
                 categoryName: _categoryName,
@@ -245,7 +261,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       case 'statistics':
         Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => StatsScreen(
                 subtitle: _categoryName,
                 licenceNameFilter: _categoryName,
@@ -558,7 +574,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
     if (bcdId == null) return;
     Navigator.push(
       context,
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => BCDTestScreen(
           testId: bcdId,
           testName: test['name']?.toString() ?? 'Test',
@@ -745,7 +761,7 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
                             ? null
                             : () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(
+                                  AppPageRoute(
                                     builder: (_) => BCDDocumentViewerScreen(
                                       title: cleanBcdText(
                                           doc['title']?.toString() ??
