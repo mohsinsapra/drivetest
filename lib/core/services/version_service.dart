@@ -2,6 +2,18 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+const _webAppVersion =
+    String.fromEnvironment('APP_VERSION', defaultValue: '');
+const _webBuildNumber =
+    String.fromEnvironment('BUILD_NUMBER', defaultValue: '');
+const _webCommitHash =
+    String.fromEnvironment('GIT_COMMIT_HASH', defaultValue: '');
+const _webShortHash =
+    String.fromEnvironment('GIT_SHORT_HASH', defaultValue: '');
+const _webBranch = String.fromEnvironment('GIT_BRANCH', defaultValue: '');
+const _webCommitDate =
+    String.fromEnvironment('GIT_COMMIT_DATE', defaultValue: '');
+
 class VersionInfo {
   final String appVersion;
   final String buildNumber;
@@ -43,7 +55,8 @@ class VersionService {
     // Get package info (app version)
     final packageInfo = await PackageInfo.fromPlatform();
 
-    // Try to get git info (only works on non-web platforms during development)
+    String appVersion = packageInfo.version;
+    String buildNumber = packageInfo.buildNumber;
     String commitHash = 'unknown';
     String shortHash = 'unknown';
     String branch = 'unknown';
@@ -52,7 +65,29 @@ class VersionService {
     String commitAuthor = 'unknown';
     bool hasGitInfo = false;
 
-    if (!kIsWeb) {
+    if (kIsWeb) {
+      // Web cannot inspect the local git repository at runtime, so use values
+      // embedded at build time by `make web-build` / `make web-deploy`.
+      if (_webAppVersion.isNotEmpty) {
+        appVersion = _webAppVersion;
+      }
+      if (_webBuildNumber.isNotEmpty) {
+        buildNumber = _webBuildNumber;
+      }
+      if (_webCommitHash.isNotEmpty) {
+        commitHash = _webCommitHash;
+      }
+      if (_webShortHash.isNotEmpty) {
+        shortHash = _webShortHash;
+      }
+      if (_webBranch.isNotEmpty) {
+        branch = _webBranch;
+      }
+      if (_webCommitDate.isNotEmpty) {
+        commitDate = _webCommitDate;
+      }
+      hasGitInfo = shortHash != 'unknown' || commitHash != 'unknown';
+    } else {
       try {
         // Get commit hash
         final hashResult = await Process.run(
@@ -121,8 +156,8 @@ class VersionService {
     }
 
     return VersionInfo(
-      appVersion: packageInfo.version,
-      buildNumber: packageInfo.buildNumber,
+      appVersion: appVersion,
+      buildNumber: buildNumber,
       commitHash: commitHash,
       shortHash: shortHash,
       branch: branch,

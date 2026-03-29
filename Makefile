@@ -14,6 +14,12 @@ COLOR_BLUE = \033[34m
 WEB_BUILD_DIR = build/web
 WEB_REPO_REMOTE ?= origin
 WEB_REPO_BRANCH ?= master
+APP_VERSION := $(shell sed -nE 's/^version:[[:space:]]*([^+]+)\+(.+)$$/\1/p' pubspec.yaml | head -1)
+APP_BUILD_NUMBER := $(shell sed -nE 's/^version:[[:space:]]*([^+]+)\+(.+)$$/\2/p' pubspec.yaml | head -1)
+GIT_COMMIT_HASH := $(shell git rev-parse HEAD 2>/dev/null)
+GIT_SHORT_HASH := $(shell git rev-parse --short HEAD 2>/dev/null)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
+GIT_COMMIT_DATE := $(shell git log -1 --date=iso-strict --pretty=%cd 2>/dev/null)
 
 # Load environment variables
 # .env.local overrides .env for local development (test keys, etc.)
@@ -59,6 +65,7 @@ help:
 ## web-run: Run web app in development mode
 web-run:
 	@echo "$(COLOR_GREEN)Starting web app in development mode...$(COLOR_RESET)"
+	@echo "$(COLOR_YELLOW)Web version: v$(APP_VERSION) ($(APP_BUILD_NUMBER))$(COLOR_RESET)"
 	@flutter run -d chrome \
 		--dart-define=FIREBASE_API_KEY="$(FIREBASE_API_KEY)" \
 		--dart-define=FIREBASE_AUTH_DOMAIN="$(FIREBASE_AUTH_DOMAIN)" \
@@ -69,12 +76,19 @@ web-run:
 		--dart-define=FIREBASE_MEASUREMENT_ID="$(FIREBASE_MEASUREMENT_ID)" \
 		--dart-define=STRIPE_PUBLISHABLE_KEY="$(STRIPE_PUBLISHABLE_KEY)" \
 		--dart-define=GOOGLE_WEB_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
-		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)"
+		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)" \
+		--dart-define=APP_VERSION="$(APP_VERSION)" \
+		--dart-define=BUILD_NUMBER="$(APP_BUILD_NUMBER)" \
+		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
+		--dart-define=GIT_SHORT_HASH="$(GIT_SHORT_HASH)" \
+		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
+		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)"
 
 ## web-build: Build web app for production
 web-build:
 	@echo "$(COLOR_GREEN)Building web app for production...$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)Base URL: $(WEB_BASE_HREF)$(COLOR_RESET)"
+	@echo "$(COLOR_YELLOW)Web version: v$(APP_VERSION) ($(APP_BUILD_NUMBER))$(COLOR_RESET)"
 	@if [ -d "$(WEB_BUILD_DIR)/.git" ]; then \
 		echo "$(COLOR_YELLOW)Backing up .git folder...$(COLOR_RESET)"; \
 		rm -rf /tmp/build_web_git_backup; \
@@ -91,13 +105,32 @@ web-build:
 		--dart-define=FIREBASE_MEASUREMENT_ID="$(FIREBASE_MEASUREMENT_ID)" \
 		--dart-define=STRIPE_PUBLISHABLE_KEY="$(LIVE_STRIPE_PUBLISHABLE_KEY)" \
 		--dart-define=GOOGLE_WEB_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
-		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)"
+		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)" \
+		--dart-define=APP_VERSION="$(APP_VERSION)" \
+		--dart-define=BUILD_NUMBER="$(APP_BUILD_NUMBER)" \
+		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
+		--dart-define=GIT_SHORT_HASH="$(GIT_SHORT_HASH)" \
+		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
+		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)"
+	@$(MAKE) -s _write-web-version-file
 	@if [ -d "/tmp/build_web_git_backup" ]; then \
 		echo "$(COLOR_YELLOW)Restoring .git folder...$(COLOR_RESET)"; \
 		mv /tmp/build_web_git_backup $(WEB_BUILD_DIR)/.git; \
 		echo "$(COLOR_GREEN)✅ .git folder restored!$(COLOR_RESET)"; \
 	fi
 	@echo "$(COLOR_GREEN)✅ Build completed! Output: $(WEB_BUILD_DIR)$(COLOR_RESET)"
+
+## _write-web-version-file: Write deploy metadata for the built web app
+_write-web-version-file:
+	@mkdir -p $(WEB_BUILD_DIR)
+	@printf '%s\n' '{' \
+		'  "appVersion": "$(APP_VERSION)",' \
+		'  "buildNumber": "$(APP_BUILD_NUMBER)",' \
+		'  "shortHash": "$(GIT_SHORT_HASH)",' \
+		'  "branch": "$(GIT_BRANCH)",' \
+		'  "commitDate": "$(GIT_COMMIT_DATE)"' \
+		'}' > $(WEB_BUILD_DIR)/version.json
+	@echo "$(COLOR_GREEN)✅ Wrote $(WEB_BUILD_DIR)/version.json$(COLOR_RESET)"
 
 ## web-deploy: Build and deploy web app to repository
 web-deploy: web-build
