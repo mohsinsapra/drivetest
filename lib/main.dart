@@ -95,7 +95,6 @@ void main() async {
         ? stripeKey
         : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
     Stripe.publishableKey = publishableKey;
-    debugPrint('[Stripe] publishable key loaded: ${publishableKey.substring(0, publishableKey.length > 20 ? 20 : publishableKey.length)}...');
     // flutter_stripe_web requires applySettings() to initialise Stripe.js
     if (kIsWeb) {
       await Stripe.instance.applySettings();
