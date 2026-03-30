@@ -101,7 +101,7 @@ class DioClient {
     );
     final baseUrl = kReleaseMode
         ? 'https://taxiexam.hayatpoetry.com/'
-        : 'http://192.168.1.130:8010/';
+        : 'http://localhost:8010/';
 
     _dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',

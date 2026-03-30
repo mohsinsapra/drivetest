@@ -616,12 +616,38 @@ class _TestscreenState extends State<Testscreen> {
     }
   }
 
+  Future<void> _onLanguageSelected(String value) async {
+    ttsService.flutterTts.stop();
+    ttsService.ttsState = TtsState.stopped;
+
+    final targetLang = value.toLowerCase();
+    if (targetLang == currentLanguageCode.toLowerCase()) return;
+
+    if (targetLang == 'sv') {
+      if (mounted) {
+        setState(() {
+          currentLanguageCode = value;
+          isEnglish = false;
+        });
+      }
+      return;
+    }
+
+    await _translateQuestion(currentQuestionIndex, targetLang);
+    if (mounted) {
+      setState(() {
+        currentLanguageCode = value;
+      });
+    }
+  }
+
   void disableScreenshot() async {
     await _noScreenshot.screenshotOff();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSmallScreen = MediaQuery.of(context).size.width < 390;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -699,71 +725,81 @@ class _TestscreenState extends State<Testscreen> {
                   ),
                 ),
               ),
-            // Language selector
-            Container(
-              margin: const EdgeInsets.only(right: 8),
-              child: PopupMenuButton<String>(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey[200]!, width: 1),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        ttsService.getLanguageFlag(currentLanguageCode),
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        LucideIcons.languages,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                    ],
+            if (!isSmallScreen)
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                child: PopupMenuButton<String>(
+                  onSelected: _onLanguageSelected,
+                  itemBuilder: (BuildContext context) => languageOptions
+                      .map((lang) => PopupMenuItem<String>(
+                            value: lang['code'],
+                            child: Text(lang['label']!),
+                          ))
+                      .toList(),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey[200]!, width: 1),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          ttsService.getLanguageFlag(currentLanguageCode),
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          LucideIcons.languages,
+                          size: 16,
+                          color: Colors.grey[600],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                onSelected: (String value) async {
-                  ttsService.flutterTts.stop();
-                  ttsService.ttsState = TtsState.stopped;
-                  String targetLang = value.toLowerCase();
-                  if (targetLang != currentLanguageCode.toLowerCase()) {
-                    if (targetLang == 'sv') {
-                      // Switching back to Swedish — use originals, no translation needed
-                      setState(() {
-                        currentLanguageCode = value;
-                        isEnglish = false;
-                      });
-                    } else {
-                      await _translateQuestion(
-                          currentQuestionIndex, targetLang);
-                      setState(() {
-                        currentLanguageCode = value;
-                      });
-                    }
-                  }
-                },
-                itemBuilder: (BuildContext context) => languageOptions
-                    .map((lang) => PopupMenuItem<String>(
-                          value: lang['code'],
-                          child: Text(lang['label']!),
-                        ))
-                    .toList(),
               ),
-            ),
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, color: Colors.black87),
               onSelected: (value) {
-                if (value == 'feedback') {
+                if (value == 'lang_en') {
+                  _onLanguageSelected('EN');
+                } else if (value == 'lang_sv') {
+                  _onLanguageSelected('SV');
+                } else if (value == 'feedback') {
                   _showFeedbackDialog();
                 }
               },
-              itemBuilder: (context) => const [
-                PopupMenuItem<String>(
+              itemBuilder: (context) => [
+                if (isSmallScreen)
+                  PopupMenuItem<String>(
+                    value: 'lang_en',
+                    child: Row(
+                      children: [
+                        const Text('🇬🇧 English'),
+                        const Spacer(),
+                        if (currentLanguageCode.toLowerCase() == 'en')
+                          const Icon(Icons.check, size: 16),
+                      ],
+                    ),
+                  ),
+                if (isSmallScreen)
+                  PopupMenuItem<String>(
+                    value: 'lang_sv',
+                    child: Row(
+                      children: [
+                        const Text('🇸🇪 Svenska'),
+                        const Spacer(),
+                        if (currentLanguageCode.toLowerCase() == 'sv')
+                          const Icon(Icons.check, size: 16),
+                      ],
+                    ),
+                  ),
+                if (isSmallScreen) const PopupMenuDivider(),
+                const PopupMenuItem<String>(
                   value: 'feedback',
                   child: Row(
                     children: [

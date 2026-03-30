@@ -44,7 +44,7 @@ class BCDScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('BCD Exams')),
+      appBar: AppBar(title: const Text('Drive Test')),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: sections.length,
@@ -113,8 +113,8 @@ class _SectionCard extends StatelessWidget {
                           fontSize: 16, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
                   Text(section.subtitle,
-                      style: TextStyle(
-                          fontSize: 13, color: Colors.grey.shade600)),
+                      style:
+                          TextStyle(fontSize: 13, color: Colors.grey.shade600)),
                 ],
               ),
             ),

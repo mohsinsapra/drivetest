@@ -4,10 +4,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/features/auth/login_screen.dart';
 import 'package:taxi_exam_app/features/auth/signup_screen.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -79,9 +82,7 @@ class _AuthScreenState extends State<AuthScreen> {
     } catch (e) {
       if (!mounted) return;
       debugPrint('Demo login error: $e');
-      // Show error snackbar
-      showAppSnackBar(
-          'Failed to login with demo account. Please try again.');
+      showAppSnackBar(Translations.of(context).auth_demo_error);
     } finally {
       if (mounted) {
         setState(() {
@@ -91,13 +92,66 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _setLocale(AppLocale locale) async {
+    await LocaleSettings.setLocale(locale);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', locale.languageCode);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    final currentLocale = LocaleSettings.currentLocale;
+    final currentFlag = currentLocale == AppLocale.sv ? '🇸🇪' : '🇬🇧';
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8, right: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PopupMenuButton<AppLocale>(
+                      tooltip: 'Language',
+                      onSelected: _setLocale,
+                      itemBuilder: (context) => [
+                        CheckedPopupMenuItem<AppLocale>(
+                          value: AppLocale.en,
+                          checked: currentLocale == AppLocale.en,
+                          child: const Text('🇬🇧 English'),
+                        ),
+                        CheckedPopupMenuItem<AppLocale>(
+                          value: AppLocale.sv,
+                          checked: currentLocale == AppLocale.sv,
+                          child: const Text('🇸🇪 Svenska'),
+                        ),
+                      ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Text(
+                          currentFlag,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(themeProvider.isDark
+                          ? Icons.light_mode_rounded
+                          : Icons.dark_mode_rounded),
+                      onPressed: () => context.read<ThemeProvider>().toggle(),
+                      tooltip:
+                          themeProvider.isDark ? 'Light mode' : 'Dark mode',
+                    ),
+                  ],
+                ),
+              ),
+            ),
             // Top: Centered image + welcome text
             Expanded(
               child: Center(
@@ -117,18 +171,18 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                       const SizedBox(height: 40),
-                      const Text(
-                        'Welcome to Drive Test!',
+                      Text(
+                        t.auth_welcome_title,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Practice and prepare your Taxi exams!',
+                      Text(
+                        t.auth_welcome_subtitle,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
                           color: Colors.grey,
                         ),
@@ -164,9 +218,9 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'LOGIN',
+                            t.auth_login_btn,
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -193,7 +247,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            'SIGNUP',
+                            t.auth_signup_btn,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
                               fontWeight: FontWeight.w600,
@@ -208,20 +262,20 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 24),
 
                   // Divider
-                  const Row(
+                  Row(
                     children: [
-                      Expanded(child: Divider()),
+                      const Expanded(child: Divider()),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
-                          'OR',
-                          style: TextStyle(
+                          t.auth_or,
+                          style: const TextStyle(
                             color: Colors.grey,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                      Expanded(child: Divider()),
+                      const Expanded(child: Divider()),
                     ],
                   ),
 
@@ -251,7 +305,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'SKIP FOR NOW (TRY DEMO)',
+                                t.auth_skip_demo,
                                 style: TextStyle(
                                   color: Colors.grey.shade700,
                                   fontWeight: FontWeight.w600,

@@ -9,15 +9,29 @@ import 'package:taxi_exam_app/features/tests/licences_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_screen.dart';
 import 'package:taxi_exam_app/features/profile/profile_screen.dart';
 
+// Fixed page indices — these never change regardless of which tabs are visible.
+const int _kPageHome = 0;
+const int _kPageTests = 1;
+const int _kPageDriveTest = 2;
+const int _kPageProfile = 3;
+
+// All four screens at their fixed positions in the PageView.
+const List<Widget> _kAllScreens = [
+  HomeScreen(),
+  LicenceTypesScreen(),
+  BCDScreen(),
+  ProfileScreen(),
+];
+
 class _NavEntry {
   final IconData icon;
   final String label;
-  final Widget screen;
+  final int pageIndex; // Fixed position in the PageView
 
   const _NavEntry({
     required this.icon,
     required this.label,
-    required this.screen,
+    required this.pageIndex,
   });
 }
 
@@ -36,44 +50,32 @@ class MainScreenState extends State<MainScreen> {
   bool _showBcdTests = false;
   bool _listenerAttached = false;
 
+  // Returns only the tabs the user should see, each pointing to a fixed page.
   List<_NavEntry> get _navEntries {
-    final items = <_NavEntry>[
+    return [
       const _NavEntry(
         icon: LucideIcons.home,
         label: 'Home',
-        screen: HomeScreen(),
+        pageIndex: _kPageHome,
       ),
-    ];
-
-    if (_showLegacyTests) {
-      items.add(
+      if (_showLegacyTests)
         const _NavEntry(
           icon: LucideIcons.bookOpenCheck,
           label: 'Tests',
-          screen: LicenceTypesScreen(),
+          pageIndex: _kPageTests,
         ),
-      );
-    }
-
-    if (_showBcdTests) {
-      items.add(
+      if (_showBcdTests)
         const _NavEntry(
           icon: LucideIcons.graduationCap,
-          label: 'BCD',
-          screen: BCDScreen(),
+          label: 'Drive Test',
+          pageIndex: _kPageDriveTest,
         ),
-      );
-    }
-
-    items.add(
       const _NavEntry(
         icon: LucideIcons.user,
         label: 'Profile',
-        screen: ProfileScreen(),
+        pageIndex: _kPageProfile,
       ),
-    );
-
-    return items;
+    ];
   }
 
   @override
@@ -101,29 +103,40 @@ class MainScreenState extends State<MainScreen> {
 
   Future<void> _applyFlagsFromMap(Map<String, dynamic> userData) async {
     if (!mounted) return;
+
     final isAdmin = _flag(userData['is_administrator'], false);
+    final newShowLegacy =
+        isAdmin ? true : _flag(userData['show_legacy_tests'], true);
+    final newShowBcd =
+        isAdmin ? true : _flag(userData['show_bcd_tests'], false);
+
+    // Nothing changed — skip the rebuild entirely.
+    if (newShowLegacy == _showLegacyTests && newShowBcd == _showBcdTests) {
+      return;
+    }
+
+    final provider = Provider.of<MainScreenProvider>(context, listen: false);
+    final currentPage = provider.currentIndex;
 
     setState(() {
-      if (isAdmin) {
-        _showLegacyTests = true;
-        _showBcdTests = true;
-      } else {
-        _showLegacyTests = _flag(userData['show_legacy_tests'], true);
-        _showBcdTests = _flag(userData['show_bcd_tests'], false);
-      }
+      _showLegacyTests = newShowLegacy;
+      _showBcdTests = newShowBcd;
     });
-    _ensureValidIndex();
-  }
 
-  void _ensureValidIndex() {
-    if (!mounted) return;
-    final provider = Provider.of<MainScreenProvider>(context, listen: false);
-    final maxIndex = _navEntries.length - 1;
-    final safeIndex = provider.currentIndex.clamp(0, maxIndex);
-    if (safeIndex != provider.currentIndex) {
-      provider.setIndex(safeIndex);
-      _pageController.jumpToPage(safeIndex);
+    // If the page the user is on is no longer in the nav bar, redirect to Home.
+    final visiblePages =
+        _navEntries.map((e) => e.pageIndex).toSet();
+    if (!visiblePages.contains(currentPage)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        provider.setIndex(_kPageHome);
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(_kPageHome);
+        }
+      });
     }
+    // No position correction needed when tabs are added — pages are at fixed
+    // positions, so Profile is always page 3 regardless of tab count.
   }
 
   Future<void> _loadTabFlags() async {
@@ -156,7 +169,7 @@ class MainScreenState extends State<MainScreen> {
       if (!mounted) return;
       final index =
           Provider.of<MainScreenProvider>(context, listen: false).currentIndex;
-      final safeIndex = index.clamp(0, _navEntries.length - 1);
+      final safeIndex = index.clamp(0, _kAllScreens.length - 1);
       _pageController.jumpToPage(safeIndex);
     });
   }
@@ -175,7 +188,12 @@ class MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<MainScreenProvider>(context);
     final entries = _navEntries;
-    final selectedIndex = provider.currentIndex.clamp(0, entries.length - 1);
+    final currentPage = provider.currentIndex.clamp(0, _kAllScreens.length - 1);
+
+    // Find which nav entry matches the current page for highlighting.
+    final navIndex = entries.indexWhere((e) => e.pageIndex == currentPage);
+    final selectedNavIndex = navIndex >= 0 ? navIndex : 0;
+
     final mq = MediaQuery.of(context);
 
     return Scaffold(
@@ -185,16 +203,20 @@ class MainScreenState extends State<MainScreen> {
             controller: _pageController,
             onPageChanged: _onPageChanged,
             physics: const ClampingScrollPhysics(),
-            children: entries.map((e) => _KeepAlivePage(child: e.screen)).toList(),
+            children: _kAllScreens
+                .map((s) => _KeepAlivePage(child: s))
+                .toList(),
           ),
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: _FloatingNavArea(
-              currentIndex: selectedIndex,
+              currentIndex: selectedNavIndex,
               items: entries,
-              onTap: (i) => provider.setIndex(i),
+              onTap: (pageIndex) {
+                provider.setIndex(pageIndex);
+              },
               bottomInset: mq.padding.bottom,
             ),
           ),
@@ -209,7 +231,7 @@ class MainScreenState extends State<MainScreen> {
 class _FloatingNavArea extends StatelessWidget {
   final int currentIndex;
   final List<_NavEntry> items;
-  final ValueChanged<int> onTap;
+  final ValueChanged<int> onTap; // receives fixed pageIndex
   final double bottomInset;
 
   const _FloatingNavArea({
@@ -242,7 +264,7 @@ class _FloatingNavArea extends StatelessWidget {
 class _FloatingNavPill extends StatelessWidget {
   final int currentIndex;
   final List<_NavEntry> items;
-  final ValueChanged<int> onTap;
+  final ValueChanged<int> onTap; // receives fixed pageIndex
 
   static const double _itemW = 56;
   static const double _itemH = 44;
@@ -299,7 +321,7 @@ class _FloatingNavPill extends StatelessWidget {
               children: items.asMap().entries.map((e) {
                 final isActive = currentIndex == e.key;
                 return GestureDetector(
-                  onTap: () => onTap(e.key),
+                  onTap: () => onTap(e.value.pageIndex),
                   behavior: HitTestBehavior.opaque,
                   child: SizedBox(
                     width: _itemW,

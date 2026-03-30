@@ -87,6 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _showAppFeedbackDialog() async {
+    final t = Translations.of(context);
     final subjectCtrl = TextEditingController();
     final messageCtrl = TextEditingController();
     String feedbackType = 'app_issue';
@@ -95,21 +96,24 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Send feedback'),
+          title: Text(t.auth_contact_support),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
                 initialValue: feedbackType,
-                decoration: const InputDecoration(labelText: 'Type'),
-                items: const [
+                decoration: InputDecoration(labelText: t.auth_feedback_type),
+                items: [
                   DropdownMenuItem(
-                      value: 'app_issue', child: Text('App issue')),
+                      value: 'app_issue',
+                      child: Text(t.auth_feedback_app_issue)),
                   DropdownMenuItem(
-                      value: 'feature_request', child: Text('Feature request')),
+                      value: 'feature_request',
+                      child: Text(t.auth_feedback_feature_request)),
                   DropdownMenuItem(
-                      value: 'payment_issue', child: Text('Payment issue')),
-                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                      value: 'payment_issue', child: const Text('Payment issue')),
+                  DropdownMenuItem(
+                      value: 'other', child: Text(t.auth_feedback_other)),
                 ],
                 onChanged: (v) {
                   if (v == null) return;
@@ -119,17 +123,17 @@ class _ProfileScreenState extends State<ProfileScreen>
               const SizedBox(height: 12),
               TextField(
                 controller: subjectCtrl,
-                decoration:
-                    const InputDecoration(labelText: 'Subject (optional)'),
+                decoration: InputDecoration(
+                    labelText: t.auth_feedback_subject_optional),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: messageCtrl,
                 minLines: 3,
                 maxLines: 6,
-                decoration: const InputDecoration(
-                  labelText: 'Message',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: t.auth_feedback_message,
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
@@ -137,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(t.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, {
@@ -145,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 'message': messageCtrl.text.trim(),
                 'type': feedbackType,
               }),
-              child: const Text('Submit'),
+              child: Text(t.auth_submit),
             ),
           ],
         ),
@@ -167,9 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(ok
-            ? 'Thanks! Your feedback was sent.'
-            : 'Could not send feedback. Please try again.'),
+        content: Text(ok ? t.auth_feedback_sent : t.auth_feedback_error),
       ),
     );
   }
@@ -177,6 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+    final bottomInset = MediaQuery.of(context).padding.bottom;
     final menuItems = [
       (
         icon: Icons.person,
@@ -227,6 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
       body: SafeArea(
         child: ListView(
+          padding: EdgeInsets.only(bottom: bottomInset + 120),
           children: [
             const SizedBox(height: 24),
 
@@ -302,8 +306,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     onTap: e.key == 1
                         ? () => Navigator.push(
                               context,
-                              AppPageRoute(
-                                  builder: (_) => const StatsScreen()),
+                              AppPageRoute(builder: (_) => const StatsScreen()),
                             )
                         : e.key == 2
                             ? () => Navigator.push(

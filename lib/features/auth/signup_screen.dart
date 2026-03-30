@@ -3,11 +3,14 @@ import 'dart:convert'; // For json.decode
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/auth/google_sign_in_helper.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -94,7 +97,7 @@ class _SignupScreenState extends State<SignupScreen> {
         // Signup successful
         if (!mounted) return;
 
-        showAppSnackBar('Signup successful! Please login.');
+        showAppSnackBar(Translations.of(context).auth_signup_success);
         Navigator.pop(context);
       } else {
         // Signup failed
@@ -108,13 +111,13 @@ class _SignupScreenState extends State<SignupScreen> {
         });
 
         // Show a general error message
-        showAppSnackBar('Signup failed. Please correct the errors.');
+        showAppSnackBar(Translations.of(context).auth_signup_failed);
       }
     } catch (e) {
       if (!mounted) return;
 
       // Handle exceptions
-      showAppSnackBar('An error occurred. Please try again.');
+      showAppSnackBar(Translations.of(context).auth_generic_error);
     } finally {
       if (mounted) {
         setState(() {
@@ -140,36 +143,47 @@ class _SignupScreenState extends State<SignupScreen> {
     return errors;
   }
 
+  Future<void> _setLocale(AppLocale locale) async {
+    await LocaleSettings.setLocale(locale);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', locale.languageCode);
+  }
+
   String? _validateUsername(String? value) {
+    final t = Translations.of(context);
     if (value == null || value.isEmpty) {
-      return 'Please enter a username';
+      return t.auth_val_username_required;
     } else if (value.length < 4) {
-      return 'Username must be at least 4 characters';
+      return t.auth_val_username_length;
     }
     return null;
   }
 
   String? _validateEmail(String? value) {
+    final t = Translations.of(context);
     if (value == null || value.isEmpty) {
-      return 'Please enter an email';
+      return t.auth_val_email_required;
     } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-      return 'Please enter a valid email';
+      return t.auth_val_email_invalid;
     }
     return null;
   }
 
   String? _validatePassword(String? value) {
+    final t = Translations.of(context);
     if (value == null || value.isEmpty) {
-      return 'Please enter a password';
+      return t.auth_val_password_required;
     } else if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+      return t.auth_val_password_length;
     }
     return null;
   }
 
   Future<void> _showAppFeedbackDialog() async {
+    final t = Translations.of(context);
     final emailCtrl = TextEditingController(text: _emailController.text.trim());
-    final subjectCtrl = TextEditingController(text: 'Signup issue');
+    final subjectCtrl =
+        TextEditingController(text: t.auth_feedback_signup_issue);
     final messageCtrl = TextEditingController();
     String feedbackType = 'signup_issue';
 
@@ -177,23 +191,26 @@ class _SignupScreenState extends State<SignupScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Contact support'),
+          title: Text(t.auth_contact_support),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
                   initialValue: feedbackType,
-                  decoration: const InputDecoration(labelText: 'Type'),
-                  items: const [
+                  decoration: InputDecoration(labelText: t.auth_feedback_type),
+                  items: [
                     DropdownMenuItem(
-                        value: 'signup_issue', child: Text('Signup issue')),
+                        value: 'signup_issue',
+                        child: Text(t.auth_feedback_signup_issue)),
                     DropdownMenuItem(
-                        value: 'app_issue', child: Text('App issue')),
+                        value: 'app_issue',
+                        child: Text(t.auth_feedback_app_issue)),
                     DropdownMenuItem(
                         value: 'feature_request',
-                        child: Text('Feature request')),
-                    DropdownMenuItem(value: 'other', child: Text('Other')),
+                        child: Text(t.auth_feedback_feature_request)),
+                    DropdownMenuItem(
+                        value: 'other', child: Text(t.auth_feedback_other)),
                   ],
                   onChanged: (v) {
                     if (v == null) return;
@@ -204,23 +221,23 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextField(
                   controller: emailCtrl,
                   keyboardType: TextInputType.emailAddress,
-                  decoration:
-                      const InputDecoration(labelText: 'Email (optional)'),
+                  decoration: InputDecoration(
+                      labelText: t.auth_feedback_email_optional),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: subjectCtrl,
-                  decoration:
-                      const InputDecoration(labelText: 'Subject (optional)'),
+                  decoration: InputDecoration(
+                      labelText: t.auth_feedback_subject_optional),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: messageCtrl,
                   minLines: 3,
                   maxLines: 6,
-                  decoration: const InputDecoration(
-                    labelText: 'Message',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: t.auth_feedback_message,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -229,7 +246,7 @@ class _SignupScreenState extends State<SignupScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(t.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, {
@@ -238,7 +255,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 'message': messageCtrl.text.trim(),
                 'type': feedbackType,
               }),
-              child: const Text('Submit'),
+              child: Text(t.auth_submit),
             ),
           ],
         ),
@@ -257,149 +274,173 @@ class _SignupScreenState extends State<SignupScreen> {
       contactEmail: payload['email'] ?? '',
     );
     if (!mounted) return;
-    showAppSnackBar(ok
-        ? 'Thanks! Your feedback was sent.'
-        : 'Could not send feedback. Please try again.');
+    showAppSnackBar(ok ? t.auth_feedback_sent : t.auth_feedback_error);
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    final currentLocale = LocaleSettings.currentLocale;
+    final currentFlag = currentLocale == AppLocale.sv ? '🇸🇪' : '🇬🇧';
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
-          'Create Account',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: Text(t.auth_create_account),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black),
         actions: [
+          PopupMenuButton<AppLocale>(
+            tooltip: 'Language',
+            onSelected: _setLocale,
+            itemBuilder: (context) => [
+              CheckedPopupMenuItem<AppLocale>(
+                value: AppLocale.en,
+                checked: currentLocale == AppLocale.en,
+                child: const Text('🇬🇧 English'),
+              ),
+              CheckedPopupMenuItem<AppLocale>(
+                value: AppLocale.sv,
+                checked: currentLocale == AppLocale.sv,
+                child: const Text('🇸🇪 Svenska'),
+              ),
+            ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                currentFlag,
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(themeProvider.isDark
+                ? Icons.light_mode_rounded
+                : Icons.dark_mode_rounded),
+            onPressed: () => context.read<ThemeProvider>().toggle(),
+            tooltip: themeProvider.isDark ? 'Light mode' : 'Dark mode',
+          ),
           IconButton(
             icon: const Icon(Icons.support_agent),
             onPressed: _showAppFeedbackDialog,
-            tooltip: 'Contact support',
+            tooltip: t.auth_contact_support,
           ),
         ],
       ),
-      body: Container(
-        color: Colors.white,
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: AppLottie(
-                          asset: 'animations/signup.json',
-                          fit: BoxFit.contain,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    height: 200,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: AppLottie(
+                        asset: 'animations/signup.json',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: t.auth_username,
+                      prefixIcon: const Icon(Icons.person),
+                      errorText: _serverErrors['username'],
+                    ),
+                    validator: _validateUsername,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: t.auth_email,
+                      prefixIcon: const Icon(Icons.email),
+                      errorText: _serverErrors['email'],
+                    ),
+                    validator: _validateEmail,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: t.auth_password,
+                      prefixIcon: const Icon(Icons.lock),
+                      errorText: _serverErrors['password'],
+                    ),
+                    validator: _validatePassword,
+                  ),
+                  const SizedBox(height: 24),
+                  _isLoading
+                      ? const CircularProgressIndicator()
+                      : Column(
+                          children: [
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _signup,
+                                style: ElevatedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(
+                                  t.auth_sign_up_btn,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                const Expanded(child: Divider()),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  child: Text(
+                                    t.auth_or,
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                const Expanded(child: Divider()),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _signInWithGoogle,
+                                icon: const FaIcon(FontAwesomeIcons.google,
+                                    size: 18),
+                                label: Text(
+                                  t.auth_google_continue,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(
-                        labelText: 'Username',
-                        prefixIcon: const Icon(Icons.person),
-                        errorText: _serverErrors['username'],
-                      ),
-                      validator: _validateUsername,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: const Icon(Icons.email),
-                        errorText: _serverErrors['email'],
-                      ),
-                      validator: _validateEmail,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock),
-                        errorText: _serverErrors['password'],
-                      ),
-                      validator: _validatePassword,
-                    ),
-                    const SizedBox(height: 24),
-                    _isLoading
-                        ? const CircularProgressIndicator()
-                        : Column(
-                            children: [
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: _signup,
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Sign Up',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              const Row(
-                                children: [
-                                  Expanded(child: Divider()),
-                                  Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 16),
-                                    child: Text(
-                                      'OR',
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(child: Divider()),
-                                ],
-                              ),
-                              const SizedBox(height: 24),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: _signInWithGoogle,
-                                  icon: const FaIcon(FontAwesomeIcons.google,
-                                      size: 18),
-                                  label: const Text(
-                                    'Continue with Google',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                  ],
-                ),
+                ],
               ),
             ),
           ),

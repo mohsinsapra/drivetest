@@ -32,10 +32,23 @@ class ApiService {
   }
 
   Future<void> logout() async {
+    final refreshToken = _dioClient.refreshToken;
+    // Best-effort: blacklist the refresh token on the server
+    if (refreshToken != null) {
+      try {
+        await _dio.post(
+          'api/user/logout/',
+          data: {'refresh': refreshToken},
+        );
+      } catch (e) {
+        debugPrint('Server logout error (non-fatal): $e');
+      }
+    }
+    // Always clear local tokens regardless of server response
     try {
       await _dioClient.logout();
     } catch (e) {
-      debugPrint('Logout error (non-fatal): $e');
+      debugPrint('Local logout error (non-fatal): $e');
     }
   }
 

@@ -4,29 +4,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
 class IntroScreen extends StatelessWidget {
   const IntroScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     return IntroductionScreen(
       pages: [
         PageViewModel(
-          title: "Welcome to TaxiQuiz",
-          body: "Learn and practice for your taxi license with ease.",
+          title: t.welcome_message,
+          body: t.intro_slide1_body,
           image: _buildLottie('animations/animation1.json'),
           decoration: _getPageDecoration(),
         ),
         PageViewModel(
-          title: "Interactive Tests",
-          body: "Practice tests with real-time feedback and explanations.",
+          title: t.intro_slide2_title,
+          body: t.intro_slide2_body,
           image: _buildLottie('animations/animation2.json'),
           decoration: _getPageDecoration(),
         ),
         PageViewModel(
-          title: "Get Certified",
-          body: "Ace your exams and become a certified taxi driver.",
+          title: t.intro_slide3_title,
+          body: t.intro_slide3_body,
           image: _buildLottie('animations/animation3.json'),
           decoration: _getPageDecoration(),
         ),
@@ -38,16 +40,18 @@ class IntroScreen extends StatelessWidget {
         await _completeOnboarding(context);
       },
       showSkipButton: true,
-      skip: const Text(
-        "Skip",
-        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+      skip: Text(
+        t.intro_skip,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
       ),
       next: const Icon(
         Icons.arrow_forward,
         size: 28,
       ),
-      done: const Text("Get Started",
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+      done: Text(
+        t.intro_get_started,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+      ),
       dotsDecorator: _getDotsDecorator(),
     );
   }
