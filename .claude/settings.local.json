@@ -100,7 +100,9 @@
       "Bash(if ! grep -q \"subscription_success_overlay\" \"$f\")",
       "Bash(then)",
       "Bash(sed -i '' \"1s/^/import ''package:taxi_exam_app\\\\/features\\\\/payment\\\\/subscription_success_overlay.dart'';\\\\n/\" \"$f\")",
-      "Bash(make deploy-all:*)"
+      "Bash(make deploy-all:*)",
+      "Bash(ls /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/*.md /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/*.txt)",
+      "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app -maxdepth 2 -name version* -o -name CHANGELOG* -o -name changelog* -o -name *report*)"
     ],
     "deny": [],
     "ask": []

@@ -137,6 +137,11 @@ _write-web-version-file:
 web-deploy: version-build web-build
 	@echo "$(COLOR_BLUE)Deploying web app to repository...$(COLOR_RESET)"
 	@$(MAKE) -s _deploy-to-web-repo
+	@echo "$(COLOR_BLUE)Committing version bump to main repository...$(COLOR_RESET)"
+	@git add pubspec.yaml CHANGELOG.md
+	@git diff --cached --quiet || git commit -m "chore: bump version to $(APP_VERSION)+$(APP_BUILD_NUMBER)"
+	@git push
+	@echo "$(COLOR_GREEN)✅ Version commit pushed!$(COLOR_RESET)"
 
 WEB_REPO_URL ?= https://github.com/mohsinsapra/drivetest
 
