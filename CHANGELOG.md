@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.3+69] - 2026-03-31
+## [1.0.3+70] - 2026-03-31
 
 ### Added
 -
@@ -28,6 +28,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 -
+
+---
+---
+
+## [1.0.3+69] - 2026-03-31
+
+### Added
+- Google Sign-In (express login) button on the auth screen — one-tap login via Google account
+- Forgot password screen with email-based reset instructions, back-to-login navigation, and success/error feedback
+- Show/hide password toggle on login and signup fields
+- Tab-based login/signup UI within a single auth screen; tabs animate to signup on successful registration
+- 14 new localization keys in English and Swedish covering Google button label, tab labels ("Log in" / "Sign up"), show/hide password, and the full forgot-password flow
+
+### Changed
+- Auth flow consolidated: separate `LoginScreen` and `SignupScreen` replaced by a unified tabbed `AuthScreen`, reducing navigation stack depth
+- Auth screen replaced Lottie welcome animation with app icon; layout is now responsive (scales down gracefully on shorter screens, minimum 0.78× factor)
+- Field containers use theme-aware backgrounds (dark: card colour, light: tinted surface) instead of hard-coded white
+- Replaced `page_transition` package navigation with `AppPageRoute` for auth-screen transitions
+- Removed tooltip text from the dark-mode toggle button in the auth header
 
 ---
 ---

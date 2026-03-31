@@ -105,5 +105,19 @@
   "auth_val_password_length": "Lösenordet måste vara minst 6 tecken",
   "auth_signup_success": "Registreringen lyckades! Vänligen logga in.",
   "auth_signup_failed": "Registreringen misslyckades. Rätta felen.",
-  "auth_generic_error": "Ett fel uppstod. Försök igen."
+  "auth_generic_error": "Ett fel uppstod. Försök igen.",
+  "auth_express_google": "Express-inloggning via Google",
+  "auth_google_label": "Google",
+  "auth_tab_login": "Logga in",
+  "auth_tab_signup": "Registrera dig",
+  "auth_show_password": "Visa",
+  "auth_hide_password": "Dölj",
+  "auth_forgot_title": "Glömt lösenord",
+  "auth_forgot_heading": "Återställ ditt lösenord",
+  "auth_forgot_subtitle": "Ange din e-postadress så skickar vi instruktioner för att återställa ditt lösenord.",
+  "auth_forgot_email_label": "E-postadress",
+  "auth_forgot_send_btn": "Skicka instruktioner",
+  "auth_forgot_back_login": "Tillbaka till inloggning",
+  "auth_forgot_success": "Instruktioner för lösenordsåterställning har skickats till din e-post.",
+  "auth_forgot_error": "Det gick inte att skicka återställningsmail. Försök igen."
 }
