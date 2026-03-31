@@ -647,7 +647,10 @@ class _TestscreenState extends State<Testscreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 390;
+    final mq = MediaQuery.of(context);
+    final isSmallScreen = mq.size.width < 390;
+    // Scale factor: 1.0 on standard screens (≥ 812 pt tall), shrinks on shorter ones
+    final s = (mq.size.height / 812.0).clamp(0.72, 1.0);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -841,18 +844,16 @@ class _TestscreenState extends State<Testscreen> {
             optionTexts = question.options.map((e) => e.text).toList();
 
             return Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: EdgeInsets.all(20.0 * s),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Question header
-
                     // Question text
                     RichText(
                       text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 24,
+                        style: TextStyle(
+                          fontSize: 22 * s,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                           height: 1.3,
@@ -865,20 +866,19 @@ class _TestscreenState extends State<Testscreen> {
                             child: TtsButton(
                               textToSpeak: questionText,
                               languageCode: currentLanguageCode,
-                              iconSize: 24, // adjust for visual balance
+                              iconSize: 22 * s,
                               tooltip: 'Read aloud',
-                              // NEW: toggle icon
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 14 * s),
 
                     // Question image (if available)
                     if (question.imageUrl.isNotEmpty)
                       Container(
-                        margin: const EdgeInsets.only(bottom: 24),
+                        margin: EdgeInsets.only(bottom: 20 * s),
                         width: double.infinity,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
@@ -896,10 +896,8 @@ class _TestscreenState extends State<Testscreen> {
                             onTap: () => showImageViewer(context, questionUrl),
                             child: ConstrainedBox(
                               constraints: BoxConstraints(
-                                maxHeight:
-                                    MediaQuery.of(context).size.height * 0.4,
-                                maxWidth:
-                                    MediaQuery.of(context).size.width * 0.9,
+                                maxHeight: mq.size.height * 0.32,
+                                maxWidth: mq.size.width * 0.9,
                               ),
                               child: Image.network(questionUrl,
                                   fit: BoxFit.contain),
@@ -908,7 +906,7 @@ class _TestscreenState extends State<Testscreen> {
                         ),
                       ),
 
-                    const SizedBox(height: 16),
+                    SizedBox(height: 12 * s),
 
                     // Options
                     ...question.options.asMap().entries.map((entry) {
@@ -929,10 +927,11 @@ class _TestscreenState extends State<Testscreen> {
                             option.optionLabel == question.correctAnswer,
                         onTap: () => _selectOption(option.optionLabel, index),
                         languageCode: currentLanguageCode,
+                        scale: s,
                       );
                     }),
 
-                    const SizedBox(height: 16),
+                    SizedBox(height: 12 * s),
 
                     // Bookmark button
                     if (!widget.isReviewMode &&
@@ -1001,15 +1000,15 @@ class _TestscreenState extends State<Testscreen> {
                         ),
                       ),
 
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8 * s),
 
                     // Explanation (scrollable)
                     if (widget.instantMarking &&
                         userSelections[index] != null &&
                         question.answerExplanation.isNotEmpty)
                       Container(
-                        margin: const EdgeInsets.only(bottom: 20),
-                        padding: const EdgeInsets.all(20),
+                        margin: EdgeInsets.only(bottom: 16 * s),
+                        padding: EdgeInsets.all(16 * s),
                         decoration: BoxDecoration(
                           color: Colors.blue[50],
                           borderRadius: BorderRadius.circular(12),

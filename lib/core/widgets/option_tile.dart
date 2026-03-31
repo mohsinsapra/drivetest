@@ -22,6 +22,10 @@ class Option extends StatelessWidget {
   /// ISO-639-1 code used by TTS (e.g. “en”, “sv” …)
   final String languageCode;
 
+  /// Layout scale factor — pass the screen-height-based `s` from the parent
+  /// screen for responsive sizing. Defaults to 1.0 (no scaling).
+  final double scale;
+
   const Option({
     super.key,
     required this.text,
@@ -32,6 +36,7 @@ class Option extends StatelessWidget {
     required this.isCorrectAnswer,
     required this.onTap,
     this.languageCode = 'sv',
+    this.scale = 1.0,
   });
 
   // --- Helper colour getters -------------------------------------------------
@@ -64,8 +69,9 @@ class Option extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = scale;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: 12 * s),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -73,7 +79,10 @@ class Option extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.symmetric(
+              horizontal: 16 * s,
+              vertical: 14 * s,
+            ),
             decoration: BoxDecoration(
               color: _backgroundColor(context),
               border: Border.all(
@@ -98,8 +107,8 @@ class Option extends StatelessWidget {
                     // radio-style bullet
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      width: 24,
-                      height: 24,
+                      width: 22 * s,
+                      height: 22 * s,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isSelected
@@ -113,11 +122,11 @@ class Option extends StatelessWidget {
                         ),
                       ),
                       child: isSelected
-                          ? const Icon(Icons.circle,
-                              size: 12, color: Colors.white)
+                          ? Icon(Icons.circle,
+                              size: 10 * s, color: Colors.white)
                           : null,
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 12 * s),
 
                     // option text + TTS
                     Expanded(
@@ -129,7 +138,7 @@ class Option extends StatelessWidget {
                               text,
                               softWrap: true,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 15 * s,
                                 fontWeight: isSelected
                                     ? FontWeight.w600
                                     : FontWeight.normal,
@@ -139,11 +148,11 @@ class Option extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 6 * s),
                           TtsButton(
                             textToSpeak: text,
                             languageCode: languageCode,
-                            iconSize: 20,
+                            iconSize: 18 * s,
                             tooltip: 'Read option aloud',
                           ),
                         ],
@@ -154,19 +163,19 @@ class Option extends StatelessWidget {
                 // ── thumbnail (optional) ────────────────────────────────────
                 if (imageUrl != null && imageUrl!.isNotEmpty)
                   Container(
-                    margin: const EdgeInsets.only(top: 12),
+                    margin: EdgeInsets.only(top: 10 * s),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
                         imageUrl!,
                         width: double.infinity,
-                        height: 120,
+                        height: 110 * s,
                         fit: BoxFit.cover,
                         loadingBuilder: (c, child, progress) {
                           if (progress == null) return child;
                           return Container(
                             width: double.infinity,
-                            height: 120,
+                            height: 110 * s,
                             decoration: BoxDecoration(
                               color: Colors.grey[100],
                               borderRadius: BorderRadius.circular(8),
@@ -188,7 +197,7 @@ class Option extends StatelessWidget {
                         },
                         errorBuilder: (c, _, __) => Container(
                           width: double.infinity,
-                          height: 120,
+                          height: 110 * s,
                           decoration: BoxDecoration(
                             color: Colors.grey[200],
                             borderRadius: BorderRadius.circular(8),
