@@ -642,7 +642,11 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   void disableScreenshot() async {
-    await _noScreenshot.screenshotOff();
+    try {
+      await _noScreenshot.screenshotOff();
+    } catch (_) {
+      // no_screenshot is not supported on web
+    }
   }
 
   @override

@@ -124,8 +124,21 @@ class DioClient {
         _same401Count = 0;
         _logoutTriggeredFrom401 = false;
 
-        // Only decrypt legacy questions endpoint (not v2 BCD endpoints)
         final path = response.requestOptions.path;
+
+        // Decrypt v2 BCD encrypted+compressed responses  { "data": "<base64>" }
+        // Only present in production — dev returns plain JSON directly
+        if (path.contains('api/v2/') && response.data is Map && response.data['data'] is String) {
+          try {
+            final decrypted = cryptoService.decryptCompressed(response.data['data'] as String);
+            response.data = jsonDecode(decrypted);
+          } catch (e, stack) {
+            debugPrint('[Decrypt] ERROR on $path: $e');
+            debugPrint('[Decrypt] $stack');
+          }
+        }
+
+        // Decrypt legacy questions endpoint (not v2 BCD endpoints)
         if (path.contains('/questions/') && !path.contains('v2/')) {
           response.data['results'] =
               _decryptQuestions(response.data['results']);

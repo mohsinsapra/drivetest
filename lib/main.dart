@@ -13,6 +13,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:clarity_flutter/clarity_flutter.dart';
+import 'package:clarity_web/clarity_web.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
@@ -29,6 +30,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
+  if (kIsWeb) {
+    final clarityWeb = ClarityWeb.instance;
+    await clarityWeb.initClarityWeb('u3wxqg5xo0');
+    clarityWeb.setIsCanvasMirrorActive(false);
+  }
+
   if (kIsWeb) {
     // For web, use build-time environment variables (passed via --dart-define)
     const firebaseApiKey = String.fromEnvironment('FIREBASE_API_KEY',
