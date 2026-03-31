@@ -5,11 +5,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
-import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
-import 'package:taxi_exam_app/features/intro/intro_screen.dart';
-import 'package:taxi_exam_app/features/auth/auth_screen.dart';
+import 'package:taxi_exam_app/features/splash/splash_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:taxi_exam_app/main_screen.dart';
@@ -284,137 +282,30 @@ final customTheme = ThemeData(
 );
 
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  late final Future<Map<String, bool>> _initFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _initFuture = _initializeApp();
-  }
-
-  // Combined initialization to check onboarding and authentication
-  Future<Map<String, bool>> _initializeApp() async {
-    try {
-      debugPrint('_initializeApp - Starting initialization');
-
-      final prefs = await SharedPreferences.getInstance();
-      bool onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
-
-      debugPrint('_initializeApp - SharedPreferences loaded');
-
-      // DioClient is already initialized in main(), just reload tokens
-      await DioClient().reloadTokens();
-
-      debugPrint('_initializeApp - DioClient initialized');
-
-      // Check if tokens exist
-      bool hasTokens = DioClient().refreshToken != null && DioClient().accessToken != null;
-      bool isAuthenticated = false;
-
-      // If tokens exist, verify they're valid by trying to fetch user data
-      if (hasTokens) {
-        debugPrint('_initializeApp - Tokens found, verifying authentication...');
-        try {
-          final apiService = ApiService();
-          await apiService.fetchCurrentUser();
-          isAuthenticated = true;
-          debugPrint('_initializeApp - Authentication verified successfully');
-        } catch (e) {
-          debugPrint('_initializeApp - Authentication verification failed: $e');
-          // If fetching user fails, clear the invalid tokens
-          await DioClient().logout();
-          debugPrint('_initializeApp - Invalid tokens cleared');
-          isAuthenticated = false;
-        }
-      } else {
-        debugPrint('_initializeApp - No tokens found');
-      }
-
-      // Debug logging
-      debugPrint('_initializeApp - Onboarding complete: $onboardingComplete');
-      debugPrint('_initializeApp - Is authenticated: $isAuthenticated');
-
-      final result = {
-        'onboardingComplete': onboardingComplete,
-        'isAuthenticated': isAuthenticated,
-      };
-
-      debugPrint('_initializeApp - Completed successfully');
-      return result;
-    } catch (e) {
-      debugPrint('_initializeApp - Error: $e');
-      // Return default values on error
-      return {
-        'onboardingComplete': false,
-        'isAuthenticated': false,
-      };
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    // Read locale from slang's InheritedWidget so MaterialApp rebuilds on locale change
     final locale = InheritedLocaleData.of<AppLocale, Translations>(context)
         .locale
         .flutterLocale;
     return ToastificationWrapper(
       config: const ToastificationConfig(itemWidth: 320),
       child: MaterialApp(
-      navigatorKey: NavigationService.navigatorKey,
-      locale: locale,
-      theme: customTheme,
-      darkTheme: darkTheme,
-      themeMode: themeProvider.themeMode,
-      debugShowCheckedModeBanner: false,
-      home: UpgradeAlert(
-        showIgnore: false,
-        showLater: true,
-        // upgrader: Upgrader(
-        //   debugLogging: true,
-        //   debugDisplayAlways: true, // Force display for testing
-        // ),
-        child: FutureBuilder<Map<String, bool>>(
-          future: _initFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting || !snapshot.hasData) {
-              return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-
-            if (snapshot.hasError) {
-              return Scaffold(
-                body: Center(
-                  child: Text('Error during initialization: ${snapshot.error}'),
-                ),
-              );
-            }
-
-            final data = snapshot.data!;
-            final onboardingComplete = data['onboardingComplete'] ?? false;
-            final isAuthenticated = data['isAuthenticated'] ?? false;
-
-            if (!onboardingComplete) {
-              return const IntroScreen();
-            } else if (!isAuthenticated) {
-              return const AuthScreen();
-            } else {
-              return const MainScreen();
-            }
-          },
+        navigatorKey: NavigationService.navigatorKey,
+        locale: locale,
+        theme: customTheme,
+        darkTheme: darkTheme,
+        themeMode: themeProvider.themeMode,
+        debugShowCheckedModeBanner: false,
+        home: UpgradeAlert(
+          showIgnore: false,
+          showLater: true,
+          child: const SplashScreen(),
         ),
       ),
-    ));
+    );
   }
 }
