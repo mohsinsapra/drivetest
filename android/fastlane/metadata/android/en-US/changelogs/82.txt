@@ -1,0 +1,7 @@
+Added
+• Full-screen purchase success modal after subscription confirmation, including localized primary/secondary actions: "Start Tests" and "Back to home"
+• New localization keys in English and Swedish for purchase success title and CTA labels
+
+Changed
+• Purchase success UX redesigned from an auto-dismissing bottom sheet to a guided full-screen flow with fade/scale animations and decorative celebratory visuals
+• Auth validation refactored to use consistent inline, field-level errors for both...
