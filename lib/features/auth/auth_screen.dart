@@ -35,16 +35,16 @@ class _AuthScreenState extends State<AuthScreen>
       TextEditingController();
   bool _obscureLoginPassword = true;
   String? _loginError;
+  Map<String, String?> _loginErrors = {};
 
   // Signup state
-  final GlobalKey<FormState> _signupFormKey = GlobalKey<FormState>();
   final TextEditingController _signupUsernameController =
       TextEditingController();
   final TextEditingController _signupEmailController = TextEditingController();
   final TextEditingController _signupPasswordController =
       TextEditingController();
   bool _obscureSignupPassword = true;
-  Map<String, String> _serverErrors = {};
+  Map<String, String?> _signupErrors = {};
 
   @override
   void initState() {
@@ -118,7 +118,20 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _login() async {
+    final t = Translations.of(context);
+    final errors = <String, String?>{};
+    if (_loginUsernameController.text.trim().isEmpty) {
+      errors['username'] = t.auth_val_username_required;
+    }
+    if (_loginPasswordController.text.isEmpty) {
+      errors['password'] = t.auth_val_password_required;
+    }
+    if (errors.isNotEmpty) {
+      setState(() => _loginErrors = errors);
+      return;
+    }
     setState(() {
+      _loginErrors = {};
       _isLoading = true;
       _loginError = null;
     });
@@ -146,10 +159,31 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _signup() async {
-    if (!_signupFormKey.currentState!.validate()) return;
+    final t = Translations.of(context);
+    final errors = <String, String?>{};
+    if (_signupUsernameController.text.trim().isEmpty) {
+      errors['username'] = t.auth_val_username_required;
+    } else if (_signupUsernameController.text.trim().length < 4) {
+      errors['username'] = t.auth_val_username_length;
+    }
+    if (_signupEmailController.text.trim().isEmpty) {
+      errors['email'] = t.auth_val_email_required;
+    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+        .hasMatch(_signupEmailController.text.trim())) {
+      errors['email'] = t.auth_val_email_invalid;
+    }
+    if (_signupPasswordController.text.isEmpty) {
+      errors['password'] = t.auth_val_password_required;
+    } else if (_signupPasswordController.text.length < 6) {
+      errors['password'] = t.auth_val_password_length;
+    }
+    if (errors.isNotEmpty) {
+      setState(() => _signupErrors = errors);
+      return;
+    }
     setState(() {
+      _signupErrors = {};
       _isLoading = true;
-      _serverErrors = {};
     });
     try {
       final response = await _apiService.signup(
@@ -164,15 +198,15 @@ class _AuthScreenState extends State<AuthScreen>
       } else {
         final Map<String, dynamic> errorData =
             json.decode(response.body) as Map<String, dynamic>;
-        final errors = <String, String>{};
+        final serverErrors = <String, String?>{};
         errorData.forEach((key, value) {
           if (value is List && value.isNotEmpty) {
-            errors[key] = value.first as String;
+            serverErrors[key] = value.first as String;
           } else if (value is String) {
-            errors[key] = value;
+            serverErrors[key] = value;
           }
         });
-        setState(() => _serverErrors = errors);
+        setState(() => _signupErrors = serverErrors);
         showAppSnackBar(Translations.of(context).auth_signup_failed);
       }
     } catch (e) {
@@ -210,13 +244,6 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  Widget _fieldDivider(ThemeData theme) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Divider(
-          height: 1,
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-        ),
-      );
 
   InputDecoration _fieldDecoration({
     String? hint,
@@ -240,6 +267,30 @@ class _AuthScreenState extends State<AuthScreen>
       disabledBorder: InputBorder.none,
       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16 * s),
       suffixIcon: suffixWidget,
+    );
+  }
+
+  Widget _fieldError(String? error, double s) {
+    if (error == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 4),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline,
+              color: Colors.red.shade400, size: 13),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              error,
+              style: TextStyle(
+                color: Colors.red.shade400,
+                fontSize: 12 * s,
+                fontFamily: 'NudMoto',
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -278,38 +329,61 @@ class _AuthScreenState extends State<AuthScreen>
             Align(
               alignment: Alignment.centerRight,
               child: Padding(
-                padding: const EdgeInsets.only(top: 8, right: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    PopupMenuButton<AppLocale>(
-                      tooltip: 'Language',
-                      onSelected: _setLocale,
-                      itemBuilder: (context) => [
-                        CheckedPopupMenuItem<AppLocale>(
-                          value: AppLocale.en,
-                          checked: currentLocale == AppLocale.en,
-                          child: const Text('🇬🇧 English'),
-                        ),
-                        CheckedPopupMenuItem<AppLocale>(
-                          value: AppLocale.sv,
-                          checked: currentLocale == AppLocale.sv,
-                          child: const Text('🇸🇪 Svenska'),
-                        ),
-                      ],
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Text(currentFlag,
-                            style: const TextStyle(fontSize: 20)),
+                padding: const EdgeInsets.only(top: 8, right: 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(50),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(isDark
-                          ? Icons.light_mode_rounded
-                          : Icons.dark_mode_rounded),
-                      onPressed: () => context.read<ThemeProvider>().toggle(),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PopupMenuButton<AppLocale>(
+                        tooltip: 'Language',
+                        onSelected: _setLocale,
+                        itemBuilder: (context) => [
+                          CheckedPopupMenuItem<AppLocale>(
+                            value: AppLocale.en,
+                            checked: currentLocale == AppLocale.en,
+                            child: const Text('🇬🇧 English'),
+                          ),
+                          CheckedPopupMenuItem<AppLocale>(
+                            value: AppLocale.sv,
+                            checked: currentLocale == AppLocale.sv,
+                            child: const Text('🇸🇪 Svenska'),
+                          ),
+                        ],
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 18, right: 10, top: 6, bottom: 6),
+                          child: Text(currentFlag,
+                              style: const TextStyle(fontSize: 20)),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                        child: VerticalDivider(
+                          width: 1,
+                          thickness: 1,
+                          color: theme.dividerColor.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      IconButton(
+                        padding: const EdgeInsets.only(left: 10, right: 18, top: 6, bottom: 6),
+                        constraints: const BoxConstraints(),
+                        icon: Icon(isDark
+                            ? Icons.light_mode_outlined
+                            : Icons.dark_mode_outlined),
+                        onPressed: () => context.read<ThemeProvider>().toggle(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -445,270 +519,279 @@ class _AuthScreenState extends State<AuthScreen>
                   Expanded(
                     flex: 5,
                     child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // ── Login ──
-                  SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      controller: _tabController,
                       children: [
-                        SizedBox(height: 12 * s),
-                        if (_loginError != null) ...[
-                          Row(
+                        // ── Login ──
+                        SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Icon(Icons.error_outline,
-                                  color: Colors.red, size: 16),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  _loginError!,
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 13 * s,
-                                    fontFamily: 'NudMoto',
+                              SizedBox(height: 12 * s),
+                              if (_loginError != null) ...[
+                                Row(
+                                  children: [
+                                    const Icon(Icons.error_outline,
+                                        color: Colors.red, size: 16),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        _loginError!,
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 13 * s,
+                                          fontFamily: 'NudMoto',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 6 * s),
+                              ],
+                              // Username field
+                              _buildFieldContainer(
+                                children: [
+                                  TextField(
+                                    controller: _loginUsernameController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    onChanged: (_) => setState(
+                                        () => _loginErrors.remove('username')),
+                                    style: TextStyle(
+                                      fontFamily: 'NudMoto',
+                                      fontSize: 14 * s,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                    decoration: _fieldDecoration(
+                                      hint: t.auth_username,
+                                      s: s,
+                                    ),
+                                  ),
+                                ],
+                                fieldBg: _loginErrors['username'] != null
+                                    ? Colors.red.withValues(alpha: 0.06)
+                                    : fieldBg,
+                              ),
+                              _fieldError(_loginErrors['username'], s),
+                              SizedBox(height: 8 * s),
+                              // Password field
+                              _buildFieldContainer(
+                                children: [
+                                  TextField(
+                                    controller: _loginPasswordController,
+                                    obscureText: _obscureLoginPassword,
+                                    onChanged: (_) => setState(
+                                        () => _loginErrors.remove('password')),
+                                    style: TextStyle(
+                                      fontFamily: 'NudMoto',
+                                      fontSize: 14 * s,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                    decoration: _fieldDecoration(
+                                      hint: t.auth_password,
+                                      s: s,
+                                      suffixWidget: TextButton(
+                                        onPressed: () => setState(() =>
+                                            _obscureLoginPassword =
+                                                !_obscureLoginPassword),
+                                        child: Text(
+                                          _obscureLoginPassword
+                                              ? t.auth_show_password
+                                              : t.auth_hide_password,
+                                          style: TextStyle(
+                                            color: theme.colorScheme.onSurface
+                                                .withValues(alpha: 0.5),
+                                            fontSize: 13 * s,
+                                            fontFamily: 'NudMoto',
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                fieldBg: _loginErrors['password'] != null
+                                    ? Colors.red.withValues(alpha: 0.06)
+                                    : fieldBg,
+                              ),
+                              _fieldError(_loginErrors['password'], s),
+                              SizedBox(height: 14 * s),
+                              // Login button
+                              SizedBox(
+                                height: 50 * s,
+                                child: _isLoading
+                                    ? const Center(
+                                        child: CircularProgressIndicator())
+                                    : ElevatedButton(
+                                        onPressed: _login,
+                                        child: Text(
+                                          t.auth_login_title,
+                                          style: TextStyle(
+                                            fontSize: 15 * s,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: 'NudMoto',
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              SizedBox(height: 16 * s),
+                              // Forgot password
+                              Center(
+                                child: GestureDetector(
+                                  onTap: () => Navigator.of(context).push(
+                                    AppPageRoute(
+                                      builder: (_) =>
+                                          const ForgotPasswordScreen(),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    t.auth_forgot_password,
+                                    style: TextStyle(
+                                      fontSize: 14 * s,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'NudMoto',
+                                      color: theme.colorScheme.onSurface,
+                                    ),
                                   ),
                                 ),
                               ),
+                              SizedBox(height: 10 * s),
+                              // Demo login — subtle
+                              if (!_isLoading)
+                                Center(
+                                  child: TextButton(
+                                    onPressed: _loginAsDemo,
+                                    child: Text(
+                                      t.auth_skip_demo_short,
+                                      style: TextStyle(
+                                        fontSize: 12 * s,
+                                        color: theme.colorScheme.onSurface
+                                            .withValues(alpha: 0.4),
+                                        fontFamily: 'NudMoto',
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              SizedBox(height: 16 * s),
                             ],
                           ),
-                          SizedBox(height: 6 * s),
-                        ],
-                        // Grouped fields
-                        _buildFieldContainer(
-                          children: [
-                            TextField(
-                              controller: _loginUsernameController,
-                              keyboardType: TextInputType.emailAddress,
-                              style: TextStyle(
-                                fontFamily: 'NudMoto',
-                                fontSize: 14 * s,
-                                color: theme.colorScheme.onSurface,
-                              ),
-                              decoration: _fieldDecoration(
-                                hint: t.auth_username,
-                                s: s,
-                              ),
-                            ),
-                            _fieldDivider(theme),
-                            TextField(
-                              controller: _loginPasswordController,
-                              obscureText: _obscureLoginPassword,
-                              style: TextStyle(
-                                fontFamily: 'NudMoto',
-                                fontSize: 14 * s,
-                                color: theme.colorScheme.onSurface,
-                              ),
-                              decoration: _fieldDecoration(
-                                hint: t.auth_password,
-                                s: s,
-                                suffixWidget: TextButton(
-                                  onPressed: () => setState(() =>
-                                      _obscureLoginPassword =
-                                          !_obscureLoginPassword),
-                                  child: Text(
-                                    _obscureLoginPassword
-                                        ? t.auth_show_password
-                                        : t.auth_hide_password,
+                        ),
+
+                        // ── Sign up ──
+                        SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(height: 12 * s),
+                              // Username field
+                              _buildFieldContainer(
+                                fieldBg: _signupErrors['username'] != null
+                                    ? Colors.red.withValues(alpha: 0.06)
+                                    : fieldBg,
+                                children: [
+                                  TextField(
+                                    controller: _signupUsernameController,
+                                    onChanged: (_) => setState(
+                                        () => _signupErrors.remove('username')),
                                     style: TextStyle(
-                                      color: theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.5),
-                                      fontSize: 13 * s,
                                       fontFamily: 'NudMoto',
+                                      fontSize: 14 * s,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                    decoration: _fieldDecoration(
+                                        hint: t.auth_username, s: s),
+                                  ),
+                                ],
+                              ),
+                              _fieldError(_signupErrors['username'], s),
+                              SizedBox(height: 8 * s),
+                              // Email field
+                              _buildFieldContainer(
+                                fieldBg: _signupErrors['email'] != null
+                                    ? Colors.red.withValues(alpha: 0.06)
+                                    : fieldBg,
+                                children: [
+                                  TextField(
+                                    controller: _signupEmailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    onChanged: (_) => setState(
+                                        () => _signupErrors.remove('email')),
+                                    style: TextStyle(
+                                      fontFamily: 'NudMoto',
+                                      fontSize: 14 * s,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                    decoration: _fieldDecoration(
+                                        hint: t.auth_email, s: s),
+                                  ),
+                                ],
+                              ),
+                              _fieldError(_signupErrors['email'], s),
+                              SizedBox(height: 8 * s),
+                              // Password field
+                              _buildFieldContainer(
+                                fieldBg: _signupErrors['password'] != null
+                                    ? Colors.red.withValues(alpha: 0.06)
+                                    : fieldBg,
+                                children: [
+                                  TextField(
+                                    controller: _signupPasswordController,
+                                    obscureText: _obscureSignupPassword,
+                                    onChanged: (_) => setState(
+                                        () => _signupErrors.remove('password')),
+                                    style: TextStyle(
+                                      fontFamily: 'NudMoto',
+                                      fontSize: 14 * s,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                    decoration: _fieldDecoration(
+                                      hint: t.auth_password,
+                                      s: s,
+                                      suffixWidget: TextButton(
+                                        onPressed: () => setState(() =>
+                                            _obscureSignupPassword =
+                                                !_obscureSignupPassword),
+                                        child: Text(
+                                          _obscureSignupPassword
+                                              ? t.auth_show_password
+                                              : t.auth_hide_password,
+                                          style: TextStyle(
+                                            color: theme.colorScheme.onSurface
+                                                .withValues(alpha: 0.5),
+                                            fontSize: 13 * s,
+                                            fontFamily: 'NudMoto',
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ),
-                          ],
-                          fieldBg: fieldBg,
-                        ),
-                        SizedBox(height: 14 * s),
-                        // Login button
-                        SizedBox(
-                          height: 50 * s,
-                          child: _isLoading
-                              ? const Center(
-                                  child: CircularProgressIndicator())
-                              : ElevatedButton(
-                                  onPressed: _login,
-                                  child: Text(
-                                    t.auth_login_title,
-                                    style: TextStyle(
-                                      fontSize: 15 * s,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: 'NudMoto',
-                                    ),
-                                  ),
-                                ),
-                        ),
-                        SizedBox(height: 16 * s),
-                        // Forgot password
-                        Center(
-                          child: GestureDetector(
-                            onTap: () => Navigator.of(context).push(
-                              AppPageRoute(
-                                builder: (_) => const ForgotPasswordScreen(),
+                              _fieldError(_signupErrors['password'], s),
+                              SizedBox(height: 14 * s),
+                              SizedBox(
+                                height: 50 * s,
+                                child: _isLoading
+                                    ? const Center(
+                                        child: CircularProgressIndicator())
+                                    : ElevatedButton(
+                                        onPressed: _signup,
+                                        child: Text(
+                                          t.auth_sign_up_btn,
+                                          style: TextStyle(
+                                            fontSize: 15 * s,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: 'NudMoto',
+                                          ),
+                                        ),
+                                      ),
                               ),
-                            ),
-                            child: Text(
-                              t.auth_forgot_password,
-                              style: TextStyle(
-                                fontSize: 14 * s,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'NudMoto',
-                                color: theme.colorScheme.onSurface,
-                              ),
-                            ),
+                              SizedBox(height: 16 * s),
+                            ],
                           ),
                         ),
-                        SizedBox(height: 10 * s),
-                        // Demo login — subtle
-                        if (!_isLoading)
-                          Center(
-                            child: TextButton(
-                              onPressed: _loginAsDemo,
-                              child: Text(
-                                t.auth_skip_demo_short,
-                                style: TextStyle(
-                                  fontSize: 12 * s,
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.4),
-                                  fontFamily: 'NudMoto',
-                                ),
-                              ),
-                            ),
-                          ),
-                        SizedBox(height: 16 * s),
                       ],
                     ),
                   ),
-
-                  // ── Sign up ──
-                  SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Form(
-                      key: _signupFormKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(height: 12 * s),
-                          _buildFieldContainer(
-                            fieldBg: fieldBg,
-                            children: [
-                              TextFormField(
-                                controller: _signupUsernameController,
-                                style: TextStyle(
-                                  fontFamily: 'NudMoto',
-                                  fontSize: 14 * s,
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                                decoration: _fieldDecoration(
-                                        hint: t.auth_username, s: s)
-                                    .copyWith(
-                                  errorText: _serverErrors['username'],
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return t.auth_val_username_required;
-                                  } else if (value.length < 4) {
-                                    return t.auth_val_username_length;
-                                  }
-                                  return null;
-                                },
-                              ),
-                              _fieldDivider(theme),
-                              TextFormField(
-                                controller: _signupEmailController,
-                                keyboardType: TextInputType.emailAddress,
-                                style: TextStyle(
-                                  fontFamily: 'NudMoto',
-                                  fontSize: 14 * s,
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                                decoration:
-                                    _fieldDecoration(hint: t.auth_email, s: s)
-                                        .copyWith(
-                                  errorText: _serverErrors['email'],
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return t.auth_val_email_required;
-                                  } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
-                                      .hasMatch(value)) {
-                                    return t.auth_val_email_invalid;
-                                  }
-                                  return null;
-                                },
-                              ),
-                              _fieldDivider(theme),
-                              TextFormField(
-                                controller: _signupPasswordController,
-                                obscureText: _obscureSignupPassword,
-                                style: TextStyle(
-                                  fontFamily: 'NudMoto',
-                                  fontSize: 14 * s,
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                                decoration: _fieldDecoration(
-                                  hint: t.auth_password,
-                                  s: s,
-                                  suffixWidget: TextButton(
-                                    onPressed: () => setState(() =>
-                                        _obscureSignupPassword =
-                                            !_obscureSignupPassword),
-                                    child: Text(
-                                      _obscureSignupPassword
-                                          ? t.auth_show_password
-                                          : t.auth_hide_password,
-                                      style: TextStyle(
-                                        color: theme.colorScheme.onSurface
-                                            .withValues(alpha: 0.5),
-                                        fontSize: 13 * s,
-                                        fontFamily: 'NudMoto',
-                                      ),
-                                    ),
-                                  ),
-                                ).copyWith(
-                                  errorText: _serverErrors['password'],
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return t.auth_val_password_required;
-                                  } else if (value.length < 6) {
-                                    return t.auth_val_password_length;
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 14 * s),
-                          SizedBox(
-                            height: 50 * s,
-                            child: _isLoading
-                                ? const Center(
-                                    child: CircularProgressIndicator())
-                                : ElevatedButton(
-                                    onPressed: _signup,
-                                    child: Text(
-                                      t.auth_sign_up_btn,
-                                      style: TextStyle(
-                                        fontSize: 15 * s,
-                                        fontWeight: FontWeight.w600,
-                                        fontFamily: 'NudMoto',
-                                      ),
-                                    ),
-                                  ),
-                          ),
-                          SizedBox(height: 16 * s),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
                 ],
               ),
             ),

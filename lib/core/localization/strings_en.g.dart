@@ -160,6 +160,9 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get auth_forgot_back_login => 'Back to Login';
 	String get auth_forgot_success => 'Password reset instructions have been sent to your email.';
 	String get auth_forgot_error => 'Failed to send reset email. Please try again.';
+	String get purchase_success_title => 'Your Purchase has\nbeen confirmed';
+	String get purchase_success_start_tests => 'Start Tests';
+	String get purchase_success_back_home => 'Back to home';
 }
 
 /// Flat map(s) containing all translations.
@@ -288,6 +291,9 @@ extension on Translations {
 			case 'auth_forgot_back_login': return 'Back to Login';
 			case 'auth_forgot_success': return 'Password reset instructions have been sent to your email.';
 			case 'auth_forgot_error': return 'Failed to send reset email. Please try again.';
+			case 'purchase_success_title': return 'Your Purchase has\nbeen confirmed';
+			case 'purchase_success_start_tests': return 'Start Tests';
+			case 'purchase_success_back_home': return 'Back to home';
 			default: return null;
 		}
 	}

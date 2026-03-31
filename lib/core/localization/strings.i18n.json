@@ -119,5 +119,8 @@
   "auth_forgot_send_btn": "Send Reset Instructions",
   "auth_forgot_back_login": "Back to Login",
   "auth_forgot_success": "Password reset instructions have been sent to your email.",
-  "auth_forgot_error": "Failed to send reset email. Please try again."
+  "auth_forgot_error": "Failed to send reset email. Please try again.",
+  "purchase_success_title": "Your Purchase has\nbeen confirmed",
+  "purchase_success_start_tests": "Start Tests",
+  "purchase_success_back_home": "Back to home"
 }

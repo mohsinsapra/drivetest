@@ -157,6 +157,9 @@ class TranslationsSv implements Translations {
 	@override String get auth_forgot_back_login => 'Tillbaka till inloggning';
 	@override String get auth_forgot_success => 'Instruktioner för lösenordsåterställning har skickats till din e-post.';
 	@override String get auth_forgot_error => 'Det gick inte att skicka återställningsmail. Försök igen.';
+	@override String get purchase_success_title => 'Ditt köp har\nbekräftats';
+	@override String get purchase_success_start_tests => 'Starta prov';
+	@override String get purchase_success_back_home => 'Tillbaka till start';
 }
 
 /// Flat map(s) containing all translations.
@@ -285,6 +288,9 @@ extension on TranslationsSv {
 			case 'auth_forgot_back_login': return 'Tillbaka till inloggning';
 			case 'auth_forgot_success': return 'Instruktioner för lösenordsåterställning har skickats till din e-post.';
 			case 'auth_forgot_error': return 'Det gick inte att skicka återställningsmail. Försök igen.';
+			case 'purchase_success_title': return 'Ditt köp har\nbekräftats';
+			case 'purchase_success_start_tests': return 'Starta prov';
+			case 'purchase_success_back_home': return 'Tillbaka till start';
 			default: return null;
 		}
 	}

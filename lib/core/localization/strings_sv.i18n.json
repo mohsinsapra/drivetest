@@ -119,5 +119,8 @@
   "auth_forgot_send_btn": "Skicka instruktioner",
   "auth_forgot_back_login": "Tillbaka till inloggning",
   "auth_forgot_success": "Instruktioner för lösenordsåterställning har skickats till din e-post.",
-  "auth_forgot_error": "Det gick inte att skicka återställningsmail. Försök igen."
+  "auth_forgot_error": "Det gick inte att skicka återställningsmail. Försök igen.",
+  "purchase_success_title": "Ditt köp har\nbekräftats",
+  "purchase_success_start_tests": "Starta prov",
+  "purchase_success_back_home": "Tillbaka till start"
 }

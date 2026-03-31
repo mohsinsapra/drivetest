@@ -18,6 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3+73] - 2026-03-31
+
+### Added
+- Full-screen purchase success modal after subscription confirmation, including localized primary/secondary actions: "Start Tests" and "Back to home"
+- New localization keys in English and Swedish for purchase success title and CTA labels
+
+### Changed
+- Purchase success UX redesigned from an auto-dismissing bottom sheet to a guided full-screen flow with fade/scale animations and decorative celebratory visuals
+- Auth validation refactored to use consistent inline, field-level errors for both login and signup with live error clearing while typing
+- Auth header controls polished with a pill-style language/theme switcher for cleaner visual hierarchy
+- Updated `web` dependency from `^1.0.0` to `^1.1.1`
+
+### Fixed
+- Signup error handling now maps server-side field errors into the same inline UI used by client-side validation for consistent feedback
+
+---
+---
+
 ## [1.0.3+72] - 2026-03-31
 
 ### Added
