@@ -10,6 +10,7 @@ import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
+import 'package:flutter/foundation.dart';
 import 'package:no_screenshot/no_screenshot.dart';
 import 'package:taxi_exam_app/core/widgets/navigation_controls.dart';
 import 'package:taxi_exam_app/core/widgets/option_tile.dart';
@@ -94,7 +95,7 @@ class _TestscreenState extends State<Testscreen> {
   // Snapshot of selections at load time — used to detect changes on resume
   late final Map<int, String> _initialSelections;
 
-  final _noScreenshot = NoScreenshot.instance;
+  final _noScreenshot = kIsWeb ? null : NoScreenshot.instance;
 
   @override
   void initState() {
@@ -642,11 +643,7 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   void disableScreenshot() async {
-    try {
-      await _noScreenshot.screenshotOff();
-    } catch (_) {
-      // no_screenshot is not supported on web
-    }
+    await _noScreenshot?.screenshotOff();
   }
 
   @override

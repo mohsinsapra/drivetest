@@ -10,6 +10,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/features/support/help_screen.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
 
@@ -430,6 +431,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         } catch (_) {}
 
                                         try {
+                                          final attemptsBox = await Hive
+                                              .openBox<TestAttempt>(
+                                                  'testAttempts');
+                                          await attemptsBox.clear();
                                           await Hive.close();
                                           await Hive.deleteFromDisk();
                                         } catch (_) {}
