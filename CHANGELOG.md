@@ -14,8 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Fixed
+-
+
+---
+
+## [1.0.3+75] - 2026-04-02
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
 - Clear `testAttempts` Hive box on logout before closing/deleting Hive to prevent previous user's exam attempts from showing on web (where `deleteFromDisk()` is unreliable)
 
+---
 ---
 
 ## [1.0.3+74] - 2026-04-01
