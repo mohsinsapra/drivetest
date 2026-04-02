@@ -15,8 +15,12 @@ Map<String, dynamic> calculateStats(List<TestAttempt> attempts) {
   double worstScore = 100;
 
   for (var a in attempts) {
-    final licence = a.licenceName ?? 'Unknown';
-    final category = a.categoryName ?? 'Unknown';
+    final licence = (a.licenceName?.isNotEmpty == true)
+        ? a.licenceName!
+        : (a.isBcd ? 'BCD' : 'Unknown');
+    final category = (a.categoryName?.isNotEmpty == true)
+        ? a.categoryName!
+        : 'Unknown';
 
     // Count licenses
     licenceCounts[licence] = (licenceCounts[licence] ?? 0) + 1;

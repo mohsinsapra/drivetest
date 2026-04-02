@@ -193,6 +193,10 @@ class _TestscreenState extends State<Testscreen> {
       // Do not allow selection in review mode
       return;
     }
+    // Prevent re-selection if already answered in instant marking mode
+    if (widget.instantMarking && userSelections[index] != null) {
+      return;
+    }
     setState(() {
       userSelections[index] = optionId;
     });

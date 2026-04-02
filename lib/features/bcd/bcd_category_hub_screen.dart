@@ -127,22 +127,29 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
     try {
       final tests = await _api.fetchBCDTests(_categoryBcdId);
       final free = tests.where((t) => t['is_free'] == true).toList();
+      
+      // If no free test, but user is subscribed, use the first test available
+      final testToStart = free.isNotEmpty 
+          ? free.first 
+          : (_subscribed && tests.isNotEmpty ? tests.first : null);
+
       if (!mounted) return;
-      if (free.isEmpty) {
+
+      if (testToStart == null) {
         showAppSnackBar('No free practice test available for this category.');
         return;
       }
-      final test = free.first;
-      final bcdId = test['bcd_id'] as int?;
+
+      final bcdId = testToStart['bcd_id'] as int?;
       if (bcdId == null) return;
       Navigator.push(
         context,
         AppPageRoute(
           builder: (_) => BCDTestScreen(
             testId: bcdId,
-            testName: test['name']?.toString() ?? 'Practice',
-            passScore: test['pass_score'] as int? ?? 0,
-            timeLimit: test['time_limit'] as int? ?? 0,
+            testName: testToStart['name']?.toString() ?? 'Practice',
+            passScore: testToStart['pass_score'] as int? ?? 0,
+            timeLimit: testToStart['time_limit'] as int? ?? 0,
             parentCategoryName: _categoryName,
             parentCategoryBcdId: _categoryBcdId,
           ),

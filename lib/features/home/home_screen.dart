@@ -48,8 +48,16 @@ class _HomeScreenState extends State<HomeScreen>
   List<String> get licenceNames =>
       _stats['licenceWithCategories']?.keys.toList() ?? [];
 
-  String get selectedLicence =>
-      licenceNames.isNotEmpty ? licenceNames[selectedTabIndex] : '';
+  String get selectedLicence {
+    if (licenceNames.isEmpty) return '';
+    final idx = selectedTabIndex.clamp(0, licenceNames.length - 1);
+    return licenceNames[idx];
+  }
+
+  static String _effectiveLicence(TestAttempt a) =>
+      (a.licenceName?.isNotEmpty == true)
+          ? a.licenceName!
+          : (a.isBcd ? 'BCD' : 'Unknown');
 
   @override
   void initState() {
@@ -237,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen>
         _stats['licenceWithCategories'] ?? {});
     final licenceNames = licenceWithCategories.keys.toList();
     final selectedAttempts = _previousAttempts
-        .where((a) => a.licenceName == selectedLicence)
+        .where((a) => _effectiveLicence(a) == selectedLicence)
         .toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
     final dailyCounts = getDailyAttemptCounts(selectedAttempts);
@@ -712,14 +720,40 @@ class _HomeScreenState extends State<HomeScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    attempt.categoryName ?? 'Unknown',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 15),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          attempt.categoryName ?? 'Unknown',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 15),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (attempt.isBcd) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.deepPurple.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'BCD',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.deepPurple.shade400,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    '${dt.day}/${dt.month}/${dt.year}  ·  ${attempt.licenceName ?? ''}',
+                    '${dt.day}/${dt.month}/${dt.year}  ·  ${_effectiveLicence(attempt)}',
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
                   ),
                 ],
@@ -1097,6 +1131,24 @@ class _InProgressCardState extends State<_InProgressCard>
                   ),
                 ),
               ),
+              if (a.isBcd) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'BCD',
+                    style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.deepPurple.shade400,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
               const Spacer(),
               GestureDetector(
                 onTap: widget.onDelete,

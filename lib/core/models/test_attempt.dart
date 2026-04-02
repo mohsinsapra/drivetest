@@ -67,4 +67,5 @@ class TestAttempt extends HiveObject {
 
   bool get isPaused => status == 'paused';
   bool get isCompleted => status == 'completed';
+  bool get isBcd => bcdCategoryId != null;
 }

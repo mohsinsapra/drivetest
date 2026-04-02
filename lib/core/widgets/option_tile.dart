@@ -46,30 +46,57 @@ class Option extends StatelessWidget {
           ? Theme.of(ctx).primaryColor.withValues(alpha: 0.1)
           : Colors.white;
     }
-    if (isSelected) {
-      return isCorrectAnswer ? Colors.green[100]! : Colors.red[100]!;
+    // If this is the correct answer, always show green background
+    if (isCorrectAnswer) {
+      return Colors.green[50]!;
     }
-    return isCorrectAnswer ? Colors.green[200]! : Colors.white;
+    // If user selected this and it's wrong, show red background
+    if (isSelected) {
+      return Colors.red[50]!;
+    }
+    return Colors.white;
   }
 
   Color _borderColor(BuildContext ctx) {
     if (!showInstantMarking) {
       return isSelected ? Theme.of(ctx).primaryColor : Colors.grey[300]!;
     }
-    if (isCorrectAnswer) return Colors.green[200]!;
-    if (isSelected) return Colors.red[200]!;
+    if (isCorrectAnswer) return Colors.green[400]!;
+    if (isSelected) return Colors.red[400]!;
     return Colors.grey[200]!;
   }
 
   double _borderWidth() {
     if (!showInstantMarking) return isSelected ? 1.0 : 0.5;
-    return (isCorrectAnswer || isSelected) ? 1.5 : 0.5;
+    return (isCorrectAnswer || isSelected) ? 2.0 : 0.5;
   }
   // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     final s = scale;
+    
+    // Determine the icon and color for the bullet/indicator
+    Widget? indicatorIcon;
+    Color indicatorColor = Colors.transparent;
+    Color indicatorBorderColor = Colors.grey[400]!;
+
+    if (showInstantMarking) {
+      if (isCorrectAnswer) {
+        indicatorColor = Colors.green;
+        indicatorBorderColor = Colors.green;
+        indicatorIcon = Icon(Icons.check, size: 14 * s, color: Colors.white);
+      } else if (isSelected) {
+        indicatorColor = Colors.red;
+        indicatorBorderColor = Colors.red;
+        indicatorIcon = Icon(Icons.close, size: 14 * s, color: Colors.white);
+      }
+    } else if (isSelected) {
+      indicatorColor = Theme.of(context).primaryColor;
+      indicatorBorderColor = Theme.of(context).primaryColor;
+      indicatorIcon = Icon(Icons.circle, size: 10 * s, color: Colors.white);
+    }
+
     return Container(
       margin: EdgeInsets.only(bottom: 12 * s),
       child: Material(
@@ -104,27 +131,20 @@ class Option extends StatelessWidget {
                 // ── label row ────────────────────────────────────────────────
                 Row(
                   children: [
-                    // radio-style bullet
+                    // radio-style bullet or result icon
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      width: 22 * s,
-                      height: 22 * s,
+                      width: 24 * s,
+                      height: 24 * s,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isSelected
-                            ? Theme.of(context).primaryColor
-                            : Colors.transparent,
+                        color: indicatorColor,
                         border: Border.all(
-                          color: isSelected
-                              ? Theme.of(context).primaryColor
-                              : Colors.grey[400]!,
+                          color: indicatorBorderColor,
                           width: 2,
                         ),
                       ),
-                      child: isSelected
-                          ? Icon(Icons.circle,
-                              size: 10 * s, color: Colors.white)
-                          : null,
+                      child: Center(child: indicatorIcon),
                     ),
                     SizedBox(width: 12 * s),
 
@@ -139,12 +159,16 @@ class Option extends StatelessWidget {
                               softWrap: true,
                               style: TextStyle(
                                 fontSize: 15 * s,
-                                fontWeight: isSelected
+                                fontWeight: (isSelected || (showInstantMarking && isCorrectAnswer))
                                     ? FontWeight.w600
                                     : FontWeight.normal,
-                                color: isSelected
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.black87,
+                                color: showInstantMarking
+                                    ? (isCorrectAnswer 
+                                        ? Colors.green[700] 
+                                        : (isSelected ? Colors.red[700] : Colors.black87))
+                                    : (isSelected
+                                        ? Theme.of(context).primaryColor
+                                        : Colors.black87),
                               ),
                             ),
                           ),

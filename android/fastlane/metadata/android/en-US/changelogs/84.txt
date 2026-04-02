@@ -1,0 +1,8 @@
+Added
+-
+
+Changed
+-
+
+Fixed
+• Clear `testAttempts` Hive box on logout before closing/deleting Hive to prevent previous user's exam attempts from showing on web (where `deleteFromDisk()` is unreliable)
