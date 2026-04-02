@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
@@ -447,6 +448,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                                               builder: (_) =>
                                                   const AuthScreen()),
                                           (route) => false,
+                                        );
+                                        showAppSnackBar(
+                                          'Logged out successfully.',
+                                          type: SnackBarType.success,
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(

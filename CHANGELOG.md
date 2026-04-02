@@ -18,6 +18,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3+77] - 2026-04-02
+
+### Added
+- Success toast notification after login (username/password and Google sign-in)
+- Success toast notification after logout
+- Global snackbar queue cap to keep at most 3 toast notifications visible at once
+
+### Changed
+- Centralized snackbar helper now tracks active toast items and removes the oldest toast when the visible limit is reached
+
+### Fixed
+-
+
+---
+---
+
 ## [1.0.3+76] - 2026-04-02
 
 ### Added

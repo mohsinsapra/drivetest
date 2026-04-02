@@ -3,6 +3,18 @@ import 'package:toastification/toastification.dart';
 
 enum SnackBarType { info, success, error }
 
+const int _maxVisibleSnackBars = 3;
+final List<ToastificationItem> _activeSnackBars = <ToastificationItem>[];
+
+void _removeActiveSnackBarById(String id) {
+  _activeSnackBars.removeWhere((item) => item.id == id);
+}
+
+void _syncActiveSnackBars() {
+  _activeSnackBars
+      .removeWhere((item) => toastification.findToastificationItem(item.id) == null);
+}
+
 /// Shows a pill-shaped top-centered toast notification.
 ///
 /// [type] controls the icon and accent colour:
@@ -10,13 +22,20 @@ enum SnackBarType { info, success, error }
 ///   - [SnackBarType.error]   → red alert
 ///   - [SnackBarType.info]    → neutral (default)
 void showAppSnackBar(String message, {SnackBarType type = SnackBarType.info}) {
+  _syncActiveSnackBars();
+
+  while (_activeSnackBars.length >= _maxVisibleSnackBars) {
+    final oldest = _activeSnackBars.removeAt(0);
+    toastification.dismiss(oldest, showRemoveAnimation: false);
+  }
+
   final ToastificationType toastType = switch (type) {
     SnackBarType.success => ToastificationType.success,
     SnackBarType.error => ToastificationType.error,
     SnackBarType.info => ToastificationType.info,
   };
 
-  toastification.show(
+  final item = toastification.show(
     type: toastType,
     style: ToastificationStyle.flat,
     alignment: Alignment.topCenter,
@@ -49,6 +68,12 @@ void showAppSnackBar(String message, {SnackBarType type = SnackBarType.info}) {
     closeOnClick: true,
     dragToClose: true,
     applyBlurEffect: false,
+    callbacks: ToastificationCallbacks(
+      onTap: (toastItem) => _removeActiveSnackBarById(toastItem.id),
+      onDismissed: (toastItem) => _removeActiveSnackBarById(toastItem.id),
+      onAutoCompleteCompleted: (toastItem) =>
+          _removeActiveSnackBarById(toastItem.id),
+    ),
     boxShadow: [
       BoxShadow(
         color: Colors.black.withValues(alpha: 0.12),
@@ -57,4 +82,6 @@ void showAppSnackBar(String message, {SnackBarType type = SnackBarType.info}) {
       ),
     ],
   );
+
+  _activeSnackBars.add(item);
 }

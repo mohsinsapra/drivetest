@@ -106,6 +106,7 @@ class _AuthScreenState extends State<AuthScreen>
       }
       await _apiService.googleAuth(idToken: idToken, accessToken: accessToken);
       if (!mounted) return;
+      showAppSnackBar('Logged in successfully.', type: SnackBarType.success);
       await _navigateToMain();
     } catch (e) {
       if (!mounted) return;
@@ -141,6 +142,7 @@ class _AuthScreenState extends State<AuthScreen>
         _loginPasswordController.text,
       );
       if (!mounted) return;
+      showAppSnackBar('Logged in successfully.', type: SnackBarType.success);
       await _navigateToMain();
     } catch (e) {
       if (!mounted) return;
