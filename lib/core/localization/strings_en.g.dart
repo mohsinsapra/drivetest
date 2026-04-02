@@ -105,7 +105,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get intro_skip => 'Skip';
 	String get intro_get_started => 'Get Started';
 	String get auth_welcome_title => 'Welcome to Drive Test!';
-	String get auth_welcome_subtitle => 'Practice and prepare your driving exams!';
+	String get auth_welcome_subtitle => 'Practice. Pass with confidence.';
 	String get auth_login_btn => 'LOGIN';
 	String get auth_signup_btn => 'SIGNUP';
 	String get auth_skip_demo => 'SKIP FOR NOW (TRY DEMO)';
@@ -144,6 +144,9 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get auth_val_password_required => 'Please enter a password';
 	String get auth_val_password_length => 'Password must be at least 6 characters';
 	String get auth_signup_success => 'Signup successful! Please login.';
+	String get auth_welcome_first_login => 'Welcome. Enjoy exam prep.';
+	String get auth_welcome_returning => 'Welcome back again.';
+	String get auth_deleted_account_welcome_back => 'Always welcome back.';
 	String get auth_signup_failed => 'Signup failed. Please correct the errors.';
 	String get auth_generic_error => 'An error occurred. Please try again.';
 	String get auth_express_google => 'Express login via Google';
@@ -236,7 +239,7 @@ extension on Translations {
 			case 'intro_skip': return 'Skip';
 			case 'intro_get_started': return 'Get Started';
 			case 'auth_welcome_title': return 'Welcome to Drive Test!';
-			case 'auth_welcome_subtitle': return 'Practice and prepare your driving exams!';
+			case 'auth_welcome_subtitle': return 'Practice. Pass with confidence.';
 			case 'auth_login_btn': return 'LOGIN';
 			case 'auth_signup_btn': return 'SIGNUP';
 			case 'auth_skip_demo': return 'SKIP FOR NOW (TRY DEMO)';
@@ -275,6 +278,9 @@ extension on Translations {
 			case 'auth_val_password_required': return 'Please enter a password';
 			case 'auth_val_password_length': return 'Password must be at least 6 characters';
 			case 'auth_signup_success': return 'Signup successful! Please login.';
+			case 'auth_welcome_first_login': return 'Welcome. Enjoy exam prep.';
+			case 'auth_welcome_returning': return 'Welcome back again.';
+			case 'auth_deleted_account_welcome_back': return 'Always welcome back.';
 			case 'auth_signup_failed': return 'Signup failed. Please correct the errors.';
 			case 'auth_generic_error': return 'An error occurred. Please try again.';
 			case 'auth_express_google': return 'Express login via Google';

@@ -11,7 +11,7 @@ class ApiService {
   final Dio _dio = DioClient().dio;
   final DioClient _dioClient = DioClient();
 
-  Future<void> authenticate(String username, String password) async {
+  Future<bool> authenticate(String username, String password) async {
     try {
       final response = await _dio.post(
         'api/token/',
@@ -26,6 +26,9 @@ class ApiService {
         access: response.data['access'],
         refresh: response.data['refresh'],
       );
+      return response.data['is_first_login'] == true;
+    } on DioException {
+      rethrow;
     } catch (e) {
       throw Exception('Authentication failed: $e');
     }
@@ -473,7 +476,7 @@ class ApiService {
     }
   }
 
-  Future<void> googleAuth({String? idToken, String? accessToken}) async {
+  Future<bool> googleAuth({String? idToken, String? accessToken}) async {
     try {
       final data = idToken != null
           ? {'id_token': idToken}
@@ -483,6 +486,9 @@ class ApiService {
         access: response.data['access'],
         refresh: response.data['refresh'],
       );
+      return response.data['is_first_login'] == true;
+    } on DioException {
+      rethrow;
     } catch (e) {
       throw Exception('Google authentication failed: $e');
     }
@@ -651,6 +657,49 @@ class ApiService {
       );
     } catch (e) {
       throw Exception('Failed to reset password: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile({
+    required String username,
+    required String email,
+  }) async {
+    try {
+      final response = await _dio.patch(
+        'api/user/self/',
+        data: {
+          'username': username,
+          'email': email,
+        },
+      );
+      return Map<String, dynamic>.from(response.data as Map);
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to update profile: $e');
+    }
+  }
+
+  Future<void> setPassword({required String newPassword}) async {
+    try {
+      await _dio.post(
+        'api/user/set-password/',
+        data: {'new_password': newPassword},
+      );
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to set password: $e');
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      await _dio.delete('api/user/self/');
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to delete account: $e');
     }
   }
 }

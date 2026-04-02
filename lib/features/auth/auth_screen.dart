@@ -1,6 +1,7 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hive/hive.dart';
@@ -69,11 +70,15 @@ class _AuthScreenState extends State<AuthScreen>
     await prefs.setString('language', locale.languageCode);
   }
 
-  Future<void> _navigateToMain() async {
+  Future<void> _navigateToMain({required bool isFirstLogin}) async {
     final user = await _apiService.fetchCurrentUser();
     if (user != null) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user', jsonEncode(user));
+      _showWelcomeMessage(
+        Map<String, dynamic>.from(user as Map),
+        isFirstLogin: isFirstLogin,
+      );
     }
     await Hive.close();
     await Hive.deleteFromDisk();
@@ -84,6 +89,26 @@ class _AuthScreenState extends State<AuthScreen>
         (Route<dynamic> route) => false,
       );
     }
+  }
+
+  void _showWelcomeMessage(
+    Map<String, dynamic> user, {
+    required bool isFirstLogin,
+  }) {
+    final t = Translations.of(context);
+
+    if (isFirstLogin) {
+      showAppSnackBar(
+        t.auth_welcome_first_login,
+        type: SnackBarType.success,
+      );
+      return;
+    }
+
+    showAppSnackBar(
+      t.auth_welcome_returning,
+      type: SnackBarType.success,
+    );
   }
 
   Future<void> _signInWithGoogle() async {
@@ -104,14 +129,18 @@ class _AuthScreenState extends State<AuthScreen>
       if (idToken == null && accessToken == null) {
         throw Exception('No authentication token received');
       }
-      await _apiService.googleAuth(idToken: idToken, accessToken: accessToken);
+      final isFirstLogin =
+          await _apiService.googleAuth(idToken: idToken, accessToken: accessToken);
       if (!mounted) return;
-      showAppSnackBar('Logged in successfully.', type: SnackBarType.success);
-      await _navigateToMain();
+      await _navigateToMain(isFirstLogin: isFirstLogin);
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _loginError = GoogleSignInHelper.userMessage(e);
+        if (_isDeletedAccountError(e)) {
+          _loginError = Translations.of(context).auth_deleted_account_welcome_back;
+        } else {
+          _loginError = GoogleSignInHelper.userMessage(e);
+        }
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -137,21 +166,35 @@ class _AuthScreenState extends State<AuthScreen>
       _loginError = null;
     });
     try {
-      await _apiService.authenticate(
+      final isFirstLogin = await _apiService.authenticate(
         _loginUsernameController.text.trim(),
         _loginPasswordController.text,
       );
       if (!mounted) return;
-      showAppSnackBar('Logged in successfully.', type: SnackBarType.success);
-      await _navigateToMain();
+      await _navigateToMain(isFirstLogin: isFirstLogin);
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _loginError = Translations.of(context).auth_invalid_credentials;
+        _loginError = _isDeletedAccountError(e)
+            ? Translations.of(context).auth_deleted_account_welcome_back
+            : Translations.of(context).auth_invalid_credentials;
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  bool _isDeletedAccountError(Object error) {
+    if (error is! DioException) return false;
+    final data = error.response?.data;
+    if (data is Map) {
+      final map = Map<String, dynamic>.from(data);
+      final code = (map['code'] ?? '').toString();
+      final detail = (map['detail'] ?? '').toString().toLowerCase();
+      if (code == 'account_deleted') return true;
+      if (detail.contains('account has been deleted')) return true;
+    }
+    return false;
   }
 
   Future<void> _loginAsDemo() async {
@@ -195,7 +238,7 @@ class _AuthScreenState extends State<AuthScreen>
       );
       if (!mounted) return;
       if (response.statusCode == 201) {
-        showAppSnackBar(Translations.of(context).auth_signup_success);
+        showAppSnackBar(t.auth_signup_success, type: SnackBarType.success);
         _tabController.animateTo(0);
       } else {
         final Map<String, dynamic> errorData =

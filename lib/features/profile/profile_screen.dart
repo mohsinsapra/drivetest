@@ -10,6 +10,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
+import 'package:taxi_exam_app/features/profile/edit_profile_screen.dart';
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/features/support/help_screen.dart';
@@ -178,6 +179,45 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
+  Future<void> _handlePrimaryMenuTap(int index) async {
+    try {
+      final nav = NavigationService.navigatorKey.currentState;
+      if (nav == null) {
+        showAppSnackBar(
+          'Unable to open this screen right now.',
+          type: SnackBarType.error,
+        );
+        return;
+      }
+      switch (index) {
+        case 0:
+          await nav.push(
+            AppPageRoute(builder: (_) => const EditProfileScreen()),
+          );
+          await _loadUserFromPrefs();
+          return;
+        case 1:
+          await nav.push(
+            AppPageRoute(builder: (_) => const StatsScreen()),
+          );
+          return;
+        case 2:
+          await nav.push(
+            AppPageRoute(builder: (_) => const SettingsScreen()),
+          );
+          return;
+        default:
+          return;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      showAppSnackBar(
+        'Unable to open this screen right now.',
+        type: SnackBarType.error,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -305,18 +345,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     icon: e.value.icon,
                     iconColor: e.value.color,
                     title: e.value.title,
-                    onTap: e.key == 1
-                        ? () => Navigator.push(
-                              context,
-                              AppPageRoute(builder: (_) => const StatsScreen()),
-                            )
-                        : e.key == 2
-                            ? () => Navigator.push(
-                                  context,
-                                  AppPageRoute(
-                                      builder: (_) => const SettingsScreen()),
-                                )
-                            : () {},
+                    onTap: () => _handlePrimaryMenuTap(e.key),
                   ),
                 )),
 

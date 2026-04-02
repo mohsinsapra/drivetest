@@ -1,0 +1,8 @@
+Added
+-
+
+Changed
+• Removed user-facing `BCD` wording from labels and subscription/payment fallbacks in the app UI
+
+Fixed
+• Prevented `BCD` from reappearing in subscription fallback titles

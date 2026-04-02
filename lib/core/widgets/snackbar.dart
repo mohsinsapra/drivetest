@@ -39,13 +39,15 @@ void showAppSnackBar(String message, {SnackBarType type = SnackBarType.info}) {
     type: toastType,
     style: ToastificationStyle.flat,
     alignment: Alignment.topCenter,
-    title: Text(
+    description: Text(
       message,
       style: const TextStyle(
         fontSize: 13.5,
         fontWeight: FontWeight.w500,
         height: 1.3,
       ),
+      textAlign: TextAlign.center,
+      softWrap: true,
     ),
     autoCloseDuration: const Duration(seconds: 3),
     animationDuration: const Duration(milliseconds: 300),

@@ -102,7 +102,7 @@ class TranslationsSv implements Translations {
 	@override String get intro_skip => 'Hoppa över';
 	@override String get intro_get_started => 'Kom igång';
 	@override String get auth_welcome_title => 'Välkommen till Drive Test!';
-	@override String get auth_welcome_subtitle => 'Öva och förbered dig inför dina körprov!';
+	@override String get auth_welcome_subtitle => 'Öva. Klara prov tryggt.';
 	@override String get auth_login_btn => 'LOGGA IN';
 	@override String get auth_signup_btn => 'REGISTRERA';
 	@override String get auth_skip_demo => 'HOPPA ÖVER (PROVA DEMO)';
@@ -141,6 +141,9 @@ class TranslationsSv implements Translations {
 	@override String get auth_val_password_required => 'Vänligen ange ett lösenord';
 	@override String get auth_val_password_length => 'Lösenordet måste vara minst 6 tecken';
 	@override String get auth_signup_success => 'Registreringen lyckades! Vänligen logga in.';
+	@override String get auth_welcome_first_login => 'Välkommen, lycka till!';
+	@override String get auth_welcome_returning => 'Välkommen tillbaka igen!';
+	@override String get auth_deleted_account_welcome_back => 'Alltid välkommen tillbaka.';
 	@override String get auth_signup_failed => 'Registreringen misslyckades. Rätta felen.';
 	@override String get auth_generic_error => 'Ett fel uppstod. Försök igen.';
 	@override String get auth_express_google => 'Express-inloggning via Google';
@@ -233,7 +236,7 @@ extension on TranslationsSv {
 			case 'intro_skip': return 'Hoppa över';
 			case 'intro_get_started': return 'Kom igång';
 			case 'auth_welcome_title': return 'Välkommen till Drive Test!';
-			case 'auth_welcome_subtitle': return 'Öva och förbered dig inför dina körprov!';
+			case 'auth_welcome_subtitle': return 'Öva. Klara prov tryggt.';
 			case 'auth_login_btn': return 'LOGGA IN';
 			case 'auth_signup_btn': return 'REGISTRERA';
 			case 'auth_skip_demo': return 'HOPPA ÖVER (PROVA DEMO)';
@@ -272,6 +275,9 @@ extension on TranslationsSv {
 			case 'auth_val_password_required': return 'Vänligen ange ett lösenord';
 			case 'auth_val_password_length': return 'Lösenordet måste vara minst 6 tecken';
 			case 'auth_signup_success': return 'Registreringen lyckades! Vänligen logga in.';
+			case 'auth_welcome_first_login': return 'Välkommen, lycka till!';
+			case 'auth_welcome_returning': return 'Välkommen tillbaka igen!';
+			case 'auth_deleted_account_welcome_back': return 'Alltid välkommen tillbaka.';
 			case 'auth_signup_failed': return 'Registreringen misslyckades. Rätta felen.';
 			case 'auth_generic_error': return 'Ett fel uppstod. Försök igen.';
 			case 'auth_express_google': return 'Express-inloggning via Google';
