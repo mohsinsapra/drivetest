@@ -18,6 +18,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3+79] - 2026-04-02
+
+### Added
+- Edit Profile screen with update profile fields, conditional set-password section, and delete-account action
+- Backend support for profile update (`PATCH /api/user/self/`) and set password (`POST /api/user/set-password/`)
+- Backend `is_first_login` flag in auth responses (`/api/token/` and `/api/user/google-auth/`)
+- Localized auth greeting keys for first-time login, returning login, and deleted-account welcome-back messaging
+
+### Changed
+- Account deletion switched back to hard delete path (removes user and user-linked data)
+- Auth greetings now use backend `is_first_login` instead of device-local first-run tracking
+- All auth greeting/snackbar texts moved to translation files (English + Swedish)
+- Auth notification phrases shortened for compact display in top toast
+
+### Fixed
+- Profile -> Edit Profile navigation reliability improved after fresh login/signup sessions
+- Auth/profile API error handling now surfaces backend field validation messages (for example duplicate username)
+- Long notification text visibility improved by rendering toast content via multi-line description instead of one-line title
+
+---
+---
+
 ## [1.0.3+78] - 2026-04-02
 
 ### Added
