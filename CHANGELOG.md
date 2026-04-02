@@ -11,10 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
--
+- Removed user-facing `BCD` wording from labels and subscription/payment fallbacks in the app UI
 
 ### Fixed
--
+- Prevented `BCD` from reappearing in subscription fallback titles
 
 ---
 

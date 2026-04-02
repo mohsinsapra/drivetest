@@ -76,14 +76,14 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
   Future<void> _handleBuy(dynamic product) async {
     Navigator.pop(context); // close paywall sheet
     try {
-      final name = product['name']?.toString() ?? 'BCD Subscription';
+      final name = product['name']?.toString() ?? 'Subscription';
       final price = product['price']?.toString() ?? '';
       final currency = product['currency']?.toString() ?? 'SEK';
 
       await processStripePayment(
         context,
         createIntent: () => _api.createBCDPaymentIntent(product['id'] as int),
-        merchantName: 'TaxiExam BCD',
+        merchantName: 'TaxiExam',
         subtitle: name,
         displayAmount: price,
         currency: currency,

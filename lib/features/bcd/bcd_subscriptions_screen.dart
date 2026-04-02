@@ -76,12 +76,12 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     try {
       final price = product['price']?.toString() ?? '';
       final currency = product['currency']?.toString() ?? 'SEK';
-      final name = product['name']?.toString() ?? 'BCD Subscription';
+      final name = product['name']?.toString() ?? 'Subscription';
 
       await processStripePayment(
         context,
         createIntent: () => _api.createBCDPaymentIntent(product['id'] as int),
-        merchantName: 'TaxiExam BCD',
+        merchantName: 'Drive Test',
         subtitle: name,
         displayAmount: price,
         currency: currency,
@@ -149,7 +149,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     }
 
     final bcdId = ids.first as int;
-    final productName = product['name']?.toString() ?? 'BCD Subscription';
+    final productName = product['name']?.toString() ?? 'Subscription';
 
     setState(() => _navigating = true);
     try {

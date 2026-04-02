@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen>
   static String _effectiveLicence(TestAttempt a) =>
       (a.licenceName?.isNotEmpty == true)
           ? a.licenceName!
-          : (a.isBcd ? 'BCD' : 'Unknown');
+          : (a.isBcd ? 'Category' : 'Unknown');
 
   @override
   void initState() {
@@ -740,7 +740,7 @@ class _HomeScreenState extends State<HomeScreen>
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'BCD',
+                            'Category',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -1141,7 +1141,7 @@ class _InProgressCardState extends State<_InProgressCard>
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'BCD',
+                    'Category',
                     style: TextStyle(
                         fontSize: 10,
                         color: Colors.deepPurple.shade400,

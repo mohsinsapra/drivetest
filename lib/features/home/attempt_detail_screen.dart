@@ -102,7 +102,7 @@ class AttemptDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'BCD',
+                        'Category',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,

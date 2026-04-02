@@ -17,7 +17,7 @@ Map<String, dynamic> calculateStats(List<TestAttempt> attempts) {
   for (var a in attempts) {
     final licence = (a.licenceName?.isNotEmpty == true)
         ? a.licenceName!
-        : (a.isBcd ? 'BCD' : 'Unknown');
+        : (a.isBcd ? 'Category' : 'Unknown');
     final category = (a.categoryName?.isNotEmpty == true)
         ? a.categoryName!
         : 'Unknown';
