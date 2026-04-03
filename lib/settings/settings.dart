@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/services/version_service.dart';
@@ -20,7 +23,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int numberOfQuestions = 10;
   int maxQuestions = 1000;
   VersionInfo? _versionInfo;
+  bool _isAdmin = false;
+  Map<String, dynamic>? _backendInfo;
 
+  final ApiService _apiService = ApiService();
   final TextEditingController _numberOfQuestionsController =
       TextEditingController();
 
@@ -29,6 +35,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     _loadPreferences();
     _loadVersionInfo();
+    _loadAdminState();
+  }
+
+  Future<void> _loadAdminState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('user');
+      if (userJson != null && userJson.isNotEmpty) {
+        final parsed = jsonDecode(userJson);
+        if (parsed is Map<String, dynamic>) {
+          final isAdmin = parsed['is_administrator'] == true;
+          if (mounted) setState(() => _isAdmin = isAdmin);
+          if (isAdmin) _loadBackendVersion();
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to load admin state: $e');
+    }
+  }
+
+  Future<void> _loadBackendVersion() async {
+    try {
+      final info = await _apiService.fetchBackendVersion();
+      if (mounted) setState(() => _backendInfo = info);
+    } catch (e) {
+      debugPrint('Failed to load backend version: $e');
+    }
   }
 
   Future<void> _loadVersionInfo() async {
@@ -253,6 +286,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         child: CircularProgressIndicator(),
                       ),
                     ),
+
+                  // ── Backend Info (admin only) ─────────────────────────────
+                  if (_isAdmin) ...[
+                    _SectionHeader('Backend Info'),
+                    if (_backendInfo == null)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        child: Column(
+                          children: [
+                            _VersionRow('Status',
+                                (_backendInfo!['status'] ?? 'unknown').toString()),
+                            _VersionRow('Debug Mode',
+                                (_backendInfo!['debug_mode'] ?? false).toString()),
+                            if (_backendInfo!['version'] is Map) ...[
+                              _VersionRow(
+                                  'Branch',
+                                  ((_backendInfo!['version']
+                                              as Map)['branch'] ??
+                                          'unknown')
+                                      .toString()),
+                              _VersionRow(
+                                  'Commit',
+                                  ((_backendInfo!['version']
+                                              as Map)['short_hash'] ??
+                                          'unknown')
+                                      .toString()),
+                              _VersionRow(
+                                  'Last Deploy',
+                                  ((_backendInfo!['version']
+                                              as Map)['commit_date'] ??
+                                          'unknown')
+                                      .toString()),
+                              _VersionRow(
+                                  'Author',
+                                  ((_backendInfo!['version']
+                                              as Map)['commit_author'] ??
+                                          'unknown')
+                                      .toString()),
+                              _VersionRow(
+                                  'Message',
+                                  ((_backendInfo!['version']
+                                              as Map)['commit_message'] ??
+                                          'unknown')
+                                      .toString()),
+                            ],
+                          ],
+                        ),
+                      ),
+                  ],
                 ],
               ),
             ),

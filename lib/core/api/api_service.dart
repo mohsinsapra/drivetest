@@ -702,4 +702,13 @@ class ApiService {
       throw Exception('Failed to delete account: $e');
     }
   }
+
+  Future<Map<String, dynamic>> fetchBackendVersion() async {
+    try {
+      final response = await _dio.get('api/version/');
+      return Map<String, dynamic>.from(response.data as Map);
+    } catch (e) {
+      throw Exception('Failed to fetch backend version: $e');
+    }
+  }
 }
