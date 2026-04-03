@@ -1,0 +1,5 @@
+Added
+
+• **Admin backend info panel**: Admin users see a "Backend Info" section in Settings showing live backend status, debug mode, branch, commit hash, deploy date, author, and commit message — fetched from `GET /api/version/`.
+• **Demo account username/email lock**: Edit Profile screen shows a warning banner and makes username/email fields read-only (with lock icon) for demo accounts. Save Changes button is also disabled.
+• **Human-readable deploy date**: "Last Deploy" in the admin backend...

@@ -20,6 +20,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3+82] - 2026-04-03
+
+### Added
+
+- Admin backend info panel in Settings (branch, commit, deploy date, debug mode) — visible to admin users only
+- Demo account protection: username and email fields are locked in Edit Profile with a warning banner
+- Human-readable deploy date in admin backend info panel
+
+### Changed
+
+- Deploy commit now includes Play Store release notes alongside pubspec.yaml and CHANGELOG.md
+- Single git commit at end of deploy-all instead of one per platform
+
+### Fixed
+
+-
+
+---
+---
+
 ## [1.0.3+81] - 2026-04-03
 
 ### Added
