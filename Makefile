@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all
+.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core
 
 # Colors for output
 COLOR_RESET = \033[0m
@@ -133,15 +133,33 @@ _write-web-version-file:
 		'}' > $(WEB_BUILD_DIR)/version.json
 	@echo "$(COLOR_GREEN)✅ Wrote $(WEB_BUILD_DIR)/version.json$(COLOR_RESET)"
 
-## web-deploy: Bump build number, build and deploy web app to repository
-web-deploy: version-build web-build
+## _web-deploy-core: Bump version, build web, and push to web repo (no git commit)
+_web-deploy-core: version-build web-build
 	@echo "$(COLOR_BLUE)Deploying web app to repository...$(COLOR_RESET)"
 	@$(MAKE) -s _deploy-to-web-repo
-	@echo "$(COLOR_BLUE)Committing version bump to main repository...$(COLOR_RESET)"
+
+## web-deploy: Deploy web and commit to main repo
+web-deploy:
+	@$(MAKE) -s _web-deploy-core
+	@$(MAKE) -s _commit-and-push
+
+## _android-beta-core: Deploy Android to alpha (no git commit)
+_android-beta-core:
+	@echo "$(COLOR_GREEN)Deploying Android to Google Play alpha track...$(COLOR_RESET)"
+	@cd android && bundle exec fastlane android beta
+
+## _android-deploy-core: Deploy Android to alpha and production (no git commit)
+_android-deploy-core:
+	@echo "$(COLOR_GREEN)Deploying Android to alpha and promoting to production...$(COLOR_RESET)"
+	@cd android && bundle exec fastlane android deploy
+
+## _commit-and-push: Stage pubspec + changelog and push to main repo
+_commit-and-push:
+	@echo "$(COLOR_BLUE)Committing changes to main repository...$(COLOR_RESET)"
 	@git add pubspec.yaml CHANGELOG.md
-	@git diff --cached --quiet || git commit -m "chore: bump version to $(APP_VERSION)+$(APP_BUILD_NUMBER)"
+	@git diff --cached --quiet || git commit -m "chore: bump version to $(APP_VERSION)+$(APP_BUILD_NUMBER) [deploy]"
 	@git push
-	@echo "$(COLOR_GREEN)✅ Version commit pushed!$(COLOR_RESET)"
+	@echo "$(COLOR_GREEN)✅ Commit pushed!$(COLOR_RESET)"
 
 WEB_REPO_URL ?= https://github.com/mohsinsapra/drivetest
 
@@ -186,22 +204,29 @@ version-major:
 	@echo "$(COLOR_GREEN)Bumping major version...$(COLOR_RESET)"
 	@cd scripts && ruby update_version.rb major
 
-web-android-deploy: web-build android-beta 
-## android-beta: Deploy Android to Google Play alpha
+web-android-deploy: web-build android-beta
+
+## android-beta: Deploy Android to alpha and commit to main repo
 android-beta:
-	@echo "$(COLOR_GREEN)Deploying Android to Google Play alpha track...$(COLOR_RESET)"
-	@cd android && bundle exec fastlane android beta
+	@$(MAKE) -s _android-beta-core
+	@$(MAKE) -s _commit-and-push
 
-## android-deploy: Deploy Android to alpha and promote to production
+## android-deploy: Deploy Android to alpha + production and commit to main repo
 android-deploy:
-	@echo "$(COLOR_GREEN)Deploying Android to alpha and promoting to production...$(COLOR_RESET)"
-	@cd android && bundle exec fastlane android deploy
+	@$(MAKE) -s _android-deploy-core
+	@$(MAKE) -s _commit-and-push
 
-## release-all: Deploy web and Android production release
-release-all: web-deploy android-deploy
+## release-all: Deploy web + Android production, single commit at the end
+release-all:
+	@$(MAKE) -s _web-deploy-core
+	@$(MAKE) -s _android-deploy-core
+	@$(MAKE) -s _commit-and-push
 
-## deploy-all: Deploy web and Android production release
-deploy-all: web-deploy android-deploy
+## deploy-all: Deploy web + Android production, single commit at the end
+deploy-all:
+	@$(MAKE) -s _web-deploy-core
+	@$(MAKE) -s _android-deploy-core
+	@$(MAKE) -s _commit-and-push
 
 ## ios-beta: Deploy iOS to TestFlight
 ios-beta:
