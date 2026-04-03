@@ -1,5 +1,5 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
@@ -8,12 +8,12 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
-import 'package:taxi_exam_app/core/router/route_args.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/utils/calculate_stats.dart';
 import 'package:taxi_exam_app/core/widgets/attempt_spark_widget.dart';
 import 'package:taxi_exam_app/core/widgets/category_pie_chart_widget.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/home/attempt_detail_screen.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -526,18 +526,23 @@ class _HomeScreenState extends State<HomeScreen>
                 attempt: _pausedAttempts[index],
                 onResume: () async {
                   final a = _pausedAttempts[index];
-                  await context.push(Routes.test, extra: TestScreenArgs(
-                    questions: a.questions,
-                    instantMarking: true,
-                    licenceId: a.licenceId ?? '',
-                    categoryId: a.categoryId ?? '',
-                    licenceName: a.licenceName ?? '',
-                    categoryName: a.categoryName ?? '',
-                    initialQuestionIndex: a.currentQuestionIndex,
-                    userSelections: a.userSelections,
-                    resumeTestId: a.testId,
-                    bcdCategoryId: a.bcdCategoryId,
-                  ));
+                  await Navigator.push(
+                    context,
+                    AppPageRoute(
+                      builder: (_) => Testscreen(
+                        questions: a.questions,
+                        instantMarking: true,
+                        licenceId: a.licenceId ?? '',
+                        categoryId: a.categoryId ?? '',
+                        licenceName: a.licenceName ?? '',
+                        categoryName: a.categoryName ?? '',
+                        initialQuestionIndex: a.currentQuestionIndex,
+                        userSelections: a.userSelections,
+                        resumeTestId: a.testId,
+                        bcdCategoryId: a.bcdCategoryId,
+                      ),
+                    ),
+                  );
                   _loadPreviousAttempts();
                 },
                 onDelete: () =>
@@ -690,9 +695,10 @@ class _HomeScreenState extends State<HomeScreen>
     final dt = attempt.dateTime;
 
     return GestureDetector(
-      onTap: () => context.push(
-        Routes.attemptPath(attempt.testId),
-        extra: attempt,
+      onTap: () => Navigator.push(
+        context,
+        AppPageRoute(
+            builder: (_) => AttemptDetailScreen(attempt: attempt)),
       ),
       child: Container(
         color: Theme.of(context).colorScheme.surface,

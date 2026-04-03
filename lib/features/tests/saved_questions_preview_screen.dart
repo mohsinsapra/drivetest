@@ -1,9 +1,8 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
-import 'package:taxi_exam_app/core/router/route_args.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
 class SavedQuestionsPreviewScreen extends StatefulWidget {
   final List<Question> questions;
@@ -244,19 +243,24 @@ class _SavedQuestionsPreviewScreenState
           onPressed: _questions.isEmpty
               ? null
               : () {
-                  context.push(Routes.test, extra: TestScreenArgs(
-                    questions: _questions,
-                    instantMarking: true,
-                    licenceId: widget.licenceId,
-                    categoryId: widget.categoryId,
-                    licenceName: widget.licenceName,
-                    categoryName: '${widget.categoryName} • Saved',
-                    bcdCategoryId: widget.bcdCategoryId,
-                    initiallySavedQuestionIds: _questions
-                        .map((q) => q.questionId)
-                        .where((id) => id.isNotEmpty)
-                        .toSet(),
-                  ));
+                  Navigator.push(
+                    context,
+                    AppPageRoute(
+                      builder: (_) => Testscreen(
+                        questions: _questions,
+                        instantMarking: true,
+                        licenceId: widget.licenceId,
+                        categoryId: widget.categoryId,
+                        licenceName: widget.licenceName,
+                        categoryName: '${widget.categoryName} • Saved',
+                        bcdCategoryId: widget.bcdCategoryId,
+                        initiallySavedQuestionIds: _questions
+                            .map((q) => q.questionId)
+                            .where((id) => id.isNotEmpty)
+                            .toSet(),
+                      ),
+                    ),
+                  );
                 },
           icon: const Icon(Icons.play_arrow),
           label: const Text('Start Saved Questions Test'),

@@ -1,9 +1,8 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 // attempt_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
-import 'package:taxi_exam_app/core/router/route_args.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
 class AttemptDetailScreen extends StatelessWidget {
   final TestAttempt attempt;
@@ -168,15 +167,20 @@ class AttemptDetailScreen extends StatelessWidget {
                 question: question,
                 userAnswer: userAnswer,
                 isCorrect: isCorrect,
-                onTap: () => context.push(Routes.test, extra: TestScreenArgs(
-                  questions: questions,
-                  instantMarking: true,
-                  licenceId: '',
-                  categoryId: '',
-                  initialQuestionIndex: index,
-                  userSelections: a.userSelections,
-                  isReviewMode: true,
-                )),
+                onTap: () => Navigator.push(
+                  context,
+                  AppPageRoute(
+                    builder: (_) => Testscreen(
+                      questions: questions,
+                      instantMarking: true,
+                      licenceId: '',
+                      categoryId: '',
+                      initialQuestionIndex: index,
+                      userSelections: a.userSelections,
+                      isReviewMode: true,
+                    ),
+                  ),
+                ),
               );
             }),
           ] else ...[

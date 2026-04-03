@@ -1,9 +1,9 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,8 +12,9 @@ import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/auth/google_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/auth/forgot_password_screen.dart';
+import 'package:taxi_exam_app/main_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -83,8 +84,10 @@ class _AuthScreenState extends State<AuthScreen>
     await Hive.deleteFromDisk();
     await DioClient().init();
     if (mounted) {
-      // ignore: use_build_context_synchronously
-      context.go(Routes.home);
+      Navigator.of(context).pushAndRemoveUntil(
+        AppPageRoute(builder: (context) => const MainScreen()),
+        (Route<dynamic> route) => false,
+      );
     }
   }
 
@@ -678,7 +681,12 @@ class _AuthScreenState extends State<AuthScreen>
                               // Forgot password
                               Center(
                                 child: GestureDetector(
-                                  onTap: () => context.push(Routes.authForgot),
+                                  onTap: () => Navigator.of(context).push(
+                                    AppPageRoute(
+                                      builder: (_) =>
+                                          const ForgotPasswordScreen(),
+                                    ),
+                                  ),
                                   child: Text(
                                     t.auth_forgot_password,
                                     style: TextStyle(

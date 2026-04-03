@@ -1,11 +1,10 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
-import 'package:taxi_exam_app/core/router/route_args.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
 import 'bcd_text_utils.dart';
 
@@ -58,21 +57,22 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
       }
 
       // Replace this loader screen with Testscreen
-      // ignore: use_build_context_synchronously
-      context.pushReplacement(
-        Routes.test,
-        extra: TestScreenArgs(
-          questions: questions,
-          instantMarking: true,
-          licenceId: '',
-          categoryId: widget.testId.toString(),
-          licenceName: widget.parentCategoryName,
-          categoryName: widget.testName,
-          bcdCategoryId: widget.parentCategoryBcdId,
-          bcdTestId: widget.testId,
-          passScorePercent: widget.passScore.toDouble(),
-          isTimed: widget.timeLimit > 0,
-          timeLimitMinutes: widget.timeLimit > 0 ? widget.timeLimit : 10,
+      Navigator.pushReplacement(
+        context,
+        AppPageRoute(
+          builder: (_) => Testscreen(
+            questions: questions,
+            instantMarking: true,
+            licenceId: '',
+            categoryId: widget.testId.toString(),
+            licenceName: widget.parentCategoryName,
+            categoryName: widget.testName,
+            bcdCategoryId: widget.parentCategoryBcdId,
+            bcdTestId: widget.testId,
+            passScorePercent: widget.passScore.toDouble(),
+            isTimed: widget.timeLimit > 0,
+            timeLimitMinutes: widget.timeLimit > 0 ? widget.timeLimit : 10,
+          ),
         ),
       );
     } catch (e) {

@@ -1,4 +1,5 @@
 import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -16,10 +17,10 @@ import 'package:taxi_exam_app/core/widgets/licence_type_card_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/widgets/test_option_card_widget.dart';
-import 'package:go_router/go_router.dart';
-import 'package:taxi_exam_app/core/router/route_args.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
+import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
+import 'package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:vibration/vibration.dart';
@@ -571,13 +572,18 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           showAppSnackBar('No saved questions found in this category.');
           return;
         }
-        context.push(Routes.testsSaved, extra: SavedQuestionsArgs(
-          questions: saved,
-          licenceId: selectedLicenseType?['licence_id'] ?? '',
-          categoryId: selectedCategory?['category_id'] ?? '',
-          licenceName: selectedLicenseType?['name'] ?? '',
-          categoryName: selectedCategory?['name'] ?? 'Saved Questions',
-        ));
+        Navigator.push(
+          context,
+          AppPageRoute(
+            builder: (_) => SavedQuestionsPreviewScreen(
+              questions: saved,
+              licenceId: selectedLicenseType?['licence_id'],
+              categoryId: selectedCategory?['category_id'],
+              licenceName: selectedLicenseType?['name'],
+              categoryName: selectedCategory?['name'] ?? 'Saved Questions',
+            ),
+          ),
+        );
       } catch (_) {
         if (mounted) showAppSnackBar('Failed to load saved questions.');
       } finally {
@@ -598,14 +604,19 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           );
           if (!mounted) return;
           setState(() => isLoading = false);
-          context.push(Routes.test, extra: TestScreenArgs(
-            questions: fetchedQuestions,
-            instantMarking: true,
-            licenceId: selectedLicenseType?['licence_id'] ?? '',
-            categoryId: selectedCategory?['category_id'] ?? '',
-            licenceName: selectedLicenseType?['name'] ?? '',
-            categoryName: selectedCategory?['name'] ?? '',
-          ));
+          Navigator.push(
+            context,
+            AppPageRoute(
+              builder: (_) => Testscreen(
+                questions: fetchedQuestions,
+                instantMarking: true,
+                licenceId: selectedLicenseType?['licence_id'],
+                categoryId: selectedCategory?['category_id'],
+                licenceName: selectedLicenseType?['name'],
+                categoryName: selectedCategory?['name'],
+              ),
+            ),
+          );
         },
       },
       {
@@ -614,11 +625,16 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         'color': Colors.orangeAccent,
         'onPressed': () async {
           if (!mounted) return;
-          context.push(Routes.testsCustom, extra: CustomTestScreenArgs(
-            licenceId: selectedLicenseType?['licence_id'] ?? '',
-            categoryId: selectedCategory?['category_id'] ?? '',
-            categoryName: selectedCategory?['name'] ?? '',
-          ));
+          Navigator.push(
+            context,
+            AppPageRoute(
+              builder: (_) => CreateCustomTestScreen(
+                licenceId: selectedLicenseType?['licence_id'],
+                categoryId: selectedCategory?['category_id'],
+                categoryName: selectedCategory?['name'],
+              ),
+            ),
+          );
         },
       },
       {

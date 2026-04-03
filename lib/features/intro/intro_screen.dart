@@ -1,7 +1,7 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
+import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -101,7 +101,9 @@ class IntroScreen extends StatelessWidget {
     // Check if the widget is still mounted before navigating
     if (context.mounted) {
       // Navigate to Auth Screen
-      context.go(Routes.auth);
+      Navigator.of(context).pushReplacement(
+        AppPageRoute(builder: (_) => const AuthScreen()),
+      );
     }
   }
 }

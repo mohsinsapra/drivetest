@@ -1,12 +1,14 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+
+import 'bcd_category_hub_screen.dart';
+import 'bcd_sub_category_screen.dart';
 
 class BCDLicencesScreen extends StatefulWidget {
   const BCDLicencesScreen({super.key});
@@ -87,13 +89,12 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
 
     final hasChildren = category['has_children'] == true;
     final cat = Map<String, dynamic>.from(category);
-    final id = cat['id']?.toString() ?? '0';
 
     final route = hasChildren
-        ? Routes.bcdSubcategoryPath(id)
-        : Routes.bcdCategoryPath(id);
+        ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+        : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat));
 
-    context.push(route, extra: cat).then((_) {
+    Navigator.push(context, route).then((_) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
           _scrollController.jumpTo(

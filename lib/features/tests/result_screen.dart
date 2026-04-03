@@ -1,9 +1,8 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 // result_screen.dart
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
-import 'package:taxi_exam_app/core/router/route_args.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   final List<Question> questions;
@@ -76,14 +75,19 @@ class ResultScreen extends StatelessWidget {
                       ),
                       onTap: () {
                         // Navigate back to the question for review
-                        context.push(Routes.test, extra: TestScreenArgs(
-                          questions: questions,
-                          instantMarking: true,
-                          licenceId: licenceId,
-                          categoryId: categoryId,
-                          initialQuestionIndex: index,
-                          userSelections: userSelections,
-                        ));
+                        Navigator.push(
+                          context,
+                          AppPageRoute(
+                            builder: (context) => Testscreen(
+                              questions: questions,
+                              instantMarking: true,
+                              licenceId: licenceId,
+                              categoryId: categoryId,
+                              initialQuestionIndex: index,
+                              userSelections: userSelections,
+                            ),
+                          ),
+                        );
                       },
                     ),
                   );

@@ -1,10 +1,11 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+
+import 'bcd_category_hub_screen.dart';
 
 class BCDSubCategoryScreen extends StatefulWidget {
   final Map<String, dynamic> parentCategory;
@@ -58,9 +59,14 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
   }
 
   void _onCategoryTap(dynamic category) {
-    final cat = Map<String, dynamic>.from(category);
-    final id = cat['id']?.toString() ?? '0';
-    context.push(Routes.bcdCategoryPath(id), extra: cat).then((_) => _load());
+    Navigator.push(
+      context,
+      AppPageRoute(
+        builder: (_) => BCDCategoryHubScreen(
+          category: Map<String, dynamic>.from(category),
+        ),
+      ),
+    ).then((_) => _load());
   }
 
   @override

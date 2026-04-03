@@ -141,9 +141,9 @@ end
       end
     end
 
-    # Fallback to generic message if changelog is empty
+    # Fallback to commit message if no changelog found
     if changelog_text.empty?
-      changelog_text = "Bug fixes and improvements."
+      changelog_text = sh("git log -1 --pretty=%B").strip
     end
 
     changelog_text

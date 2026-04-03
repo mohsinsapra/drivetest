@@ -1,7 +1,6 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:taxi_exam_app/core/router/route_args.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
+import '../../features/tests/result_screen.dart';
 import '../models/question.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────────
@@ -93,13 +92,19 @@ Future<void> showResultDialog({
           child: const Text('See Results'),
           onPressed: () {
             Navigator.of(ctx).pop(); // close
-            ctx.pushReplacement(Routes.result, extra: ResultScreenArgs(
-              questions: questions,
-              userSelections: userSelections,
-              licenceId: licenceId,
-              categoryId: categoryId,
-              hasPassed: hasPassed,
-            ));
+            Navigator.pushAndRemoveUntil(
+              ctx,
+              AppPageRoute(
+                builder: (_) => ResultScreen(
+                  questions: questions,
+                  userSelections: userSelections,
+                  licenceId: licenceId,
+                  categoryId: categoryId,
+                  hasPassed: hasPassed,
+                ),
+              ),
+              (route) => route.isFirst,
+            );
           },
         ),
       ],

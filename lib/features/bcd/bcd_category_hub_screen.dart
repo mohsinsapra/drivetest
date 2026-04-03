@@ -1,17 +1,19 @@
 import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/router/route_args.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
 
+import 'bcd_document_viewer_screen.dart';
+import 'bcd_test_screen.dart';
 import 'bcd_text_utils.dart';
+import 'bcd_traffic_signs_screen.dart';
+import '../tests/saved_questions_preview_screen.dart';
 
 /// Hub screen shown after tapping a category.
 class BCDCategoryHubScreen extends StatefulWidget {
@@ -140,14 +142,19 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
 
       final bcdId = testToStart['bcd_id'] as int?;
       if (bcdId == null) return;
-      context.push(Routes.bcdTest, extra: BcdTestScreenArgs(
-        testId: bcdId,
-        testName: testToStart['name']?.toString() ?? 'Practice',
-        passScore: testToStart['pass_score'] as int? ?? 0,
-        timeLimit: testToStart['time_limit'] as int? ?? 0,
-        parentCategoryName: _categoryName,
-        parentCategoryBcdId: _categoryBcdId,
-      ));
+      Navigator.push(
+        context,
+        AppPageRoute(
+          builder: (_) => BCDTestScreen(
+            testId: bcdId,
+            testName: testToStart['name']?.toString() ?? 'Practice',
+            passScore: testToStart['pass_score'] as int? ?? 0,
+            timeLimit: testToStart['time_limit'] as int? ?? 0,
+            parentCategoryName: _categoryName,
+            parentCategoryBcdId: _categoryBcdId,
+          ),
+        ),
+      );
     } catch (_) {
       if (mounted) showAppSnackBar('Failed to load practice test.');
     } finally {
@@ -174,14 +181,19 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         return;
       }
 
-      context.push(Routes.testsSaved, extra: SavedQuestionsArgs(
-        questions: savedQuestions,
-        licenceId: '',
-        categoryId: '',
-        licenceName: _categoryName,
-        categoryName: _categoryName,
-        bcdCategoryId: _categoryBcdId,
-      ));
+      Navigator.push(
+        context,
+        AppPageRoute(
+          builder: (_) => SavedQuestionsPreviewScreen(
+            questions: savedQuestions,
+            licenceId: '',
+            categoryId: '',
+            licenceName: _categoryName,
+            categoryName: _categoryName,
+            bcdCategoryId: _categoryBcdId,
+          ),
+        ),
+      );
     } catch (_) {
       if (mounted) showAppSnackBar('Failed to load saved questions.');
     }
@@ -215,7 +227,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         // Pass the shared notifier so it updates live when payment completes.
         Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => _BCDTestsListScreen(
                 categoryBcdId: _categoryBcdId,
                 categoryName: _categoryName,
@@ -229,7 +241,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       case 'documents':
         Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => _BCDDocumentsScreen(
                 categoryBcdId: _categoryBcdId,
                 categoryName: _categoryName,
@@ -237,12 +249,16 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
             ));
         break;
       case 'traffic_signs':
-        context.push(Routes.bcdSigns);
+        Navigator.push(
+            context,
+            AppPageRoute(
+              builder: (_) => const BCDTrafficSignsScreen(),
+            ));
         break;
       case 'checklists':
         Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => _BCDChecklistsScreen(
                 categoryBcdId: _categoryBcdId,
                 categoryName: _categoryName,
@@ -252,7 +268,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       case 'statistics':
         Navigator.push(
             context,
-            MaterialPageRoute(
+            AppPageRoute(
               builder: (_) => StatsScreen(
                 subtitle: _categoryName,
                 licenceNameFilter: _categoryName,
@@ -563,13 +579,18 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
     }
     final bcdId = test['bcd_id'] as int?;
     if (bcdId == null) return;
-    context.push(Routes.bcdTest, extra: BcdTestScreenArgs(
-      testId: bcdId,
-      testName: test['name']?.toString() ?? 'Test',
-      passScore: test['pass_score'] as int? ?? 0,
-      timeLimit: test['time_limit'] as int? ?? 0,
-      parentCategoryName: widget.categoryName,
-    ));
+    Navigator.push(
+      context,
+      AppPageRoute(
+        builder: (_) => BCDTestScreen(
+          testId: bcdId,
+          testName: test['name']?.toString() ?? 'Test',
+          passScore: test['pass_score'] as int? ?? 0,
+          timeLimit: test['time_limit'] as int? ?? 0,
+          parentCategoryName: widget.categoryName,
+        ),
+      ),
+    );
   }
 
   @override
@@ -745,10 +766,17 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
                       child: ListTile(
                         onTap: fileName.isEmpty
                             ? null
-                            : () => context.push(Routes.bcdDoc, extra: {
-                                  'title': cleanBcdText(doc['title']?.toString() ?? 'Document'),
-                                  'url': _api.bcdMediaUrl(fileName),
-                                }),
+                            : () => Navigator.push(
+                                  context,
+                                  AppPageRoute(
+                                    builder: (_) => BCDDocumentViewerScreen(
+                                      title: cleanBcdText(
+                                          doc['title']?.toString() ??
+                                              'Document'),
+                                      url: _api.bcdMediaUrl(fileName),
+                                    ),
+                                  ),
+                                ),
                         leading: Container(
                           width: 40,
                           height: 40,

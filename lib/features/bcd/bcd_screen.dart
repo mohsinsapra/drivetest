@@ -1,7 +1,9 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
+import 'bcd_licences_screen.dart';
+import 'bcd_traffic_signs_screen.dart';
+import 'bcd_subscriptions_screen.dart';
 
 class BCDScreen extends StatelessWidget {
   const BCDScreen({super.key});
@@ -14,21 +16,30 @@ class BCDScreen extends StatelessWidget {
         color: const Color(0xFF4F46E5),
         title: 'Exams',
         subtitle: 'Licences, categories & tests',
-        onTap: () => context.push(Routes.bcdLicences),
+        onTap: () => Navigator.push(
+          context,
+          AppPageRoute(builder: (_) => const BCDLicencesScreen()),
+        ),
       ),
       _Section(
         icon: LucideIcons.alertTriangle,
         color: const Color(0xFFD97706),
         title: 'Traffic Signs',
         subtitle: 'Browse all traffic signs',
-        onTap: () => context.push(Routes.bcdSigns),
+        onTap: () => Navigator.push(
+          context,
+          AppPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
+        ),
       ),
       _Section(
         icon: LucideIcons.creditCard,
         color: const Color(0xFF059669),
         title: 'Subscriptions',
         subtitle: 'View plans & manage access',
-        onTap: () => context.push(Routes.bcdSubscriptions),
+        onTap: () => Navigator.push(
+          context,
+          AppPageRoute(builder: (_) => const BCDSubscriptionsScreen()),
+        ),
       ),
     ];
 

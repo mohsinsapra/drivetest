@@ -1,7 +1,7 @@
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/router/route_names.dart';
+import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -83,7 +83,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
-                context.go(Routes.auth);
+                Navigator.of(context).pushAndRemoveUntil(
+                  AppPageRoute(builder: (_) => const AuthScreen()),
+                  (route) => false,
+                );
               },
               child: const Text('Go to Login'),
             ),
@@ -239,7 +242,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               // Back to login
               TextButton(
                 onPressed: () {
-                  context.go(Routes.auth);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    AppPageRoute(builder: (_) => const AuthScreen()),
+                    (route) => false,
+                  );
                 },
                 child: Text(
                   'Back to Login',
