@@ -1,4 +1,3 @@
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -8,10 +7,8 @@ import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 
 import 'package:taxi_exam_app/core/utils/crypto_service.dart'; // For HMAC-SHA256 decryption
 
@@ -216,22 +213,13 @@ class DioClient {
 
   Future<void> logoutAndRedirect() async {
     await logout();
-    final context = NavigationService.navigatorKey.currentContext;
-    if (context != null && context.mounted) {
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pushAndRemoveUntil(
-        AppPageRoute(
-          builder: (context) => const AuthScreen(),
-        ),
-        (Route<dynamic> route) => false,
+    NavigationService.router.go('/auth');
+    Future.delayed(const Duration(milliseconds: 500), () {
+      showAppSnackBar(
+        'You have been logged out because your account was used on another device.',
+        type: SnackBarType.error,
       );
-      Future.delayed(const Duration(milliseconds: 500), () {
-        showAppSnackBar(
-          'You have been logged out because your account was used on another device.',
-          type: SnackBarType.error,
-        );
-      });
-    }
+    });
   }
 
   Future<void> reloadTokens() async {

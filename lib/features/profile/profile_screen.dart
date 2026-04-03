@@ -1,20 +1,16 @@
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:taxi_exam_app/features/auth/auth_screen.dart';
-import 'package:taxi_exam_app/features/profile/edit_profile_screen.dart';
-import 'package:taxi_exam_app/features/profile/stats_screen.dart';
-import 'package:taxi_exam_app/core/models/test_attempt.dart';
-import 'package:taxi_exam_app/features/support/help_screen.dart';
-import 'package:taxi_exam_app/settings/settings.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -180,41 +176,19 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _handlePrimaryMenuTap(int index) async {
-    try {
-      final nav = NavigationService.navigatorKey.currentState;
-      if (nav == null) {
-        showAppSnackBar(
-          'Unable to open this screen right now.',
-          type: SnackBarType.error,
-        );
+    switch (index) {
+      case 0:
+        await context.push(Routes.profileEdit);
+        await _loadUserFromPrefs();
         return;
-      }
-      switch (index) {
-        case 0:
-          await nav.push(
-            AppPageRoute(builder: (_) => const EditProfileScreen()),
-          );
-          await _loadUserFromPrefs();
-          return;
-        case 1:
-          await nav.push(
-            AppPageRoute(builder: (_) => const StatsScreen()),
-          );
-          return;
-        case 2:
-          await nav.push(
-            AppPageRoute(builder: (_) => const SettingsScreen()),
-          );
-          return;
-        default:
-          return;
-      }
-    } catch (_) {
-      if (!mounted) return;
-      showAppSnackBar(
-        'Unable to open this screen right now.',
-        type: SnackBarType.error,
-      );
+      case 1:
+        context.push(Routes.profileStats);
+        return;
+      case 2:
+        context.push(Routes.settings);
+        return;
+      default:
+        return;
     }
   }
 
@@ -263,10 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.settings),
-            onPressed: () => Navigator.push(
-              context,
-              AppPageRoute(builder: (_) => const SettingsScreen()),
-            ),
+            onPressed: () => context.push(Routes.settings),
           )
         ],
       ),
@@ -364,11 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     onTap: e.value.title == 'Send Feedback'
                         ? _showAppFeedbackDialog
                         : e.value.title == 'Help'
-                            ? () => Navigator.push(
-                                  context,
-                                  AppPageRoute(
-                                      builder: (_) => const HelpScreen()),
-                                )
+                            ? () => context.push(Routes.help)
                             : () {},
                   ),
                 )),
@@ -469,15 +436,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                           await Hive.deleteFromDisk();
                                         } catch (_) {}
 
-                                        // Use global navigator key — avoids context-mounted issues
-                                        final nav = NavigationService
-                                            .navigatorKey.currentState;
-                                        nav?.pushAndRemoveUntil(
-                                          AppPageRoute(
-                                              builder: (_) =>
-                                                  const AuthScreen()),
-                                          (route) => false,
-                                        );
+                                        NavigationService.router.go(Routes.auth);
                                         showAppSnackBar(
                                           'Logged out successfully.',
                                           type: SnackBarType.success,

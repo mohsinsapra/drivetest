@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
-import 'package:taxi_exam_app/features/auth/auth_screen.dart';
-import 'package:taxi_exam_app/features/intro/intro_screen.dart';
-import 'package:taxi_exam_app/main_screen.dart';
+import 'package:taxi_exam_app/core/router/route_names.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -55,23 +54,17 @@ class _SplashScreenState extends State<SplashScreen>
     final onboardingComplete = data['onboardingComplete'] ?? false;
     final isAuthenticated = data['isAuthenticated'] ?? false;
 
-    final Widget next;
+    final String next;
     if (!onboardingComplete) {
-      next = const IntroScreen();
+      next = Routes.intro;
     } else if (!isAuthenticated) {
-      next = const AuthScreen();
+      next = Routes.auth;
     } else {
-      next = const MainScreen();
+      next = Routes.home;
     }
 
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => next,
-        transitionDuration: const Duration(milliseconds: 500),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-      ),
-    );
+    // ignore: use_build_context_synchronously
+    context.go(next);
   }
 
   Future<Map<String, bool>> _initializeApp() async {

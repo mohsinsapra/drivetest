@@ -4,10 +4,11 @@ import 'package:toastification/toastification.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
-import 'package:taxi_exam_app/features/splash/splash_screen.dart';
+import 'package:taxi_exam_app/core/router/app_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:taxi_exam_app/main_screen.dart';
@@ -289,8 +290,28 @@ final customTheme = ThemeData(
 );
 
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _router = buildAppRouter();
+    NavigationService.router = _router;
+  }
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -300,18 +321,13 @@ class MyApp extends StatelessWidget {
         .flutterLocale;
     return ToastificationWrapper(
       config: const ToastificationConfig(itemWidth: 320),
-      child: MaterialApp(
-        navigatorKey: NavigationService.navigatorKey,
+      child: MaterialApp.router(
+        routerConfig: _router,
         locale: locale,
         theme: customTheme,
         darkTheme: darkTheme,
         themeMode: themeProvider.themeMode,
         debugShowCheckedModeBanner: false,
-        home: UpgradeAlert(
-          showIgnore: false,
-          showLater: true,
-          child: const SplashScreen(),
-        ),
       ),
     );
   }

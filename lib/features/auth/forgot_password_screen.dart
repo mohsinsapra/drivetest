@@ -1,10 +1,10 @@
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
-import 'package:taxi_exam_app/features/auth/verify_code_screen.dart';
+import 'package:taxi_exam_app/core/router/route_names.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -40,12 +40,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          AppPageRoute(
-            builder: (_) => VerifyCodeScreen(
-              email: _emailController.text.trim(),
-            ),
-          ),
+        // ignore: use_build_context_synchronously
+        context.pushReplacement(
+          Routes.authVerify,
+          extra: _emailController.text.trim(),
         );
       }
     } catch (e) {

@@ -7,10 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -199,11 +198,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         await Hive.deleteFromDisk();
       } catch (_) {}
 
-      final nav = NavigationService.navigatorKey.currentState;
-      nav?.pushAndRemoveUntil(
-        AppPageRoute(builder: (_) => const AuthScreen()),
-        (route) => false,
-      );
+      NavigationService.router.go(Routes.auth);
       showAppSnackBar(
         t.auth_deleted_account_welcome_back,
         type: SnackBarType.success,

@@ -1,6 +1,6 @@
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
-import 'package:taxi_exam_app/features/auth/reset_password_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:taxi_exam_app/core/router/route_names.dart';
 
 class VerifyCodeScreen extends StatefulWidget {
   final String email;
@@ -24,13 +24,12 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     }
 
     // Navigate to reset password screen with email and code
-    Navigator.of(context).pushReplacement(
-      AppPageRoute(
-        builder: (_) => ResetPasswordScreen(
-          email: widget.email,
-          resetCode: _codeController.text.trim(),
-        ),
-      ),
+    context.pushReplacement(
+      Routes.authReset,
+      extra: {
+        'email': widget.email,
+        'resetCode': _codeController.text.trim(),
+      },
     );
   }
 

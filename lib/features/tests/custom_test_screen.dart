@@ -1,13 +1,14 @@
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async'; // Import for TimeoutException
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/router/route_args.dart';
+import 'package:taxi_exam_app/core/router/route_names.dart';
 import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
 class CreateCustomTestScreen extends StatefulWidget {
   final String categoryName;
@@ -197,20 +198,15 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Navigator.push(
-          context,
-          AppPageRoute(
-            builder: (context) => Testscreen(
-              questions: fetchedQuestions!,
-              instantMarking: isInstantMarking,
-              licenceId: widget.licenceId,
-              categoryId: widget.categoryId,
-              categoryName: widget.categoryName,
-              isTimed: isTimed,
-              timeLimitMinutes: timerMinutes,
-            ),
-          ),
-        );
+        context.push(Routes.test, extra: TestScreenArgs(
+          questions: fetchedQuestions!,
+          instantMarking: isInstantMarking,
+          licenceId: widget.licenceId,
+          categoryId: widget.categoryId,
+          categoryName: widget.categoryName,
+          isTimed: isTimed,
+          timeLimitMinutes: timerMinutes,
+        ));
       }
     });
   }

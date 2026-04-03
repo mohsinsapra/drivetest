@@ -1,93 +1,97 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/features/home/home_screen.dart';
-import 'package:taxi_exam_app/features/tests/licences_screen.dart';
-import 'package:taxi_exam_app/features/bcd/bcd_screen.dart';
-import 'package:taxi_exam_app/features/profile/profile_screen.dart';
-
-// Fixed page indices — these never change regardless of which tabs are visible.
-const int _kPageHome = 0;
-const int _kPageTests = 1;
-const int _kPageDriveTest = 2;
-const int _kPageProfile = 3;
-
-// All four screens at their fixed positions in the PageView.
-const List<Widget> _kAllScreens = [
-  HomeScreen(),
-  LicenceTypesScreen(),
-  BCDScreen(),
-  ProfileScreen(),
-];
+import 'package:taxi_exam_app/core/router/route_names.dart';
 
 class _NavEntry {
   final IconData icon;
   final String label;
-  final int pageIndex; // Fixed position in the PageView
+  final String route;
+  final bool Function(_TabFlags flags) isVisible;
 
   const _NavEntry({
     required this.icon,
     required this.label,
-    required this.pageIndex,
+    required this.route,
+    required this.isVisible,
   });
 }
 
+class _TabFlags {
+  final bool showLegacyTests;
+  final bool showBcdTests;
+
+  const _TabFlags({this.showLegacyTests = true, this.showBcdTests = false});
+}
+
+const List<_NavEntry> _kAllEntries = [
+  _NavEntry(
+    icon: LucideIcons.home,
+    label: 'Home',
+    route: Routes.home,
+    isVisible: _alwaysVisible,
+  ),
+  _NavEntry(
+    icon: LucideIcons.bookOpenCheck,
+    label: 'Tests',
+    route: Routes.tests,
+    isVisible: _showTests,
+  ),
+  _NavEntry(
+    icon: LucideIcons.graduationCap,
+    label: 'Drive Test',
+    route: Routes.bcd,
+    isVisible: _showBcd,
+  ),
+  _NavEntry(
+    icon: LucideIcons.user,
+    label: 'Profile',
+    route: Routes.profile,
+    isVisible: _alwaysVisible,
+  ),
+];
+
+bool _alwaysVisible(_TabFlags _) => true;
+bool _showTests(_TabFlags f) => f.showLegacyTests;
+bool _showBcd(_TabFlags f) => f.showBcdTests;
+
+// Fixed branch indices matching StatefulShellRoute branches order:
+// 0 = home, 1 = tests, 2 = bcd, 3 = profile
+const int _kBranchHome    = 0;
+const int _kBranchTests   = 1;
+const int _kBranchBcd     = 2;
+const int _kBranchProfile = 3;
+
+int _branchIndexForRoute(String route) {
+  switch (route) {
+    case Routes.home:    return _kBranchHome;
+    case Routes.tests:   return _kBranchTests;
+    case Routes.bcd:     return _kBranchBcd;
+    case Routes.profile: return _kBranchProfile;
+    default:             return _kBranchHome;
+  }
+}
+
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final StatefulNavigationShell navigationShell;
+
+  const MainScreen({super.key, required this.navigationShell});
 
   @override
   MainScreenState createState() => MainScreenState();
 }
 
 class MainScreenState extends State<MainScreen> {
-  late PageController _pageController;
   final ApiService _apiService = ApiService();
-
-  bool _showLegacyTests = true;
-  bool _showBcdTests = false;
-  bool _listenerAttached = false;
-
-  // Returns only the tabs the user should see, each pointing to a fixed page.
-  List<_NavEntry> get _navEntries {
-    return [
-      const _NavEntry(
-        icon: LucideIcons.home,
-        label: 'Home',
-        pageIndex: _kPageHome,
-      ),
-      if (_showLegacyTests)
-        const _NavEntry(
-          icon: LucideIcons.bookOpenCheck,
-          label: 'Tests',
-          pageIndex: _kPageTests,
-        ),
-      if (_showBcdTests)
-        const _NavEntry(
-          icon: LucideIcons.graduationCap,
-          label: 'Drive Test',
-          pageIndex: _kPageDriveTest,
-        ),
-      const _NavEntry(
-        icon: LucideIcons.user,
-        label: 'Profile',
-        pageIndex: _kPageProfile,
-      ),
-    ];
-  }
+  _TabFlags _flags = const _TabFlags();
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: 0);
     _loadTabFlags();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Provider.of<MainScreenProvider>(context, listen: false).setIndex(0);
-      }
-    });
   }
 
   bool _flag(dynamic value, bool fallback) {
@@ -103,40 +107,30 @@ class MainScreenState extends State<MainScreen> {
 
   Future<void> _applyFlagsFromMap(Map<String, dynamic> userData) async {
     if (!mounted) return;
-
     final isAdmin = _flag(userData['is_administrator'], false);
     final newShowLegacy =
         isAdmin ? true : _flag(userData['show_legacy_tests'], true);
     final newShowBcd =
         isAdmin ? true : _flag(userData['show_bcd_tests'], false);
 
-    // Nothing changed — skip the rebuild entirely.
-    if (newShowLegacy == _showLegacyTests && newShowBcd == _showBcdTests) {
+    final newFlags = _TabFlags(showLegacyTests: newShowLegacy, showBcdTests: newShowBcd);
+    if (newFlags.showLegacyTests == _flags.showLegacyTests &&
+        newFlags.showBcdTests == _flags.showBcdTests) {
       return;
     }
 
-    final provider = Provider.of<MainScreenProvider>(context, listen: false);
-    final currentPage = provider.currentIndex;
+    setState(() => _flags = newFlags);
 
-    setState(() {
-      _showLegacyTests = newShowLegacy;
-      _showBcdTests = newShowBcd;
-    });
-
-    // If the page the user is on is no longer in the nav bar, redirect to Home.
-    final visiblePages =
-        _navEntries.map((e) => e.pageIndex).toSet();
-    if (!visiblePages.contains(currentPage)) {
+    // If current tab is now hidden, go home.
+    final currentBranch = widget.navigationShell.currentIndex;
+    final visibleEntries = _kAllEntries.where((e) => e.isVisible(_flags)).toList();
+    final visibleBranches =
+        visibleEntries.map((e) => _branchIndexForRoute(e.route)).toSet();
+    if (!visibleBranches.contains(currentBranch) && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        provider.setIndex(_kPageHome);
-        if (_pageController.hasClients) {
-          _pageController.jumpToPage(_kPageHome);
-        }
+        if (mounted) context.go(Routes.home);
       });
     }
-    // No position correction needed when tabs are added — pages are at fixed
-    // positions, so Profile is always page 3 regardless of tab count.
   }
 
   Future<void> _loadTabFlags() async {
@@ -160,53 +154,28 @@ class MainScreenState extends State<MainScreen> {
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_listenerAttached) return;
-    _listenerAttached = true;
-    Provider.of<MainScreenProvider>(context).addListener(() {
-      if (!mounted) return;
-      final index =
-          Provider.of<MainScreenProvider>(context, listen: false).currentIndex;
-      final safeIndex = index.clamp(0, _kAllScreens.length - 1);
-      _pageController.jumpToPage(safeIndex);
-    });
-  }
+  List<_NavEntry> get _visibleEntries =>
+      _kAllEntries.where((e) => e.isVisible(_flags)).toList();
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _onPageChanged(int index) {
-    Provider.of<MainScreenProvider>(context, listen: false).setIndex(index);
+  int _navIndexFromBranch(int branchIndex) {
+    final visible = _visibleEntries;
+    for (var i = 0; i < visible.length; i++) {
+      if (_branchIndexForRoute(visible[i].route) == branchIndex) return i;
+    }
+    return 0;
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<MainScreenProvider>(context);
-    final entries = _navEntries;
-    final currentPage = provider.currentIndex.clamp(0, _kAllScreens.length - 1);
-
-    // Find which nav entry matches the current page for highlighting.
-    final navIndex = entries.indexWhere((e) => e.pageIndex == currentPage);
-    final selectedNavIndex = navIndex >= 0 ? navIndex : 0;
-
+    final entries = _visibleEntries;
+    final currentBranch = widget.navigationShell.currentIndex;
+    final selectedNavIndex = _navIndexFromBranch(currentBranch);
     final mq = MediaQuery.of(context);
 
     return Scaffold(
       body: Stack(
         children: [
-          PageView(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            physics: const ClampingScrollPhysics(),
-            children: _kAllScreens
-                .map((s) => _KeepAlivePage(child: s))
-                .toList(),
-          ),
+          widget.navigationShell,
           Positioned(
             left: 0,
             right: 0,
@@ -214,8 +183,13 @@ class MainScreenState extends State<MainScreen> {
             child: _FloatingNavArea(
               currentIndex: selectedNavIndex,
               items: entries,
-              onTap: (pageIndex) {
-                provider.setIndex(pageIndex);
+              onTap: (entry) {
+                final branchIndex = _branchIndexForRoute(entry.route);
+                widget.navigationShell.goBranch(
+                  branchIndex,
+                  initialLocation: branchIndex ==
+                      widget.navigationShell.currentIndex,
+                );
               },
               bottomInset: mq.padding.bottom,
             ),
@@ -226,12 +200,12 @@ class MainScreenState extends State<MainScreen> {
   }
 }
 
-// ─── Floating nav area (transparent container holding pill + FAB) ────────────
+// ─── Floating nav area ────────────────────────────────────────────────────────
 
 class _FloatingNavArea extends StatelessWidget {
   final int currentIndex;
   final List<_NavEntry> items;
-  final ValueChanged<int> onTap; // receives fixed pageIndex
+  final ValueChanged<_NavEntry> onTap;
   final double bottomInset;
 
   const _FloatingNavArea({
@@ -264,7 +238,7 @@ class _FloatingNavArea extends StatelessWidget {
 class _FloatingNavPill extends StatelessWidget {
   final int currentIndex;
   final List<_NavEntry> items;
-  final ValueChanged<int> onTap; // receives fixed pageIndex
+  final ValueChanged<_NavEntry> onTap;
 
   static const double _itemW = 56;
   static const double _itemH = 44;
@@ -321,7 +295,7 @@ class _FloatingNavPill extends StatelessWidget {
               children: items.asMap().entries.map((e) {
                 final isActive = currentIndex == e.key;
                 return GestureDetector(
-                  onTap: () => onTap(e.value.pageIndex),
+                  onTap: () => onTap(e.value),
                   behavior: HitTestBehavior.opaque,
                   child: SizedBox(
                     width: _itemW,
@@ -342,106 +316,7 @@ class _FloatingNavPill extends StatelessWidget {
   }
 }
 
-// ─── Floating action button ──────────────────────────────────────────────────
-
-class _FloatingFab extends StatefulWidget {
-  final VoidCallback onTap;
-
-  const _FloatingFab({required this.onTap});
-
-  @override
-  State<_FloatingFab> createState() => _FloatingFabState();
-}
-
-class _FloatingFabState extends State<_FloatingFab>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.0,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-    _scale = Tween<double>(begin: 0.88, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onTapDown(_) => _controller.reverse();
-  void _onTapUp(_) async {
-    await _controller.forward();
-    widget.onTap();
-  }
-
-  void _onTapCancel() => _controller.forward();
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      child: ScaleTransition(
-        scale: _scale,
-        child: Container(
-          width: 58,
-          height: 58,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE05C63),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFE05C63).withValues(alpha: 0.45),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Keep-alive wrapper ──────────────────────────────────────────────────────
-
-/// Keeps a PageView child alive so it isn't rebuilt every time the user
-/// switches tabs. Without this, screens like HomeScreen re-run API calls
-/// on every tab return.
-class _KeepAlivePage extends StatefulWidget {
-  final Widget child;
-  const _KeepAlivePage({required this.child});
-
-  @override
-  State<_KeepAlivePage> createState() => _KeepAlivePageState();
-}
-
-class _KeepAlivePageState extends State<_KeepAlivePage>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return widget.child;
-  }
-}
-
-// ─── Provider ────────────────────────────────────────────────────────────────
+// ─── Provider (kept for backward compatibility) ───────────────────────────────
 
 class MainScreenProvider extends ChangeNotifier {
   int _currentIndex = 0;

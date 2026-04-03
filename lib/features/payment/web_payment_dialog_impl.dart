@@ -1,4 +1,3 @@
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:flutter_stripe_web/flutter_stripe_web.dart' show WebStripe;
@@ -12,7 +11,7 @@ Future<void> showWebPaymentDialogImpl(
   String currency = 'SEK',
 }) async {
   final result = await Navigator.of(context).push<bool>(
-    AppPageRoute(
+    MaterialPageRoute(
       fullscreenDialog: true,
       builder: (_) => _WebPaymentPage(
         clientSecret: clientSecret,
