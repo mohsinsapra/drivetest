@@ -36,6 +36,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _obscureConfirmPassword = true;
   bool _hasPassword = true;
   bool _isGoogleAccount = false;
+  bool _isDemo = false;
 
   @override
   void initState() {
@@ -64,6 +65,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _hasPassword =
             (userMap['has_password'] ?? userMap['has_usable_password']) == true;
         _isGoogleAccount = userMap['is_google_account'] == true;
+        _isDemo = userMap['is_demo'] == true;
         _loading = false;
       });
     } catch (_) {
@@ -258,25 +260,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (_isDemo) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3CD),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.lock_outline, color: Color(0xFF856404)),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Demo accounts cannot change username or email.',
+                      style: TextStyle(color: Color(0xFF856404)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           TextField(
             controller: _usernameController,
-            decoration: const InputDecoration(
+            readOnly: _isDemo,
+            decoration: InputDecoration(
               labelText: 'Username',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
+              filled: _isDemo,
+              fillColor: _isDemo ? const Color(0xFFF5F5F5) : null,
+              suffixIcon: _isDemo ? const Icon(Icons.lock_outline, size: 18) : null,
             ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
+            readOnly: _isDemo,
+            decoration: InputDecoration(
               labelText: 'Email',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
+              filled: _isDemo,
+              fillColor: _isDemo ? const Color(0xFFF5F5F5) : null,
+              suffixIcon: _isDemo ? const Icon(Icons.lock_outline, size: 18) : null,
             ),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: _savingProfile ? null : _saveProfile,
+            onPressed: (_savingProfile || _isDemo) ? null : _saveProfile,
             child: _savingProfile
                 ? const SizedBox(
                     width: 20,

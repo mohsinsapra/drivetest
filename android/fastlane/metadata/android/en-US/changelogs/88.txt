@@ -1,0 +1,8 @@
+Added
+• Edit Profile screen with update profile fields, conditional set-password section, and delete-account action
+• Backend support for profile update (`PATCH /api/user/self/`) and set password (`POST /api/user/set-password/`)
+• Backend `is_first_login` flag in auth responses (`/api/token/` and `/api/user/google-auth/`)
+• Localized auth greeting keys for first-time login, returning login, and deleted-account welcome-back messaging
+
+Changed
+• Account deletion switched back to hard delete pat...
