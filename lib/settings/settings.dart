@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -91,6 +92,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool('isInstantMarking', isInstantMarking);
     await prefs.setBool('includeSavedQuestions', includeSavedQuestions);
     await prefs.setInt('numberOfQuestions', numberOfQuestions);
+  }
+
+  String _formatDeployDate(String? raw) {
+    if (raw == null || raw.isEmpty || raw == 'unknown') return 'unknown';
+    final normalized = raw.contains(' ')
+        ? raw.replaceFirst(' ', 'T').replaceFirstMapped(
+            RegExp(r'([+-]\d{2})(\d{2})$'),
+            (m) => '${m.group(1)}:${m.group(2)}',
+          )
+        : raw;
+    final parsed = DateTime.tryParse(normalized);
+    if (parsed == null) return raw;
+    return DateFormat('MMM d, yyyy h:mm a').format(parsed.toLocal());
   }
 
   Future<void> _setLocale(AppLocale locale) async {
@@ -321,10 +335,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       .toString()),
                               _VersionRow(
                                   'Last Deploy',
-                                  ((_backendInfo!['version']
-                                              as Map)['commit_date'] ??
-                                          'unknown')
-                                      .toString()),
+                                  _formatDeployDate((_backendInfo!['version']
+                                          as Map)['commit_date']
+                                      ?.toString())),
                               _VersionRow(
                                   'Author',
                                   ((_backendInfo!['version']
