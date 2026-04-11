@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toastification/toastification.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -21,10 +22,27 @@ import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
 void main() async {
+  const sentryDsn = String.fromEnvironment(
+    'SENTRY_DSN',
+    defaultValue: 'https://32d4a7e8f8033e788074ecf90ad55f2a@o4511088769564672.ingest.de.sentry.io/4511202750038096',
+  );
 
-    final config = ClarityConfig(
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = sentryDsn;
+      options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
+      options.environment = kReleaseMode
+          ? (kIsWeb ? 'production-web' : 'production-android')
+          : (kIsWeb ? 'debug-web' : 'debug-android');
+    },
+    appRunner: _appMain,
+  );
+}
+
+Future<void> _appMain() async {
+  final config = ClarityConfig(
     projectId: "u3uu96m9ip",
-    logLevel: LogLevel.None // Note: Use "LogLevel.Verbose" value while testing to debug initialization issues.
+    logLevel: LogLevel.None,
   );
 
   WidgetsFlutterBinding.ensureInitialized();

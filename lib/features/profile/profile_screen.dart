@@ -1,6 +1,7 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -377,6 +378,21 @@ class _ProfileScreenState extends State<ProfileScreen>
               index: menuItems.length + secondaryItems.length + 1,
               child: const Divider(thickness: 0.5, color: Color(0xFFE0E0E0)),
             ),
+
+            // ── Debug: Sentry test (debug builds only) ─────────────────
+            if (kDebugMode)
+              _ProfileTile(
+                index: menuItems.length + secondaryItems.length + 2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      throw StateError('This is test exception');
+                    },
+                    child: const Text('Verify Sentry Setup'),
+                  ),
+                ),
+              ),
 
             // ── Logout ─────────────────────────────────────────────────
             _ProfileTile(
