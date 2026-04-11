@@ -20,6 +20,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3+84] - 2026-04-11
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.3+83] - 2026-04-11
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
 ## [1.0.3+82] - 2026-04-03
 
 ### Added
