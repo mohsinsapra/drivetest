@@ -19,6 +19,7 @@ import 'package:taxi_exam_app/core/widgets/test_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
 
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/core/services/home_data_cache.dart';
 import 'package:translator/translator.dart';
 
 class Testscreen extends StatefulWidget {
@@ -304,6 +305,7 @@ class _TestscreenState extends State<Testscreen> {
     await box.put(
         _testId, attempt); // put by testId overwrites any paused version
     _apiService.syncTestAttempt(attempt); // best-effort backend sync
+    HomeDataCache.invalidate(); // force home to re-sync on next visit
   }
 
   Future<void> _savePausedTest() async {

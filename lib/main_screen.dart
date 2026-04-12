@@ -261,7 +261,7 @@ class _FloatingNavArea extends StatelessWidget {
 
 // ─── Pill nav bar ────────────────────────────────────────────────────────────
 
-class _FloatingNavPill extends StatelessWidget {
+class _FloatingNavPill extends StatefulWidget {
   final int currentIndex;
   final List<_NavEntry> items;
   final ValueChanged<int> onTap; // receives fixed pageIndex
@@ -277,65 +277,140 @@ class _FloatingNavPill extends StatelessWidget {
   });
 
   @override
+  State<_FloatingNavPill> createState() => _FloatingNavPillState();
+}
+
+class _FloatingNavPillState extends State<_FloatingNavPill> {
+  final _pillKey = GlobalKey();
+  int? _dragNavIndex;
+  bool _isDragging = false;
+
+  int get _activeNavIndex =>
+      _isDragging ? (_dragNavIndex ?? widget.currentIndex) : widget.currentIndex;
+
+  // Convert a global screen position to a nav tab index.
+  int _navIndexAt(Offset globalPos) {
+    final box = _pillKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return widget.currentIndex;
+    final local = box.globalToLocal(globalPos);
+    final adjusted = local.dx - _FloatingNavPill._pad;
+    return (adjusted / _FloatingNavPill._itemW)
+        .floor()
+        .clamp(0, widget.items.length - 1);
+  }
+
+  void _onTapUp(TapUpDetails d) {
+    final idx = _navIndexAt(d.globalPosition);
+    widget.onTap(widget.items[idx].pageIndex);
+  }
+
+  void _onDragStart(DragStartDetails d) {
+    final idx = _navIndexAt(d.globalPosition);
+    setState(() {
+      _isDragging = true;
+      _dragNavIndex = idx;
+    });
+    widget.onTap(widget.items[idx].pageIndex);
+  }
+
+  void _onDragUpdate(DragUpdateDetails d) {
+    final idx = _navIndexAt(d.globalPosition);
+    if (idx != _dragNavIndex) {
+      setState(() => _dragNavIndex = idx);
+      widget.onTap(widget.items[idx].pageIndex);
+    }
+  }
+
+  void _onDragEnd(DragEndDetails _) {
+    setState(() {
+      _isDragging = false;
+      _dragNavIndex = null;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(_pad),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(50),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.09),
-            blurRadius: 24,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        width: items.length * _itemW,
-        height: _itemH,
-        child: Stack(
-          children: [
-            // Sliding indicator pill
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 350),
-              curve: Curves.easeInOutCubic,
-              left: currentIndex * _itemW,
-              top: 0,
-              width: _itemW,
-              height: _itemH,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(40),
-                ),
-              ),
+    final activeIdx = _activeNavIndex;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTapUp: _onTapUp,
+      onHorizontalDragStart: _onDragStart,
+      onHorizontalDragUpdate: _onDragUpdate,
+      onHorizontalDragEnd: _onDragEnd,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        key: _pillKey,
+        padding: const EdgeInsets.all(_FloatingNavPill._pad),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(50),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.09),
+              blurRadius: 24,
+              offset: const Offset(0, 6),
             ),
-            // Icons
-            Row(
-              children: items.asMap().entries.map((e) {
-                final isActive = currentIndex == e.key;
-                return GestureDetector(
-                  onTap: () => onTap(e.value.pageIndex),
-                  behavior: HitTestBehavior.opaque,
-                  child: SizedBox(
-                    width: _itemW,
-                    height: _itemH,
-                    child: Icon(
-                      e.value.icon,
-                      size: 22,
-                      color: isActive ? Colors.black87 : Colors.grey.shade500,
-                    ),
-                  ),
-                );
-              }).toList(),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 1),
             ),
           ],
+        ),
+        child: SizedBox(
+          width: widget.items.length * _FloatingNavPill._itemW,
+          height: _FloatingNavPill._itemH,
+          child: Stack(
+            children: [
+              // Sliding indicator — snappy during drag, smooth on tap/release
+              AnimatedPositioned(
+                duration: Duration(milliseconds: _isDragging ? 60 : 300),
+                curve: Curves.easeInOutCubic,
+                left: activeIdx * _FloatingNavPill._itemW,
+                top: 0,
+                width: _FloatingNavPill._itemW,
+                height: _FloatingNavPill._itemH,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(40),
+                  ),
+                ),
+              ),
+              // Icons
+              Row(
+                children: widget.items.asMap().entries.map((e) {
+                  final isActive = activeIdx == e.key;
+                  final distance = (e.key - activeIdx).abs();
+                  // Magnify during drag: active = 1.45×, neighbours = 1.15×
+                  final scale = _isDragging
+                      ? (distance == 0 ? 1.45 : (distance == 1 ? 1.15 : 1.0))
+                      : 1.0;
+                  return SizedBox(
+                    width: _FloatingNavPill._itemW,
+                    height: _FloatingNavPill._itemH,
+                    child: Center(
+                      child: AnimatedScale(
+                        scale: scale,
+                        duration: const Duration(milliseconds: 120),
+                        curve: Curves.easeOut,
+                        child: Icon(
+                          e.value.icon,
+                          size: 22,
+                          color: isActive
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
         ),
       ),
     );

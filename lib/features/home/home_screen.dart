@@ -13,6 +13,7 @@ import 'package:taxi_exam_app/core/widgets/attempt_spark_widget.dart';
 import 'package:taxi_exam_app/core/widgets/category_pie_chart_widget.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/home/attempt_detail_screen.dart';
+import 'package:taxi_exam_app/core/services/home_data_cache.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
@@ -42,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
   late final VoidCallback _tabListener;
   MainScreenProvider? _mainScreenProvider;
 
+
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
@@ -69,9 +71,11 @@ class _HomeScreenState extends State<HomeScreen>
     _fadeAnimation =
         CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
 
-    _loadPreviousAttempts();
+    _loadPreviousAttempts(forceSync: true);
     _tabListener = () {
       if (_mainScreenProvider?.currentIndex == 0 && mounted) {
+        // On tab return: always refresh from local Hive instantly;
+        // only hit the backend if the cache has expired.
         _loadPreviousAttempts();
       }
     };
@@ -90,11 +94,15 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  void _loadPreviousAttempts() async {
+  void _loadPreviousAttempts({bool forceSync = false}) async {
     try {
       final box = await Hive.openBox<TestAttempt>('testAttempts');
-      _refreshFromBox(box);
-      _syncFromBackend(box);
+      _refreshFromBox(box); // Always instant — reads local Hive only
+
+      if (forceSync || HomeDataCache.isStale) {
+        await _syncFromBackend(box);
+        HomeDataCache.markSynced();
+      }
     } catch (e) {
       debugPrint('HomeScreen: error loading attempts: $e');
       if (mounted) setState(() => _isLoading = false);
@@ -267,7 +275,12 @@ class _HomeScreenState extends State<HomeScreen>
         child: _isLoading
             ? _buildSkeleton() // show shimmer immediately, no translation needed
             : SafeArea(
-                child: FadeTransition(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    HomeDataCache.invalidate();
+                    await Future(() => _loadPreviousAttempts(forceSync: true));
+                  },
+                  child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: CustomScrollView(
                     slivers: [
@@ -322,6 +335,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ],
                   ),
                 ),
+                ), // RefreshIndicator
               ),
       ),
     );
@@ -543,7 +557,8 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                   );
-                  _loadPreviousAttempts();
+                  HomeDataCache.invalidate();
+                  _loadPreviousAttempts(forceSync: true);
                 },
                 onDelete: () =>
                     _confirmDeletePausedTest(_pausedAttempts[index]),
