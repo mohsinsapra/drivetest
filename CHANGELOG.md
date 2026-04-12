@@ -13,7 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
--
+- Dark mode: selected option tile background increased to 25% opacity primary blue (was 10%) for clear visibility
+- Dark mode: selected option tile border increased to 2px primary blue
+- Dark mode: selected option text uses `onSurface` (white) instead of primary blue — readable on blue-tinted background
+- Dark mode: replaced all `Theme.of(context).primaryColor` with `colorScheme.primary` across option tile, test screen, progress header, and navigation controls — fixes incorrect color resolution in Material 3
+- Test screen: timer pill and language picker pill backgrounds and borders use `colorScheme.primary` tint to match the progress bar color
+- Test screen: timer icon and language icon use `colorScheme.primary` color
 
 ### Fixed
 -

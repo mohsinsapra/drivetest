@@ -42,9 +42,11 @@ class Option extends StatelessWidget {
   // --- Helper colour getters -------------------------------------------------
   Color _backgroundColor(BuildContext ctx) {
     if (!showInstantMarking) {
-      return isSelected
-          ? Theme.of(ctx).primaryColor.withValues(alpha: 0.1)
-          : Theme.of(ctx).cardColor;
+      if (isSelected) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Theme.of(ctx).colorScheme.primary.withValues(alpha: isDark ? 0.25 : 0.1);
+      }
+      return Theme.of(ctx).cardColor;
     }
     // If this is the correct answer, always show green background
     if (isCorrectAnswer) {
@@ -63,7 +65,7 @@ class Option extends StatelessWidget {
         ? Colors.white.withValues(alpha: 0.15)
         : Colors.grey[300]!;
     if (!showInstantMarking) {
-      return isSelected ? Theme.of(ctx).primaryColor : defaultBorder;
+      return isSelected ? Theme.of(ctx).colorScheme.primary : defaultBorder;
     }
     if (isCorrectAnswer) return Colors.green[400]!;
     if (isSelected) return Colors.red[400]!;
@@ -71,7 +73,7 @@ class Option extends StatelessWidget {
   }
 
   double _borderWidth() {
-    if (!showInstantMarking) return isSelected ? 1.5 : 1.0;
+    if (!showInstantMarking) return isSelected ? 2.0 : 1.0;
     return (isCorrectAnswer || isSelected) ? 2.0 : 1.0;
   }
   // ---------------------------------------------------------------------------
@@ -170,9 +172,7 @@ class Option extends StatelessWidget {
                                     ? (isCorrectAnswer
                                         ? Colors.green[700]
                                         : (isSelected ? Colors.red[700] : Theme.of(context).colorScheme.onSurface))
-                                    : (isSelected
-                                        ? Theme.of(context).primaryColor
-                                        : Theme.of(context).colorScheme.onSurface),
+                                    : Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),

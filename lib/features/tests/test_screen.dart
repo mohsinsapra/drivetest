@@ -706,14 +706,12 @@ class _TestscreenState extends State<Testscreen> {
                       decoration: BoxDecoration(
                         color: _remainingSeconds <= 60 && _timerVisible
                             ? Colors.red.withValues(alpha: 0.12)
-                            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
+                            : Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: _remainingSeconds <= 60 && _timerVisible
                               ? Colors.red
-                              : (Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white.withValues(alpha: 0.15)
-                                  : Colors.grey.shade200),
+                              : Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
                         ),
                       ),
                       child: Row(
@@ -724,7 +722,7 @@ class _TestscreenState extends State<Testscreen> {
                             size: 14,
                             color: _remainingSeconds <= 60 && _timerVisible
                                 ? Colors.red
-                                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                : Theme.of(context).colorScheme.primary,
                           ),
                           if (_timerVisible) ...[
                             const SizedBox(width: 4),
@@ -735,7 +733,7 @@ class _TestscreenState extends State<Testscreen> {
                                 fontWeight: FontWeight.bold,
                                 color: _remainingSeconds <= 60
                                     ? Colors.red
-                                    : Theme.of(context).colorScheme.onSurface,
+                                    : Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ],
@@ -760,12 +758,10 @@ class _TestscreenState extends State<Testscreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white.withValues(alpha: 0.15)
-                            : Colors.grey.shade200,
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
                         width: 1,
                       ),
                     ),
@@ -780,7 +776,7 @@ class _TestscreenState extends State<Testscreen> {
                         Icon(
                           LucideIcons.languages,
                           size: 16,
-                          color: Colors.grey[600],
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ],
                     ),
@@ -1050,7 +1046,7 @@ class _TestscreenState extends State<Testscreen> {
                                       : Icons.bookmark_border,
                                   color: _savedQuestionIds.contains(
                                           widget.questions[index].questionId)
-                                      ? Theme.of(context).primaryColor
+                                      ? Theme.of(context).colorScheme.primary
                                       : Colors.grey[600],
                                   size: 20,
                                 ),
@@ -1064,7 +1060,7 @@ class _TestscreenState extends State<Testscreen> {
                                     fontSize: 13,
                                     color: _savedQuestionIds.contains(
                                             widget.questions[index].questionId)
-                                        ? Theme.of(context).primaryColor
+                                        ? Theme.of(context).colorScheme.primary
                                         : Colors.grey[600],
                                   ),
                                 ),
@@ -1225,12 +1221,12 @@ class _TestscreenState extends State<Testscreen> {
                             decoration: BoxDecoration(
                               color: isCurrent
                                   ? Theme.of(context)
-                                      .primaryColor
+                                      .colorScheme.primary
                                       .withValues(alpha: 0.1)
                                   : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                               border: Border.all(
                                 color: isCurrent
-                                    ? Theme.of(context).primaryColor
+                                    ? Theme.of(context).colorScheme.primary
                                     : Colors.transparent,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -1244,7 +1240,7 @@ class _TestscreenState extends State<Testscreen> {
                                     color: isAnswered
                                         ? Colors.green
                                         : isCurrent
-                                            ? Theme.of(context).primaryColor
+                                            ? Theme.of(context).colorScheme.primary
                                             : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
                                   ),
@@ -1278,7 +1274,7 @@ class _TestscreenState extends State<Testscreen> {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w600,
                                           color: isCurrent
-                                              ? Theme.of(context).primaryColor
+                                              ? Theme.of(context).colorScheme.primary
                                               : Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
