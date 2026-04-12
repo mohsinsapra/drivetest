@@ -112,7 +112,7 @@ class AttemptCountLineGraph extends StatelessWidget {
               horizontalInterval:
                   maxY > 4 ? (maxY / 3).ceilToDouble() : 1,
               getDrawingHorizontalLine: (_) => FlLine(
-                color: Colors.grey.shade100,
+                color: Colors.grey.withValues(alpha: 0.15),
                 strokeWidth: 1,
               ),
             ),

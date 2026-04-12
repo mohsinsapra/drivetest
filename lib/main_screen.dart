@@ -281,7 +281,7 @@ class _FloatingNavPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(_pad),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(50),
         boxShadow: [
           BoxShadow(

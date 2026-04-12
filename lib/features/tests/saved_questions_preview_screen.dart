@@ -131,7 +131,7 @@ class _SavedQuestionsPreviewScreenState
                       final key = _itemKey(q, index);
                       final expanded = _expandedKeys.contains(key);
                       return Material(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(14),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(14),

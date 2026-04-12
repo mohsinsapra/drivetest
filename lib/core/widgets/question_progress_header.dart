@@ -28,9 +28,16 @@ class QuestionProgressHeader extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.grey[50],
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey[200]!, width: 1),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white.withValues(alpha: 0.15)
+                : Colors.grey.shade200,
+            width: 1,
+          ),
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -45,7 +52,9 @@ class QuestionProgressHeader extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: visibleProgress,
                       minHeight: 6,
-                      backgroundColor: Colors.grey[300],
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.2)
+                          : Colors.grey[300],
                       color: Theme.of(context).primaryColor,
                     ),
                   ),
@@ -56,10 +65,10 @@ class QuestionProgressHeader extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     '${currentIndex + 1}/$safeTotal',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),

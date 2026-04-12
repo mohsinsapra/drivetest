@@ -35,7 +35,7 @@ class AttemptGroupCard extends StatelessWidget {
               Chip(
                 label: Text(status,
                     style: const TextStyle(color: Colors.green)),
-                backgroundColor: Colors.green.shade50,
+                backgroundColor: Colors.green.withValues(alpha: 0.12),
                 avatar: const Icon(Icons.check_circle, color: Colors.green, size: 18),
               )
             ],

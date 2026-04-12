@@ -44,31 +44,35 @@ class Option extends StatelessWidget {
     if (!showInstantMarking) {
       return isSelected
           ? Theme.of(ctx).primaryColor.withValues(alpha: 0.1)
-          : Colors.white;
+          : Theme.of(ctx).cardColor;
     }
     // If this is the correct answer, always show green background
     if (isCorrectAnswer) {
-      return Colors.green[50]!;
+      return Colors.green.withValues(alpha: 0.12);
     }
     // If user selected this and it's wrong, show red background
     if (isSelected) {
-      return Colors.red[50]!;
+      return Colors.red.withValues(alpha: 0.12);
     }
-    return Colors.white;
+    return Theme.of(ctx).cardColor;
   }
 
   Color _borderColor(BuildContext ctx) {
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    final defaultBorder = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.grey[300]!;
     if (!showInstantMarking) {
-      return isSelected ? Theme.of(ctx).primaryColor : Colors.grey[300]!;
+      return isSelected ? Theme.of(ctx).primaryColor : defaultBorder;
     }
     if (isCorrectAnswer) return Colors.green[400]!;
     if (isSelected) return Colors.red[400]!;
-    return Colors.grey[200]!;
+    return defaultBorder;
   }
 
   double _borderWidth() {
-    if (!showInstantMarking) return isSelected ? 1.0 : 0.5;
-    return (isCorrectAnswer || isSelected) ? 2.0 : 0.5;
+    if (!showInstantMarking) return isSelected ? 1.5 : 1.0;
+    return (isCorrectAnswer || isSelected) ? 2.0 : 1.0;
   }
   // ---------------------------------------------------------------------------
 
@@ -79,7 +83,7 @@ class Option extends StatelessWidget {
     // Determine the icon and color for the bullet/indicator
     Widget? indicatorIcon;
     Color indicatorColor = Colors.transparent;
-    Color indicatorBorderColor = Colors.grey[400]!;
+    Color indicatorBorderColor = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35);
 
     if (showInstantMarking) {
       if (isCorrectAnswer) {
@@ -163,12 +167,12 @@ class Option extends StatelessWidget {
                                     ? FontWeight.w600
                                     : FontWeight.normal,
                                 color: showInstantMarking
-                                    ? (isCorrectAnswer 
-                                        ? Colors.green[700] 
-                                        : (isSelected ? Colors.red[700] : Colors.black87))
+                                    ? (isCorrectAnswer
+                                        ? Colors.green[700]
+                                        : (isSelected ? Colors.red[700] : Theme.of(context).colorScheme.onSurface))
                                     : (isSelected
                                         ? Theme.of(context).primaryColor
-                                        : Colors.black87),
+                                        : Theme.of(context).colorScheme.onSurface),
                               ),
                             ),
                           ),
@@ -201,7 +205,7 @@ class Option extends StatelessWidget {
                             width: double.infinity,
                             height: 110 * s,
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              color: Theme.of(context).colorScheme.surface,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
@@ -223,18 +227,18 @@ class Option extends StatelessWidget {
                           width: double.infinity,
                           height: 110 * s,
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.image_not_supported,
-                                  size: 24, color: Colors.grey[400]),
+                                  size: 24, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
                               const SizedBox(height: 4),
                               Text('Image not available',
                                   style: TextStyle(
-                                      color: Colors.grey[600], fontSize: 12)),
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12)),
                             ],
                           ),
                         ),

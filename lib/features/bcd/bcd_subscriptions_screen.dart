@@ -304,7 +304,7 @@ class _ProductCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -507,12 +507,12 @@ class _SubscriptionTile extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isActive
                   ? const Color(0xFF059669).withValues(alpha: 0.3)
-                  : Colors.grey.shade200,
+                  : Theme.of(context).dividerColor,
             ),
             boxShadow: [
               BoxShadow(
@@ -596,9 +596,10 @@ class _Shimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade50,
+      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 4,

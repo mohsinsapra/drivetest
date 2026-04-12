@@ -110,7 +110,7 @@ class _StatsScreenState extends State<StatsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
       ),
@@ -147,9 +147,9 @@ class _StatsScreenState extends State<StatsScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
@@ -198,7 +198,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
           // ── Expanded detail ──────────────────────────────────────────────
           if (isExpanded) ...[
-            Divider(height: 1, color: Colors.grey.shade200),
+            Divider(height: 1, color: Theme.of(context).dividerColor),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -241,7 +241,7 @@ class _StatsScreenState extends State<StatsScreen> {
     return Column(
       children: [
         Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
-            color: valueColor ?? Colors.black87)),
+            color: valueColor ?? Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 2),
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
@@ -290,9 +290,9 @@ class _StatsScreenState extends State<StatsScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Row(
         children: [
@@ -333,9 +333,7 @@ class _StatsScreenState extends State<StatsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F9),
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
         title: Column(
@@ -381,42 +379,42 @@ class _StatsScreenState extends State<StatsScreen> {
                             value: '$_completedCount',
                             label: 'Completed tests',
                             icon: Icons.description_outlined,
-                            iconBg: const Color(0xFFE3F0FF),
+                            iconBg: Colors.blue.withValues(alpha: 0.15),
                             iconColor: const Color(0xFF1976D2),
                           ),
                           _statCard(
                             value: '${_passRate.round()}%',
                             label: 'Pass rate',
                             icon: Icons.gps_fixed,
-                            iconBg: const Color(0xFFE8F5E9),
+                            iconBg: Colors.green.withValues(alpha: 0.15),
                             iconColor: const Color(0xFF388E3C),
                           ),
                           _statCard(
                             value: '${_bestScore.round()}%',
                             label: 'Best score',
                             icon: Icons.emoji_events_outlined,
-                            iconBg: const Color(0xFFFFF3E0),
+                            iconBg: Colors.orange.withValues(alpha: 0.15),
                             iconColor: const Color(0xFFF57C00),
                           ),
                           _statCard(
                             value: '${_avgScore.round()}%',
                             label: 'Average score',
                             icon: Icons.trending_up,
-                            iconBg: const Color(0xFFE3F0FF),
+                            iconBg: Colors.blue.withValues(alpha: 0.15),
                             iconColor: const Color(0xFF1976D2),
                           ),
                           _statCard(
                             value: _fmtDuration(_totalSeconds),
                             label: 'Total study time',
                             icon: Icons.access_time,
-                            iconBg: const Color(0xFFF3E5F5),
+                            iconBg: Colors.purple.withValues(alpha: 0.15),
                             iconColor: const Color(0xFF7B1FA2),
                           ),
                           _statCard(
                             value: '${_latestScore.round()}%',
                             label: 'Latest result',
                             icon: Icons.cancel_outlined,
-                            iconBg: const Color(0xFFFFEBEE),
+                            iconBg: Colors.red.withValues(alpha: 0.15),
                             iconColor: const Color(0xFFD32F2F),
                           ),
                         ],
@@ -428,7 +426,7 @@ class _StatsScreenState extends State<StatsScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 10, offset: const Offset(0, 2))],
@@ -453,7 +451,7 @@ class _StatsScreenState extends State<StatsScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 10, offset: const Offset(0, 2))],

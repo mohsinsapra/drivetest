@@ -476,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen>
               value: passed.toString(),
               label: Translations.of(context).home_passed,
               iconColor: Colors.green.shade500,
-              bgColor: Colors.green.shade50,
+              bgColor: Colors.green.withValues(alpha: 0.12),
             )),
             const SizedBox(width: 12),
             Expanded(
@@ -485,7 +485,7 @@ class _HomeScreenState extends State<HomeScreen>
               value: failed.toString(),
               label: Translations.of(context).home_failed,
               iconColor: Colors.red.shade400,
-              bgColor: Colors.red.shade50,
+              bgColor: Colors.red.withValues(alpha: 0.12),
             )),
             const SizedBox(width: 12),
             Expanded(
@@ -494,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen>
               value: _pausedAttempts.length.toString(),
               label: Translations.of(context).home_paused,
               iconColor: Colors.orange.shade500,
-              bgColor: Colors.orange.shade50,
+              bgColor: Colors.orange.withValues(alpha: 0.12),
             )),
           ],
         ),
@@ -562,7 +562,7 @@ class _HomeScreenState extends State<HomeScreen>
         margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -597,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen>
                       fontSize: 13,
                       fontWeight:
                           isActive ? FontWeight.w600 : FontWeight.normal,
-                      color: isActive ? Colors.black87 : Colors.grey.shade600,
+                      color: isActive ? Theme.of(context).colorScheme.onSurface : Colors.grey.shade500,
                     ),
                   ),
                 ),
@@ -662,7 +662,7 @@ class _HomeScreenState extends State<HomeScreen>
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
-                      color: Colors.grey.shade800)),
+                      color: Theme.of(context).colorScheme.onSurface)),
               const SizedBox(height: 8),
               CategoryPieChart(data: data),
             ],
@@ -691,7 +691,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildActivityItem(TestAttempt attempt) {
     final isPassed = attempt.hasPassed;
     final color = isPassed ? Colors.green.shade500 : Colors.red.shade400;
-    final bgColor = isPassed ? Colors.green.shade50 : Colors.red.shade50;
+    final bgColor = isPassed ? Colors.green.withValues(alpha: 0.12) : Colors.red.withValues(alpha: 0.12);
     final dt = attempt.dateTime;
 
     return GestureDetector(
@@ -736,7 +736,7 @@ class _HomeScreenState extends State<HomeScreen>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.deepPurple.shade50,
+                            color: Colors.deepPurple.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -744,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen>
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: Colors.deepPurple.shade400,
+                              color: Colors.deepPurple.shade300,
                             ),
                           ),
                         ),
@@ -776,7 +776,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             const SizedBox(width: 6),
             Icon(Icons.chevron_right_rounded,
-                color: Colors.grey.shade300, size: 20),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), size: 20),
           ],
         ),
       ),
@@ -832,9 +832,10 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade50,
+      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
       child: SafeArea(
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
@@ -1093,7 +1094,7 @@ class _InProgressCardState extends State<_InProgressCard>
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.orange.shade100),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.25)),
         boxShadow: [
           BoxShadow(
               color: Colors.orange.withValues(alpha: 0.08),
@@ -1113,7 +1114,7 @@ class _InProgressCardState extends State<_InProgressCard>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade100,
+                    color: Colors.orange.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -1137,14 +1138,14 @@ class _InProgressCardState extends State<_InProgressCard>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.deepPurple.shade50,
+                    color: Colors.deepPurple.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     'Category',
                     style: TextStyle(
                         fontSize: 10,
-                        color: Colors.deepPurple.shade400,
+                        color: Colors.deepPurple.shade300,
                         fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -1178,7 +1179,7 @@ class _InProgressCardState extends State<_InProgressCard>
               child: LinearProgressIndicator(
                 value: v,
                 minHeight: 4,
-                backgroundColor: Colors.grey.shade100,
+                backgroundColor: Theme.of(context).dividerColor,
                 color: Colors.orange,
               ),
             ),
@@ -1191,7 +1192,7 @@ class _InProgressCardState extends State<_InProgressCard>
               decoration: BoxDecoration(
                 color: a.questions.isNotEmpty
                     ? Colors.orange
-                    : Colors.grey.shade300,
+                    : Theme.of(context).dividerColor,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(

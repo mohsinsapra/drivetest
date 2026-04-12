@@ -456,11 +456,14 @@ class _HubTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = locked ? Colors.grey.shade400 : tileColor;
     final bgColor = locked
-        ? Colors.grey.shade100
+        ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06)
         : tileColor.withValues(alpha: 0.12);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: locked ? const Color(0xFFF8F8F8) : tileColor.withValues(alpha: 0.07),
+      color: locked
+          ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04)
+          : (isDark ? Theme.of(context).cardColor : tileColor.withValues(alpha: 0.07)),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -494,7 +497,7 @@ class _HubTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: locked ? Colors.grey.shade500 : Colors.black87,
+                      color: locked ? Colors.grey.shade500 : Theme.of(context).colorScheme.onSurface,
                       height: 1.2,
                     ),
                   ),
@@ -643,9 +646,10 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
   }
 
   Widget _buildShimmer() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade50,
+      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 6,
@@ -930,7 +934,7 @@ class _TestCard extends StatelessWidget {
                       ? const Color(0xFF059669).withValues(alpha: 0.1)
                       : subscribed
                           ? const Color(0xFF4F46E5).withValues(alpha: 0.1)
-                          : Colors.grey.shade100,
+                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -1022,9 +1026,9 @@ class _PaywallSheet extends StatelessWidget {
         maxChildSize: 0.9,
         builder: (_, scrollController) => Container(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

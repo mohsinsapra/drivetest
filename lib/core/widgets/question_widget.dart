@@ -21,10 +21,10 @@ class QuestionHeaderWidget extends StatelessWidget {
       children: [
         RichText(
           text: TextSpan(
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
               height: 1.3,
             ),
             children: [

@@ -93,7 +93,7 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -167,7 +167,7 @@ class _CategoryCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: subscribed
                 ? const Color(0xFF059669).withValues(alpha: 0.1)
-                : Colors.grey.shade100,
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -196,9 +196,10 @@ class _CategoryCard extends StatelessWidget {
 class _Shimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade50,
+      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 6,

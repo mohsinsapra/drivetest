@@ -88,6 +88,7 @@ class _TestscreenState extends State<Testscreen> {
   // Mutable runtime toggles — initialised from widget params (settings)
   late bool _isTimed;
   late bool _instantMarking;
+  bool _timerVisible = true;
 
   // Saved questions
   Set<String> _savedQuestionIds = {};
@@ -674,12 +675,10 @@ class _TestscreenState extends State<Testscreen> {
         _showExitDialog();
       },
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: Colors.white,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () {
               if (widget.isReviewMode) {
                 Navigator.of(context).pop();
@@ -700,42 +699,48 @@ class _TestscreenState extends State<Testscreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Center(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _remainingSeconds <= 60
-                          ? Colors.red[50]
-                          : Colors.grey[50],
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _remainingSeconds <= 60
-                            ? Colors.red
-                            : Colors.grey[300]!,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.timer,
-                          size: 14,
-                          color: _remainingSeconds <= 60
+                  child: GestureDetector(
+                    onTap: () => setState(() => _timerVisible = !_timerVisible),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _remainingSeconds <= 60 && _timerVisible
+                            ? Colors.red.withValues(alpha: 0.12)
+                            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _remainingSeconds <= 60 && _timerVisible
                               ? Colors.red
-                              : Colors.grey[600],
+                              : (Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white.withValues(alpha: 0.15)
+                                  : Colors.grey.shade200),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _timerDisplay,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: _remainingSeconds <= 60
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _timerVisible ? Icons.timer : Icons.timer_off_outlined,
+                            size: 14,
+                            color: _remainingSeconds <= 60 && _timerVisible
                                 ? Colors.red
-                                : Colors.black87,
+                                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
-                        ),
-                      ],
+                          if (_timerVisible) ...[
+                            const SizedBox(width: 4),
+                            Text(
+                              _timerDisplay,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: _remainingSeconds <= 60
+                                    ? Colors.red
+                                    : Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -755,9 +760,14 @@ class _TestscreenState extends State<Testscreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.grey[50],
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey[200]!, width: 1),
+                      border: Border.all(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white.withValues(alpha: 0.15)
+                            : Colors.grey.shade200,
+                        width: 1,
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -778,7 +788,7 @@ class _TestscreenState extends State<Testscreen> {
                 ),
               ),
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.black87),
+              icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
               onSelected: (value) {
                 if (value == 'lang_en') {
                   _onLanguageSelected('EN');
@@ -832,7 +842,7 @@ class _TestscreenState extends State<Testscreen> {
                     enabled: false,
                     height: 1,
                     padding: EdgeInsets.zero,
-                    child: Divider(color: Colors.grey[200], height: 1),
+                    child: Divider(color: Theme.of(context).dividerColor, height: 1),
                   ),
                 if (!widget.isReviewMode)
                   PopupMenuItem<String>(
@@ -865,7 +875,7 @@ class _TestscreenState extends State<Testscreen> {
                     enabled: false,
                     height: 1,
                     padding: EdgeInsets.zero,
-                    child: Divider(color: Colors.grey[200], height: 1),
+                    child: Divider(color: Theme.of(context).dividerColor, height: 1),
                   ),
                 const PopupMenuItem<String>(
                   value: 'feedback',
@@ -920,7 +930,7 @@ class _TestscreenState extends State<Testscreen> {
                         style: TextStyle(
                           fontSize: 22 * s,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: Theme.of(context).colorScheme.onSurface,
                           height: 1.3,
                         ),
                         children: [
@@ -1074,10 +1084,10 @@ class _TestscreenState extends State<Testscreen> {
                         margin: EdgeInsets.only(bottom: 16 * s),
                         padding: EdgeInsets.all(16 * s),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: Colors.blue.withValues(alpha: 0.10),
                           borderRadius: BorderRadius.circular(12),
                           border:
-                              Border.all(color: Colors.blue[200]!, width: 1),
+                              Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 1),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1148,9 +1158,9 @@ class _TestscreenState extends State<Testscreen> {
       builder: (BuildContext context) {
         return Container(
           height: MediaQuery.of(context).size.height * 0.6,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
             ),
@@ -1162,7 +1172,7 @@ class _TestscreenState extends State<Testscreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: Theme.of(context).dividerColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1217,7 +1227,7 @@ class _TestscreenState extends State<Testscreen> {
                                   ? Theme.of(context)
                                       .primaryColor
                                       .withValues(alpha: 0.1)
-                                  : Colors.grey[50],
+                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                               border: Border.all(
                                 color: isCurrent
                                     ? Theme.of(context).primaryColor
@@ -1235,7 +1245,7 @@ class _TestscreenState extends State<Testscreen> {
                                         ? Colors.green
                                         : isCurrent
                                             ? Theme.of(context).primaryColor
-                                            : Colors.grey[300],
+                                            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Center(
@@ -1269,7 +1279,7 @@ class _TestscreenState extends State<Testscreen> {
                                           fontWeight: FontWeight.w600,
                                           color: isCurrent
                                               ? Theme.of(context).primaryColor
-                                              : Colors.black87,
+                                              : Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                       const SizedBox(height: 4),

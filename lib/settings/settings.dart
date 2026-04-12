@@ -165,11 +165,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
+                        color: isDark
+                            ? Colors.purple.withValues(alpha: 0.2)
+                            : Colors.purple.shade50,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(Icons.font_download_rounded,
-                          color: Colors.purple.shade600, size: 20),
+                          color: isDark ? Colors.purple.shade200 : Colors.purple.shade600, size: 20),
                     ),
                     title: const Text('Font'),
                     subtitle: Text(fontProvider.fontFamily),
@@ -198,11 +200,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
+                        color: isDark
+                            ? Colors.blue.withValues(alpha: 0.2)
+                            : Colors.blue.shade50,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(Icons.language_rounded,
-                          color: Colors.blue.shade600, size: 20),
+                          color: isDark ? Colors.blue.shade200 : Colors.blue.shade600, size: 20),
                     ),
                     title: Text(t.settings_language),
                     subtitle: Text(t.settings_language_sub),
@@ -468,7 +472,7 @@ class _LangChip extends StatelessWidget {
             border: Border.all(
               color: selected
                   ? Theme.of(context).colorScheme.primary
-                  : Colors.grey.shade300,
+                  : Theme.of(context).dividerColor,
             ),
           ),
           child: Text(

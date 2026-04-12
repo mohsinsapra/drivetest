@@ -22,7 +22,7 @@ class AttemptEntryCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -80,7 +80,7 @@ class AttemptEntryCard extends StatelessWidget {
                     CircularProgressIndicator(
                       value: value,
                       strokeWidth: 5,
-                      backgroundColor: Colors.grey.shade200,
+                      backgroundColor: Theme.of(context).dividerColor,
                       valueColor: AlwaysStoppedAnimation<Color>(color),
                     ),
                     Text(

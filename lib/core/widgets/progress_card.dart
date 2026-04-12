@@ -14,7 +14,7 @@ class ProgressCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -35,7 +35,7 @@ class ProgressCard extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: percent,
                   strokeWidth: 6,
-                  backgroundColor: Colors.grey.shade200,
+                  backgroundColor: Theme.of(context).dividerColor,
                   valueColor: AlwaysStoppedAnimation<Color>(
                     attempt.hasPassed ? Colors.green : Colors.redAccent,
                   ),

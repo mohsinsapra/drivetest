@@ -25,7 +25,7 @@ class NavigationControls extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.10),
@@ -46,7 +46,9 @@ class NavigationControls extends StatelessWidget {
                   borderRadius: BorderRadius.circular(25),
                 ),
                 side: BorderSide(
-                  color: atFirst ? Colors.grey[300]! : Colors.grey[400]!,
+                  color: atFirst
+                      ? Theme.of(context).dividerColor
+                      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                 ),
               ),
               child: Text(
@@ -54,7 +56,9 @@ class NavigationControls extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: atFirst ? Colors.grey[400] : Colors.black87,
+                  color: atFirst
+                      ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35)
+                      : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),

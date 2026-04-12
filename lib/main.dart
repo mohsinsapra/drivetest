@@ -160,7 +160,7 @@ ThemeData buildDarkTheme(String font) => ThemeData(
     primaryContainer: Color(0xFF2779BC),
     secondary: Colors.green,
     secondaryContainer: Colors.greenAccent,
-    surface: Color(0xFF1C1C1E),
+    surface: Color(0xFF1E1E1E),
     error: Colors.redAccent,
     onPrimary: Colors.white,
     onSecondary: Colors.white,
@@ -168,10 +168,10 @@ ThemeData buildDarkTheme(String font) => ThemeData(
     onError: Colors.white,
     brightness: Brightness.dark,
   ),
-  scaffoldBackgroundColor: const Color(0xFF0F0F0F),
-  cardColor: const Color(0xFF1C1C1E),
+  scaffoldBackgroundColor: const Color(0xFF121212),
+  cardColor: const Color(0xFF242424),
   appBarTheme: AppBarTheme(
-    backgroundColor: const Color(0xFF1C1C1E),
+    backgroundColor: const Color(0xFF1A1A1A),
     elevation: 0,
     iconTheme: const IconThemeData(color: Colors.white),
     titleTextStyle: TextStyle(
@@ -214,9 +214,9 @@ ThemeData buildDarkTheme(String font) => ThemeData(
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
     selectedItemColor: Color(0xFF5AADFF),
     unselectedItemColor: Colors.grey,
-    backgroundColor: Color(0xFF1C1C1E),
+    backgroundColor: Color(0xFF1A1A1A),
   ),
-  dividerColor: const Color(0xFF2C2C2E),
+  dividerColor: const Color(0xFF3A3A3A),
 );
 
 ThemeData buildLightTheme(String font) => ThemeData(

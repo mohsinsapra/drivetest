@@ -82,17 +82,14 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
       appBar: AppBar(
         title: Text(Translations.of(context).bcd_traffic_signs),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
         elevation: 0,
       ),
       body: Column(
         children: [
           Container(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: TextField(
               onChanged: (v) => setState(() => _search = v),
@@ -236,7 +233,7 @@ class _SignGroupCardState extends State<_SignGroupCard> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -254,7 +251,7 @@ class _SignGroupCardState extends State<_SignGroupCard> {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             child: imageArea,
           ),
-          Divider(height: 1, color: Colors.grey.shade100),
+          Divider(height: 1, color: Theme.of(context).dividerColor),
           // Text content — tap navigates into the group
           GestureDetector(
             onTap: onTap,
@@ -437,10 +434,7 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F7),
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.white,
           elevation: 0,
           titleSpacing: 0,
           title: Column(
@@ -465,7 +459,7 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
               LinearProgressIndicator(
                 value: (_index + 1) / _total,
                 minHeight: 2,
-                backgroundColor: Colors.grey.shade200,
+                backgroundColor: Theme.of(context).dividerColor,
                 color: const Color(0xFF3B5BDB),
               ),
             Expanded(
@@ -481,10 +475,9 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 13),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(14),
-                          border:
-                              Border.all(color: Colors.grey.shade200),
+                          border: Border.all(color: Theme.of(context).dividerColor),
                         ),
                         child: Text(title,
                             style: const TextStyle(
@@ -497,9 +490,9 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(color: Theme.of(context).dividerColor),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -536,10 +529,9 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(14),
-                          border:
-                              Border.all(color: Colors.grey.shade200),
+                          border: Border.all(color: Theme.of(context).dividerColor),
                         ),
                         child: Text(content,
                             style: TextStyle(
@@ -628,12 +620,10 @@ class _BottomNavButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 13),
         decoration: BoxDecoration(
-          color: enabled ? Colors.white : Colors.grey.shade100,
+          color: enabled ? Theme.of(context).cardColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-              color: enabled
-                  ? Colors.grey.shade300
-                  : Colors.grey.shade200),
+              color: Theme.of(context).dividerColor),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -715,9 +705,10 @@ class _Shimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade50,
+      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 4,

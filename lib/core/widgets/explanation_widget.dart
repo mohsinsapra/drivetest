@@ -131,10 +131,10 @@ class ExplanationWidget extends StatelessWidget {
     return ExpandableNotifier(
       initialExpanded: true,
       child: ExpandablePanel(
-        theme: const ExpandableThemeData(
+        theme: ExpandableThemeData(
           headerAlignment: ExpandablePanelHeaderAlignment.center,
           hasIcon: true,
-          iconColor: Colors.black,
+          iconColor: Theme.of(context).colorScheme.onSurface,
           iconPlacement: ExpandablePanelIconPlacement.right,
           tapBodyToCollapse: false,
           tapBodyToExpand: false,
