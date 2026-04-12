@@ -10,19 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
-
-### Changed
--
-
-### Fixed
--
-
----
-
-## [1.0.3+88] - 2026-04-12
-
-### Added
 - Font selection in Settings: users can switch between NudMoto and Inter; preference persists via SharedPreferences and applies immediately app-wide
 - Inter font asset bundled (`assets/fonts/Inter.otf`)
 - `FontProvider` (ChangeNotifier) with unit tests for default value, persistence, and listener notification
