@@ -126,11 +126,15 @@ Future<void> _appMain() async {
 
     await Upgrader.clearSavedSettings();
 
-    // Restore saved locale
+    // Restore saved locale, falling back to system language
     final prefs = await SharedPreferences.getInstance();
-    final savedLang = prefs.getString('language') ?? 'en';
-    LocaleSettings.setLocale(
-        savedLang == 'sv' ? AppLocale.sv : AppLocale.en);
+    final savedLang = prefs.getString('language');
+    if (savedLang != null) {
+      LocaleSettings.setLocale(savedLang == 'sv' ? AppLocale.sv : AppLocale.en);
+    } else {
+      final systemLang = WidgetsBinding.instance.platformDispatcher.locale.languageCode.toLowerCase();
+      LocaleSettings.setLocale(systemLang == 'sv' ? AppLocale.sv : AppLocale.en);
+    }
   } catch (e) {
     debugPrint('Initialization error: $e');
   }

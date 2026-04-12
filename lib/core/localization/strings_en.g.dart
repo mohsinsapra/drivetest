@@ -238,6 +238,11 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get bcd_questions_label => 'questions';
 	String get bcd_pass_label => 'Pass';
 	String get bcd_free_label => 'FREE';
+	String get settings_theme_label => 'Theme';
+	String get settings_theme_sub => 'Light, dark or follow system';
+	String get settings_theme_system => 'System';
+	String get settings_theme_light => 'Light';
+	String get settings_theme_dark => 'Dark';
 	String get help_title => 'Help & Support';
 	String get help_need_help => 'Need Help?';
 	String get help_subtitle => 'Tell us about your issue and we\'ll get back to you soon.';
@@ -463,6 +468,11 @@ extension on Translations {
 			case 'bcd_questions_label': return 'questions';
 			case 'bcd_pass_label': return 'Pass';
 			case 'bcd_free_label': return 'FREE';
+			case 'settings_theme_label': return 'Theme';
+			case 'settings_theme_sub': return 'Light, dark or follow system';
+			case 'settings_theme_system': return 'System';
+			case 'settings_theme_light': return 'Light';
+			case 'settings_theme_dark': return 'Dark';
 			case 'help_title': return 'Help & Support';
 			case 'help_need_help': return 'Need Help?';
 			case 'help_subtitle': return 'Tell us about your issue and we\'ll get back to you soon.';

@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.3+87] - 2026-04-12
+## [1.0.3+88] - 2026-04-12
 
 ### Added
 - Font selection in Settings: users can switch between NudMoto and Inter; preference persists via SharedPreferences and applies immediately app-wide
@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dark mode: home screen quick stats, activity items, BCD badges, licence tab backgrounds, and pie chart labels all fixed
 - Dark mode: question navigation sheet items in test screen no longer show white `Colors.grey[50]` background
 
+---
 ---
 ---
 ---

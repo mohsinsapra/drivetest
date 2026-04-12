@@ -134,27 +134,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // ── Appearance ──────────────────────────────────────────
                   _SectionHeader(t.settings_appearance),
 
-                  // Dark mode
-                  SwitchListTile(
-                    title: Text(t.settings_dark_mode),
-                    subtitle: Text(t.settings_dark_mode_sub),
-                    value: isDark,
-                    onChanged: (_) => themeProvider.toggle(),
-                    secondary: Container(
+                  // Theme mode
+                  ListTile(
+                    leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: isDark
+                        color: themeProvider.themeMode == ThemeMode.dark
                             ? Colors.indigo.shade900
-                            : Colors.amber.shade100,
+                            : themeProvider.themeMode == ThemeMode.light
+                                ? Colors.amber.shade100
+                                : (isDark
+                                    ? Colors.grey.shade800
+                                    : Colors.grey.shade200),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        isDark
+                        themeProvider.themeMode == ThemeMode.dark
                             ? Icons.dark_mode_rounded
-                            : Icons.light_mode_rounded,
-                        color: isDark ? Colors.white : Colors.amber.shade700,
+                            : themeProvider.themeMode == ThemeMode.light
+                                ? Icons.light_mode_rounded
+                                : Icons.brightness_auto_rounded,
+                        color: themeProvider.themeMode == ThemeMode.dark
+                            ? Colors.white
+                            : themeProvider.themeMode == ThemeMode.light
+                                ? Colors.amber.shade700
+                                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         size: 20,
                       ),
+                    ),
+                    title: Text(t.settings_theme_label),
+                    subtitle: Text(t.settings_theme_sub),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _LangChip(
+                          label: t.settings_theme_system,
+                          selected: themeProvider.themeMode == ThemeMode.system,
+                          onTap: () => themeProvider.setMode(ThemeMode.system),
+                        ),
+                        const SizedBox(width: 6),
+                        _LangChip(
+                          label: t.settings_theme_light,
+                          selected: themeProvider.themeMode == ThemeMode.light,
+                          onTap: () => themeProvider.setMode(ThemeMode.light),
+                        ),
+                        const SizedBox(width: 6),
+                        _LangChip(
+                          label: t.settings_theme_dark,
+                          selected: themeProvider.themeMode == ThemeMode.dark,
+                          onTap: () => themeProvider.setMode(ThemeMode.dark),
+                        ),
+                      ],
                     ),
                   ),
 

@@ -235,6 +235,11 @@ class TranslationsSv implements Translations {
 	@override String get bcd_questions_label => 'frågor';
 	@override String get bcd_pass_label => 'Godkänt';
 	@override String get bcd_free_label => 'GRATIS';
+	@override String get settings_theme_label => 'Tema';
+	@override String get settings_theme_sub => 'Ljust, mörkt eller följ systemet';
+	@override String get settings_theme_system => 'System';
+	@override String get settings_theme_light => 'Ljust';
+	@override String get settings_theme_dark => 'Mörkt';
 	@override String get help_title => 'Hjälp & Support';
 	@override String get help_need_help => 'Behöver du hjälp?';
 	@override String get help_subtitle => 'Berätta om ditt problem så återkommer vi till dig.';
@@ -460,6 +465,11 @@ extension on TranslationsSv {
 			case 'bcd_questions_label': return 'frågor';
 			case 'bcd_pass_label': return 'Godkänt';
 			case 'bcd_free_label': return 'GRATIS';
+			case 'settings_theme_label': return 'Tema';
+			case 'settings_theme_sub': return 'Ljust, mörkt eller följ systemet';
+			case 'settings_theme_system': return 'System';
+			case 'settings_theme_light': return 'Ljust';
+			case 'settings_theme_dark': return 'Mörkt';
 			case 'help_title': return 'Hjälp & Support';
 			case 'help_need_help': return 'Behöver du hjälp?';
 			case 'help_subtitle': return 'Berätta om ditt problem så återkommer vi till dig.';
