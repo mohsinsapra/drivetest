@@ -10,11 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+87] - 2026-04-12
+
+### Added
 - Font selection in Settings: users can switch between NudMoto and Inter; preference persists via SharedPreferences and applies immediately app-wide
 - Inter font asset bundled (`assets/fonts/Inter.otf`)
 - `FontProvider` (ChangeNotifier) with unit tests for default value, persistence, and listener notification
 - Localization for all BCD screens: categories list, sub-categories, tests list, subscriptions, traffic signs, and test loader — all user-visible strings now use translation keys (EN + SV)
 - New translation keys: `bcd_categories`, `bcd_subscribed`, `bcd_free_label`, `bcd_questions_label`, `bcd_pass_label`, `bcd_plans_tab`, `bcd_my_subscriptions_tab`, `bcd_expires`, `bcd_previous`, `bcd_next`, `bcd_view`, and 25+ more
+- Test screen: tapping the timer pill toggles time visibility; hidden state shows a clock-off icon instead of the countdown
 
 ### Changed
 - Default app font changed from NudMoto to Inter
@@ -23,10 +37,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - BCD test attempt screen timer and instant-marking can now be toggled mid-test via the three-dots menu
 - Popup menu divider replaced with a lighter grey `Divider` (was too dark)
 - BCD category hub tiles now have distinct per-tile colors (emerald, indigo, amber, red, violet, sky blue, pink)
+- Dark mode: scaffold and AppBar backgrounds now theme-driven across all screens (removed all hardcoded `Colors.white` / `Colors.grey[50]`)
+- Dark mode: dark theme palette updated — scaffold `#121212`, card `#242424`, surface `#1E1E1E`, AppBar/bottom nav `#1A1A1A`, divider `#3A3A3A` for improved contrast
+- Dark mode: option tiles use brightness-aware border (`Colors.white` 15% opacity) and card background instead of hardcoded light colors
+- Dark mode: question progress header pill uses semi-transparent white overlay and border in dark mode; light mode uses `Colors.grey.shade200` border (subtle)
+- Dark mode: BCD hub tile labels ("Practice", "Tests", etc.) use `colorScheme.onSurface` instead of hardcoded `Colors.black87`
+- Dark mode: BCD hub tile background is `cardColor` in dark mode instead of tinted pastel (prevents green/indigo/red tint bleed)
+- Dark mode: all `Colors.X.shade50` pastel backgrounds replaced with `Colors.X.withValues(alpha: 0.12)` for universal light/dark compatibility
+- Dark mode: shimmer skeletons use dark-mode-aware base/highlight colors across home, BCD, and tests screens
+- Dark mode: navigation controls, attempt cards, progress cards, licence type cards, attempt group chips all use theme-aware colors
+- Dark mode: stats screen — all white card containers, borders, icon backgrounds, and scaffold color use theme values
+- Dark mode: BCD traffic signs screen — AppBar, nav arrows, sign cards use theme colors
+- Dark mode: settings screen — font and language icon containers use opacity-based backgrounds in dark mode
+- Dark mode: question text, back arrow, more-vert icon, timer pill, and explanation box in test screen are all theme-aware
+- Dark mode: expandable explanation widget icon uses `colorScheme.onSurface` (was hardcoded `Colors.black`)
+- Dark mode: question navigation bottom sheet and main tab bar use `cardColor`
+- Light mode: pill borders (progress header, timer, language picker) use `Colors.grey.shade200` — was too dark with `dividerColor`
 
 ### Fixed
 - `bcd_subscribe_access` translation invocation error (slang generated getter, not function) — resolved with `.replaceAll('{name}', categoryName)`
+- Dark mode: home screen quick stats, activity items, BCD badges, licence tab backgrounds, and pie chart labels all fixed
+- Dark mode: question navigation sheet items in test screen no longer show white `Colors.grey[50]` background
 
+---
 ---
 ---
 ---

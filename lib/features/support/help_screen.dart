@@ -127,9 +127,7 @@ class _HelpScreenState extends State<HelpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         title: const Text('Help & Support'),
       ),
@@ -190,24 +188,24 @@ class _HelpScreenState extends State<HelpScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Your Information',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                             ),
                           ),
                           const SizedBox(height: 8),
-                          _buildInfoRow('Username', _username),
-                          _buildInfoRow('Email', _userEmail),
-                          _buildInfoRow('User ID', _userId),
+                          _buildInfoRow(context, 'Username', _username),
+                          _buildInfoRow(context, 'Email', _userEmail),
+                          _buildInfoRow(context, 'User ID', _userId),
                         ],
                       ),
                     ),
@@ -231,7 +229,7 @@ class _HelpScreenState extends State<HelpScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.shade50,
+                      fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -261,7 +259,7 @@ class _HelpScreenState extends State<HelpScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.shade50,
+                      fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -314,7 +312,7 @@ class _HelpScreenState extends State<HelpScreen> {
                       'Or email us directly at mohsin.sapra@gmail.com',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -328,7 +326,7 @@ class _HelpScreenState extends State<HelpScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
@@ -337,9 +335,9 @@ class _HelpScreenState extends State<HelpScreen> {
             width: 80,
             child: Text(
               '$label:',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ),
