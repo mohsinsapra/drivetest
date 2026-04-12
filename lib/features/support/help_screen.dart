@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HelpScreen extends StatefulWidget {
@@ -37,7 +38,6 @@ class _HelpScreenState extends State<HelpScreen> {
         final Map<String, dynamic> userMap = jsonDecode(storedUser);
         setState(() {
           _userMap = userMap;
-          // Try multiple possible field names for user ID
           _userId = (userMap['id'] ??
                      userMap['user_id'] ??
                      userMap['pk'] ??
@@ -47,7 +47,6 @@ class _HelpScreenState extends State<HelpScreen> {
           _userEmail = userMap['email']?.toString() ?? 'Not available';
         });
 
-        // Debug print to see what fields are actually available
         debugPrint('User data fields: ${userMap.keys.join(', ')}');
       } catch (e) {
         debugPrint('Error parsing user data: $e');
@@ -56,16 +55,11 @@ class _HelpScreenState extends State<HelpScreen> {
   }
 
   Future<void> _submitReport() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
 
     try {
-      // Prepare email details
       final String email = 'mohsin.sapra@gmail.com';
       final String subject = Uri.encodeComponent('Taxi Exam App - ${_subjectController.text.trim()}');
       final String body = Uri.encodeComponent(
@@ -96,24 +90,18 @@ class _HelpScreenState extends State<HelpScreen> {
       if (await canLaunchUrl(emailUri)) {
         await launchUrl(emailUri);
         if (!mounted) return;
-
-        // Show success message and navigate back
-        showAppSnackBar('Opening email app...');
+        showAppSnackBar(t.help_opening_email);
         Navigator.pop(context);
       } else {
         if (!mounted) return;
-        showAppSnackBar('Could not open email app. Please email mohsin.sapra@gmail.com directly.');
+        showAppSnackBar(t.help_email_error);
       }
     } catch (e) {
       debugPrint('Error launching email: $e');
       if (!mounted) return;
-      showAppSnackBar('Error opening email app. Please try again.');
+      showAppSnackBar(t.help_generic_error);
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -129,7 +117,7 @@ class _HelpScreenState extends State<HelpScreen> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        title: const Text('Help & Support'),
+        title: Text(t.help_title),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -140,38 +128,34 @@ class _HelpScreenState extends State<HelpScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Section
+                  // Header
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.blue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(
-                          Icons.help_outline,
-                          color: Colors.blue,
-                          size: 32,
-                        ),
-                        SizedBox(width: 12),
+                        const Icon(Icons.help_outline, color: Colors.blue, size: 32),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Need Help?',
-                                style: TextStyle(
+                                t.help_need_help,
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
-                                'Tell us about your issue and we\'ll get back to you soon.',
+                                t.help_subtitle,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey,
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                 ),
                               ),
                             ],
@@ -183,7 +167,7 @@ class _HelpScreenState extends State<HelpScreen> {
 
                   const SizedBox(height: 24),
 
-                  // User Info Display
+                  // User Info
                   if (_userMap != null) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -195,7 +179,7 @@ class _HelpScreenState extends State<HelpScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Your Information',
+                            t.help_your_information,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -203,87 +187,69 @@ class _HelpScreenState extends State<HelpScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          _buildInfoRow(context, 'Username', _username),
-                          _buildInfoRow(context, 'Email', _userEmail),
-                          _buildInfoRow(context, 'User ID', _userId),
+                          _buildInfoRow(context, t.help_username, _username),
+                          _buildInfoRow(context, t.help_email, _userEmail),
+                          _buildInfoRow(context, t.help_user_id, _userId),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
                   ],
 
-                  // Subject Field
-                  const Text(
-                    'Subject',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  // Subject
+                  Text(
+                    t.help_subject,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _subjectController,
                     decoration: InputDecoration(
-                      hintText: 'e.g., Login issue, Bug report, Feature request',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      hintText: t.help_subject_hint,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                     ),
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter a subject';
-                      }
+                      if (value == null || value.trim().isEmpty) return t.help_subject_required;
                       return null;
                     },
                   ),
 
                   const SizedBox(height: 24),
 
-                  // Description Field
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  // Description
+                  Text(
+                    t.help_description,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _descriptionController,
                     maxLines: 8,
                     decoration: InputDecoration(
-                      hintText: 'Please describe your issue in detail...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      hintText: t.help_description_hint,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                     ),
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please describe your issue';
-                      }
-                      if (value.trim().length < 10) {
-                        return 'Please provide more details (at least 10 characters)';
-                      }
+                      if (value == null || value.trim().isEmpty) return t.help_description_required;
+                      if (value.trim().length < 10) return t.help_description_too_short;
                       return null;
                     },
                   ),
 
                   const SizedBox(height: 32),
 
-                  // Submit Button
+                  // Submit
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _submitReport,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: _isSubmitting
                           ? const SizedBox(
@@ -294,22 +260,18 @@ class _HelpScreenState extends State<HelpScreen> {
                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
-                          : const Text(
-                              'Submit Report',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          : Text(
+                              t.help_submit,
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Contact Info
                   Center(
                     child: Text(
-                      'Or email us directly at mohsin.sapra@gmail.com',
+                      t.help_or_email,
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
@@ -344,10 +306,7 @@ class _HelpScreenState extends State<HelpScreen> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
           ),
         ],

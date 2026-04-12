@@ -235,6 +235,25 @@ class TranslationsSv implements Translations {
 	@override String get bcd_questions_label => 'frågor';
 	@override String get bcd_pass_label => 'Godkänt';
 	@override String get bcd_free_label => 'GRATIS';
+	@override String get help_title => 'Hjälp & Support';
+	@override String get help_need_help => 'Behöver du hjälp?';
+	@override String get help_subtitle => 'Berätta om ditt problem så återkommer vi till dig.';
+	@override String get help_your_information => 'Din information';
+	@override String get help_username => 'Användarnamn';
+	@override String get help_email => 'E-post';
+	@override String get help_user_id => 'Användar-ID';
+	@override String get help_subject => 'Ämne';
+	@override String get help_subject_hint => 't.ex. Inloggningsproblem, Buggrapport, Funktionsförfrågan';
+	@override String get help_subject_required => 'Ange ett ämne';
+	@override String get help_description => 'Beskrivning';
+	@override String get help_description_hint => 'Beskriv ditt problem i detalj...';
+	@override String get help_description_required => 'Beskriv ditt problem';
+	@override String get help_description_too_short => 'Ge mer information (minst 10 tecken)';
+	@override String get help_submit => 'Skicka rapport';
+	@override String get help_or_email => 'Eller mejla oss direkt på mohsin.sapra@gmail.com';
+	@override String get help_opening_email => 'Öppnar e-postappen...';
+	@override String get help_email_error => 'Kunde inte öppna e-postappen. Mejla mohsin.sapra@gmail.com direkt.';
+	@override String get help_generic_error => 'Fel vid öppning av e-postappen. Försök igen.';
 }
 
 /// Flat map(s) containing all translations.
@@ -441,6 +460,25 @@ extension on TranslationsSv {
 			case 'bcd_questions_label': return 'frågor';
 			case 'bcd_pass_label': return 'Godkänt';
 			case 'bcd_free_label': return 'GRATIS';
+			case 'help_title': return 'Hjälp & Support';
+			case 'help_need_help': return 'Behöver du hjälp?';
+			case 'help_subtitle': return 'Berätta om ditt problem så återkommer vi till dig.';
+			case 'help_your_information': return 'Din information';
+			case 'help_username': return 'Användarnamn';
+			case 'help_email': return 'E-post';
+			case 'help_user_id': return 'Användar-ID';
+			case 'help_subject': return 'Ämne';
+			case 'help_subject_hint': return 't.ex. Inloggningsproblem, Buggrapport, Funktionsförfrågan';
+			case 'help_subject_required': return 'Ange ett ämne';
+			case 'help_description': return 'Beskrivning';
+			case 'help_description_hint': return 'Beskriv ditt problem i detalj...';
+			case 'help_description_required': return 'Beskriv ditt problem';
+			case 'help_description_too_short': return 'Ge mer information (minst 10 tecken)';
+			case 'help_submit': return 'Skicka rapport';
+			case 'help_or_email': return 'Eller mejla oss direkt på mohsin.sapra@gmail.com';
+			case 'help_opening_email': return 'Öppnar e-postappen...';
+			case 'help_email_error': return 'Kunde inte öppna e-postappen. Mejla mohsin.sapra@gmail.com direkt.';
+			case 'help_generic_error': return 'Fel vid öppning av e-postappen. Försök igen.';
 			default: return null;
 		}
 	}

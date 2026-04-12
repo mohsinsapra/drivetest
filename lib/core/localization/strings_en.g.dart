@@ -238,6 +238,25 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get bcd_questions_label => 'questions';
 	String get bcd_pass_label => 'Pass';
 	String get bcd_free_label => 'FREE';
+	String get help_title => 'Help & Support';
+	String get help_need_help => 'Need Help?';
+	String get help_subtitle => 'Tell us about your issue and we\'ll get back to you soon.';
+	String get help_your_information => 'Your Information';
+	String get help_username => 'Username';
+	String get help_email => 'Email';
+	String get help_user_id => 'User ID';
+	String get help_subject => 'Subject';
+	String get help_subject_hint => 'e.g., Login issue, Bug report, Feature request';
+	String get help_subject_required => 'Please enter a subject';
+	String get help_description => 'Description';
+	String get help_description_hint => 'Please describe your issue in detail...';
+	String get help_description_required => 'Please describe your issue';
+	String get help_description_too_short => 'Please provide more details (at least 10 characters)';
+	String get help_submit => 'Submit Report';
+	String get help_or_email => 'Or email us directly at mohsin.sapra@gmail.com';
+	String get help_opening_email => 'Opening email app...';
+	String get help_email_error => 'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
+	String get help_generic_error => 'Error opening email app. Please try again.';
 }
 
 /// Flat map(s) containing all translations.
@@ -444,6 +463,25 @@ extension on Translations {
 			case 'bcd_questions_label': return 'questions';
 			case 'bcd_pass_label': return 'Pass';
 			case 'bcd_free_label': return 'FREE';
+			case 'help_title': return 'Help & Support';
+			case 'help_need_help': return 'Need Help?';
+			case 'help_subtitle': return 'Tell us about your issue and we\'ll get back to you soon.';
+			case 'help_your_information': return 'Your Information';
+			case 'help_username': return 'Username';
+			case 'help_email': return 'Email';
+			case 'help_user_id': return 'User ID';
+			case 'help_subject': return 'Subject';
+			case 'help_subject_hint': return 'e.g., Login issue, Bug report, Feature request';
+			case 'help_subject_required': return 'Please enter a subject';
+			case 'help_description': return 'Description';
+			case 'help_description_hint': return 'Please describe your issue in detail...';
+			case 'help_description_required': return 'Please describe your issue';
+			case 'help_description_too_short': return 'Please provide more details (at least 10 characters)';
+			case 'help_submit': return 'Submit Report';
+			case 'help_or_email': return 'Or email us directly at mohsin.sapra@gmail.com';
+			case 'help_opening_email': return 'Opening email app...';
+			case 'help_email_error': return 'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
+			case 'help_generic_error': return 'Error opening email app. Please try again.';
 			default: return null;
 		}
 	}
