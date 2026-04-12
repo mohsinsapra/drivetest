@@ -13,6 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+90] - 2026-04-12
+
+### Added
+-
+
+### Changed
 - Dark mode: selected option tile background increased to 25% opacity primary blue (was 10%) for clear visibility
 - Dark mode: selected option tile border increased to 2px primary blue
 - Dark mode: selected option text uses `onSurface` (white) instead of primary blue — readable on blue-tinted background
@@ -23,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
+---
 ---
 
 ## [1.0.3+89] - 2026-04-12
