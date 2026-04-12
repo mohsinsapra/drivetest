@@ -10,13 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Font selection in Settings: users can switch between NudMoto and Inter; preference persists via SharedPreferences and applies immediately app-wide
+- Inter font asset bundled (`assets/fonts/Inter.otf`)
+- `FontProvider` (ChangeNotifier) with unit tests for default value, persistence, and listener notification
+- Localization for all BCD screens: categories list, sub-categories, tests list, subscriptions, traffic signs, and test loader — all user-visible strings now use translation keys (EN + SV)
+- New translation keys: `bcd_categories`, `bcd_subscribed`, `bcd_free_label`, `bcd_questions_label`, `bcd_pass_label`, `bcd_plans_tab`, `bcd_my_subscriptions_tab`, `bcd_expires`, `bcd_previous`, `bcd_next`, `bcd_view`, and 25+ more
 
 ### Changed
--
+- Default app font changed from NudMoto to Inter
+- Theme builder refactored into `buildLightTheme(font)` / `buildDarkTheme(font)` functions so font selection propagates through the entire app via `ThemeData`
+- Removed all hardcoded `fontFamily: 'NudMoto'` overrides from `auth_screen.dart`, `forgot_password_screen.dart`, and `question_widget.dart`
+- BCD test attempt screen timer and instant-marking can now be toggled mid-test via the three-dots menu
+- Popup menu divider replaced with a lighter grey `Divider` (was too dark)
+- BCD category hub tiles now have distinct per-tile colors (emerald, indigo, amber, red, violet, sky blue, pink)
 
 ### Fixed
--
+- `bcd_subscribe_access` translation invocation error (slang generated getter, not function) — resolved with `.replaceAll('{name}', categoryName)`
 
 ---
 

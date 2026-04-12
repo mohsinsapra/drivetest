@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'bcd_text_utils.dart';
 
@@ -66,7 +67,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _loading = false);
-        showAppSnackBar('Failed to load traffic signs');
+        showAppSnackBar(Translations.of(context).bcd_failed_traffic_signs);
       }
     }
   }
@@ -83,7 +84,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
       appBar: AppBar(
-        title: const Text('Traffic Signs'),
+        title: Text(Translations.of(context).bcd_traffic_signs),
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         elevation: 0,
@@ -96,7 +97,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
             child: TextField(
               onChanged: (v) => setState(() => _search = v),
               decoration: InputDecoration(
-                hintText: 'Search sign groups…',
+                hintText: Translations.of(context).bcd_search_signs,
                 prefixIcon: const Icon(LucideIcons.search, size: 18),
                 filled: true,
                 fillColor: const Color(0xFFF5F5F7),
@@ -116,7 +117,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
                         SizedBox(
                           height: 300,
                           child: Center(
-                            child: Text('No signs found',
+                            child: Text(Translations.of(context).bcd_no_signs,
                                 style:
                                     TextStyle(color: Colors.grey.shade500)),
                           ),
@@ -207,7 +208,7 @@ class _SignGroupCardState extends State<_SignGroupCard> {
           children: [
             Icon(LucideIcons.imageOff, size: 36, color: Colors.grey.shade300),
             const SizedBox(height: 8),
-            Text('No image', style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
+            Text(Translations.of(context).bcd_no_image, style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
           ],
         ),
       );
@@ -285,7 +286,7 @@ class _SignGroupCardState extends State<_SignGroupCard> {
                         Icon(LucideIcons.alertTriangle, size: 13, color: Colors.grey.shade400),
                         const SizedBox(width: 5),
                         Text(
-                          '$signCount traffic signs',
+                          '$signCount ${Translations.of(context).bcd_signs_count_label}',
                           style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
                         ),
                         const Spacer(),
@@ -295,12 +296,12 @@ class _SignGroupCardState extends State<_SignGroupCard> {
                             color: const Color(0xFFF0F4FF),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('View', style: TextStyle(fontSize: 12, color: Color(0xFF3B5BDB), fontWeight: FontWeight.w600)),
-                              SizedBox(width: 3),
-                              Icon(LucideIcons.chevronRight, size: 13, color: Color(0xFF3B5BDB)),
+                              Text(Translations.of(context).bcd_view, style: const TextStyle(fontSize: 12, color: Color(0xFF3B5BDB), fontWeight: FontWeight.w600)),
+                              const SizedBox(width: 3),
+                              const Icon(LucideIcons.chevronRight, size: 13, color: Color(0xFF3B5BDB)),
                             ],
                           ),
                         ),
@@ -553,7 +554,7 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                         children: [
                           Expanded(
                             child: _BottomNavButton(
-                              label: 'Previous',
+                              label: Translations.of(context).bcd_previous,
                               icon: LucideIcons.chevronLeft,
                               enabled: _index > 0,
                               onTap: _prev,
@@ -563,7 +564,7 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: _BottomNavButton(
-                              label: 'Next',
+                              label: Translations.of(context).bcd_next,
                               icon: LucideIcons.chevronRight,
                               enabled: _index < _total - 1,
                               onTap: _next,

@@ -85,6 +85,10 @@ class _TestscreenState extends State<Testscreen> {
   Timer? _countdownTimer;
   int _remainingSeconds = 0;
 
+  // Mutable runtime toggles — initialised from widget params (settings)
+  late bool _isTimed;
+  late bool _instantMarking;
+
   // Saved questions
   Set<String> _savedQuestionIds = {};
 
@@ -109,7 +113,10 @@ class _TestscreenState extends State<Testscreen> {
     _startTime = DateTime.now();
     disableScreenshot();
 
-    if (widget.isTimed && !widget.isReviewMode) {
+    _isTimed = widget.isTimed;
+    _instantMarking = widget.instantMarking;
+
+    if (_isTimed && !widget.isReviewMode) {
       _remainingSeconds = widget.timeLimitMinutes * 60;
       _startTimer();
     }
@@ -194,7 +201,7 @@ class _TestscreenState extends State<Testscreen> {
       return;
     }
     // Prevent re-selection if already answered in instant marking mode
-    if (widget.instantMarking && userSelections[index] != null) {
+    if (_instantMarking && userSelections[index] != null) {
       return;
     }
     setState(() {
@@ -689,7 +696,7 @@ class _TestscreenState extends State<Testscreen> {
           centerTitle: true,
           actions: [
             // Timer display
-            if (widget.isTimed && !widget.isReviewMode)
+            if (_isTimed && !widget.isReviewMode)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Center(
@@ -779,6 +786,20 @@ class _TestscreenState extends State<Testscreen> {
                   _onLanguageSelected('SV');
                 } else if (value == 'feedback') {
                   _showFeedbackDialog();
+                } else if (value == 'toggle_timer') {
+                  setState(() {
+                    _isTimed = !_isTimed;
+                    if (_isTimed) {
+                      if (_remainingSeconds <= 0) {
+                        _remainingSeconds = widget.timeLimitMinutes * 60;
+                      }
+                      _startTimer();
+                    } else {
+                      _countdownTimer?.cancel();
+                    }
+                  });
+                } else if (value == 'toggle_instant') {
+                  setState(() => _instantMarking = !_instantMarking);
                 }
               },
               itemBuilder: (context) => [
@@ -806,7 +827,46 @@ class _TestscreenState extends State<Testscreen> {
                       ],
                     ),
                   ),
-                if (isSmallScreen) const PopupMenuDivider(),
+                if (isSmallScreen)
+                  PopupMenuItem<String>(
+                    enabled: false,
+                    height: 1,
+                    padding: EdgeInsets.zero,
+                    child: Divider(color: Colors.grey[200], height: 1),
+                  ),
+                if (!widget.isReviewMode)
+                  PopupMenuItem<String>(
+                    value: 'toggle_timer',
+                    child: Row(
+                      children: [
+                        Icon(_isTimed ? Icons.timer_off_outlined : Icons.timer_outlined, size: 18),
+                        const SizedBox(width: 8),
+                        Text(_isTimed ? 'Turn off timer' : 'Turn on timer'),
+                        const Spacer(),
+                        if (_isTimed) const Icon(Icons.check, size: 16),
+                      ],
+                    ),
+                  ),
+                if (!widget.isReviewMode)
+                  PopupMenuItem<String>(
+                    value: 'toggle_instant',
+                    child: Row(
+                      children: [
+                        Icon(_instantMarking ? Icons.rule_outlined : Icons.rule_outlined, size: 18),
+                        const SizedBox(width: 8),
+                        Text(_instantMarking ? 'Turn off instant marking' : 'Turn on instant marking'),
+                        const Spacer(),
+                        if (_instantMarking) const Icon(Icons.check, size: 16),
+                      ],
+                    ),
+                  ),
+                if (!widget.isReviewMode)
+                  PopupMenuItem<String>(
+                    enabled: false,
+                    height: 1,
+                    padding: EdgeInsets.zero,
+                    child: Divider(color: Colors.grey[200], height: 1),
+                  ),
                 const PopupMenuItem<String>(
                   value: 'feedback',
                   child: Row(
@@ -862,7 +922,6 @@ class _TestscreenState extends State<Testscreen> {
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                           height: 1.3,
-                          fontFamily: 'NudMoto',
                         ),
                         children: [
                           TextSpan(text: questionText),
@@ -926,7 +985,7 @@ class _TestscreenState extends State<Testscreen> {
                         optionLabel: option.optionLabel,
                         imageUrl: option.imageUrl,
                         isSelected: isSelected,
-                        showInstantMarking: widget.instantMarking &&
+                        showInstantMarking: _instantMarking &&
                             userSelections[index] != null,
                         isCorrectAnswer:
                             option.optionLabel == question.correctAnswer,
@@ -1008,7 +1067,7 @@ class _TestscreenState extends State<Testscreen> {
                     SizedBox(height: 8 * s),
 
                     // Explanation (scrollable)
-                    if (widget.instantMarking &&
+                    if (_instantMarking &&
                         userSelections[index] != null &&
                         question.answerExplanation.isNotEmpty)
                       Container(

@@ -105,7 +105,9 @@
       "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app -maxdepth 2 -name version* -o -name CHANGELOG* -o -name changelog* -o -name *report*)",
       "Bash(find /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets -name logo* -o -name icon* -o -name brand*)",
       "Bash(sentry-wizard:*)",
-      "Bash(brew install:*)"
+      "Bash(brew install:*)",
+      "Bash(flutter test:*)",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": []

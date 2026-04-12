@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
 import 'bcd_category_hub_screen.dart';
@@ -52,7 +53,7 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
       final categories = await _api.fetchBCDSubcategories(parentBcdId);
       if (mounted) setState(() => _categories = categories);
     } catch (e) {
-      if (mounted) showAppSnackBar('Failed to load sub-categories');
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_subcategories);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -81,7 +82,7 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search…',
+                hintText: Translations.of(context).bcd_search_hint,
                 prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -107,8 +108,8 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
                     ? Center(
                         child: Text(
                           _searchQuery.isNotEmpty
-                              ? 'No categories match "$_searchQuery"'
-                              : 'No sub-categories available.',
+                              ? Translations.of(context).bcd_no_match_search
+                              : Translations.of(context).bcd_no_subcategories,
                           style: TextStyle(color: Colors.grey.shade500),
                         ),
                       )
@@ -143,13 +144,14 @@ class _CategoryCard extends StatelessWidget {
     final currency = product?['currency']?.toString() ?? '';
     final durationDays = product?['duration_days'];
 
+    final t = Translations.of(context);
     final String subtitle;
     if (subscribed) {
-      subtitle = 'Subscribed';
+      subtitle = t.bcd_subscribed;
     } else if (price != null && price.isNotEmpty) {
       subtitle = '$price $currency · $durationDays days';
     } else {
-      subtitle = 'Tap to subscribe';
+      subtitle = t.bcd_tap_to_subscribe;
     }
 
     return Card(

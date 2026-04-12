@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/providers/font_provider.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/services/version_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -118,6 +119,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final t = Translations.of(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final fontProvider = Provider.of<FontProvider>(context);
     final currentLocale = LocaleSettings.currentLocale;
     final isDark = themeProvider.isDark;
 
@@ -153,6 +155,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: isDark ? Colors.white : Colors.amber.shade700,
                         size: 20,
                       ),
+                    ),
+                  ),
+
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+
+                  // Font picker
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.font_download_rounded,
+                          color: Colors.purple.shade600, size: 20),
+                    ),
+                    title: const Text('Font'),
+                    subtitle: Text(fontProvider.fontFamily),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _LangChip(
+                          label: 'NudMoto',
+                          selected: fontProvider.fontFamily == 'NudMoto',
+                          onTap: () => fontProvider.setFont('NudMoto'),
+                        ),
+                        const SizedBox(width: 8),
+                        _LangChip(
+                          label: 'Inter',
+                          selected: fontProvider.fontFamily == 'Inter',
+                          onTap: () => fontProvider.setFont('Inter'),
+                        ),
+                      ],
                     ),
                   ),
 

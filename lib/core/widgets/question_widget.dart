@@ -26,7 +26,6 @@ class QuestionHeaderWidget extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: Colors.black87,
               height: 1.3,
-              fontFamily: 'NudMoto',
             ),
             children: [
               TextSpan(text: '$questionText '),

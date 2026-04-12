@@ -146,6 +146,9 @@ flutter:
     - family: NudMoto
       fonts:
         - asset: assets/fonts/NudMotoya.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.otf
 
   #         style: italic
   #   - family: Trajan Pro

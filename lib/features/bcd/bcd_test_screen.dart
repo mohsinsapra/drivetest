@@ -1,6 +1,7 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -51,7 +52,7 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
       if (!mounted) return;
 
       if (questions.isEmpty) {
-        showAppSnackBar('No questions found for this test.');
+        showAppSnackBar(Translations.of(context).bcd_no_questions);
         Navigator.pop(context);
         return;
       }
@@ -77,7 +78,7 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar('Failed to load test questions.');
+      showAppSnackBar(Translations.of(context).bcd_failed_test_questions);
       Navigator.pop(context);
     }
   }

@@ -1,6 +1,7 @@
 import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -113,7 +114,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       if (!mounted) return;
       final msg = e.toString();
       if (msg.toLowerCase().contains('cancel')) return;
-      showAppSnackBar('Payment failed. Please try again.');
+      showAppSnackBar(Translations.of(context).bcd_payment_failed);
     }
   }
 
@@ -136,7 +137,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       if (!mounted) return;
 
       if (testToStart == null) {
-        showAppSnackBar('No free practice test available for this category.');
+        showAppSnackBar(Translations.of(context).bcd_no_free_practice);
         return;
       }
 
@@ -156,7 +157,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         ),
       );
     } catch (_) {
-      if (mounted) showAppSnackBar('Failed to load practice test.');
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_practice);
     } finally {
       if (mounted) setState(() => _practiceLoading = false);
     }
@@ -170,14 +171,14 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       );
       if (savedQuestions.isEmpty) {
         if (mounted) {
-          showAppSnackBar('No saved questions in this category yet.');
+          showAppSnackBar(Translations.of(context).bcd_no_saved_questions);
         }
         return;
       }
 
       if (!mounted) return;
       if (savedQuestions.isEmpty) {
-        showAppSnackBar('No saved questions found in this category.');
+        showAppSnackBar(Translations.of(context).bcd_no_saved_questions_found);
         return;
       }
 
@@ -195,7 +196,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         ),
       );
     } catch (_) {
-      if (mounted) showAppSnackBar('Failed to load saved questions.');
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_saved);
     }
   }
 
@@ -285,6 +286,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(_categoryName)),
       body: SingleChildScrollView(
@@ -306,45 +308,52 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
               children: [
                 _HubTile(
                   icon: LucideIcons.helpCircle,
-                  label: 'Practice',
+                  label: t.bcd_hub_practice,
                   locked: false,
                   loading: _practiceLoading,
+                  tileColor: const Color(0xFF10B981),
                   onTap: () => _onTileTap('practice'),
                 ),
                 _HubTile(
                   icon: LucideIcons.fileText,
-                  label: 'Tests',
+                  label: t.bcd_hub_tests,
                   locked: !_subscribed,
+                  tileColor: const Color(0xFF4F46E5),
                   onTap: () => _onTileTap('tests'),
                 ),
                 _HubTile(
                   icon: LucideIcons.bookOpen,
-                  label: 'Theory\nDocuments',
-                  locked: false, // free
+                  label: t.bcd_hub_theory_docs,
+                  locked: false,
+                  tileColor: const Color(0xFFF59E0B),
                   onTap: () => _onTileTap('documents'),
                 ),
                 _HubTile(
                   icon: LucideIcons.alertTriangle,
-                  label: 'Traffic Signs',
-                  locked: false, // free
+                  label: t.bcd_hub_traffic_signs,
+                  locked: false,
+                  tileColor: const Color(0xFFEF4444),
                   onTap: () => _onTileTap('traffic_signs'),
                 ),
                 _HubTile(
                   icon: LucideIcons.clipboardCheck,
-                  label: 'Checklist',
-                  locked: false, // free
+                  label: t.bcd_hub_checklist,
+                  locked: false,
+                  tileColor: const Color(0xFF8B5CF6),
                   onTap: () => _onTileTap('checklists'),
                 ),
                 _HubTile(
                   icon: LucideIcons.barChart2,
-                  label: 'Statistics',
+                  label: t.bcd_hub_statistics,
                   locked: !_subscribed,
+                  tileColor: const Color(0xFF0EA5E9),
                   onTap: () => _onTileTap('statistics'),
                 ),
                 _HubTile(
                   icon: LucideIcons.bookmark,
-                  label: 'Saved\nQuestions',
+                  label: t.bcd_hub_saved_questions,
                   locked: false,
+                  tileColor: const Color(0xFFEC4899),
                   onTap: () => _onTileTap('saved_questions'),
                 ),
               ],
@@ -385,9 +394,9 @@ class _SubscriptionBanner extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'You don\'t have an active subscription for this category',
-                      style: TextStyle(
+                    Text(
+                      Translations.of(context).bcd_no_subscription,
+                      style: const TextStyle(
                         color: Color(0xFFD97706),
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
@@ -395,7 +404,7 @@ class _SubscriptionBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Practice, Traffic Signs, Documents and Checklists are free. Subscribe to unlock Tests.',
+                      Translations.of(context).bcd_free_content_desc,
                       style: TextStyle(
                         color: const Color(0xFFD97706).withValues(alpha: 0.85),
                         fontSize: 12,
@@ -410,7 +419,7 @@ class _SubscriptionBanner extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: onBuy,
             icon: const Icon(LucideIcons.shoppingCart, size: 16),
-            label: const Text('Buy subscription'),
+            label: Text(Translations.of(context).bcd_buy_subscription),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1E3A5F),
               foregroundColor: Colors.white,
@@ -433,23 +442,25 @@ class _HubTile extends StatelessWidget {
   final bool locked;
   final bool loading;
   final VoidCallback onTap;
+  final Color tileColor;
   const _HubTile({
     required this.icon,
     required this.label,
     required this.locked,
     required this.onTap,
+    required this.tileColor,
     this.loading = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = locked ? Colors.grey.shade400 : const Color(0xFF3B5F8A);
+    final color = locked ? Colors.grey.shade400 : tileColor;
     final bgColor = locked
         ? Colors.grey.shade100
-        : const Color(0xFF3B5F8A).withValues(alpha: 0.08);
+        : tileColor.withValues(alpha: 0.12);
 
     return Material(
-      color: locked ? const Color(0xFFF8F8F8) : const Color(0xFFF1F5F9),
+      color: locked ? const Color(0xFFF8F8F8) : tileColor.withValues(alpha: 0.07),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -564,7 +575,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
       }
     } catch (e) {
       if (mounted) {
-        showAppSnackBar('Failed to load tests');
+        showAppSnackBar(Translations.of(context).bcd_failed_tests);
         setState(() => _loading = false);
       }
     }
@@ -606,8 +617,8 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
               ? Center(
                   child: Text(
                     widget.practiceOnly
-                        ? 'No free practice tests available.'
-                        : 'No tests available.',
+                        ? Translations.of(context).bcd_no_free_practice_tests
+                        : Translations.of(context).bcd_no_tests,
                     style: TextStyle(color: Colors.grey.shade500),
                   ),
                 )
@@ -674,9 +685,9 @@ class _TestsSubscriptionBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'You\'re not subscribed to this category',
-                  style: TextStyle(
+                Text(
+                  Translations.of(context).bcd_not_subscribed,
+                  style: const TextStyle(
                     color: Color(0xFFD97706),
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
@@ -684,7 +695,7 @@ class _TestsSubscriptionBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Only free practice tests are available. Subscribe to unlock all tests.',
+                  Translations.of(context).bcd_only_free_tests,
                   style: TextStyle(
                     color: const Color(0xFFD97706).withValues(alpha: 0.85),
                     fontSize: 12,
@@ -693,8 +704,8 @@ class _TestsSubscriptionBanner extends StatelessWidget {
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: onBuy,
-                  child: const Text(
-                    'Buy subscription →',
+                  child: Text(
+                    Translations.of(context).bcd_buy_subscription_arrow,
                     style: TextStyle(
                       color: Color(0xFF1E3A5F),
                       fontWeight: FontWeight.w700,
@@ -751,7 +762,7 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _docs.isEmpty
               ? Center(
-                  child: Text('No documents available.',
+                  child: Text(Translations.of(context).bcd_no_documents,
                       style: TextStyle(color: Colors.grey.shade500)))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
@@ -842,7 +853,7 @@ class _BCDChecklistsScreenState extends State<_BCDChecklistsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty
               ? Center(
-                  child: Text('No checklists available.',
+                  child: Text(Translations.of(context).bcd_no_checklists,
                       style: TextStyle(color: Colors.grey.shade500)))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
@@ -947,12 +958,12 @@ class _TestCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Row(children: [
-                      _Chip(label: '${test['question_count'] ?? 0} questions'),
+                      _Chip(label: '${test['question_count'] ?? 0} ${Translations.of(context).bcd_questions_label}'),
                       const SizedBox(width: 6),
-                      _Chip(label: 'Pass ${test['pass_score'] ?? 0}%'),
+                      _Chip(label: '${Translations.of(context).bcd_pass_label} ${test['pass_score'] ?? 0}%'),
                       if (isFree) ...[
                         const SizedBox(width: 6),
-                        _Chip(label: 'FREE', color: const Color(0xFF059669)),
+                        _Chip(label: Translations.of(context).bcd_free_label, color: const Color(0xFF059669)),
                       ],
                     ]),
                   ],
@@ -1030,14 +1041,14 @@ class _PaywallSheet extends StatelessWidget {
                   const Icon(LucideIcons.lock,
                       size: 40, color: Color(0xFF4F46E5)),
                   const SizedBox(height: 12),
-                  Text('Subscription Required',
+                  Text(Translations.of(context).bcd_subscription_required,
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge
                           ?.copyWith(fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
                   Text(
-                    'Subscribe to access "$categoryName" and all its content.',
+                    Translations.of(context).bcd_subscribe_access.replaceAll('{name}', categoryName),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
@@ -1059,7 +1070,7 @@ class _PaywallSheet extends StatelessWidget {
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Not now'),
+                    child: Text(Translations.of(context).bcd_not_now),
                   ),
                 ],
               ),
@@ -1106,7 +1117,7 @@ class _ProductTile extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Buy'),
+            child: Text(Translations.of(context).bcd_buy),
           ),
         ],
       ),

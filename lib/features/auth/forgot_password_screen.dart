@@ -80,7 +80,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         title: Text(
           t.auth_forgot_title,
           style: TextStyle(
-            fontFamily: 'NudMoto',
             color: theme.colorScheme.onSurface,
           ),
         ),
@@ -111,7 +110,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'NudMoto',
                   color: theme.colorScheme.onSurface,
                 ),
               ),
@@ -123,7 +121,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  fontFamily: 'NudMoto',
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
@@ -148,7 +145,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           style: TextStyle(
                             color: theme.colorScheme.error,
                             fontSize: 13,
-                            fontFamily: 'NudMoto',
                           ),
                         ),
                       ),
@@ -177,7 +173,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           style: TextStyle(
                             color: theme.colorScheme.secondary,
                             fontSize: 13,
-                            fontFamily: 'NudMoto',
                           ),
                         ),
                       ),
@@ -197,14 +192,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   style: TextStyle(
-                    fontFamily: 'NudMoto',
                     color: theme.colorScheme.onSurface,
                   ),
                   decoration: InputDecoration(
                     hintText: t.auth_forgot_email_label,
                     hintStyle: TextStyle(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                      fontFamily: 'NudMoto',
                     ),
                     filled: false,
                     border: InputBorder.none,
@@ -232,7 +225,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            fontFamily: 'NudMoto',
                           ),
                         ),
                       ),
@@ -246,7 +238,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: Text(
                     t.auth_forgot_back_login,
                     style: TextStyle(
-                      fontFamily: 'NudMoto',
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.onSurface,

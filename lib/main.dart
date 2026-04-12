@@ -19,6 +19,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
+import 'package:taxi_exam_app/core/providers/font_provider.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
 void main() async {
@@ -142,6 +143,7 @@ Future<void> _appMain() async {
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
+            ChangeNotifierProvider(create: (_) => FontProvider()),
           ],
           child: MyApp(),
         ),
@@ -150,8 +152,8 @@ Future<void> _appMain() async {
   );
 }
 
-final darkTheme = ThemeData(
-  fontFamily: 'NudMoto',
+ThemeData buildDarkTheme(String font) => ThemeData(
+  fontFamily: font,
   brightness: Brightness.dark,
   colorScheme: const ColorScheme(
     primary: Color(0xFF5AADFF),
@@ -168,25 +170,25 @@ final darkTheme = ThemeData(
   ),
   scaffoldBackgroundColor: const Color(0xFF0F0F0F),
   cardColor: const Color(0xFF1C1C1E),
-  appBarTheme: const AppBarTheme(
-    backgroundColor: Color(0xFF1C1C1E),
+  appBarTheme: AppBarTheme(
+    backgroundColor: const Color(0xFF1C1C1E),
     elevation: 0,
-    iconTheme: IconThemeData(color: Colors.white),
+    iconTheme: const IconThemeData(color: Colors.white),
     titleTextStyle: TextStyle(
       color: Colors.white,
       fontSize: 20,
-      fontFamily: 'NudMoto',
+      fontFamily: font,
       fontWeight: FontWeight.w600,
     ),
     toolbarTextStyle: TextStyle(
       color: Colors.white,
       fontSize: 18,
-      fontFamily: 'NudMoto',
+      fontFamily: font,
     ),
   ),
   inputDecorationTheme: InputDecorationTheme(
-    labelStyle: const TextStyle(color: Color(0xFF9E9E9E), fontFamily: 'NudMoto'),
-    hintStyle: const TextStyle(color: Color(0xFF757575), fontFamily: 'NudMoto'),
+    labelStyle: TextStyle(color: const Color(0xFF9E9E9E), fontFamily: font),
+    hintStyle: TextStyle(color: const Color(0xFF757575), fontFamily: font),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(color: Color(0xFF3A3A3C), width: 0.5),
@@ -217,12 +219,12 @@ final darkTheme = ThemeData(
   dividerColor: const Color(0xFF2C2C2E),
 );
 
-final customTheme = ThemeData(
-  fontFamily: 'NudMoto',
+ThemeData buildLightTheme(String font) => ThemeData(
+  fontFamily: font,
   textTheme: TextTheme(
-    bodyLarge: TextStyle(fontFamily: 'NudMoto'),
-    bodyMedium: TextStyle(fontFamily: 'NudMoto'),
-    titleLarge: TextStyle(fontFamily: 'NudMoto'),
+    bodyLarge: TextStyle(fontFamily: font),
+    bodyMedium: TextStyle(fontFamily: font),
+    titleLarge: TextStyle(fontFamily: font),
   ),
   colorScheme: const ColorScheme(
     primary: Color.fromARGB(255, 39, 121, 188),
@@ -238,52 +240,37 @@ final customTheme = ThemeData(
     brightness: Brightness.light,
   ),
   inputDecorationTheme: InputDecorationTheme(
-    fillColor: Color(0xFF757575),
-    labelStyle: const TextStyle(
-      color: Color(0xFF757575), // Soft grey for label text
-      fontFamily: 'NudMoto',
-    ),
-    hintStyle: const TextStyle(
-      color: Color(0xFF9E9E9E), // Lighter grey for hint text
-      fontFamily: 'NudMoto',
-    ),
+    fillColor: const Color(0xFF757575),
+    labelStyle: TextStyle(color: const Color(0xFF757575), fontFamily: font),
+    hintStyle: TextStyle(color: const Color(0xFF9E9E9E), fontFamily: font),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(
-        color: Color(0xFFBDBDBD), // Lighter grey
-        width: 0.5, // Thinner border
-      ),
+      borderSide: const BorderSide(color: Color(0xFFBDBDBD), width: 0.5),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(
-        color: Color(0xFFBDBDBD), // Lighter grey
-        width: 0.5,
-      ),
+      borderSide: const BorderSide(color: Color(0xFFBDBDBD), width: 0.5),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(
-        color: Color(0xFF2779BC), // Use primary color for focus
-        width: 1,
-      ),
+      borderSide: const BorderSide(color: Color(0xFF2779BC), width: 1),
     ),
   ),
   scaffoldBackgroundColor: Colors.white,
-  appBarTheme: const AppBarTheme(
+  appBarTheme: AppBarTheme(
     backgroundColor: Colors.white,
     elevation: 0,
-    iconTheme: IconThemeData(color: Colors.black),
+    iconTheme: const IconThemeData(color: Colors.black),
     titleTextStyle: TextStyle(
       color: Colors.black,
       fontSize: 20,
-      fontFamily: 'NudMoto',
+      fontFamily: font,
       fontWeight: FontWeight.w600,
     ),
     toolbarTextStyle: TextStyle(
       color: Colors.black,
       fontSize: 18,
-      fontFamily: 'NudMoto',
+      fontFamily: font,
     ),
   ),
   buttonTheme: const ButtonThemeData(
@@ -313,6 +300,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final fontProvider = Provider.of<FontProvider>(context);
     final locale = InheritedLocaleData.of<AppLocale, Translations>(context)
         .locale
         .flutterLocale;
@@ -321,8 +309,8 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         navigatorKey: NavigationService.navigatorKey,
         locale: locale,
-        theme: customTheme,
-        darkTheme: darkTheme,
+        theme: buildLightTheme(fontProvider.fontFamily),
+        darkTheme: buildDarkTheme(fontProvider.fontFamily),
         themeMode: themeProvider.themeMode,
         debugShowCheckedModeBanner: false,
         home: UpgradeAlert(

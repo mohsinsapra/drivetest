@@ -300,7 +300,6 @@ class _AuthScreenState extends State<AuthScreen>
       hintText: hint,
       hintStyle: TextStyle(
         color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-        fontFamily: 'NudMoto',
         fontSize: 14 * s,
       ),
       filled: false,
@@ -330,7 +329,6 @@ class _AuthScreenState extends State<AuthScreen>
               style: TextStyle(
                 color: Colors.red.shade400,
                 fontSize: 12 * s,
-                fontFamily: 'NudMoto',
               ),
             ),
           ),
@@ -462,7 +460,6 @@ class _AuthScreenState extends State<AuthScreen>
                             fontSize: 12 * s,
                             color: theme.colorScheme.onSurface
                                 .withValues(alpha: 0.5),
-                            fontFamily: 'NudMoto',
                           ),
                         ),
                         SizedBox(height: 8 * s),
@@ -485,7 +482,6 @@ class _AuthScreenState extends State<AuthScreen>
                                     fontSize: 15 * s,
                                     color: theme.colorScheme.onSurface
                                         .withValues(alpha: 0.5),
-                                    fontFamily: 'NudMoto',
                                   ),
                                 ),
                                 const Spacer(),
@@ -544,12 +540,10 @@ class _AuthScreenState extends State<AuthScreen>
                         labelStyle: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14 * s,
-                          fontFamily: 'NudMoto',
                         ),
                         unselectedLabelStyle: TextStyle(
                           fontWeight: FontWeight.normal,
                           fontSize: 14 * s,
-                          fontFamily: 'NudMoto',
                         ),
                         dividerColor: Colors.transparent,
                         tabs: [
@@ -585,7 +579,6 @@ class _AuthScreenState extends State<AuthScreen>
                                         style: TextStyle(
                                           color: Colors.red,
                                           fontSize: 13 * s,
-                                          fontFamily: 'NudMoto',
                                         ),
                                       ),
                                     ),
@@ -602,7 +595,6 @@ class _AuthScreenState extends State<AuthScreen>
                                     onChanged: (_) => setState(
                                         () => _loginErrors.remove('username')),
                                     style: TextStyle(
-                                      fontFamily: 'NudMoto',
                                       fontSize: 14 * s,
                                       color: theme.colorScheme.onSurface,
                                     ),
@@ -627,7 +619,6 @@ class _AuthScreenState extends State<AuthScreen>
                                     onChanged: (_) => setState(
                                         () => _loginErrors.remove('password')),
                                     style: TextStyle(
-                                      fontFamily: 'NudMoto',
                                       fontSize: 14 * s,
                                       color: theme.colorScheme.onSurface,
                                     ),
@@ -646,7 +637,6 @@ class _AuthScreenState extends State<AuthScreen>
                                             color: theme.colorScheme.onSurface
                                                 .withValues(alpha: 0.5),
                                             fontSize: 13 * s,
-                                            fontFamily: 'NudMoto',
                                           ),
                                         ),
                                       ),
@@ -672,7 +662,6 @@ class _AuthScreenState extends State<AuthScreen>
                                           style: TextStyle(
                                             fontSize: 15 * s,
                                             fontWeight: FontWeight.w600,
-                                            fontFamily: 'NudMoto',
                                           ),
                                         ),
                                       ),
@@ -692,7 +681,6 @@ class _AuthScreenState extends State<AuthScreen>
                                     style: TextStyle(
                                       fontSize: 14 * s,
                                       fontWeight: FontWeight.bold,
-                                      fontFamily: 'NudMoto',
                                       color: theme.colorScheme.onSurface,
                                     ),
                                   ),
@@ -710,7 +698,6 @@ class _AuthScreenState extends State<AuthScreen>
                                         fontSize: 12 * s,
                                         color: theme.colorScheme.onSurface
                                             .withValues(alpha: 0.4),
-                                        fontFamily: 'NudMoto',
                                       ),
                                     ),
                                   ),
@@ -738,7 +725,6 @@ class _AuthScreenState extends State<AuthScreen>
                                     onChanged: (_) => setState(
                                         () => _signupErrors.remove('username')),
                                     style: TextStyle(
-                                      fontFamily: 'NudMoto',
                                       fontSize: 14 * s,
                                       color: theme.colorScheme.onSurface,
                                     ),
@@ -761,7 +747,6 @@ class _AuthScreenState extends State<AuthScreen>
                                     onChanged: (_) => setState(
                                         () => _signupErrors.remove('email')),
                                     style: TextStyle(
-                                      fontFamily: 'NudMoto',
                                       fontSize: 14 * s,
                                       color: theme.colorScheme.onSurface,
                                     ),
@@ -784,7 +769,6 @@ class _AuthScreenState extends State<AuthScreen>
                                     onChanged: (_) => setState(
                                         () => _signupErrors.remove('password')),
                                     style: TextStyle(
-                                      fontFamily: 'NudMoto',
                                       fontSize: 14 * s,
                                       color: theme.colorScheme.onSurface,
                                     ),
@@ -803,7 +787,6 @@ class _AuthScreenState extends State<AuthScreen>
                                             color: theme.colorScheme.onSurface
                                                 .withValues(alpha: 0.5),
                                             fontSize: 13 * s,
-                                            fontFamily: 'NudMoto',
                                           ),
                                         ),
                                       ),
@@ -825,7 +808,6 @@ class _AuthScreenState extends State<AuthScreen>
                                           style: TextStyle(
                                             fontSize: 15 * s,
                                             fontWeight: FontWeight.w600,
-                                            fontFamily: 'NudMoto',
                                           ),
                                         ),
                                       ),

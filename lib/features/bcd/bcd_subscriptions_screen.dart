@@ -4,6 +4,7 @@ import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -54,7 +55,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     } catch (e) {
       if (mounted) {
         setState(() => _loadingProducts = false);
-        showAppSnackBar('Failed to load plans');
+        showAppSnackBar(Translations.of(context).bcd_failed_plans);
       }
     }
   }
@@ -128,7 +129,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       }
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar('Payment failed. Please try again.');
+      showAppSnackBar(Translations.of(context).bcd_payment_failed);
     } finally {
       if (mounted) setState(() => _buying = false);
     }
@@ -144,7 +145,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     final rawIds = sub['subscribed_category_bcd_ids'];
     final ids = rawIds is List ? rawIds : <dynamic>[];
     if (ids.isEmpty) {
-      showAppSnackBar('No categories linked to this subscription');
+      showAppSnackBar(Translations.of(context).bcd_no_categories_linked);
       return;
     }
 
@@ -177,7 +178,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
 
       Navigator.push(context, route);
     } catch (_) {
-      if (mounted) showAppSnackBar('Failed to load category');
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_category);
     } finally {
       if (mounted) setState(() => _navigating = false);
     }
@@ -187,12 +188,12 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscriptions'),
+        title: Text(Translations.of(context).bcd_subscriptions),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Plans'),
-            Tab(text: 'My Subscriptions'),
+          tabs: [
+            Tab(text: Translations.of(context).bcd_plans_tab),
+            Tab(text: Translations.of(context).bcd_my_subscriptions_tab),
           ],
         ),
       ),
@@ -253,7 +254,7 @@ class _PlansTab extends StatelessWidget {
 
     if (products.isEmpty) {
       return Center(
-        child: Text('No plans available',
+        child: Text(Translations.of(context).bcd_no_plans,
             style: TextStyle(color: Colors.grey.shade500)),
       );
     }
@@ -361,8 +362,8 @@ class _ProductCard extends StatelessWidget {
                       color: const Color(0xFF059669).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Active',
-                        style: TextStyle(
+                    child: Text(Translations.of(context).bcd_active_label,
+                        style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF059669),
                             fontWeight: FontWeight.w600)),
@@ -399,7 +400,7 @@ class _ProductCard extends StatelessWidget {
                               height: 16,
                               child: CircularProgressIndicator(
                                   strokeWidth: 2, color: Colors.white))
-                          : const Text('Subscribe'),
+                          : Text(Translations.of(context).bcd_subscribe_btn),
                     ),
                 ],
               ),
@@ -451,10 +452,10 @@ class _MySubscriptionsTab extends StatelessWidget {
               Icon(LucideIcons.packageOpen,
                   size: 48, color: Colors.grey.shade300),
               const SizedBox(height: 12),
-              Text('No active subscriptions',
+              Text(Translations.of(context).bcd_no_active_subscriptions,
                   style: TextStyle(color: Colors.grey.shade500)),
               const SizedBox(height: 4),
-              Text('Browse plans to get started',
+              Text(Translations.of(context).bcd_browse_plans,
                   style: TextStyle(
                       fontSize: 12, color: Colors.grey.shade400)),
             ],
@@ -492,9 +493,10 @@ class _SubscriptionTile extends StatelessWidget {
     final product = sub['product'];
     final productName = (product is Map ? product['name']?.toString() : null) ?? 'Plan';
 
+    final t = Translations.of(context);
     final isActive = status == 'paid';
     final statusColor = isActive ? const Color(0xFF059669) : Colors.grey;
-    final statusLabel = isActive ? 'Active' : _capitalize(status);
+    final statusLabel = isActive ? t.bcd_active_label : _capitalize(status);
 
     return Material(
       color: Colors.transparent,
@@ -545,7 +547,7 @@ class _SubscriptionTile extends StatelessWidget {
                             fontWeight: FontWeight.w600, fontSize: 14)),
                     if (endDate.isNotEmpty)
                       Text(
-                        'Expires ${_formatDate(endDate)}',
+                        '${t.bcd_expires} ${_formatDate(endDate)}',
                         style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                       ),
                   ],

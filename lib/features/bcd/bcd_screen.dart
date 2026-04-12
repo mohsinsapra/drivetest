@@ -1,6 +1,7 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'bcd_licences_screen.dart';
 import 'bcd_traffic_signs_screen.dart';
 import 'bcd_subscriptions_screen.dart';
@@ -10,12 +11,13 @@ class BCDScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final sections = [
       _Section(
         icon: LucideIcons.bookOpenCheck,
         color: const Color(0xFF4F46E5),
-        title: 'Exams',
-        subtitle: 'Licences, categories & tests',
+        title: t.bcd_exams,
+        subtitle: t.bcd_exams_sub,
         onTap: () => Navigator.push(
           context,
           AppPageRoute(builder: (_) => const BCDLicencesScreen()),
@@ -24,8 +26,8 @@ class BCDScreen extends StatelessWidget {
       _Section(
         icon: LucideIcons.alertTriangle,
         color: const Color(0xFFD97706),
-        title: 'Traffic Signs',
-        subtitle: 'Browse all traffic signs',
+        title: t.bcd_traffic_signs,
+        subtitle: t.bcd_traffic_signs_sub,
         onTap: () => Navigator.push(
           context,
           AppPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
@@ -34,8 +36,8 @@ class BCDScreen extends StatelessWidget {
       _Section(
         icon: LucideIcons.creditCard,
         color: const Color(0xFF059669),
-        title: 'Subscriptions',
-        subtitle: 'View plans & manage access',
+        title: t.bcd_subscriptions,
+        subtitle: t.bcd_subscriptions_sub,
         onTap: () => Navigator.push(
           context,
           AppPageRoute(builder: (_) => const BCDSubscriptionsScreen()),
@@ -44,7 +46,7 @@ class BCDScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Drive Test')),
+      appBar: AppBar(title: Text(t.bcd_drive_test)),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: sections.length,
