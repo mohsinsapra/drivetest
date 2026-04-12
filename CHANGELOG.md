@@ -20,6 +20,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3+91] - 2026-04-12
+
+### Added
+- Home screen: 5-minute backend sync cache via `HomeDataCache` — tab switches within the window use local Hive only; pull-to-refresh or returning from a test forces an immediate re-sync
+- Home screen: pull-to-refresh (drag down) triggers a forced backend sync
+- Bottom nav: drag-to-scrub gesture — slide finger across the pill to switch tabs live; indicator and icons follow the finger instantly
+- Bottom nav: magnifying glass effect during drag — active icon scales to 1.45×, neighbours to 1.15×, indicator bubble expands and gets a primary-color glow
+- Settings: three-way theme selector (System / Light / Dark) replaces the dark mode toggle switch; System is the new default
+- Settings: app language defaults to device system locale when no preference is saved
+- Help & Support screen: all strings localized (20 new EN + SV translation keys)
+
+### Changed
+- `HomeDataCache.invalidate()` is called whenever a test attempt is saved so the home screen always re-syncs after an exam
+- Bottom nav: active icon uses `colorScheme.primary`, inactive uses `onSurface` at 40% opacity
+- Bottom nav: indicator background is dark-mode aware (white 12% opacity in dark, grey.shade100 in light)
+- `ThemeProvider` migrated from bool to string persistence (`'system'`/`'light'`/`'dark'`) with backward-compat migration of old bool key
+
+### Fixed
+-
+
+---
+---
+
 ## [1.0.3+90] - 2026-04-12
 
 ### Added
