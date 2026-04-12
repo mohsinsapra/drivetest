@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `bcd_subscribe_access` translation invocation error (slang generated getter, not function) — resolved with `.replaceAll('{name}', categoryName)`
 
 ---
+---
+---
 
 ## [1.0.3+84] - 2026-04-11
 
