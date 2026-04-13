@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+97] - 2026-04-13
 
 ### Added
 - Firebase Cloud Messaging integration for Android and web, including device token register/deregister with backend
@@ -23,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Duplicate notification handling caused by repeated NotificationService listener initialization across auth/splash flows
 - Potential duplicate push sends by deduplicating tokens server-side and avoiding duplicate active token ownership across users
+
+---
 ---
 
 ## [1.0.3+96] - 2026-04-13
