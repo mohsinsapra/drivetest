@@ -1,5 +1,7 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
@@ -48,6 +50,11 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
     try {
       final raw = await _api.fetchBCDTestQuestions(widget.testId);
       final questions = raw.map(_toQuestion).toList();
+      final prefs = await SharedPreferences.getInstance();
+      final shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
+      if (shuffleOnDevice) {
+        questions.shuffle(Random());
+      }
 
       if (!mounted) return;
 

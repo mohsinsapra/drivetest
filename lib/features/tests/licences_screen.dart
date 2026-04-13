@@ -599,10 +599,17 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         'color': Colors.blueAccent,
         'onPressed': () async {
           setState(() => isLoading = true);
+          final prefs = await SharedPreferences.getInstance();
+          final randomize = prefs.getBool('randomize') ?? true;
+          final shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
           final fetchedQuestions = await _apiService.fetchQuestions(
             selectedLicenseType?['licence_id'],
             selectedCategory?['category_id'],
+            randomize: randomize,
           );
+          if (shuffleOnDevice) {
+            fetchedQuestions.shuffle(Random());
+          }
           if (!mounted) return;
           setState(() => isLoading = false);
           Navigator.push(

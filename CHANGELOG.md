@@ -20,6 +20,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3+93] - 2026-04-13
+
+### Added
+-
+
+### Changed
+- Test randomization is now controlled from Settings: standard practice tests read the saved `Randomize Questions` and `Shuffle Question Order` preferences, and BCD test launches respect `Shuffle Question Order`
+
+### Fixed
+-
+
+---
+---
+
 ## [1.0.3+92] - 2026-04-13
 
 ### Added

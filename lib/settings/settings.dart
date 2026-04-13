@@ -22,6 +22,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool isTimed = false;
   bool isInstantMarking = false;
   bool includeSavedQuestions = false;
+  bool randomize = true;
+  bool shuffleOnDevice = false;
   int numberOfQuestions = 10;
   int maxQuestions = 1000;
   VersionInfo? _versionInfo;
@@ -82,6 +84,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       isInstantMarking = prefs.getBool('isInstantMarking') ?? false;
       includeSavedQuestions =
           prefs.getBool('includeSavedQuestions') ?? false;
+      randomize = prefs.getBool('randomize') ?? true;
+      shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
       numberOfQuestions = prefs.getInt('numberOfQuestions') ?? 10;
       _numberOfQuestionsController.text = numberOfQuestions.toString();
     });
@@ -92,6 +96,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool('isTimed', isTimed);
     await prefs.setBool('isInstantMarking', isInstantMarking);
     await prefs.setBool('includeSavedQuestions', includeSavedQuestions);
+    await prefs.setBool('randomize', randomize);
+    await prefs.setBool('shuffleOnDevice', shuffleOnDevice);
     await prefs.setInt('numberOfQuestions', numberOfQuestions);
   }
 
@@ -277,6 +283,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: Text(t.settings_instant_marking_sub),
                     value: isInstantMarking,
                     onChanged: (v) => setState(() => isInstantMarking = v),
+                  ),
+
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+
+                  SwitchListTile(
+                    title: const Text('Randomize Questions'),
+                    subtitle: const Text(
+                      'Get a fresh set of different questions every time you start a test',
+                    ),
+                    value: randomize,
+                    onChanged: (v) => setState(() => randomize = v),
+                  ),
+
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+
+                  SwitchListTile(
+                    title: const Text('Shuffle Question Order'),
+                    subtitle: const Text(
+                      'Keep the same questions but show them in a different order each time',
+                    ),
+                    value: shuffleOnDevice,
+                    onChanged: (v) => setState(() => shuffleOnDevice = v),
                   ),
 
                   const Divider(height: 1, indent: 16, endIndent: 16),

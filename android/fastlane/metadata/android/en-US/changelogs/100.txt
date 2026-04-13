@@ -1,0 +1,8 @@
+Added
+-
+
+Changed
+• Test randomization is now controlled from Settings: standard practice tests read the saved `Randomize Questions` and `Shuffle Question Order` preferences, and BCD test launches respect `Shuffle Question Order`
+
+Fixed
+-
