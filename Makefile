@@ -153,10 +153,12 @@ _android-deploy-core:
 	@echo "$(COLOR_GREEN)Deploying Android to alpha and promoting to production...$(COLOR_RESET)"
 	@cd android && bundle exec fastlane android deploy
 
-## _commit-and-push: Stage pubspec + changelog and push to main repo
+## _commit-and-push: Stage pubspec + changelog + fastlane reports and push to main repo
 _commit-and-push:
 	@echo "$(COLOR_BLUE)Committing changes to main repository...$(COLOR_RESET)"
 	@git add pubspec.yaml CHANGELOG.md
+	@git add android/fastlane/report.xml 2>/dev/null || true
+	@git add android/fastlane/metadata/ 2>/dev/null || true
 	@git diff --cached --quiet || git commit -m "chore: bump version to $(APP_VERSION)+$(APP_BUILD_NUMBER) [deploy]"
 	@git push
 	@echo "$(COLOR_GREEN)✅ Commit pushed!$(COLOR_RESET)"

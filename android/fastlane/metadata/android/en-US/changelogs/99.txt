@@ -1,0 +1,4 @@
+Added
+• GoRouter (`go_router ^17`) with deep-link URL for every screen; replaced `beamer`
+• `lib/core/router/app_router.dart` — `StatefulShellRoute.indexedStack` for 4 persistent tab branches (Home, Tests, BCD, Profile) with full route tree; `parentNavigatorKey: rootNavigatorKey` on immersive screens (test run, result, BCD test, custom test, attempt detail) so the floating nav pill is hidden during active test sessions
+• `lib/core/router/auth_notifier.dart` — singleton `AuthNotifier` / `AuthS...
