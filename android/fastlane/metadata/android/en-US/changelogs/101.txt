@@ -1,0 +1,8 @@
+Added
+-
+
+Changed
+• BCD category and subcategory lists now sort subscribed items first; shared the sorting logic in a common utility to keep both screens consistent
+
+Fixed
+-

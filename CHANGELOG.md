@@ -13,11 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+94] - 2026-04-13
+
+### Added
+-
+
+### Changed
 - BCD category and subcategory lists now sort subscribed items first; shared the sorting logic in a common utility to keep both screens consistent
 
 ### Fixed
 -
 
+---
 ---
 
 ## [1.0.3+93] - 2026-04-13
