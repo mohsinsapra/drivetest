@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+95] - 2026-04-13
+
+### Added
 - Firebase Cloud Messaging integration for Android and web, including device token register/deregister with backend
 - Notifications center screen with local notification history, unread state, mark-all-read, and clear-all actions
 - Android 13+ runtime notification permission (`POST_NOTIFICATIONS`)
@@ -23,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Duplicate notification handling caused by repeated NotificationService listener initialization across auth/splash flows
 - Potential duplicate push sends by deduplicating tokens server-side and avoiding duplicate active token ownership across users
 
+---
 ---
 
 ## [1.0.3+94] - 2026-04-13
