@@ -262,6 +262,17 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get help_opening_email => 'Opening email app...';
 	String get help_email_error => 'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
 	String get help_generic_error => 'Error opening email app. Please try again.';
+	String get notifications_title => 'Notifications';
+	String get notifications_mark_all_read => 'Mark all read';
+	String get notifications_clear => 'Clear';
+	String get notifications_clear_confirm_title => 'Clear all notifications?';
+	String get notifications_clear_confirm_body => 'This will remove all notifications. This action cannot be undone.';
+	String get notifications_empty_title => 'No notifications';
+	String get notifications_empty_subtitle => 'You\'re all caught up! We\'ll let you know when something new arrives.';
+	String get notifications_just_now => 'Just now';
+	String get notifications_minutes_ago => '{n} min ago';
+	String get notifications_hours_ago => '{n}h ago';
+	String get notifications_days_ago => '{n}d ago';
 }
 
 /// Flat map(s) containing all translations.
@@ -492,6 +503,17 @@ extension on Translations {
 			case 'help_opening_email': return 'Opening email app...';
 			case 'help_email_error': return 'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
 			case 'help_generic_error': return 'Error opening email app. Please try again.';
+			case 'notifications_title': return 'Notifications';
+			case 'notifications_mark_all_read': return 'Mark all read';
+			case 'notifications_clear': return 'Clear';
+			case 'notifications_clear_confirm_title': return 'Clear all notifications?';
+			case 'notifications_clear_confirm_body': return 'This will remove all notifications. This action cannot be undone.';
+			case 'notifications_empty_title': return 'No notifications';
+			case 'notifications_empty_subtitle': return 'You\'re all caught up! We\'ll let you know when something new arrives.';
+			case 'notifications_just_now': return 'Just now';
+			case 'notifications_minutes_ago': return '{n} min ago';
+			case 'notifications_hours_ago': return '{n}h ago';
+			case 'notifications_days_ago': return '{n}d ago';
 			default: return null;
 		}
 	}

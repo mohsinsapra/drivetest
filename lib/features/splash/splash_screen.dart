@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
+import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/intro/intro_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
@@ -90,6 +91,7 @@ class _SplashScreenState extends State<SplashScreen>
         try {
           await ApiService().fetchCurrentUser();
           isAuthenticated = true;
+          await NotificationService.init(ApiService());
         } catch (e) {
           debugPrint('SplashScreen: token validation failed — $e');
           await DioClient().logout();

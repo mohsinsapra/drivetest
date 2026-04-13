@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -35,6 +36,15 @@ class ApiService {
   }
 
   Future<void> logout() async {
+    // Deregister FCM token before clearing credentials
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        await deregisterFCMToken(token);
+      }
+    } catch (e) {
+      debugPrint('FCM deregister on logout failed (non-fatal): $e');
+    }
     final refreshToken = _dioClient.refreshToken;
     // Best-effort: blacklist the refresh token on the server
     if (refreshToken != null) {
@@ -565,6 +575,42 @@ class ApiService {
     final response =
         await _dio.get('api/v2/categories/$categoryId/checklists/');
     return _asList(response.data);
+  }
+
+  Future<void> registerFCMToken(String token, String platform) async {
+    try {
+      final response = await _dio.post(
+        'api/v2/notifications/register-token/',
+        data: {'token': token, 'platform': platform},
+      );
+      debugPrint(
+        '[FCM] registerFCMToken success: status=${response.statusCode}, platform=$platform, tokenLen=${token.length}',
+      );
+    } on DioException catch (e) {
+      debugPrint(
+        '[FCM] registerFCMToken DioException: status=${e.response?.statusCode}, data=${e.response?.data}',
+      );
+    } catch (e) {
+      debugPrint('[FCM] registerFCMToken failed: $e');
+    }
+  }
+
+  Future<void> deregisterFCMToken(String token) async {
+    try {
+      final response = await _dio.delete(
+        'api/v2/notifications/register-token/',
+        data: {'token': token},
+      );
+      debugPrint(
+        '[FCM] deregisterFCMToken success: status=${response.statusCode}, tokenLen=${token.length}',
+      );
+    } on DioException catch (e) {
+      debugPrint(
+        '[FCM] deregisterFCMToken DioException: status=${e.response?.statusCode}, data=${e.response?.data}',
+      );
+    } catch (e) {
+      debugPrint('[FCM] deregisterFCMToken failed: $e');
+    }
   }
 
   Future<List<dynamic>> fetchMyBCDSubscriptions() async {

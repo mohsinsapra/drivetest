@@ -225,5 +225,17 @@
   "help_or_email": "Eller mejla oss direkt på mohsin.sapra@gmail.com",
   "help_opening_email": "Öppnar e-postappen...",
   "help_email_error": "Kunde inte öppna e-postappen. Mejla mohsin.sapra@gmail.com direkt.",
-  "help_generic_error": "Fel vid öppning av e-postappen. Försök igen."
+  "help_generic_error": "Fel vid öppning av e-postappen. Försök igen.",
+
+  "notifications_title": "Aviseringar",
+  "notifications_mark_all_read": "Markera alla som lästa",
+  "notifications_clear": "Rensa",
+  "notifications_clear_confirm_title": "Rensa alla aviseringar?",
+  "notifications_clear_confirm_body": "Detta tar bort alla aviseringar. Åtgärden kan inte ångras.",
+  "notifications_empty_title": "Inga aviseringar",
+  "notifications_empty_subtitle": "Du är à jour! Vi meddelar dig när något nytt händer.",
+  "notifications_just_now": "Just nu",
+  "notifications_minutes_ago": "{n} min sedan",
+  "notifications_hours_ago": "{n} tim sedan",
+  "notifications_days_ago": "{n} dagar sedan"
 }

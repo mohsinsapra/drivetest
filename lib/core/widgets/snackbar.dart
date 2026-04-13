@@ -11,8 +11,8 @@ void _removeActiveSnackBarById(String id) {
 }
 
 void _syncActiveSnackBars() {
-  _activeSnackBars
-      .removeWhere((item) => toastification.findToastificationItem(item.id) == null);
+  _activeSnackBars.removeWhere(
+      (item) => toastification.findToastificationItem(item.id) == null);
 }
 
 /// Shows a pill-shaped top-centered toast notification.
@@ -21,7 +21,11 @@ void _syncActiveSnackBars() {
 ///   - [SnackBarType.success] → green check
 ///   - [SnackBarType.error]   → red alert
 ///   - [SnackBarType.info]    → neutral (default)
-void showAppSnackBar(String message, {SnackBarType type = SnackBarType.info}) {
+void showAppSnackBar(
+  String message, {
+  SnackBarType type = SnackBarType.info,
+  IconData? icon,
+}) {
   _syncActiveSnackBars();
 
   while (_activeSnackBars.length >= _maxVisibleSnackBars) {
@@ -37,6 +41,7 @@ void showAppSnackBar(String message, {SnackBarType type = SnackBarType.info}) {
 
   final item = toastification.show(
     type: toastType,
+    icon: icon == null ? null : Icon(icon, size: 18),
     style: ToastificationStyle.flat,
     alignment: Alignment.topCenter,
     description: Text(
@@ -65,7 +70,7 @@ void showAppSnackBar(String message, {SnackBarType type = SnackBarType.info}) {
     borderRadius: BorderRadius.circular(50),
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
     showProgressBar: false,
-    showIcon: type != SnackBarType.info,
+    showIcon: icon != null || type != SnackBarType.info,
     closeButtonShowType: CloseButtonShowType.none,
     closeOnClick: true,
     dragToClose: true,

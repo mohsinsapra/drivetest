@@ -15,6 +15,8 @@ import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/home/attempt_detail_screen.dart';
 import 'package:taxi_exam_app/core/services/home_data_cache.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
+import 'package:taxi_exam_app/features/notifications/notifications_screen.dart';
+import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -42,7 +44,6 @@ class _HomeScreenState extends State<HomeScreen>
   bool _isLoading = true;
   late final VoidCallback _tabListener;
   MainScreenProvider? _mainScreenProvider;
-
 
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
@@ -281,60 +282,64 @@ class _HomeScreenState extends State<HomeScreen>
                     await Future(() => _loadPreviousAttempts(forceSync: true));
                   },
                   child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: CustomScrollView(
-                    slivers: [
-                      // Header
-                      SliverToBoxAdapter(child: _buildHeader()),
+                    opacity: _fadeAnimation,
+                    child: CustomScrollView(
+                      slivers: [
+                        // Header
+                        SliverToBoxAdapter(child: _buildHeader()),
 
-                      if (hasData) ...[
-                        // Hero card
-                        SliverToBoxAdapter(
-                            child: _buildHeroCard(avgScore, passed, failed)),
-                        // Quick stats
-                        SliverToBoxAdapter(
-                            child: _buildQuickStats(passed, failed)),
-                        // In progress
-                        if (_pausedAttempts.isNotEmpty)
-                          SliverToBoxAdapter(child: _buildInProgressSection(t)),
-                        // Licence tabs
-                        if (licenceNames.length > 1)
+                        if (hasData) ...[
+                          // Hero card
                           SliverToBoxAdapter(
-                              child: _buildLicenceTabs(licenceNames)),
-                        // Charts
-                        SliverToBoxAdapter(
-                            child: _buildChartsSection(
-                                dailyCounts, monthlyCounts, t)),
-                        // Pie chart
-                        if (licenceWithCategories[selectedLicence] != null)
+                              child: _buildHeroCard(avgScore, passed, failed)),
+                          // Quick stats
                           SliverToBoxAdapter(
-                              child: _buildPieSection(
-                                  licenceWithCategories[selectedLicence]!, t)),
-                        // Activity header
-                        SliverToBoxAdapter(
-                            child: _buildSectionHeader(t.home_recent_activity,
-                                '${selectedAttempts.length} ${t.home_attempts}')),
-                        // Activity list
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) => _StaggeredItem(
-                              index: index,
-                              child:
-                                  _buildActivityItem(selectedAttempts[index]),
+                              child: _buildQuickStats(passed, failed)),
+                          // In progress
+                          if (_pausedAttempts.isNotEmpty)
+                            SliverToBoxAdapter(
+                                child: _buildInProgressSection(t)),
+                          // Licence tabs
+                          if (licenceNames.length > 1)
+                            SliverToBoxAdapter(
+                                child: _buildLicenceTabs(licenceNames)),
+                          // Charts
+                          SliverToBoxAdapter(
+                              child: _buildChartsSection(
+                                  dailyCounts, monthlyCounts, t)),
+                          // Pie chart
+                          if (licenceWithCategories[selectedLicence] != null)
+                            SliverToBoxAdapter(
+                                child: _buildPieSection(
+                                    licenceWithCategories[selectedLicence]!,
+                                    t)),
+                          // Activity header
+                          SliverToBoxAdapter(
+                              child: _buildSectionHeader(t.home_recent_activity,
+                                  '${selectedAttempts.length} ${t.home_attempts}')),
+                          // Activity list
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => _StaggeredItem(
+                                index: index,
+                                child:
+                                    _buildActivityItem(selectedAttempts[index]),
+                              ),
+                              childCount: selectedAttempts.length,
                             ),
-                            childCount: selectedAttempts.length,
                           ),
-                        ),
-                        const SliverToBoxAdapter(child: SizedBox(height: 110)),
-                      ] else if (_pausedAttempts.isNotEmpty) ...[
-                        SliverToBoxAdapter(child: _buildInProgressSection(t)),
-                        const SliverToBoxAdapter(child: SizedBox(height: 110)),
-                      ] else ...[
-                        SliverFillRemaining(child: _buildEmptyState(t)),
+                          const SliverToBoxAdapter(
+                              child: SizedBox(height: 110)),
+                        ] else if (_pausedAttempts.isNotEmpty) ...[
+                          SliverToBoxAdapter(child: _buildInProgressSection(t)),
+                          const SliverToBoxAdapter(
+                              child: SizedBox(height: 110)),
+                        ] else ...[
+                          SliverFillRemaining(child: _buildEmptyState(t)),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
                 ), // RefreshIndicator
               ),
       ),
@@ -362,10 +367,36 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.notifications_none_rounded,
-                color: Colors.grey.shade700),
-            onPressed: () {},
+          Consumer<NotificationProvider>(
+            builder: (_, notifProvider, __) => Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.notifications_none_rounded,
+                    color: Colors.grey.shade700,
+                  ),
+                  onPressed: () => Navigator.of(context).push(
+                    AppPageRoute(
+                      builder: (_) => const NotificationsScreen(),
+                    ),
+                  ),
+                ),
+                if (notifProvider.unreadCount > 0)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      width: 9,
+                      height: 9,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
           if (_previousAttempts.isNotEmpty)
             IconButton(
@@ -577,7 +608,8 @@ class _HomeScreenState extends State<HomeScreen>
         margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+          color:
+              Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -612,7 +644,9 @@ class _HomeScreenState extends State<HomeScreen>
                       fontSize: 13,
                       fontWeight:
                           isActive ? FontWeight.w600 : FontWeight.normal,
-                      color: isActive ? Theme.of(context).colorScheme.onSurface : Colors.grey.shade500,
+                      color: isActive
+                          ? Theme.of(context).colorScheme.onSurface
+                          : Colors.grey.shade500,
                     ),
                   ),
                 ),
@@ -706,14 +740,15 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildActivityItem(TestAttempt attempt) {
     final isPassed = attempt.hasPassed;
     final color = isPassed ? Colors.green.shade500 : Colors.red.shade400;
-    final bgColor = isPassed ? Colors.green.withValues(alpha: 0.12) : Colors.red.withValues(alpha: 0.12);
+    final bgColor = isPassed
+        ? Colors.green.withValues(alpha: 0.12)
+        : Colors.red.withValues(alpha: 0.12);
     final dt = attempt.dateTime;
 
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        AppPageRoute(
-            builder: (_) => AttemptDetailScreen(attempt: attempt)),
+        AppPageRoute(builder: (_) => AttemptDetailScreen(attempt: attempt)),
       ),
       child: Container(
         color: Theme.of(context).colorScheme.surface,
@@ -791,7 +826,11 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             const SizedBox(width: 6),
             Icon(Icons.chevron_right_rounded,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), size: 20),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.3),
+                size: 20),
           ],
         ),
       ),

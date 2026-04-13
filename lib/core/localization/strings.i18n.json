@@ -225,5 +225,17 @@
   "help_or_email": "Or email us directly at mohsin.sapra@gmail.com",
   "help_opening_email": "Opening email app...",
   "help_email_error": "Could not open email app. Please email mohsin.sapra@gmail.com directly.",
-  "help_generic_error": "Error opening email app. Please try again."
+  "help_generic_error": "Error opening email app. Please try again.",
+
+  "notifications_title": "Notifications",
+  "notifications_mark_all_read": "Mark all read",
+  "notifications_clear": "Clear",
+  "notifications_clear_confirm_title": "Clear all notifications?",
+  "notifications_clear_confirm_body": "This will remove all notifications. This action cannot be undone.",
+  "notifications_empty_title": "No notifications",
+  "notifications_empty_subtitle": "You're all caught up! We'll let you know when something new arrives.",
+  "notifications_just_now": "Just now",
+  "notifications_minutes_ago": "{n} min ago",
+  "notifications_hours_ago": "{n}h ago",
+  "notifications_days_ago": "{n}d ago"
 }

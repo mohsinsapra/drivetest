@@ -1,6 +1,8 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 
+import 'package:taxi_exam_app/core/services/notification_service.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -83,6 +85,8 @@ class _AuthScreenState extends State<AuthScreen>
     await Hive.close();
     await Hive.deleteFromDisk();
     await DioClient().init();
+    // Register FCM token now that auth tokens are loaded
+    NotificationService.init(_apiService).ignore();
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         AppPageRoute(builder: (context) => const MainScreen()),

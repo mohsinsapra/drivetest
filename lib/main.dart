@@ -20,6 +20,8 @@ import 'core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/providers/font_provider.dart';
+import 'package:taxi_exam_app/core/providers/notification_provider.dart';
+import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
 void main() async {
@@ -95,6 +97,8 @@ Future<void> _appMain() async {
   if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(TestAttemptAdapter());
   if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(QuestionAdapter());
   if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(OptionAdapter());
+  if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(LocalNotificationAdapter());
+  final notificationProvider = await NotificationProvider.create();
 
   try {
     // Load .env.local first (test keys). If it exists, its values are passed as
@@ -103,14 +107,18 @@ Future<void> _appMain() async {
     // In production .env.local is not bundled, so the catch is hit and we fall
     // back to plain .env (prod keys).
     Map<String, String> localOverrides = {};
-    try {
-      await dotenv.load(fileName: '.env.local');
-      localOverrides = Map<String, String>.from(dotenv.env);
-    } catch (_) {}
-    try {
-      await dotenv.load(fileName: '.env', mergeWith: localOverrides);
-    } catch (e) {
-      debugPrint('Failed to load .env: $e');
+    // On web, make web-run already injects all values via --dart-define.
+    // Skip dotenv loading to avoid 404 asset requests in the browser console.
+    if (!kIsWeb) {
+      try {
+        await dotenv.load(fileName: '.env.local');
+        localOverrides = Map<String, String>.from(dotenv.env);
+      } catch (_) {}
+      try {
+        await dotenv.load(fileName: '.env', mergeWith: localOverrides);
+      } catch (e) {
+        debugPrint('Failed to load .env: $e');
+      }
     }
 
     // dart-define values (CI / release builds) take final precedence
@@ -148,6 +156,7 @@ Future<void> _appMain() async {
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
             ChangeNotifierProvider(create: (_) => FontProvider()),
+            ChangeNotifierProvider<NotificationProvider>.value(value: notificationProvider),
           ],
           child: MyApp(),
         ),

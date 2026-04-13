@@ -259,6 +259,17 @@ class TranslationsSv implements Translations {
 	@override String get help_opening_email => 'Öppnar e-postappen...';
 	@override String get help_email_error => 'Kunde inte öppna e-postappen. Mejla mohsin.sapra@gmail.com direkt.';
 	@override String get help_generic_error => 'Fel vid öppning av e-postappen. Försök igen.';
+	@override String get notifications_title => 'Aviseringar';
+	@override String get notifications_mark_all_read => 'Markera alla som lästa';
+	@override String get notifications_clear => 'Rensa';
+	@override String get notifications_clear_confirm_title => 'Rensa alla aviseringar?';
+	@override String get notifications_clear_confirm_body => 'Detta tar bort alla aviseringar. Åtgärden kan inte ångras.';
+	@override String get notifications_empty_title => 'Inga aviseringar';
+	@override String get notifications_empty_subtitle => 'Du är à jour! Vi meddelar dig när något nytt händer.';
+	@override String get notifications_just_now => 'Just nu';
+	@override String get notifications_minutes_ago => '{n} min sedan';
+	@override String get notifications_hours_ago => '{n} tim sedan';
+	@override String get notifications_days_ago => '{n} dagar sedan';
 }
 
 /// Flat map(s) containing all translations.
@@ -489,6 +500,17 @@ extension on TranslationsSv {
 			case 'help_opening_email': return 'Öppnar e-postappen...';
 			case 'help_email_error': return 'Kunde inte öppna e-postappen. Mejla mohsin.sapra@gmail.com direkt.';
 			case 'help_generic_error': return 'Fel vid öppning av e-postappen. Försök igen.';
+			case 'notifications_title': return 'Aviseringar';
+			case 'notifications_mark_all_read': return 'Markera alla som lästa';
+			case 'notifications_clear': return 'Rensa';
+			case 'notifications_clear_confirm_title': return 'Rensa alla aviseringar?';
+			case 'notifications_clear_confirm_body': return 'Detta tar bort alla aviseringar. Åtgärden kan inte ångras.';
+			case 'notifications_empty_title': return 'Inga aviseringar';
+			case 'notifications_empty_subtitle': return 'Du är à jour! Vi meddelar dig när något nytt händer.';
+			case 'notifications_just_now': return 'Just nu';
+			case 'notifications_minutes_ago': return '{n} min sedan';
+			case 'notifications_hours_ago': return '{n} tim sedan';
+			case 'notifications_days_ago': return '{n} dagar sedan';
 			default: return null;
 		}
 	}

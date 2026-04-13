@@ -34,6 +34,27 @@ ifneq (,$(wildcard ./.env.local))
     export
 endif
 
+# Public config defaults — safe to hardcode (not secrets).
+# If .env provides them they take precedence via the include above.
+# Without these defaults, an absent .env would pass empty --dart-define values
+# which override the defaultValue in main.dart and silently break things.
+
+# Firebase web config
+FIREBASE_API_KEY              ?= AIzaSyCNHfjgw5mcgg5d7NayRluVTXwHPlpoGWM
+FIREBASE_AUTH_DOMAIN          ?= drive-test-a4f94.firebaseapp.com
+FIREBASE_PROJECT_ID           ?= drive-test-a4f94
+FIREBASE_STORAGE_BUCKET       ?= drive-test-a4f94.firebasestorage.app
+FIREBASE_MESSAGING_SENDER_ID  ?= 640394192831
+FIREBASE_APP_ID               ?= 1:640394192831:web:2f7c45b3bae1a15f1a630a
+FIREBASE_MEASUREMENT_ID       ?= G-2Y166BG2F3
+
+# Google OAuth client IDs (no defaultValue in code — must always be passed)
+GOOGLE_CLIENT_ID              ?= 678561448025-n2jia0bm2q47ojt4dmba4o7bg2opu18t.apps.googleusercontent.com
+GOOGLE_SERVER_CLIENT_ID       ?= 640394192831-e6hi0ho85923epa77ir6402ggl8pgrff.apps.googleusercontent.com
+
+# Sentry DSN (has a hardcoded default in main.dart, but .env value should win)
+SENTRY_DSN                    ?= https://32d4a7e8f8033e788074ecf90ad55f2a@o4511088769564672.ingest.de.sentry.io/4511202750038096
+
 # Set default base href if not provided in .env
 WEB_BASE_HREF ?= /
 
@@ -78,6 +99,7 @@ web-run:
 		--dart-define=STRIPE_PUBLISHABLE_KEY="$(STRIPE_PUBLISHABLE_KEY)" \
 		--dart-define=GOOGLE_WEB_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
 		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)" \
+		--dart-define=SENTRY_DSN="$(SENTRY_DSN)" \
 		--dart-define=APP_VERSION="$(APP_VERSION)" \
 		--dart-define=BUILD_NUMBER="$(APP_BUILD_NUMBER)" \
 		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
@@ -107,6 +129,7 @@ web-build:
 		--dart-define=STRIPE_PUBLISHABLE_KEY="$(LIVE_STRIPE_PUBLISHABLE_KEY)" \
 		--dart-define=GOOGLE_WEB_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
 		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)" \
+		--dart-define=SENTRY_DSN="$(SENTRY_DSN)" \
 		--dart-define=APP_VERSION="$(APP_VERSION)" \
 		--dart-define=BUILD_NUMBER="$(APP_BUILD_NUMBER)" \
 		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \

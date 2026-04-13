@@ -29,10 +29,15 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def resolvedNdkVersion = localProperties.getProperty('android.ndkVersion')
+if (resolvedNdkVersion == null || resolvedNdkVersion.trim().isEmpty()) {
+    resolvedNdkVersion = localProperties.getProperty('flutter.ndkVersion')
+}
+
 android {
     namespace "com.mohsinsapra.drivetest"
     compileSdk localProperties.getProperty('flutter.compileSdkVersion').toInteger()
-    ndkVersion localProperties.getProperty('flutter.ndkVersion')
+    ndkVersion resolvedNdkVersion
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,

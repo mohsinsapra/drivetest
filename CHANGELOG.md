@@ -10,13 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Firebase Cloud Messaging integration for Android and web, including device token register/deregister with backend
+- Notifications center screen with local notification history, unread state, mark-all-read, and clear-all actions
+- Android 13+ runtime notification permission (`POST_NOTIFICATIONS`)
 
 ### Changed
--
+- App startup now initializes notification persistence via Hive and registers notification provider globally
+- Web build/runtime flow now relies on Flutter Firebase initialization only (removed duplicate manual init from `web/index.html`)
+- Android build config now resolves NDK version from local properties (`android.ndkVersion` fallback to `flutter.ndkVersion`)
 
 ### Fixed
--
+- Duplicate notification handling caused by repeated NotificationService listener initialization across auth/splash flows
+- Potential duplicate push sends by deduplicating tokens server-side and avoiding duplicate active token ownership across users
 
 ---
 
