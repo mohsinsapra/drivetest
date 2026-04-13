@@ -53,7 +53,11 @@ class NotificationProvider extends ChangeNotifier {
       receivedAt: DateTime.now(),
       type: type,
     );
-    await box.add(n);
+    try {
+      await box.add(n);
+    } catch (e) {
+      debugPrint('[NotificationProvider] Hive persist failed: $e');
+    }
     _notifications.insert(0, n);
     notifyListeners();
   }

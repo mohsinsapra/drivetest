@@ -51,12 +51,17 @@ class NotificationService {
     });
 
     // Foreground messages — store locally and show snackbar
-    _onMessageSub = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    _onMessageSub =
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final title = message.notification?.title ?? '';
       final body = message.notification?.body ?? '';
       final type = (message.data['type'] ?? 'general').toString();
       if (title.isNotEmpty || body.isNotEmpty) {
-        NotificationProvider.instance.add(title, body, type: type);
+        try {
+          await NotificationProvider.instance.add(title, body, type: type);
+        } catch (e) {
+          debugPrint('[FCM] failed to persist notification: $e');
+        }
         showAppSnackBar(
           '$title: $body',
           type: _toastStyle(type),
