@@ -85,8 +85,9 @@ class _AuthScreenState extends State<AuthScreen>
     await Hive.close();
     await Hive.deleteFromDisk();
     await DioClient().init();
-    // Register FCM token now that auth tokens are loaded
-    NotificationService.init(_apiService).ignore();
+    // Register FCM token now that auth tokens are loaded.
+    // Await so web permission/token flow completes from this login action.
+    await NotificationService.init(_apiService);
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         AppPageRoute(builder: (context) => const MainScreen()),
@@ -133,15 +134,16 @@ class _AuthScreenState extends State<AuthScreen>
       if (idToken == null && accessToken == null) {
         throw Exception('No authentication token received');
       }
-      final isFirstLogin =
-          await _apiService.googleAuth(idToken: idToken, accessToken: accessToken);
+      final isFirstLogin = await _apiService.googleAuth(
+          idToken: idToken, accessToken: accessToken);
       if (!mounted) return;
       await _navigateToMain(isFirstLogin: isFirstLogin);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         if (_isDeletedAccountError(e)) {
-          _loginError = Translations.of(context).auth_deleted_account_welcome_back;
+          _loginError =
+              Translations.of(context).auth_deleted_account_welcome_back;
         } else {
           _loginError = GoogleSignInHelper.userMessage(e);
         }
@@ -293,7 +295,6 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-
   InputDecoration _fieldDecoration({
     String? hint,
     Widget? suffixWidget,
@@ -324,8 +325,7 @@ class _AuthScreenState extends State<AuthScreen>
       padding: const EdgeInsets.only(top: 6, left: 4),
       child: Row(
         children: [
-          Icon(Icons.error_outline,
-              color: Colors.red.shade400, size: 13),
+          Icon(Icons.error_outline, color: Colors.red.shade400, size: 13),
           const SizedBox(width: 4),
           Expanded(
             child: Text(
@@ -350,8 +350,7 @@ class _AuthScreenState extends State<AuthScreen>
     final currentFlag = currentLocale == AppLocale.sv ? '🇸🇪' : '🇬🇧';
 
     // Scale factor: 1.0 on tall screens (≥ 812), shrinks on shorter ones, min 0.78
-    final s =
-        (MediaQuery.of(context).size.height / 812.0).clamp(0.78, 1.0);
+    final s = (MediaQuery.of(context).size.height / 812.0).clamp(0.78, 1.0);
 
     // Use theme.cardColor for all cards/fields (dark: #1C1C1E, light: white)
     // For subtle contrast on white scaffold, fall back to a tinted card bg
@@ -408,7 +407,8 @@ class _AuthScreenState extends State<AuthScreen>
                           ),
                         ],
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 18, right: 10, top: 6, bottom: 6),
+                          padding: const EdgeInsets.only(
+                              left: 18, right: 10, top: 6, bottom: 6),
                           child: Text(currentFlag,
                               style: const TextStyle(fontSize: 20)),
                         ),
@@ -422,7 +422,8 @@ class _AuthScreenState extends State<AuthScreen>
                         ),
                       ),
                       IconButton(
-                        padding: const EdgeInsets.only(left: 10, right: 18, top: 6, bottom: 6),
+                        padding: const EdgeInsets.only(
+                            left: 10, right: 18, top: 6, bottom: 6),
                         constraints: const BoxConstraints(),
                         icon: Icon(isDark
                             ? Icons.light_mode_outlined
@@ -509,15 +510,14 @@ class _AuthScreenState extends State<AuthScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Divider(
                       height: 1,
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                     ),
                   ),
 
                   // Tab bar
                   Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 6 * s),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 24, vertical: 6 * s),
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -539,8 +539,8 @@ class _AuthScreenState extends State<AuthScreen>
                         ),
                         indicatorSize: TabBarIndicatorSize.tab,
                         labelColor: theme.colorScheme.onSurface,
-                        unselectedLabelColor: theme.colorScheme.onSurface
-                            .withValues(alpha: 0.4),
+                        unselectedLabelColor:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.4),
                         labelStyle: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14 * s,

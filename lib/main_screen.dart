@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_screen.dart';
@@ -83,6 +84,7 @@ class MainScreenState extends State<MainScreen> {
     super.initState();
     _pageController = PageController(initialPage: 0);
     _loadTabFlags();
+    NotificationService.init(_apiService).ignore();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Provider.of<MainScreenProvider>(context, listen: false).setIndex(0);
@@ -124,8 +126,7 @@ class MainScreenState extends State<MainScreen> {
     });
 
     // If the page the user is on is no longer in the nav bar, redirect to Home.
-    final visiblePages =
-        _navEntries.map((e) => e.pageIndex).toSet();
+    final visiblePages = _navEntries.map((e) => e.pageIndex).toSet();
     if (!visiblePages.contains(currentPage)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -203,9 +204,8 @@ class MainScreenState extends State<MainScreen> {
             controller: _pageController,
             onPageChanged: _onPageChanged,
             physics: const ClampingScrollPhysics(),
-            children: _kAllScreens
-                .map((s) => _KeepAlivePage(child: s))
-                .toList(),
+            children:
+                _kAllScreens.map((s) => _KeepAlivePage(child: s)).toList(),
           ),
           Positioned(
             left: 0,
@@ -285,8 +285,9 @@ class _FloatingNavPillState extends State<_FloatingNavPill> {
   int? _dragNavIndex;
   bool _isDragging = false;
 
-  int get _activeNavIndex =>
-      _isDragging ? (_dragNavIndex ?? widget.currentIndex) : widget.currentIndex;
+  int get _activeNavIndex => _isDragging
+      ? (_dragNavIndex ?? widget.currentIndex)
+      : widget.currentIndex;
 
   // Convert a global screen position to a nav tab index.
   int _navIndexAt(Offset globalPos) {
@@ -402,7 +403,10 @@ class _FloatingNavPillState extends State<_FloatingNavPill> {
                           size: 22,
                           color: isActive
                               ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.4),
                         ),
                       ),
                     ),
