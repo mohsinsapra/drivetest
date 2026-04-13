@@ -22,6 +22,9 @@ class NotificationService {
   /// Call once after Firebase.initializeApp and after the user is authenticated.
   static Future<void> init(ApiService api) async {
     if (_isInitialized) {
+      // App session may survive logout/login without reattaching listeners.
+      // Re-register token so backend always has the current active device.
+      await _registerToken(api);
       return;
     }
 
