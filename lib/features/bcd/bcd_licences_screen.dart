@@ -6,6 +6,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/utils/category_sort_utils.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
 import 'bcd_category_hub_screen.dart';
@@ -63,7 +64,7 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
       final categories = await _api.fetchBCDAllCategories();
       if (mounted) {
         setState(() {
-          _categories = categories;
+          _categories = sortSubscribedCategoriesFirst(categories);
           _animateList = false;
         });
       }
@@ -78,7 +79,11 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
   Future<void> _silentRefresh() async {
     try {
       final categories = await _api.fetchBCDAllCategories();
-      if (mounted) setState(() => _categories = categories);
+      if (mounted) {
+        setState(() {
+          _categories = sortSubscribedCategoriesFirst(categories);
+        });
+      }
     } catch (_) {
       // silent — don't bother the user if background refresh fails
     }
