@@ -106,15 +106,24 @@ Question _toQuestion(dynamic raw) {
     );
   }).toList();
 
-  // Build full URL for question image if present
+  // Build full URL for question image if present (legacy single image)
   final rawImagePath = q['image_url']?.toString() ?? '';
   final imageUrl =
       rawImagePath.isNotEmpty ? _api.bcdMediaUrl(rawImagePath) : '';
+
+  // Build full URLs for all images (new multi-image support)
+  final rawImages = (q['images'] as List<dynamic>?) ?? [];
+  final images = rawImages
+      .map((e) => e.toString())
+      .where((e) => e.isNotEmpty)
+      .map((path) => _api.bcdMediaUrl(path))
+      .toList();
 
   return Question(
     questionId: q['bcd_id']?.toString() ?? '',
     text: cleanBcdText(q['content']?.toString() ?? ''),
     imageUrl: imageUrl,
+    images: images,
     correctAnswer: q['correct_answer']?.toString() ?? '',
     answerExplanation: cleanBcdText(q['explanation']?.toString() ?? ''),
     options: options,

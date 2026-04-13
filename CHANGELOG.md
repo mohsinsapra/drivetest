@@ -20,6 +20,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3+92] - 2026-04-13
+
+### Added
+- GoRouter (`go_router ^17`) with deep-link URL for every screen; replaced `beamer`
+- `lib/core/router/app_router.dart` — `StatefulShellRoute.indexedStack` for 4 persistent tab branches (Home, Tests, BCD, Profile) with full route tree; `parentNavigatorKey: rootNavigatorKey` on immersive screens (test run, result, BCD test, custom test, attempt detail) so the floating nav pill is hidden during active test sessions
+- `lib/core/router/auth_notifier.dart` — singleton `AuthNotifier` / `AuthStatus` enum drives GoRouter `refreshListenable` redirect; eliminates `NavigationService.navigatorKey` for auth-state navigation
+- `lib/core/router/route_names.dart` — typed route path constants (`Routes.home`, `Routes.bcdTestsListPath()`, `Routes.testCustomPath()`, etc.)
+- `lib/core/router/route_args.dart` — typed arg classes (`TestScreenArgs`, `ResultScreenArgs`, `SavedQuestionsArgs`, `BCDTestsListArgs`, `BCDCategoryArgs`, `BCDTestScreenArgs`) for `extra`-based params
+- `lib/features/bcd/bcd_tests_list_screen.dart` — stand-alone routable `BCDTestsListScreen` extracted from the private class in the category hub; route `/bcd/exams/:categoryId/tests`
+- `lib/features/bcd/bcd_documents_screen.dart` — stand-alone routable `BCDDocumentsScreen`; route `/bcd/exams/:categoryId/docs`
+- `lib/features/bcd/bcd_checklists_screen.dart` — stand-alone routable `BCDChecklistsScreen`; route `/bcd/exams/:categoryId/checklists`
+- Complete BCD deep-link URL tree: `/bcd`, `/bcd/exams`, `/bcd/exams/:id`, `/bcd/exams/:id/sub`, `/bcd/exams/:id/tests`, `/bcd/exams/:id/test/:testId`, `/bcd/exams/:id/docs`, `/bcd/exams/:id/checklists`, `/bcd/exams/:id/stats`, `/bcd/exams/:id/saved`, `/bcd/signs`, `/bcd/subscriptions`
+- Complete Legacy Tests deep-link URL tree: `/tests`, `/tests/:licenceId/:categoryId`, `/tests/:licenceId/:categoryId/result`, `/tests/:licenceId/:categoryId/saved`, `/tests/:licenceId/:categoryId/custom`
+- `MainShell` widget replaces `MainScreen`; bridges `StatefulNavigationShell.goBranch()` with `MainScreenProvider` so `HomeScreen`'s tab listener still fires
+
+### Changed
+- `MyApp` migrated from `MaterialApp` to `MaterialApp.router` with `routerConfig: AppRouter.router`
+- `BCDCategoryHubScreen` navigation uses `context.push()` with typed route args for all hub tiles (tests, docs, checklists, traffic signs, stats, saved questions, practice)
+- All `showDialog` and `showModalBottomSheet` calls across shell-branch screens now pass `useRootNavigator: true` — fixes overlays rendering behind the floating nav pill
+- Dead private screen classes (`_BCDTestsListScreen`, `_BCDDocumentsScreen`, `_BCDChecklistsScreen`, `_TestCard`, `_Chip`, `_TestsSubscriptionBanner`) removed from `bcd_category_hub_screen.dart` after extraction to standalone files
+
+### Fixed
+- Floating nav pill rendering on top of dialogs and bottom sheets (logout confirmation, paywall, feedback, delete-test dialogs) — fixed with `useRootNavigator: true`
+- Floating nav pill visible during active test sessions (test screen, BCD test screen, result screen) — fixed with `parentNavigatorKey: rootNavigatorKey` on immersive routes
+- `BCDTestsListScreen` passed `_BCDTestArgsImpl` as route `extra` but router cast to `BCDTestScreenArgs` — replaced with `BCDTestScreenArgs` directly
+
+---
+---
+
 ## [1.0.3+91] - 2026-04-12
 
 ### Added

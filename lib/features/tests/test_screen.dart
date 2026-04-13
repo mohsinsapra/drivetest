@@ -180,6 +180,84 @@ class _TestscreenState extends State<Testscreen> {
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
+  Widget _buildImageTile(BuildContext context, double s, String url) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: GestureDetector(
+          onTap: () => showImageViewer(context, url),
+          child: Image.network(url, fit: BoxFit.cover),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildQuestionImages(
+    BuildContext context,
+    double s,
+    MediaQueryData mq,
+    List<String> urls,
+  ) {
+    if (urls.isEmpty) return [];
+
+    if (urls.length > 2) {
+      return [
+        GridView.count(
+          crossAxisCount: 2,
+          crossAxisSpacing: 8 * s,
+          mainAxisSpacing: 8 * s,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: urls.map((url) => _buildImageTile(context, s, url)).toList(),
+        ),
+        SizedBox(height: 12 * s),
+      ];
+    }
+
+    return [
+      ...urls.map(
+        (url) => Container(
+          margin: EdgeInsets.only(bottom: 12 * s),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: GestureDetector(
+              onTap: () => showImageViewer(context, url),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: mq.size.height * 0.32,
+                  maxWidth: mq.size.width * 0.9,
+                ),
+                child: Image.network(url, fit: BoxFit.contain),
+              ),
+            ),
+          ),
+        ),
+      ),
+      SizedBox(height: 8 * s),
+    ];
+  }
+
   @override
   void dispose() {
     _countdownTimer?.cancel();
@@ -947,36 +1025,16 @@ class _TestscreenState extends State<Testscreen> {
                     ),
                     SizedBox(height: 14 * s),
 
-                    // Question image (if available)
-                    if (question.imageUrl.isNotEmpty)
-                      Container(
-                        margin: EdgeInsets.only(bottom: 20 * s),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: GestureDetector(
-                            onTap: () => showImageViewer(context, questionUrl),
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxHeight: mq.size.height * 0.32,
-                                maxWidth: mq.size.width * 0.9,
-                              ),
-                              child: Image.network(questionUrl,
-                                  fit: BoxFit.contain),
-                            ),
-                          ),
-                        ),
-                      ),
+                    // Question images — use multi-image list if available,
+                    // fall back to legacy imageUrl for backward compatibility.
+                    ..._buildQuestionImages(
+                      context,
+                      s,
+                      mq,
+                      question.images.isNotEmpty
+                          ? question.images
+                          : (question.imageUrl.isNotEmpty ? [questionUrl] : []),
+                    ),
 
                     SizedBox(height: 12 * s),
 
