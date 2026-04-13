@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'dio_client.dart';
 
 class ApiService {
@@ -36,12 +36,9 @@ class ApiService {
   }
 
   Future<void> logout() async {
-    // Deregister FCM token before clearing credentials
+    // Deregister FCM token and reset NotificationService state before clearing credentials
     try {
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token != null) {
-        await deregisterFCMToken(token);
-      }
+      await NotificationService.deregister(this);
     } catch (e) {
       debugPrint('FCM deregister on logout failed (non-fatal): $e');
     }

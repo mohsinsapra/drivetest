@@ -86,8 +86,9 @@ class _AuthScreenState extends State<AuthScreen>
     await Hive.deleteFromDisk();
     await DioClient().init();
     // Register FCM token now that auth tokens are loaded.
+    // Use a fresh ApiService so it references the current Dio instance after init().
     // Await so web permission/token flow completes from this login action.
-    await NotificationService.init(_apiService);
+    await NotificationService.init(ApiService());
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         AppPageRoute(builder: (context) => const MainScreen()),

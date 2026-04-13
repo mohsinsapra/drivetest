@@ -107,7 +107,8 @@
       "Bash(sentry-wizard:*)",
       "Bash(brew install:*)",
       "Bash(flutter test:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(dart analyze:*)"
     ],
     "deny": [],
     "ask": []
