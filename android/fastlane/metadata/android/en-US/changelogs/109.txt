@@ -1,0 +1,5 @@
+Added
+• **Exam Progress Dashboard** — new full-featured dashboard screen with exam overview cards, category/batch progress, weekly streak, and smart insights
+• Dashboard is now the default landing screen (home icon); legacy Home screen only shown when `show_legacy_tests` is enabled on the user's account
+• Notification bell with unread badge added to the dashboard AppBar
+• Collapsible category sections in the 3-layer exam view — tap a category header to fold/unfold its batches into a single un...
