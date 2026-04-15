@@ -10,13 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Exam Progress Dashboard** — new full-featured dashboard screen with exam overview cards, category/batch progress, weekly streak, and smart insights
+- Dashboard is now the default landing screen (home icon); legacy Home screen only shown when `show_legacy_tests` is enabled on the user's account
+- Notification bell with unread badge added to the dashboard AppBar
+- Collapsible category sections in the 3-layer exam view — tap a category header to fold/unfold its batches into a single unified card
+- "Continue" banner on the dashboard now shows the last attempted test and launches it when tapped
+- All dashboard UI strings fully localised in English and Swedish
 
 ### Changed
--
+- Progress tab moved to first position in the nav bar and given the home icon
+- Legacy Home tab and Tests tab are now hidden unless `show_legacy_tests` is enabled from the backend
+- "Continue" suggestion logic updated: now shows the **most recently attempted** batch instead of the next untouched one
+- Nav fallback on tab removal redirects to Progress instead of Home
 
 ### Fixed
--
+- `testAttempts` Hive box is now opened on-demand in `DashboardProvider` — fixes zero-attempt stats on web (page refresh) and mobile cold-start when the Home tab had never been visited
+- BCD category tree (`BcdCache`) uses a `Completer` to deduplicate parallel fetch calls — prevents redundant API requests on simultaneous screen loads
 
 ---
 

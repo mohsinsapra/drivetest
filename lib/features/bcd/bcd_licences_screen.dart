@@ -4,8 +4,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/category_sort_utils.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
@@ -20,7 +20,6 @@ class BCDLicencesScreen extends StatefulWidget {
 }
 
 class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
-  final _api = ApiService();
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
 
@@ -61,10 +60,10 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
   Future<void> _loadCategories() async {
     setState(() => _loading = true);
     try {
-      final categories = await _api.fetchBCDAllCategories();
+      await BcdCache.instance.ensureLoaded();
       if (mounted) {
         setState(() {
-          _categories = sortSubscribedCategoriesFirst(categories);
+          _categories = sortSubscribedCategoriesFirst(BcdCache.instance.categories);
           _animateList = false;
         });
       }
@@ -78,10 +77,11 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
   // Refreshes data in the background without showing the shimmer loader.
   Future<void> _silentRefresh() async {
     try {
-      final categories = await _api.fetchBCDAllCategories();
+      BcdCache.instance.invalidate();
+      await BcdCache.instance.ensureLoaded();
       if (mounted) {
         setState(() {
-          _categories = sortSubscribedCategoriesFirst(categories);
+          _categories = sortSubscribedCategoriesFirst(BcdCache.instance.categories);
         });
       }
     } catch (_) {

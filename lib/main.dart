@@ -17,6 +17,10 @@ import 'package:clarity_flutter/clarity_flutter.dart';
 import 'package:clarity_web/clarity_web.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/models/test_attempt.dart';
+import 'package:taxi_exam_app/features/dashboard/models/exam_node.dart';
+import 'package:taxi_exam_app/features/dashboard/models/subscribed_exam.dart';
+import 'package:taxi_exam_app/features/dashboard/providers/dashboard_provider.dart';
+import 'package:taxi_exam_app/features/dashboard/repository/hive_dashboard_repository.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/providers/font_provider.dart';
@@ -106,6 +110,8 @@ Future<void> _appMain() async {
   if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(QuestionAdapter());
   if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(OptionAdapter());
   if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(LocalNotificationAdapter());
+  if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(SubscribedExamAdapter());
+  if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(ExamNodeAdapter());
   final notificationProvider = await NotificationProvider.create();
 
   try {
@@ -165,6 +171,11 @@ Future<void> _appMain() async {
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
             ChangeNotifierProvider(create: (_) => FontProvider()),
             ChangeNotifierProvider<NotificationProvider>.value(value: notificationProvider),
+            ChangeNotifierProvider(
+              create: (_) => DashboardProvider(
+                repository: HiveDashboardRepository(),
+              ),
+            ),
           ],
           child: MyApp(),
         ),

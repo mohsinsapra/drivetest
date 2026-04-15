@@ -5,6 +5,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
@@ -126,7 +127,8 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
     if (_practiceLoading) return;
     setState(() => _practiceLoading = true);
     try {
-      final tests = await _api.fetchBCDTests(_categoryBcdId);
+      await BcdCache.instance.ensureLoaded();
+      final tests = BcdCache.instance.testsOf(_categoryBcdId);
       final free = tests.where((t) => t['is_free'] == true).toList();
       
       // If no free test, but user is subscribed, use the first test available

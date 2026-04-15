@@ -9,19 +9,22 @@ import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_screen.dart';
 import 'package:taxi_exam_app/features/profile/profile_screen.dart';
+import 'package:taxi_exam_app/features/dashboard/screens/exam_dashboard_screen.dart';
 
 // Fixed page indices — these never change regardless of which tabs are visible.
 const int _kPageHome = 0;
 const int _kPageTests = 1;
 const int _kPageDriveTest = 2;
 const int _kPageProfile = 3;
+const int _kPageDashboard = 4;
 
-// All four screens at their fixed positions in the PageView.
+// All screens at their fixed positions in the PageView.
 const List<Widget> _kAllScreens = [
   HomeScreen(),
   LicenceTypesScreen(),
   BCDScreen(),
   ProfileScreen(),
+  ExamDashboardScreen(),
 ];
 
 class _NavEntry {
@@ -47,24 +50,34 @@ class MainScreenState extends State<MainScreen> {
   late PageController _pageController;
   final ApiService _apiService = ApiService();
 
-  bool _showLegacyTests = true;
+  // Hidden until backend confirms; prevents the Home tab from appearing
+  // on first launch for users who don't have legacy tests enabled.
+  bool _showLegacyTests = false;
   bool _showBcdTests = false;
   bool _listenerAttached = false;
 
   // Returns only the tabs the user should see, each pointing to a fixed page.
+  // Progress is always first. Home + Tests only appear when the backend sets
+  // show_legacy_tests = true on the user's account.
   List<_NavEntry> get _navEntries {
     return [
       const _NavEntry(
         icon: LucideIcons.home,
-        label: 'Home',
-        pageIndex: _kPageHome,
+        label: 'Progress',
+        pageIndex: _kPageDashboard,
       ),
-      if (_showLegacyTests)
+      if (_showLegacyTests) ...[
+        const _NavEntry(
+          icon: LucideIcons.barChart2,
+          label: 'Home',
+          pageIndex: _kPageHome,
+        ),
         const _NavEntry(
           icon: LucideIcons.bookOpenCheck,
           label: 'Tests',
           pageIndex: _kPageTests,
         ),
+      ],
       if (_showBcdTests)
         const _NavEntry(
           icon: LucideIcons.graduationCap,
@@ -82,12 +95,13 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: 0);
+    _pageController = PageController(initialPage: _kPageDashboard);
     _loadTabFlags();
     NotificationService.init(_apiService).ignore();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Provider.of<MainScreenProvider>(context, listen: false).setIndex(0);
+        Provider.of<MainScreenProvider>(context, listen: false)
+            .setIndex(_kPageDashboard);
       }
     });
   }
@@ -125,14 +139,14 @@ class MainScreenState extends State<MainScreen> {
       _showBcdTests = newShowBcd;
     });
 
-    // If the page the user is on is no longer in the nav bar, redirect to Home.
+    // If the page the user is on is no longer in the nav bar, redirect to Progress.
     final visiblePages = _navEntries.map((e) => e.pageIndex).toSet();
     if (!visiblePages.contains(currentPage)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        provider.setIndex(_kPageHome);
+        provider.setIndex(_kPageDashboard);
         if (_pageController.hasClients) {
-          _pageController.jumpToPage(_kPageHome);
+          _pageController.jumpToPage(_kPageDashboard);
         }
       });
     }

@@ -109,7 +109,8 @@
       "Bash(flutter test:*)",
       "Read(//tmp/**)",
       "Bash(dart analyze:*)",
-      "Bash(flutter --version)"
+      "Bash(flutter --version)",
+      "Bash(awk '{ *)"
     ],
     "deny": [],
     "ask": []
