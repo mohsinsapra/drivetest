@@ -237,5 +237,7 @@
   "notifications_just_now": "Just now",
   "notifications_minutes_ago": "{n} min ago",
   "notifications_hours_ago": "{n}h ago",
-  "notifications_days_ago": "{n}d ago"
+  "notifications_days_ago": "{n}d ago",
+  "image_viewer_swipe_to_close": "Swipe down to close",
+  "image_viewer_load_error": "Could not load image"
 }

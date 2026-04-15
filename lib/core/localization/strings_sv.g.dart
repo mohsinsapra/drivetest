@@ -270,6 +270,8 @@ class TranslationsSv implements Translations {
 	@override String get notifications_minutes_ago => '{n} min sedan';
 	@override String get notifications_hours_ago => '{n} tim sedan';
 	@override String get notifications_days_ago => '{n} dagar sedan';
+	@override String get image_viewer_swipe_to_close => 'Svep nedåt för att stänga';
+	@override String get image_viewer_load_error => 'Kunde inte ladda bilden';
 }
 
 /// Flat map(s) containing all translations.
@@ -511,6 +513,8 @@ extension on TranslationsSv {
 			case 'notifications_minutes_ago': return '{n} min sedan';
 			case 'notifications_hours_ago': return '{n} tim sedan';
 			case 'notifications_days_ago': return '{n} dagar sedan';
+			case 'image_viewer_swipe_to_close': return 'Svep nedåt för att stänga';
+			case 'image_viewer_load_error': return 'Kunde inte ladda bilden';
 			default: return null;
 		}
 	}

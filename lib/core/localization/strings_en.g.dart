@@ -273,6 +273,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get notifications_minutes_ago => '{n} min ago';
 	String get notifications_hours_ago => '{n}h ago';
 	String get notifications_days_ago => '{n}d ago';
+	String get image_viewer_swipe_to_close => 'Swipe down to close';
+	String get image_viewer_load_error => 'Could not load image';
 }
 
 /// Flat map(s) containing all translations.
@@ -514,6 +516,8 @@ extension on Translations {
 			case 'notifications_minutes_ago': return '{n} min ago';
 			case 'notifications_hours_ago': return '{n}h ago';
 			case 'notifications_days_ago': return '{n}d ago';
+			case 'image_viewer_swipe_to_close': return 'Swipe down to close';
+			case 'image_viewer_load_error': return 'Could not load image';
 			default: return null;
 		}
 	}

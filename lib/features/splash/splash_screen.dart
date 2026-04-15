@@ -46,7 +46,14 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _run() async {
     // Ensure splash is visible for a minimum time even on fast devices.
     final stopwatch = Stopwatch()..start();
-    final data = await _initializeApp();
+    final data = await _initializeApp().timeout(
+      const Duration(seconds: 12),
+      onTimeout: () {
+        debugPrint('SplashScreen: _initializeApp hard timeout — proceeding unauthenticated');
+        DioClient().logout();
+        return {'onboardingComplete': false, 'isAuthenticated': false};
+      },
+    );
     final remaining =
         const Duration(milliseconds: 1400) - stopwatch.elapsed;
     if (remaining > Duration.zero) await Future.delayed(remaining);
@@ -89,10 +96,17 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (hasTokens) {
         try {
-          await ApiService().fetchCurrentUser();
+          // Cap at 7 s: a 401 with token refresh + retry can chain into
+          // ~75 s of Dio timeouts (5 s connect + 20 s receive, twice).
+          // Without this cap the splash screen hangs until all retries exhaust.
+          await ApiService().fetchCurrentUser().timeout(
+            const Duration(seconds: 7),
+          );
           isAuthenticated = true;
         } catch (e) {
           debugPrint('SplashScreen: token validation failed — $e');
+          // Clear tokens so any in-flight background request's interceptor
+          // doesn't fire logoutAndRedirect() after we've already navigated.
           await DioClient().logout();
         }
 

@@ -237,5 +237,7 @@
   "notifications_just_now": "Just nu",
   "notifications_minutes_ago": "{n} min sedan",
   "notifications_hours_ago": "{n} tim sedan",
-  "notifications_days_ago": "{n} dagar sedan"
+  "notifications_days_ago": "{n} dagar sedan",
+  "image_viewer_swipe_to_close": "Svep nedåt för att stänga",
+  "image_viewer_load_error": "Kunde inte ladda bilden"
 }

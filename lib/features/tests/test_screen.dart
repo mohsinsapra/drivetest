@@ -81,6 +81,7 @@ class _TestscreenState extends State<Testscreen> {
   Map<int, List<String>> translatedOptions = {};
   Map<String, List<Question>> translatedQuestionsWithOptions = {};
   String currentLanguageCode = 'SV';
+  String? _previousLanguageCode;
 
   // Timer
   Timer? _countdownTimer;
@@ -716,9 +717,12 @@ class _TestscreenState extends State<Testscreen> {
     final targetLang = value.toLowerCase();
     if (targetLang == currentLanguageCode.toLowerCase()) return;
 
+    final previousCode = currentLanguageCode;
+
     if (targetLang == 'sv') {
       if (mounted) {
         setState(() {
+          _previousLanguageCode = previousCode;
           currentLanguageCode = value;
           isEnglish = false;
         });
@@ -729,9 +733,15 @@ class _TestscreenState extends State<Testscreen> {
     await _translateQuestion(currentQuestionIndex, targetLang);
     if (mounted) {
       setState(() {
+        _previousLanguageCode = previousCode;
         currentLanguageCode = value;
       });
     }
+  }
+
+  Future<void> _revertToPreviousLanguage() async {
+    if (_previousLanguageCode == null) return;
+    await _onLanguageSelected(_previousLanguageCode!);
   }
 
   void disableScreenshot() async {
@@ -994,7 +1004,10 @@ class _TestscreenState extends State<Testscreen> {
             List<String> optionTexts = [];
             optionTexts = question.options.map((e) => e.text).toList();
 
-            return Padding(
+            return GestureDetector(
+              onLongPress: _revertToPreviousLanguage,
+              onLongPressUp: () => _revertToPreviousLanguage(),
+              child: Padding(
               padding: EdgeInsets.all(20.0 * s),
               child: SingleChildScrollView(
                 child: Column(
@@ -1163,6 +1176,7 @@ class _TestscreenState extends State<Testscreen> {
                   ],
                 ),
               ),
+            ),
             );
           },
         ),
