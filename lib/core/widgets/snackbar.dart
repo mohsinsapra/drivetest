@@ -39,9 +39,15 @@ void showAppSnackBar(
     SnackBarType.info => ToastificationType.info,
   };
 
+  final (IconData resolvedIcon, Color iconColor) = switch (type) {
+    SnackBarType.success => (Icons.check_circle_rounded, const Color(0xFF22C55E)),
+    SnackBarType.error => (Icons.error_rounded, const Color(0xFFEF4444)),
+    SnackBarType.info => (Icons.info_rounded, const Color(0xFF3B82F6)),
+  };
+
   final item = toastification.show(
     type: toastType,
-    icon: icon == null ? null : Icon(icon, size: 18),
+    icon: Icon(icon ?? resolvedIcon, size: 18, color: iconColor),
     style: ToastificationStyle.flat,
     alignment: Alignment.topCenter,
     description: Text(
@@ -70,7 +76,7 @@ void showAppSnackBar(
     borderRadius: BorderRadius.circular(50),
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
     showProgressBar: false,
-    showIcon: icon != null || type != SnackBarType.info,
+    showIcon: true,
     closeButtonShowType: CloseButtonShowType.none,
     closeOnClick: true,
     dragToClose: true,

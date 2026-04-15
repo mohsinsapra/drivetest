@@ -108,7 +108,8 @@
       "Bash(brew install:*)",
       "Bash(flutter test:*)",
       "Read(//tmp/**)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "Bash(flutter --version)"
     ],
     "deny": [],
     "ask": []

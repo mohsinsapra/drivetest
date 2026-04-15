@@ -1,0 +1,12 @@
+Added
+
+• Tap and hold on any translation key toggles between English and Swedish instantly in-app (Settings > Language must be set to "System" or "English/Swedish")
+
+-
+
+Changed
+-
+
+Fixed
+• Fixed splash screen occasionally getting stuck on app startup
+• Enhanced snackbar error handling and add new features in various screens

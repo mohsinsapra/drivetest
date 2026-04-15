@@ -58,7 +58,7 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
         });
       }
     } catch (e) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_subcategories);
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_subcategories, type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

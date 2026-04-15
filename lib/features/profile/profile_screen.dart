@@ -173,10 +173,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(ok ? t.auth_feedback_sent : t.auth_feedback_error),
-      ),
+    showAppSnackBar(
+      ok ? t.auth_feedback_sent : t.auth_feedback_error,
+      type: ok ? SnackBarType.success : SnackBarType.error,
     );
   }
 

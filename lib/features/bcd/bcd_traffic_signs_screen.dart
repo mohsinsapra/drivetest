@@ -67,7 +67,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _loading = false);
-        showAppSnackBar(Translations.of(context).bcd_failed_traffic_signs);
+        showAppSnackBar(Translations.of(context).bcd_failed_traffic_signs, type: SnackBarType.error);
       }
     }
   }

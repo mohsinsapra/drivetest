@@ -82,14 +82,13 @@ class _AuthScreenState extends State<AuthScreen>
         isFirstLogin: isFirstLogin,
       );
     }
-    await Hive.close();
-    await Hive.deleteFromDisk();
-    await DioClient().init();
     // Register FCM token now that auth tokens are loaded.
     // Non-fatal: on iOS web, requestPermission() can throw (Web Push
-    // unsupported pre-Safari 16.4). A throw must not block navigation.
+    // unsupported pre-Safari 16.4). On web, getToken() / requestPermission()
+    // may never resolve if the service worker isn't ready — always time out.
     try {
-      await NotificationService.init(ApiService());
+      await NotificationService.init(ApiService())
+          .timeout(const Duration(seconds: 6));
     } catch (e) {
       debugPrint('AuthScreen: notification init failed (non-fatal) — $e');
     }
@@ -142,7 +141,17 @@ class _AuthScreenState extends State<AuthScreen>
       final isFirstLogin = await _apiService.googleAuth(
           idToken: idToken, accessToken: accessToken);
       if (!mounted) return;
-      await _navigateToMain(isFirstLogin: isFirstLogin);
+      try {
+        await _navigateToMain(isFirstLogin: isFirstLogin);
+      } catch (navError) {
+        debugPrint('AuthScreen: navigation error after Google login — $navError');
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            AppPageRoute(builder: (context) => const MainScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -182,7 +191,20 @@ class _AuthScreenState extends State<AuthScreen>
         _loginPasswordController.text,
       );
       if (!mounted) return;
-      await _navigateToMain(isFirstLogin: isFirstLogin);
+      // Navigate — errors here are non-auth (network, timeout) so catch separately.
+      try {
+        await _navigateToMain(isFirstLogin: isFirstLogin);
+      } catch (navError) {
+        if (!mounted) return;
+        debugPrint('AuthScreen: navigation error after login — $navError');
+        // Still attempt navigation without profile data.
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            AppPageRoute(builder: (context) => const MainScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -263,11 +285,11 @@ class _AuthScreenState extends State<AuthScreen>
           }
         });
         setState(() => _signupErrors = serverErrors);
-        showAppSnackBar(Translations.of(context).auth_signup_failed);
+        showAppSnackBar(Translations.of(context).auth_signup_failed, type: SnackBarType.error);
       }
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(Translations.of(context).auth_generic_error);
+      showAppSnackBar(Translations.of(context).auth_generic_error, type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

@@ -69,7 +69,7 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
         });
       }
     } catch (e) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_categories);
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_categories, type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

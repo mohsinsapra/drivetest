@@ -55,7 +55,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     } catch (e) {
       if (mounted) {
         setState(() => _loadingProducts = false);
-        showAppSnackBar(Translations.of(context).bcd_failed_plans);
+        showAppSnackBar(Translations.of(context).bcd_failed_plans, type: SnackBarType.error);
       }
     }
   }
@@ -125,11 +125,11 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       if (!mounted) return;
       final msg = e.error.localizedMessage ?? 'Payment cancelled';
       if (!msg.toLowerCase().contains('cancel')) {
-        showAppSnackBar(msg);
+        showAppSnackBar(msg, type: SnackBarType.error);
       }
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(Translations.of(context).bcd_payment_failed);
+      showAppSnackBar(Translations.of(context).bcd_payment_failed, type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _buying = false);
     }
@@ -178,7 +178,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
 
       Navigator.push(context, route);
     } catch (_) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_category);
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_category, type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _navigating = false);
     }

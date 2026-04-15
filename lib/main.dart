@@ -37,6 +37,14 @@ void main() async {
       options.environment = kReleaseMode
           ? (kIsWeb ? 'production-web' : 'production-android')
           : (kIsWeb ? 'debug-web' : 'debug-android');
+      // Drop known Flutter CanvasKit engine bug: WebGL context loss fires
+      // onContextLost before _handledContextLostEvent is initialised.
+      // The browser recovers the GL context automatically — not actionable.
+      options.beforeSend = (event, hint) {
+        final msg = event.throwable?.toString() ?? '';
+        if (msg.contains('_handledContextLostEvent')) return null;
+        return event;
+      };
     },
     appRunner: _appMain,
   );

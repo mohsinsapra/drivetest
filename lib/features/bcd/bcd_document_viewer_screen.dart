@@ -32,7 +32,7 @@ class _BCDDocumentViewerScreenState extends State<BCDDocumentViewerScreen> {
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         } else if (mounted) {
-          showAppSnackBar('Could not open document.');
+          showAppSnackBar('Could not open document.', type: SnackBarType.error);
         }
         if (mounted) Navigator.pop(context);
       });

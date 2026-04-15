@@ -114,7 +114,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       if (!mounted) return;
       final msg = e.toString();
       if (msg.toLowerCase().contains('cancel')) return;
-      showAppSnackBar(Translations.of(context).bcd_payment_failed);
+      showAppSnackBar(Translations.of(context).bcd_payment_failed, type: SnackBarType.error);
     }
   }
 
@@ -157,7 +157,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         ),
       );
     } catch (_) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_practice);
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_practice, type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _practiceLoading = false);
     }
@@ -196,7 +196,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         ),
       );
     } catch (_) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_saved);
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_saved, type: SnackBarType.error);
     }
   }
 
@@ -578,7 +578,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
       }
     } catch (e) {
       if (mounted) {
-        showAppSnackBar(Translations.of(context).bcd_failed_tests);
+        showAppSnackBar(Translations.of(context).bcd_failed_tests, type: SnackBarType.error);
         setState(() => _loading = false);
       }
     }

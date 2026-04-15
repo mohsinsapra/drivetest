@@ -20,6 +20,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.3+105] - 2026-04-15
+
+### Added
+
+- Tap and hold on any translation key toggles between English and Swedish instantly in-app (Settings > Language must be set to "System" or "English/Swedish")
+
+-
+
+### Changed
+-
+
+### Fixed
+- Fixed splash screen occasionally getting stuck on app startup
+- Enhanced snackbar error handling and add new features in various screens
+
+---
+---
+
+## [1.0.3+105] - 2026-04-15
+
+### Added
+
+- Tap and hold on any translation key toggles between English and Swedish instantly in-app (Settings > Language must be set to "System" or "English/Swedish")
+
+-
+
+### Changed
+-
+
+### Fixed
+- Fixed splash screen occasionally getting stuck on app startup
+-
+
+---
+---
+
 ## [1.0.3+104] - 2026-04-15
 
 ### Added

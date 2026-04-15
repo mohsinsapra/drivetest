@@ -81,6 +81,21 @@ class NotificationProvider extends ChangeNotifier {
     if (changed) notifyListeners();
   }
 
+  /// Whether any notification with [type] exists.
+  bool hasType(String type) => _notifications.any((n) => n.type == type);
+
+  /// Remove all notifications with the given [type].
+  Future<void> removeByType(String type) async {
+    final toRemove = _notifications.where((n) => n.type == type).toList();
+    for (final n in toRemove) {
+      try {
+        await n.delete();
+      } catch (_) {}
+    }
+    _notifications.removeWhere((n) => n.type == type);
+    notifyListeners();
+  }
+
   Future<void> clearAll() async {
     final box = Hive.box<LocalNotification>(_boxName);
     await box.clear();

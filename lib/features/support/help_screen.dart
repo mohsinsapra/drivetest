@@ -94,12 +94,12 @@ class _HelpScreenState extends State<HelpScreen> {
         Navigator.pop(context);
       } else {
         if (!mounted) return;
-        showAppSnackBar(t.help_email_error);
+        showAppSnackBar(t.help_email_error, type: SnackBarType.error);
       }
     } catch (e) {
       debugPrint('Error launching email: $e');
       if (!mounted) return;
-      showAppSnackBar(t.help_generic_error);
+      showAppSnackBar(t.help_generic_error, type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

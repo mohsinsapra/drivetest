@@ -85,7 +85,7 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(Translations.of(context).bcd_failed_test_questions);
+      showAppSnackBar(Translations.of(context).bcd_failed_test_questions, type: SnackBarType.error);
       Navigator.pop(context);
     }
   }

@@ -154,7 +154,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         setState(() =>
             licenseTypes = (jsonDecode(cachedJson) as List).cast<dynamic>());
       } else {
-        showAppSnackBar('Error fetching license types. Please try again.');
+        showAppSnackBar('Error fetching license types. Please try again.', type: SnackBarType.error);
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -201,7 +201,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           isShowingCategories = true;
         });
       } else {
-        showAppSnackBar('Error fetching categories. Please try again.');
+        showAppSnackBar('Error fetching categories. Please try again.', type: SnackBarType.error);
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -395,10 +395,10 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       if (e is stripe.StripeException) {
         final msg = e.error.localizedMessage ?? '';
         if (msg.toLowerCase().contains('cancel')) return;
-        showAppSnackBar(msg.isNotEmpty ? msg : 'Payment failed. Please try again.');
+        showAppSnackBar(msg.isNotEmpty ? msg : 'Payment failed. Please try again.', type: SnackBarType.error);
       } else {
         final msg = e.toString();
-        showAppSnackBar(msg.length > 80 ? msg.substring(0, 80) : msg);
+        showAppSnackBar(msg.length > 80 ? msg.substring(0, 80) : msg, type: SnackBarType.error);
       }
     }
   }
@@ -586,7 +586,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           ),
         );
       } catch (_) {
-        if (mounted) showAppSnackBar('Failed to load saved questions.');
+        if (mounted) showAppSnackBar('Failed to load saved questions.', type: SnackBarType.error);
       } finally {
         if (mounted) setState(() => isLoading = false);
       }
