@@ -91,10 +91,21 @@ class _SplashScreenState extends State<SplashScreen>
         try {
           await ApiService().fetchCurrentUser();
           isAuthenticated = true;
-          await NotificationService.init(ApiService());
         } catch (e) {
           debugPrint('SplashScreen: token validation failed — $e');
           await DioClient().logout();
+        }
+
+        // Notification init is non-fatal and must be outside the auth
+        // try/catch. On iOS web, requestPermission() can throw (Web Push
+        // unsupported pre-Safari 16.4), which was calling logout() and
+        // wiping tokens while isAuthenticated remained true → 401 on MainScreen.
+        if (isAuthenticated) {
+          try {
+            await NotificationService.init(ApiService());
+          } catch (e) {
+            debugPrint('SplashScreen: notification init failed (non-fatal) — $e');
+          }
         }
       }
 

@@ -86,9 +86,13 @@ class _AuthScreenState extends State<AuthScreen>
     await Hive.deleteFromDisk();
     await DioClient().init();
     // Register FCM token now that auth tokens are loaded.
-    // Use a fresh ApiService so it references the current Dio instance after init().
-    // Await so web permission/token flow completes from this login action.
-    await NotificationService.init(ApiService());
+    // Non-fatal: on iOS web, requestPermission() can throw (Web Push
+    // unsupported pre-Safari 16.4). A throw must not block navigation.
+    try {
+      await NotificationService.init(ApiService());
+    } catch (e) {
+      debugPrint('AuthScreen: notification init failed (non-fatal) — $e');
+    }
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         AppPageRoute(builder: (context) => const MainScreen()),
