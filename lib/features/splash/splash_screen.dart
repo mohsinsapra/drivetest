@@ -46,12 +46,21 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _run() async {
     // Ensure splash is visible for a minimum time even on fast devices.
     final stopwatch = Stopwatch()..start();
-    final data = await _initializeApp().timeout(
+
+    // Read the onboarding flag first — SharedPreferences is local and fast.
+    // This ensures it is available even if _initializeApp times out or throws.
+    bool onboardingComplete = false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+    } catch (_) {}
+
+    final data = await _initializeApp(onboardingComplete).timeout(
       const Duration(seconds: 12),
       onTimeout: () {
         debugPrint('SplashScreen: _initializeApp hard timeout — proceeding unauthenticated');
         DioClient().logout();
-        return {'onboardingComplete': false, 'isAuthenticated': false};
+        return {'onboardingComplete': onboardingComplete, 'isAuthenticated': false};
       },
     );
     final remaining =
@@ -60,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    final onboardingComplete = data['onboardingComplete'] ?? false;
+    onboardingComplete = data['onboardingComplete'] ?? onboardingComplete;
     final isAuthenticated = data['isAuthenticated'] ?? false;
 
     final Widget next;
@@ -82,12 +91,8 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Future<Map<String, bool>> _initializeApp() async {
+  Future<Map<String, bool>> _initializeApp(bool onboardingComplete) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final onboardingComplete =
-          prefs.getBool('onboarding_complete') ?? false;
-
       await DioClient().reloadTokens();
 
       final hasTokens = DioClient().refreshToken != null &&
@@ -129,7 +134,7 @@ class _SplashScreenState extends State<SplashScreen>
       };
     } catch (e) {
       debugPrint('SplashScreen: init error — $e');
-      return {'onboardingComplete': false, 'isAuthenticated': false};
+      return {'onboardingComplete': onboardingComplete, 'isAuthenticated': false};
     }
   }
 

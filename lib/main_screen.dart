@@ -56,6 +56,22 @@ class MainScreenState extends State<MainScreen> {
   bool _showBcdTests = false;
   bool _listenerAttached = false;
 
+  // Only the screens currently shown in the nav, in nav order.
+  List<Widget> get _visibleScreens =>
+      _navEntries.map((e) => _kAllScreens[e.pageIndex]).toList();
+
+  // Translate a fixed page index → position in the current PageView.
+  int _toPageViewIndex(int fixedIndex) {
+    final idx = _navEntries.indexWhere((e) => e.pageIndex == fixedIndex);
+    return idx >= 0 ? idx : 0;
+  }
+
+  // Translate a PageView position → fixed page index.
+  int _toFixedIndex(int pvIndex) {
+    if (pvIndex < 0 || pvIndex >= _navEntries.length) return _kPageDashboard;
+    return _navEntries[pvIndex].pageIndex;
+  }
+
   // Returns only the tabs the user should see, each pointing to a fixed page.
   // Progress is always first. Home + Tests only appear when the backend sets
   // show_legacy_tests = true on the user's account.
@@ -139,19 +155,21 @@ class MainScreenState extends State<MainScreen> {
       _showBcdTests = newShowBcd;
     });
 
-    // If the page the user is on is no longer in the nav bar, redirect to Progress.
-    final visiblePages = _navEntries.map((e) => e.pageIndex).toSet();
-    if (!visiblePages.contains(currentPage)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+    // Correct the PageView position after nav changes.
+    // If the current page is no longer visible, redirect to Progress.
+    // Either way, jump to the new PageView position (the visible list shifted).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final visiblePages = _navEntries.map((e) => e.pageIndex).toSet();
+      final targetFixed =
+          visiblePages.contains(currentPage) ? currentPage : _kPageDashboard;
+      if (!visiblePages.contains(currentPage)) {
         provider.setIndex(_kPageDashboard);
-        if (_pageController.hasClients) {
-          _pageController.jumpToPage(_kPageDashboard);
-        }
-      });
-    }
-    // No position correction needed when tabs are added — pages are at fixed
-    // positions, so Profile is always page 3 regardless of tab count.
+      }
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(_toPageViewIndex(targetFixed));
+      }
+    });
   }
 
   Future<void> _loadTabFlags() async {
@@ -184,8 +202,7 @@ class MainScreenState extends State<MainScreen> {
       if (!mounted) return;
       final index =
           Provider.of<MainScreenProvider>(context, listen: false).currentIndex;
-      final safeIndex = index.clamp(0, _kAllScreens.length - 1);
-      _pageController.jumpToPage(safeIndex);
+      _pageController.jumpToPage(_toPageViewIndex(index));
     });
   }
 
@@ -195,8 +212,9 @@ class MainScreenState extends State<MainScreen> {
     super.dispose();
   }
 
-  void _onPageChanged(int index) {
-    Provider.of<MainScreenProvider>(context, listen: false).setIndex(index);
+  void _onPageChanged(int pvIndex) {
+    Provider.of<MainScreenProvider>(context, listen: false)
+        .setIndex(_toFixedIndex(pvIndex));
   }
 
   @override
@@ -219,7 +237,7 @@ class MainScreenState extends State<MainScreen> {
             onPageChanged: _onPageChanged,
             physics: const ClampingScrollPhysics(),
             children:
-                _kAllScreens.map((s) => _KeepAlivePage(child: s)).toList(),
+                _visibleScreens.map((s) => _KeepAlivePage(child: s)).toList(),
           ),
           Positioned(
             left: 0,
