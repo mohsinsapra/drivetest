@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
@@ -51,6 +53,12 @@ class DashboardProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  /// Timestamp of the last successful API sync. Used to avoid redundant calls.
+  DateTime? _lastSyncedAt;
+
+  /// Subscription to testAttempts Hive box — triggers refresh on any write.
+  StreamSubscription<BoxEvent>? _attemptsSub;
+
   // ─── Public API ────────────────────────────────────────────────────────────
 
   Future<void> init() async {
@@ -68,8 +76,17 @@ class DashboardProvider extends ChangeNotifier {
         notifyListeners();
       }
 
-      // Step 2: sync from API in background
-      _syncFromApi();
+      // Step 2: sync from API only when cache is empty or last sync is stale.
+      final stale = _lastSyncedAt == null ||
+          DateTime.now().difference(_lastSyncedAt!) >
+              const Duration(minutes: 10);
+      if (_exams.isEmpty || stale) {
+        _syncFromApi();
+      }
+
+      // Step 3: subscribe to testAttempts box so any completed test
+      // automatically refreshes dashboard stats — no manual pull needed.
+      _subscribeToAttempts();
     } catch (e) {
       _error = e.toString();
       _status = DashboardStatus.error;
@@ -118,6 +135,7 @@ class DashboardProvider extends ChangeNotifier {
         // API returned nothing and cache is also empty
         _status = DashboardStatus.loaded; // show empty state, not error
       }
+      _lastSyncedAt = DateTime.now();
     } catch (e) {
       debugPrint('[DashboardProvider] API sync failed: $e');
       // Keep showing cached data — don't flip to error state
@@ -125,6 +143,27 @@ class DashboardProvider extends ChangeNotifier {
       _syncing = false;
       notifyListeners();
     }
+  }
+
+  /// Subscribes to the testAttempts Hive box. Any write (test completed or
+  /// paused) triggers a stats refresh so the dashboard stays current without
+  /// the user having to pull-to-refresh.
+  Future<void> _subscribeToAttempts() async {
+    if (_attemptsSub != null) return; // already subscribed
+    try {
+      final box = Hive.isBoxOpen('testAttempts')
+          ? Hive.box<TestAttempt>('testAttempts')
+          : await Hive.openBox<TestAttempt>('testAttempts');
+      _attemptsSub = box.watch().listen((_) => refresh());
+    } catch (e) {
+      debugPrint('[DashboardProvider] failed to subscribe to testAttempts: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _attemptsSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _applyExams(List<SubscribedExam> exams) async {
