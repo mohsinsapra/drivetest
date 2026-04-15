@@ -46,9 +46,18 @@ class DioClient {
 
   Future<void> init() async {
     if (_initialized) return; // Prevent multiple initializations
-    // Load both tokens from secure storage
-    refreshToken = await _secureStorage.read(key: 'refreshToken');
-    accessToken = await _secureStorage.read(key: 'accessToken');
+    // Load both tokens from secure storage.
+    // Wrapped in try/catch because flutter_secure_storage on iOS web can throw
+    // (Web Crypto API failures) instead of returning null, which would prevent
+    // the SharedPreferences fallback from ever running.
+    try {
+      refreshToken = await _secureStorage.read(key: 'refreshToken');
+      accessToken = await _secureStorage.read(key: 'accessToken');
+    } catch (e) {
+      debugPrint('[DioClient] secure storage read failed (non-fatal): $e');
+      refreshToken = null;
+      accessToken = null;
+    }
 
     // Fallback to SharedPreferences if not found in secure storage
     if (refreshToken == null || accessToken == null) {
@@ -58,8 +67,12 @@ class DioClient {
 
       // If found in SharedPreferences, migrate to secure storage
       if (refreshToken != null && accessToken != null) {
-        await _secureStorage.write(key: 'refreshToken', value: refreshToken!);
-        await _secureStorage.write(key: 'accessToken', value: accessToken!);
+        try {
+          await _secureStorage.write(key: 'refreshToken', value: refreshToken!);
+          await _secureStorage.write(key: 'accessToken', value: accessToken!);
+        } catch (e) {
+          debugPrint('[DioClient] secure storage migration write failed (non-fatal): $e');
+        }
       }
     }
 
@@ -235,9 +248,17 @@ class DioClient {
   }
 
   Future<void> reloadTokens() async {
-    // Just reload tokens without full reinitialization
-    refreshToken = await _secureStorage.read(key: 'refreshToken');
-    accessToken = await _secureStorage.read(key: 'accessToken');
+    // Just reload tokens without full reinitialization.
+    // Wrapped in try/catch: flutter_secure_storage on iOS web can throw
+    // instead of returning null, bypassing the SharedPreferences fallback.
+    try {
+      refreshToken = await _secureStorage.read(key: 'refreshToken');
+      accessToken = await _secureStorage.read(key: 'accessToken');
+    } catch (e) {
+      debugPrint('[DioClient] secure storage read failed (non-fatal): $e');
+      refreshToken = null;
+      accessToken = null;
+    }
 
     // Fallback to SharedPreferences if not found in secure storage
     if (refreshToken == null || accessToken == null) {
@@ -265,7 +286,11 @@ class DioClient {
       );
 
       accessToken = response.data['access'];
-      await _secureStorage.write(key: 'accessToken', value: accessToken);
+      try {
+        await _secureStorage.write(key: 'accessToken', value: accessToken);
+      } catch (e) {
+        debugPrint('[DioClient] secure storage write (access) failed (non-fatal): $e');
+      }
       _lastFailedRefreshToken = null;
       _lastFailedRefreshAt = null;
 
@@ -276,7 +301,11 @@ class DioClient {
       // If a new refresh token is provided, update and save it
       if (response.data.containsKey('refresh')) {
         refreshToken = response.data['refresh'];
-        await _secureStorage.write(key: 'refreshToken', value: refreshToken);
+        try {
+          await _secureStorage.write(key: 'refreshToken', value: refreshToken);
+        } catch (e) {
+          debugPrint('[DioClient] secure storage write (refresh) failed (non-fatal): $e');
+        }
         await prefs.setString('refreshToken', refreshToken!);
       }
 
@@ -340,11 +369,17 @@ class DioClient {
     accessToken = access;
     refreshToken = refresh;
 
-    // Save both tokens securely
-    await _secureStorage.write(key: 'refreshToken', value: refresh);
-    await _secureStorage.write(key: 'accessToken', value: access);
+    // Save both tokens securely.
+    // Wrapped in try/catch: on iOS web flutter_secure_storage can throw,
+    // which would prevent the SharedPreferences write below from executing.
+    try {
+      await _secureStorage.write(key: 'refreshToken', value: refresh);
+      await _secureStorage.write(key: 'accessToken', value: access);
+    } catch (e) {
+      debugPrint('[DioClient] secure storage write failed (non-fatal): $e');
+    }
 
-    // Also persist to SharedPreferences so iOS web browsers can reliably
+    // Always persist to SharedPreferences so iOS web browsers can reliably
     // recover tokens across sessions. flutter_secure_storage on iOS Safari
     // can lose its AES decryption key between sessions, causing read() to
     // return null and leaving the user logged out on reload.
