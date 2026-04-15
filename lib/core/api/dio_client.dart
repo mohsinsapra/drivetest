@@ -269,10 +269,15 @@ class DioClient {
       _lastFailedRefreshToken = null;
       _lastFailedRefreshAt = null;
 
+      // Mirror to SharedPreferences for iOS web browser resilience.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('accessToken', accessToken!);
+
       // If a new refresh token is provided, update and save it
       if (response.data.containsKey('refresh')) {
         refreshToken = response.data['refresh'];
         await _secureStorage.write(key: 'refreshToken', value: refreshToken);
+        await prefs.setString('refreshToken', refreshToken!);
       }
 
       return true;
@@ -338,6 +343,14 @@ class DioClient {
     // Save both tokens securely
     await _secureStorage.write(key: 'refreshToken', value: refresh);
     await _secureStorage.write(key: 'accessToken', value: access);
+
+    // Also persist to SharedPreferences so iOS web browsers can reliably
+    // recover tokens across sessions. flutter_secure_storage on iOS Safari
+    // can lose its AES decryption key between sessions, causing read() to
+    // return null and leaving the user logged out on reload.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('accessToken', access);
+    await prefs.setString('refreshToken', refresh);
   }
 
   Future<void> logout() async {
