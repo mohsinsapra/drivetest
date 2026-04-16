@@ -331,6 +331,37 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get dash_streak_msg_progress_other => '{n} day streak! {left} more sessions to hit your weekly goal.';
 	String get dash_completed => 'Completed!';
 	String get dash_tap_to_explore => 'Tap to explore';
+
+	String get onb_which_exams => 'Which exams are you preparing for?';
+	String get onb_select_all_apply => 'Select all that apply';
+	String get onb_exam_date_title => 'When is your exam?';
+	String get onb_exam_date_subtitle => 'Set a target date to stay on track';
+	String get onb_practice_days_title => 'How many days a week will you practice?';
+	String get onb_practice_days_subtitle => 'Be realistic — consistency is key';
+	String get onb_recommendations_title => 'Recommended for you';
+	String get onb_recommendations_subtitle => 'Subscribe to unlock full access to these exams';
+	String get onb_continue => 'Continue';
+	String get onb_get_started => 'Get Started';
+	String get onb_1_week => '1 week';
+	String get onb_2_weeks => '2 weeks';
+	String get onb_3_weeks => '3 weeks';
+	String get onb_1_month => '1 month';
+	String get onb_2_months => '2 months';
+	String get onb_3_months => '3 months';
+	String get onb_custom_date => 'Custom date';
+	String get onb_subscribe => 'Subscribe';
+	String get onb_no_exams => 'No exams available right now';
+	String onb_days_week_label({required Object n}) => '${n} days/week';
+	String onb_step_of({required Object current, required Object total}) => 'Step ${current} of ${total}';
+
+	String get dash_exam_deadline => 'Exam Deadline';
+	String dash_days_remaining({required Object n}) => '${n} days left';
+	String get dash_deadline_today => 'Today!';
+	String get dash_deadline_passed => 'Deadline passed';
+	String get dash_no_deadline => 'No deadline set';
+	String get dash_set_deadline => 'Set deadline';
+	String get dash_change_deadline => 'Change deadline';
+	String dash_practice_days({required Object n}) => '${n} days/week';
 }
 
 /// Flat map(s) containing all translations.
@@ -630,6 +661,35 @@ extension on Translations {
 			case 'dash_streak_msg_progress_other': return '{n} day streak! {left} more sessions to hit your weekly goal.';
 			case 'dash_completed': return 'Completed!';
 			case 'dash_tap_to_explore': return 'Tap to explore';
+			case 'onb_which_exams': return 'Which exams are you preparing for?';
+			case 'onb_select_all_apply': return 'Select all that apply';
+			case 'onb_exam_date_title': return 'When is your exam?';
+			case 'onb_exam_date_subtitle': return 'Set a target date to stay on track';
+			case 'onb_practice_days_title': return 'How many days a week will you practice?';
+			case 'onb_practice_days_subtitle': return 'Be realistic — consistency is key';
+			case 'onb_recommendations_title': return 'Recommended for you';
+			case 'onb_recommendations_subtitle': return 'Subscribe to unlock full access to these exams';
+			case 'onb_continue': return 'Continue';
+			case 'onb_get_started': return 'Get Started';
+			case 'onb_1_week': return '1 week';
+			case 'onb_2_weeks': return '2 weeks';
+			case 'onb_3_weeks': return '3 weeks';
+			case 'onb_1_month': return '1 month';
+			case 'onb_2_months': return '2 months';
+			case 'onb_3_months': return '3 months';
+			case 'onb_custom_date': return 'Custom date';
+			case 'onb_subscribe': return 'Subscribe';
+			case 'onb_no_exams': return 'No exams available right now';
+			case 'onb_days_week_label': return ({required Object n}) => '${n} days/week';
+			case 'onb_step_of': return ({required Object current, required Object total}) => 'Step ${current} of ${total}';
+			case 'dash_exam_deadline': return 'Exam Deadline';
+			case 'dash_days_remaining': return ({required Object n}) => '${n} days left';
+			case 'dash_deadline_today': return 'Today!';
+			case 'dash_deadline_passed': return 'Deadline passed';
+			case 'dash_no_deadline': return 'No deadline set';
+			case 'dash_set_deadline': return 'Set deadline';
+			case 'dash_change_deadline': return 'Change deadline';
+			case 'dash_practice_days': return ({required Object n}) => '${n} days/week';
 			default: return null;
 		}
 	}

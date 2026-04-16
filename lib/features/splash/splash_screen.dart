@@ -4,7 +4,7 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
-import 'package:taxi_exam_app/features/intro/intro_screen.dart';
+import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -52,7 +52,8 @@ class _SplashScreenState extends State<SplashScreen>
     bool onboardingComplete = false;
     try {
       final prefs = await SharedPreferences.getInstance();
-      onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+      onboardingComplete = false; // TODO: remove — force onboarding for testing
+      // onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
     } catch (_) {}
 
     final data = await _initializeApp(onboardingComplete).timeout(
@@ -74,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     final Widget next;
     if (!onboardingComplete) {
-      next = const IntroScreen();
+      next = const OnboardingScreen();
     } else if (!isAuthenticated) {
       next = const AuthScreen();
     } else {

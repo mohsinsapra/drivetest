@@ -302,5 +302,36 @@
   "dash_streak_msg_progress_other": "{n} day streak! {left} more sessions to hit your weekly goal.",
 
   "dash_completed": "Completed!",
-  "dash_tap_to_explore": "Tap to explore"
+  "dash_tap_to_explore": "Tap to explore",
+
+  "onb_which_exams": "Which exams are you preparing for?",
+  "onb_select_all_apply": "Select all that apply",
+  "onb_exam_date_title": "When is your exam?",
+  "onb_exam_date_subtitle": "Set a target date to stay on track",
+  "onb_practice_days_title": "How many days a week will you practice?",
+  "onb_practice_days_subtitle": "Be realistic — consistency is key",
+  "onb_recommendations_title": "Recommended for you",
+  "onb_recommendations_subtitle": "Subscribe to unlock full access to these exams",
+  "onb_continue": "Continue",
+  "onb_get_started": "Get Started",
+  "onb_1_week": "1 week",
+  "onb_2_weeks": "2 weeks",
+  "onb_3_weeks": "3 weeks",
+  "onb_1_month": "1 month",
+  "onb_2_months": "2 months",
+  "onb_3_months": "3 months",
+  "onb_custom_date": "Custom date",
+  "onb_subscribe": "Subscribe",
+  "onb_no_exams": "No exams available right now",
+  "onb_days_week_label": "{n} days/week",
+  "onb_step_of": "Step {current} of {total}",
+
+  "dash_exam_deadline": "Exam Deadline",
+  "dash_days_remaining": "{n} days left",
+  "dash_deadline_today": "Today!",
+  "dash_deadline_passed": "Deadline passed",
+  "dash_no_deadline": "No deadline set",
+  "dash_set_deadline": "Set deadline",
+  "dash_change_deadline": "Change deadline",
+  "dash_practice_days": "{n} days/week"
 }

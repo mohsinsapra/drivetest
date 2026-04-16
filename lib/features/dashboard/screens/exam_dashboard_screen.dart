@@ -15,6 +15,7 @@ import 'widgets/exam_overview_card.dart';
 import 'widgets/section_header.dart';
 import 'widgets/selected_exam_summary_card.dart';
 import 'widgets/smart_insights_card.dart';
+import 'widgets/exam_deadline_card.dart';
 import 'widgets/weekly_streak_card.dart';
 
 class ExamDashboardScreen extends StatefulWidget {
@@ -122,6 +123,14 @@ class _DashboardBody extends StatelessWidget {
 
     return CustomScrollView(
       slivers: [
+        // ── 0. Exam deadline card ────────────────────────────────────────
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: ExamDeadlineCard(),
+          ),
+        ),
+
         // ── 1. Top exam overview ─────────────────────────────────────────
         SliverToBoxAdapter(
           child: SectionHeader(

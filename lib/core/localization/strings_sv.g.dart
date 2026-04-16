@@ -328,6 +328,37 @@ class TranslationsSv implements Translations {
 	@override String get dash_streak_msg_progress_other => '{n} dagars svit! {left} sessioner kvar för att nå veckans mål.';
 	@override String get dash_completed => 'Avklarad!';
 	@override String get dash_tap_to_explore => 'Tryck för att utforska';
+
+	@override String get onb_which_exams => 'Vilka prov förbereder du dig för?';
+	@override String get onb_select_all_apply => 'Välj alla som passar';
+	@override String get onb_exam_date_title => 'När är ditt prov?';
+	@override String get onb_exam_date_subtitle => 'Sätt ett måldatum för att hålla koll';
+	@override String get onb_practice_days_title => 'Hur många dagar i veckan kommer du öva?';
+	@override String get onb_practice_days_subtitle => 'Var realistisk — konsistens är nyckeln';
+	@override String get onb_recommendations_title => 'Rekommenderade för dig';
+	@override String get onb_recommendations_subtitle => 'Prenumerera för full tillgång till dessa prov';
+	@override String get onb_continue => 'Fortsätt';
+	@override String get onb_get_started => 'Kom igång';
+	@override String get onb_1_week => '1 vecka';
+	@override String get onb_2_weeks => '2 veckor';
+	@override String get onb_3_weeks => '3 veckor';
+	@override String get onb_1_month => '1 månad';
+	@override String get onb_2_months => '2 månader';
+	@override String get onb_3_months => '3 månader';
+	@override String get onb_custom_date => 'Eget datum';
+	@override String get onb_subscribe => 'Prenumerera';
+	@override String get onb_no_exams => 'Inga prov tillgängliga just nu';
+	@override String onb_days_week_label({required Object n}) => '${n} dagar/vecka';
+	@override String onb_step_of({required Object current, required Object total}) => 'Steg ${current} av ${total}';
+
+	@override String get dash_exam_deadline => 'Provdatum';
+	@override String dash_days_remaining({required Object n}) => '${n} dagar kvar';
+	@override String get dash_deadline_today => 'Idag!';
+	@override String get dash_deadline_passed => 'Deadline passerad';
+	@override String get dash_no_deadline => 'Ingen deadline satt';
+	@override String get dash_set_deadline => 'Sätt deadline';
+	@override String get dash_change_deadline => 'Ändra deadline';
+	@override String dash_practice_days({required Object n}) => '${n} dagar/vecka';
 }
 
 /// Flat map(s) containing all translations.
@@ -627,6 +658,35 @@ extension on TranslationsSv {
 			case 'dash_streak_msg_progress_other': return '{n} dagars svit! {left} sessioner kvar för att nå veckans mål.';
 			case 'dash_completed': return 'Avklarad!';
 			case 'dash_tap_to_explore': return 'Tryck för att utforska';
+			case 'onb_which_exams': return 'Vilka prov förbereder du dig för?';
+			case 'onb_select_all_apply': return 'Välj alla som passar';
+			case 'onb_exam_date_title': return 'När är ditt prov?';
+			case 'onb_exam_date_subtitle': return 'Sätt ett måldatum för att hålla koll';
+			case 'onb_practice_days_title': return 'Hur många dagar i veckan kommer du öva?';
+			case 'onb_practice_days_subtitle': return 'Var realistisk — konsistens är nyckeln';
+			case 'onb_recommendations_title': return 'Rekommenderade för dig';
+			case 'onb_recommendations_subtitle': return 'Prenumerera för full tillgång till dessa prov';
+			case 'onb_continue': return 'Fortsätt';
+			case 'onb_get_started': return 'Kom igång';
+			case 'onb_1_week': return '1 vecka';
+			case 'onb_2_weeks': return '2 veckor';
+			case 'onb_3_weeks': return '3 veckor';
+			case 'onb_1_month': return '1 månad';
+			case 'onb_2_months': return '2 månader';
+			case 'onb_3_months': return '3 månader';
+			case 'onb_custom_date': return 'Eget datum';
+			case 'onb_subscribe': return 'Prenumerera';
+			case 'onb_no_exams': return 'Inga prov tillgängliga just nu';
+			case 'onb_days_week_label': return ({required Object n}) => '${n} dagar/vecka';
+			case 'onb_step_of': return ({required Object current, required Object total}) => 'Steg ${current} av ${total}';
+			case 'dash_exam_deadline': return 'Provdatum';
+			case 'dash_days_remaining': return ({required Object n}) => '${n} dagar kvar';
+			case 'dash_deadline_today': return 'Idag!';
+			case 'dash_deadline_passed': return 'Deadline passerad';
+			case 'dash_no_deadline': return 'Ingen deadline satt';
+			case 'dash_set_deadline': return 'Sätt deadline';
+			case 'dash_change_deadline': return 'Ändra deadline';
+			case 'dash_practice_days': return ({required Object n}) => '${n} dagar/vecka';
 			default: return null;
 		}
 	}

@@ -302,5 +302,36 @@
   "dash_streak_msg_progress_other": "{n} dagars svit! {left} sessioner kvar för att nå veckans mål.",
 
   "dash_completed": "Avklarad!",
-  "dash_tap_to_explore": "Tryck för att utforska"
+  "dash_tap_to_explore": "Tryck för att utforska",
+
+  "onb_which_exams": "Vilka prov förbereder du dig för?",
+  "onb_select_all_apply": "Välj alla som passar",
+  "onb_exam_date_title": "När är ditt prov?",
+  "onb_exam_date_subtitle": "Sätt ett måldatum för att hålla koll",
+  "onb_practice_days_title": "Hur många dagar i veckan kommer du öva?",
+  "onb_practice_days_subtitle": "Var realistisk — konsistens är nyckeln",
+  "onb_recommendations_title": "Rekommenderade för dig",
+  "onb_recommendations_subtitle": "Prenumerera för full tillgång till dessa prov",
+  "onb_continue": "Fortsätt",
+  "onb_get_started": "Kom igång",
+  "onb_1_week": "1 vecka",
+  "onb_2_weeks": "2 veckor",
+  "onb_3_weeks": "3 veckor",
+  "onb_1_month": "1 månad",
+  "onb_2_months": "2 månader",
+  "onb_3_months": "3 månader",
+  "onb_custom_date": "Eget datum",
+  "onb_subscribe": "Prenumerera",
+  "onb_no_exams": "Inga prov tillgängliga just nu",
+  "onb_days_week_label": "{n} dagar/vecka",
+  "onb_step_of": "Steg {current} av {total}",
+
+  "dash_exam_deadline": "Provdatum",
+  "dash_days_remaining": "{n} dagar kvar",
+  "dash_deadline_today": "Idag!",
+  "dash_deadline_passed": "Deadline passerad",
+  "dash_no_deadline": "Ingen deadline satt",
+  "dash_set_deadline": "Sätt deadline",
+  "dash_change_deadline": "Ändra deadline",
+  "dash_practice_days": "{n} dagar/vecka"
 }
