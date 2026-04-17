@@ -403,78 +403,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                     onPressed: () {
                       showModalBottomSheet(
                         context: context,
+                        isDismissible: true,
                         shape: const RoundedRectangleBorder(
                           borderRadius:
                               BorderRadius.vertical(top: Radius.circular(24)),
                         ),
-                        builder: (context) => Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(t.logout,
-                                  style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red)),
-                              const SizedBox(height: 12),
-                              Text(t.profile_logout_confirm,
-                                  style: const TextStyle(fontSize: 16)),
-                              const SizedBox(height: 24),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor:
-                                            Theme.of(context).primaryColor,
-                                        side: BorderSide(
-                                            color:
-                                                Theme.of(context).primaryColor),
-                                      ),
-                                      child: Text(t.cancel),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        Navigator.pop(context);
-
-                                        // _apiService.logout() handles all cleanup:
-                                        //   FCM deregister, server blacklist, token wipe,
-                                        //   UserCacheService.clearAll() → provider reset,
-                                        //   BcdCache, Hive boxes, SharedPreferences user keys.
-                                        // App-wide prefs (language, theme, onboarding) are
-                                        // intentionally preserved by AppStorage.clearUserData().
-                                        try {
-                                          await _apiService.logout();
-                                        } catch (_) {}
-
-                                        final nav = NavigationService
-                                            .navigatorKey.currentState;
-                                        nav?.pushAndRemoveUntil(
-                                          AppPageRoute(
-                                              builder: (_) =>
-                                                  const AuthScreen()),
-                                          (route) => false,
-                                        );
-                                        showAppSnackBar(
-                                          'Logged out successfully.',
-                                          type: SnackBarType.success,
-                                        );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red),
-                                      child: Text(t.profile_yes_logout),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                        builder: (sheetContext) => _LogoutSheet(
+                          apiService: _apiService,
                         ),
                       );
                     },
@@ -541,6 +476,103 @@ class _ProfileTileState extends State<_ProfileTile>
           child: SlideTransition(position: _slide, child: widget.child),
         ),
       );
+}
+
+class _LogoutSheet extends StatefulWidget {
+  final ApiService apiService;
+  const _LogoutSheet({required this.apiService});
+
+  @override
+  State<_LogoutSheet> createState() => _LogoutSheetState();
+}
+
+class _LogoutSheetState extends State<_LogoutSheet> {
+  bool _isLoading = false;
+
+  Future<void> _doLogout() async {
+    setState(() => _isLoading = true);
+
+    // _apiService.logout() handles all cleanup:
+    //   FCM deregister, server blacklist, token wipe,
+    //   UserCacheService.clearAll() → provider reset,
+    //   BcdCache, Hive boxes, SharedPreferences user keys.
+    // App-wide prefs (language, theme, onboarding) are
+    // intentionally preserved by AppStorage.clearUserData().
+    try {
+      await widget.apiService.logout();
+    } catch (_) {}
+
+    if (!mounted) return;
+    final nav = NavigationService.navigatorKey.currentState;
+    nav?.pushAndRemoveUntil(
+      AppPageRoute(builder: (_) => const AuthScreen()),
+      (route) => false,
+    );
+    showAppSnackBar(
+      'Logged out successfully.',
+      type: SnackBarType.success,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    return PopScope(
+      canPop: !_isLoading,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              t.logout,
+              style: const TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red),
+            ),
+            const SizedBox(height: 12),
+            Text(t.profile_logout_confirm,
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed:
+                        _isLoading ? null : () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Theme.of(context).primaryColor,
+                      side:
+                          BorderSide(color: Theme.of(context).primaryColor),
+                    ),
+                    child: Text(t.cancel),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _doLogout,
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(t.profile_yes_logout),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 Widget _buildMenuTile(
