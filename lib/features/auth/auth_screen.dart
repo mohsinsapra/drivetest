@@ -1,70 +1,70 @@
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
-
-import 'package:taxi_exam_app/core/services/notification_service.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:hive/hive.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/auth/google_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
+import 'package:taxi_exam_app/core/services/notification_service.dart';
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/forgot_password_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
+enum _AuthView { landing, login, signup }
+
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  final void Function(NavigatorState nav)? onAfterAuth;
+  const AuthScreen({super.key, this.onAfterAuth});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
+class _AuthScreenState extends State<AuthScreen> {
+  _AuthView _view = _AuthView.landing;
+  bool _viewForward = true; // tracks slide direction
+
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
 
   // Login state
-  final TextEditingController _loginUsernameController =
-      TextEditingController();
-  final TextEditingController _loginPasswordController =
-      TextEditingController();
-  bool _obscureLoginPassword = true;
+  final _loginUsernameCtrl = TextEditingController();
+  final _loginPasswordCtrl = TextEditingController();
+  bool _obscureLoginPw = true;
   String? _loginError;
   Map<String, String?> _loginErrors = {};
 
   // Signup state
-  final TextEditingController _signupUsernameController =
-      TextEditingController();
-  final TextEditingController _signupEmailController = TextEditingController();
-  final TextEditingController _signupPasswordController =
-      TextEditingController();
-  bool _obscureSignupPassword = true;
+  final _signupUsernameCtrl = TextEditingController();
+  final _signupEmailCtrl = TextEditingController();
+  final _signupPasswordCtrl = TextEditingController();
+  bool _obscureSignupPw = true;
   Map<String, String?> _signupErrors = {};
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
   void dispose() {
-    _tabController.dispose();
-    _loginUsernameController.dispose();
-    _loginPasswordController.dispose();
-    _signupUsernameController.dispose();
-    _signupEmailController.dispose();
-    _signupPasswordController.dispose();
+    _loginUsernameCtrl.dispose();
+    _loginPasswordCtrl.dispose();
+    _signupUsernameCtrl.dispose();
+    _signupEmailCtrl.dispose();
+    _signupPasswordCtrl.dispose();
     super.dispose();
   }
+
+  void _navigate(_AuthView view) {
+    setState(() {
+      _viewForward = view != _AuthView.landing;
+      _view = view;
+    });
+  }
+
+  // ── Locale ────────────────────────────────────────────────────────────────
 
   Future<void> _setLocale(AppLocale locale) async {
     await LocaleSettings.setLocale(locale);
@@ -72,53 +72,43 @@ class _AuthScreenState extends State<AuthScreen>
     await prefs.setString('language', locale.languageCode);
   }
 
+  // ── Navigation after auth ─────────────────────────────────────────────────
+
   Future<void> _navigateToMain({required bool isFirstLogin}) async {
     final user = await _apiService.fetchCurrentUser();
     if (user != null) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user', jsonEncode(user));
-      _showWelcomeMessage(
-        Map<String, dynamic>.from(user as Map),
-        isFirstLogin: isFirstLogin,
-      );
+      _showWelcomeMessage(Map<String, dynamic>.from(user as Map),
+          isFirstLogin: isFirstLogin);
     }
-    // Register FCM token now that auth tokens are loaded.
-    // Non-fatal: on iOS web, requestPermission() can throw (Web Push
-    // unsupported pre-Safari 16.4). On web, getToken() / requestPermission()
-    // may never resolve if the service worker isn't ready — always time out.
     try {
       await NotificationService.init(ApiService())
           .timeout(const Duration(seconds: 6));
     } catch (e) {
       debugPrint('AuthScreen: notification init failed (non-fatal) — $e');
     }
-    if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        AppPageRoute(builder: (context) => const MainScreen()),
-        (Route<dynamic> route) => false,
-      );
+    if (!mounted) return;
+    final navigator = Navigator.of(context);
+    final afterAuth = widget.onAfterAuth;
+    navigator.pushAndRemoveUntil(
+      AppPageRoute(builder: (_) => const MainScreen()),
+      (route) => false,
+    );
+    if (afterAuth != null) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => afterAuth(navigator));
     }
   }
 
-  void _showWelcomeMessage(
-    Map<String, dynamic> user, {
-    required bool isFirstLogin,
-  }) {
+  void _showWelcomeMessage(Map<String, dynamic> user,
+      {required bool isFirstLogin}) {
     final t = Translations.of(context);
-
-    if (isFirstLogin) {
-      showAppSnackBar(
-        t.auth_welcome_first_login,
-        type: SnackBarType.success,
-      );
-      return;
-    }
-
     showAppSnackBar(
-      t.auth_welcome_returning,
+      isFirstLogin ? t.auth_welcome_first_login : t.auth_welcome_returning,
       type: SnackBarType.success,
     );
   }
+
+  // ── Google Sign In ────────────────────────────────────────────────────────
 
   Future<void> _signInWithGoogle() async {
     setState(() {
@@ -144,36 +134,42 @@ class _AuthScreenState extends State<AuthScreen>
       try {
         await _navigateToMain(isFirstLogin: isFirstLogin);
       } catch (navError) {
-        debugPrint('AuthScreen: navigation error after Google login — $navError');
+        debugPrint(
+            'AuthScreen: navigation error after Google login — $navError');
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            AppPageRoute(builder: (context) => const MainScreen()),
-            (Route<dynamic> route) => false,
+          final navigator = Navigator.of(context);
+          final afterAuth = widget.onAfterAuth;
+          navigator.pushAndRemoveUntil(
+            AppPageRoute(builder: (_) => const MainScreen()),
+            (route) => false,
           );
+          if (afterAuth != null) {
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => afterAuth(navigator));
+          }
         }
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        if (_isDeletedAccountError(e)) {
-          _loginError =
-              Translations.of(context).auth_deleted_account_welcome_back;
-        } else {
-          _loginError = GoogleSignInHelper.userMessage(e);
-        }
+        _loginError = _isDeletedAccountError(e)
+            ? Translations.of(context).auth_deleted_account_welcome_back
+            : GoogleSignInHelper.userMessage(e);
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  // ── Login ─────────────────────────────────────────────────────────────────
+
   Future<void> _login() async {
     final t = Translations.of(context);
     final errors = <String, String?>{};
-    if (_loginUsernameController.text.trim().isEmpty) {
+    if (_loginUsernameCtrl.text.trim().isEmpty) {
       errors['username'] = t.auth_val_username_required;
     }
-    if (_loginPasswordController.text.isEmpty) {
+    if (_loginPasswordCtrl.text.isEmpty) {
       errors['password'] = t.auth_val_password_required;
     }
     if (errors.isNotEmpty) {
@@ -187,22 +183,26 @@ class _AuthScreenState extends State<AuthScreen>
     });
     try {
       final isFirstLogin = await _apiService.authenticate(
-        _loginUsernameController.text.trim(),
-        _loginPasswordController.text,
+        _loginUsernameCtrl.text.trim(),
+        _loginPasswordCtrl.text,
       );
       if (!mounted) return;
-      // Navigate — errors here are non-auth (network, timeout) so catch separately.
       try {
         await _navigateToMain(isFirstLogin: isFirstLogin);
       } catch (navError) {
         if (!mounted) return;
         debugPrint('AuthScreen: navigation error after login — $navError');
-        // Still attempt navigation without profile data.
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            AppPageRoute(builder: (context) => const MainScreen()),
-            (Route<dynamic> route) => false,
+          final navigator = Navigator.of(context);
+          final afterAuth = widget.onAfterAuth;
+          navigator.pushAndRemoveUntil(
+            AppPageRoute(builder: (_) => const MainScreen()),
+            (route) => false,
           );
+          if (afterAuth != null) {
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => afterAuth(navigator));
+          }
         }
       }
     } catch (e) {
@@ -212,6 +212,74 @@ class _AuthScreenState extends State<AuthScreen>
             ? Translations.of(context).auth_deleted_account_welcome_back
             : Translations.of(context).auth_invalid_credentials;
       });
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loginAsDemo() async {
+    _loginUsernameCtrl.text = 'demo';
+    _loginPasswordCtrl.text = 'Demo@123';
+    await _login();
+  }
+
+  // ── Signup ────────────────────────────────────────────────────────────────
+
+  Future<void> _signup() async {
+    final t = Translations.of(context);
+    final errors = <String, String?>{};
+    if (_signupUsernameCtrl.text.trim().isEmpty) {
+      errors['username'] = t.auth_val_username_required;
+    } else if (_signupUsernameCtrl.text.trim().length < 4) {
+      errors['username'] = t.auth_val_username_length;
+    }
+    if (_signupEmailCtrl.text.trim().isEmpty) {
+      errors['email'] = t.auth_val_email_required;
+    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+        .hasMatch(_signupEmailCtrl.text.trim())) {
+      errors['email'] = t.auth_val_email_invalid;
+    }
+    if (_signupPasswordCtrl.text.isEmpty) {
+      errors['password'] = t.auth_val_password_required;
+    } else if (_signupPasswordCtrl.text.length < 6) {
+      errors['password'] = t.auth_val_password_length;
+    }
+    if (errors.isNotEmpty) {
+      setState(() => _signupErrors = errors);
+      return;
+    }
+    setState(() {
+      _signupErrors = {};
+      _isLoading = true;
+    });
+    try {
+      final response = await _apiService.signup(
+        _signupEmailCtrl.text,
+        _signupUsernameCtrl.text,
+        _signupPasswordCtrl.text,
+      );
+      if (!mounted) return;
+      if (response.statusCode == 201) {
+        showAppSnackBar(t.auth_signup_success, type: SnackBarType.success);
+        _navigate(_AuthView.login);
+      } else {
+        final errorData =
+            json.decode(response.body) as Map<String, dynamic>;
+        final serverErrors = <String, String?>{};
+        errorData.forEach((key, value) {
+          if (value is List && value.isNotEmpty) {
+            serverErrors[key] = value.first as String;
+          } else if (value is String) {
+            serverErrors[key] = value;
+          }
+        });
+        setState(() => _signupErrors = serverErrors);
+        showAppSnackBar(t.auth_signup_failed, type: SnackBarType.error);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(Translations.of(context).auth_generic_error,
+          type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -230,632 +298,1023 @@ class _AuthScreenState extends State<AuthScreen>
     return false;
   }
 
-  Future<void> _loginAsDemo() async {
-    _loginUsernameController.text = 'demo';
-    _loginPasswordController.text = 'Demo@123';
-    await _login();
-  }
-
-  Future<void> _signup() async {
-    final t = Translations.of(context);
-    final errors = <String, String?>{};
-    if (_signupUsernameController.text.trim().isEmpty) {
-      errors['username'] = t.auth_val_username_required;
-    } else if (_signupUsernameController.text.trim().length < 4) {
-      errors['username'] = t.auth_val_username_length;
-    }
-    if (_signupEmailController.text.trim().isEmpty) {
-      errors['email'] = t.auth_val_email_required;
-    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
-        .hasMatch(_signupEmailController.text.trim())) {
-      errors['email'] = t.auth_val_email_invalid;
-    }
-    if (_signupPasswordController.text.isEmpty) {
-      errors['password'] = t.auth_val_password_required;
-    } else if (_signupPasswordController.text.length < 6) {
-      errors['password'] = t.auth_val_password_length;
-    }
-    if (errors.isNotEmpty) {
-      setState(() => _signupErrors = errors);
-      return;
-    }
-    setState(() {
-      _signupErrors = {};
-      _isLoading = true;
-    });
-    try {
-      final response = await _apiService.signup(
-        _signupEmailController.text,
-        _signupUsernameController.text,
-        _signupPasswordController.text,
-      );
-      if (!mounted) return;
-      if (response.statusCode == 201) {
-        showAppSnackBar(t.auth_signup_success, type: SnackBarType.success);
-        _tabController.animateTo(0);
-      } else {
-        final Map<String, dynamic> errorData =
-            json.decode(response.body) as Map<String, dynamic>;
-        final serverErrors = <String, String?>{};
-        errorData.forEach((key, value) {
-          if (value is List && value.isNotEmpty) {
-            serverErrors[key] = value.first as String;
-          } else if (value is String) {
-            serverErrors[key] = value;
-          }
-        });
-        setState(() => _signupErrors = serverErrors);
-        showAppSnackBar(Translations.of(context).auth_signup_failed, type: SnackBarType.error);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(Translations.of(context).auth_generic_error, type: SnackBarType.error);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  /// Wraps field widgets in a themed container that suppresses all
-  /// InputDecorationTheme borders (so theme borders never bleed through).
-  Widget _buildFieldContainer({
-    required List<Widget> children,
-    required Color fieldBg,
-  }) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        inputDecorationTheme: const InputDecorationTheme(
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-          focusedErrorBorder: InputBorder.none,
-          disabledBorder: InputBorder.none,
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: fieldBg,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(children: children),
-      ),
-    );
-  }
-
-  InputDecoration _fieldDecoration({
-    String? hint,
-    Widget? suffixWidget,
-    double s = 1.0,
-  }) {
-    final theme = Theme.of(context);
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(
-        color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-        fontSize: 14 * s,
-      ),
-      filled: false,
-      border: InputBorder.none,
-      enabledBorder: InputBorder.none,
-      focusedBorder: InputBorder.none,
-      errorBorder: InputBorder.none,
-      focusedErrorBorder: InputBorder.none,
-      disabledBorder: InputBorder.none,
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16 * s),
-      suffixIcon: suffixWidget,
-    );
-  }
-
-  Widget _fieldError(String? error, double s) {
-    if (error == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 6, left: 4),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: Colors.red.shade400, size: 13),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              error,
-              style: TextStyle(
-                color: Colors.red.shade400,
-                fontSize: 12 * s,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final theme = Theme.of(context);
-    final isDark = context.watch<ThemeProvider>().isDark;
-    final currentLocale = LocaleSettings.currentLocale;
-    final currentFlag = currentLocale == AppLocale.sv ? '🇸🇪' : '🇬🇧';
-
-    // Scale factor: 1.0 on tall screens (≥ 812), shrinks on shorter ones, min 0.78
-    final s = (MediaQuery.of(context).size.height / 812.0).clamp(0.78, 1.0);
-
-    // Use theme.cardColor for all cards/fields (dark: #1C1C1E, light: white)
-    // For subtle contrast on white scaffold, fall back to a tinted card bg
-    final fieldBg = isDark
-        ? theme.cardColor
-        : theme.colorScheme.onSurface.withValues(alpha: 0.06);
-
-    final tabContainerBg = fieldBg;
-
-    // Active tab pill: slightly lighter than the container in dark, scaffold bg in light
-    final tabActiveBg = isDark
-        ? Color.lerp(theme.cardColor, theme.colorScheme.onSurface, 0.12)!
-        : theme.scaffoldBackgroundColor;
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── Top bar ──
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8, right: 12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(50),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 320),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, anim) {
+          final forward = _viewForward;
+          final slide = Tween<Offset>(
+            begin: Offset(forward ? 1.0 : -1.0, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic));
+          return SlideTransition(position: slide, child: child);
+        },
+        child: switch (_view) {
+          _AuthView.landing => _LandingView(
+              key: const ValueKey('landing'),
+              isLoading: _isLoading,
+              loginError: _loginError,
+              onGoogle: _signInWithGoogle,
+              onLogin: () => _navigate(_AuthView.login),
+              onSignup: () => _navigate(_AuthView.signup),
+              onSetLocale: _setLocale,
+            ),
+          _AuthView.login => _LoginView(
+              key: const ValueKey('login'),
+              isLoading: _isLoading,
+              usernameCtrl: _loginUsernameCtrl,
+              passwordCtrl: _loginPasswordCtrl,
+              obscurePassword: _obscureLoginPw,
+              onToggleObscure: () =>
+                  setState(() => _obscureLoginPw = !_obscureLoginPw),
+              loginError: _loginError,
+              fieldErrors: _loginErrors,
+              onLogin: _login,
+              onDemoLogin: _loginAsDemo,
+              onBack: () => _navigate(_AuthView.landing),
+              onGoSignup: () => _navigate(_AuthView.signup),
+              onForgotPassword: () => Navigator.of(context).push(
+                AppPageRoute(builder: (_) => const ForgotPasswordScreen()),
+              ),
+            ),
+          _AuthView.signup => _SignupView(
+              key: const ValueKey('signup'),
+              isLoading: _isLoading,
+              usernameCtrl: _signupUsernameCtrl,
+              emailCtrl: _signupEmailCtrl,
+              passwordCtrl: _signupPasswordCtrl,
+              obscurePassword: _obscureSignupPw,
+              onToggleObscure: () =>
+                  setState(() => _obscureSignupPw = !_obscureSignupPw),
+              fieldErrors: _signupErrors,
+              onSignup: _signup,
+              onBack: () => _navigate(_AuthView.landing),
+              onGoLogin: () => _navigate(_AuthView.login),
+            ),
+        },
+      ),
+    );
+  }
+}
+
+// ─── Shared: Gradient CTA button ─────────────────────────────────────────────
+
+class _GradientButton extends StatelessWidget {
+  const _GradientButton({
+    required this.label,
+    required this.onPressed,
+    this.loading = false,
+    this.icon,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final bool loading;
+  final Widget? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(9999),
+      child: InkWell(
+        onTap: loading ? null : onPressed,
+        borderRadius: BorderRadius.circular(9999),
+        child: Ink(
+          height: 58,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [cs.primary, cs.primaryContainer],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(9999),
+            boxShadow: [
+              BoxShadow(
+                color: cs.primary.withValues(alpha: 0.18),
+                blurRadius: 32,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Center(
+            child: loading
+                ? SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                        color: cs.onPrimary, strokeWidth: 2.5),
+                  )
+                : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      PopupMenuButton<AppLocale>(
-                        tooltip: 'Language',
-                        onSelected: _setLocale,
-                        itemBuilder: (context) => [
-                          CheckedPopupMenuItem<AppLocale>(
-                            value: AppLocale.en,
-                            checked: currentLocale == AppLocale.en,
-                            child: const Text('🇬🇧 English'),
-                          ),
-                          CheckedPopupMenuItem<AppLocale>(
-                            value: AppLocale.sv,
-                            checked: currentLocale == AppLocale.sv,
-                            child: const Text('🇸🇪 Svenska'),
-                          ),
-                        ],
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 18, right: 10, top: 6, bottom: 6),
-                          child: Text(currentFlag,
-                              style: const TextStyle(fontSize: 20)),
+                      if (icon != null) ...[icon!, const SizedBox(width: 12)],
+                      Text(
+                        label,
+                        style: GoogleFonts.lexend(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: cs.onPrimary,
                         ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                        child: VerticalDivider(
-                          width: 1,
-                          thickness: 1,
-                          color: theme.dividerColor.withValues(alpha: 0.4),
-                        ),
-                      ),
-                      IconButton(
-                        padding: const EdgeInsets.only(
-                            left: 10, right: 18, top: 6, bottom: 6),
-                        constraints: const BoxConstraints(),
-                        icon: Icon(isDark
-                            ? Icons.light_mode_outlined
-                            : Icons.dark_mode_outlined),
-                        onPressed: () => context.read<ThemeProvider>().toggle(),
                       ),
                     ],
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Shared: Auth text field ──────────────────────────────────────────────────
+
+class _AuthField extends StatelessWidget {
+  const _AuthField({
+    required this.label,
+    required this.controller,
+    this.hint,
+    this.keyboardType,
+    this.obscureText = false,
+    this.suffixIcon,
+    this.error,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final String? hint;
+  final TextInputType? keyboardType;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final hasError = error != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2.0,
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 8),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            color: hasError
+                ? cs.error.withValues(alpha: 0.06)
+                : cs.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(16),
+            border: hasError
+                ? Border.all(color: cs.error.withValues(alpha: 0.3))
+                : Border.all(
+                    color: cs.outlineVariant.withValues(alpha: 0.15)),
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              inputDecorationTheme: const InputDecorationTheme(
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+            ),
+            child: TextField(
+              controller: controller,
+              keyboardType: keyboardType,
+              obscureText: obscureText,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15,
+                color: cs.onSurface,
+              ),
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  color: cs.outlineVariant,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 18, vertical: 18),
+                suffixIcon: suffixIcon,
+              ),
+            ),
+          ),
+        ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline,
+                    color: cs.error, size: 13),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    error!,
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12, color: cs.error),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ─── Shared: Back button app bar ──────────────────────────────────────────────
+
+class _AuthAppBar extends StatelessWidget {
+  const _AuthAppBar({required this.onBack});
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: Row(
+          children: [
+            Material(
+              color: cs.surfaceContainerLow,
+              shape: const CircleBorder(),
+              child: InkWell(
+                onTap: onBack,
+                customBorder: const CircleBorder(),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Icon(Icons.arrow_back_rounded,
+                      color: cs.primary, size: 22),
                 ),
               ),
             ),
-
-            // ── Body: logo (flex 2) + content (flex 5) ──
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Logo — centered in its flexible slice
-                  Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: Image.asset(
-                        'assets/icon/icon.png',
-                        height: 64 * s,
-                        width: 64 * s,
-                      ),
-                    ),
-                  ),
-
-                  // Google button
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          t.auth_express_google,
-                          style: TextStyle(
-                            fontSize: 12 * s,
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.5),
-                          ),
-                        ),
-                        SizedBox(height: 8 * s),
-                        InkWell(
-                          onTap: _isLoading ? null : _signInWithGoogle,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 14 * s),
-                            decoration: BoxDecoration(
-                              color: fieldBg,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  t.auth_google_label,
-                                  style: TextStyle(
-                                    fontSize: 15 * s,
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.5),
-                                  ),
-                                ),
-                                const Spacer(),
-                                FaIcon(
-                                  FontAwesomeIcons.google,
-                                  size: 18 * s,
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.5),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  SizedBox(height: 16 * s),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Divider(
-                      height: 1,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-                    ),
-                  ),
-
-                  // Tab bar
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 24, vertical: 6 * s),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: tabContainerBg,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: TabBar(
-                        controller: _tabController,
-                        indicator: BoxDecoration(
-                          color: tabActiveBg,
-                          borderRadius: BorderRadius.circular(9),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              blurRadius: 4,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        labelColor: theme.colorScheme.onSurface,
-                        unselectedLabelColor:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                        labelStyle: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14 * s,
-                        ),
-                        unselectedLabelStyle: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14 * s,
-                        ),
-                        dividerColor: Colors.transparent,
-                        tabs: [
-                          Tab(text: t.auth_tab_login),
-                          Tab(text: t.auth_tab_signup),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Form — fills remaining space, scrollable per tab
-                  Expanded(
-                    flex: 5,
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        // ── Login ──
-                        SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              SizedBox(height: 12 * s),
-                              if (_loginError != null) ...[
-                                Row(
-                                  children: [
-                                    const Icon(Icons.error_outline,
-                                        color: Colors.red, size: 16),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        _loginError!,
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 13 * s,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 6 * s),
-                              ],
-                              // Username field
-                              _buildFieldContainer(
-                                children: [
-                                  TextField(
-                                    controller: _loginUsernameController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    onChanged: (_) => setState(
-                                        () => _loginErrors.remove('username')),
-                                    style: TextStyle(
-                                      fontSize: 14 * s,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                    decoration: _fieldDecoration(
-                                      hint: t.auth_username,
-                                      s: s,
-                                    ),
-                                  ),
-                                ],
-                                fieldBg: _loginErrors['username'] != null
-                                    ? Colors.red.withValues(alpha: 0.06)
-                                    : fieldBg,
-                              ),
-                              _fieldError(_loginErrors['username'], s),
-                              SizedBox(height: 8 * s),
-                              // Password field
-                              _buildFieldContainer(
-                                children: [
-                                  TextField(
-                                    controller: _loginPasswordController,
-                                    obscureText: _obscureLoginPassword,
-                                    onChanged: (_) => setState(
-                                        () => _loginErrors.remove('password')),
-                                    style: TextStyle(
-                                      fontSize: 14 * s,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                    decoration: _fieldDecoration(
-                                      hint: t.auth_password,
-                                      s: s,
-                                      suffixWidget: TextButton(
-                                        onPressed: () => setState(() =>
-                                            _obscureLoginPassword =
-                                                !_obscureLoginPassword),
-                                        child: Text(
-                                          _obscureLoginPassword
-                                              ? t.auth_show_password
-                                              : t.auth_hide_password,
-                                          style: TextStyle(
-                                            color: theme.colorScheme.onSurface
-                                                .withValues(alpha: 0.5),
-                                            fontSize: 13 * s,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                fieldBg: _loginErrors['password'] != null
-                                    ? Colors.red.withValues(alpha: 0.06)
-                                    : fieldBg,
-                              ),
-                              _fieldError(_loginErrors['password'], s),
-                              SizedBox(height: 14 * s),
-                              // Login button
-                              SizedBox(
-                                height: 50 * s,
-                                child: _isLoading
-                                    ? const Center(
-                                        child: CircularProgressIndicator())
-                                    : ElevatedButton(
-                                        onPressed: _login,
-                                        child: Text(
-                                          t.auth_login_title,
-                                          style: TextStyle(
-                                            fontSize: 15 * s,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                              ),
-                              SizedBox(height: 16 * s),
-                              // Forgot password
-                              Center(
-                                child: GestureDetector(
-                                  onTap: () => Navigator.of(context).push(
-                                    AppPageRoute(
-                                      builder: (_) =>
-                                          const ForgotPasswordScreen(),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    t.auth_forgot_password,
-                                    style: TextStyle(
-                                      fontSize: 14 * s,
-                                      fontWeight: FontWeight.bold,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 10 * s),
-                              // Demo login — subtle
-                              if (!_isLoading)
-                                Center(
-                                  child: TextButton(
-                                    onPressed: _loginAsDemo,
-                                    child: Text(
-                                      t.auth_skip_demo_short,
-                                      style: TextStyle(
-                                        fontSize: 12 * s,
-                                        color: theme.colorScheme.onSurface
-                                            .withValues(alpha: 0.4),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              SizedBox(height: 16 * s),
-                            ],
-                          ),
-                        ),
-
-                        // ── Sign up ──
-                        SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              SizedBox(height: 12 * s),
-                              // Username field
-                              _buildFieldContainer(
-                                fieldBg: _signupErrors['username'] != null
-                                    ? Colors.red.withValues(alpha: 0.06)
-                                    : fieldBg,
-                                children: [
-                                  TextField(
-                                    controller: _signupUsernameController,
-                                    onChanged: (_) => setState(
-                                        () => _signupErrors.remove('username')),
-                                    style: TextStyle(
-                                      fontSize: 14 * s,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                    decoration: _fieldDecoration(
-                                        hint: t.auth_username, s: s),
-                                  ),
-                                ],
-                              ),
-                              _fieldError(_signupErrors['username'], s),
-                              SizedBox(height: 8 * s),
-                              // Email field
-                              _buildFieldContainer(
-                                fieldBg: _signupErrors['email'] != null
-                                    ? Colors.red.withValues(alpha: 0.06)
-                                    : fieldBg,
-                                children: [
-                                  TextField(
-                                    controller: _signupEmailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    onChanged: (_) => setState(
-                                        () => _signupErrors.remove('email')),
-                                    style: TextStyle(
-                                      fontSize: 14 * s,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                    decoration: _fieldDecoration(
-                                        hint: t.auth_email, s: s),
-                                  ),
-                                ],
-                              ),
-                              _fieldError(_signupErrors['email'], s),
-                              SizedBox(height: 8 * s),
-                              // Password field
-                              _buildFieldContainer(
-                                fieldBg: _signupErrors['password'] != null
-                                    ? Colors.red.withValues(alpha: 0.06)
-                                    : fieldBg,
-                                children: [
-                                  TextField(
-                                    controller: _signupPasswordController,
-                                    obscureText: _obscureSignupPassword,
-                                    onChanged: (_) => setState(
-                                        () => _signupErrors.remove('password')),
-                                    style: TextStyle(
-                                      fontSize: 14 * s,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                    decoration: _fieldDecoration(
-                                      hint: t.auth_password,
-                                      s: s,
-                                      suffixWidget: TextButton(
-                                        onPressed: () => setState(() =>
-                                            _obscureSignupPassword =
-                                                !_obscureSignupPassword),
-                                        child: Text(
-                                          _obscureSignupPassword
-                                              ? t.auth_show_password
-                                              : t.auth_hide_password,
-                                          style: TextStyle(
-                                            color: theme.colorScheme.onSurface
-                                                .withValues(alpha: 0.5),
-                                            fontSize: 13 * s,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              _fieldError(_signupErrors['password'], s),
-                              SizedBox(height: 14 * s),
-                              SizedBox(
-                                height: 50 * s,
-                                child: _isLoading
-                                    ? const Center(
-                                        child: CircularProgressIndicator())
-                                    : ElevatedButton(
-                                        onPressed: _signup,
-                                        child: Text(
-                                          t.auth_sign_up_btn,
-                                          style: TextStyle(
-                                            fontSize: 15 * s,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                              ),
-                              SizedBox(height: 16 * s),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            const SizedBox(width: 14),
+            Text(
+              'DRIVE TEST',
+              style: GoogleFonts.lexend(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+                color: cs.primary,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─── Ambient background blobs ─────────────────────────────────────────────────
+
+class _AmbientBg extends StatelessWidget {
+  const _AmbientBg();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final size = MediaQuery.of(context).size;
+    return Stack(
+      children: [
+        // Top-left glow
+        Positioned(
+          top: -size.height * 0.1,
+          left: -size.width * 0.15,
+          width: size.width * 0.7,
+          height: size.width * 0.7,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  cs.primaryContainer.withValues(alpha: 0.18),
+                  cs.primaryContainer.withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Bottom-right shape
+        Positioned(
+          bottom: -size.height * 0.08,
+          right: -size.width * 0.12,
+          child: Transform.rotate(
+            angle: 0.21, // ~12°
+            child: Container(
+              width: size.width * 0.6,
+              height: size.width * 0.6,
+              decoration: BoxDecoration(
+                color: cs.secondaryContainer.withValues(alpha: 0.25),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(120),
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Kinetic stripe
+        Positioned(
+          bottom: 48,
+          left: 0,
+          child: Container(
+            width: 100,
+            height: 4,
+            decoration: BoxDecoration(
+              color: cs.primaryContainer.withValues(alpha: 0.35),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(9999),
+                bottomRight: Radius.circular(9999),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── View 1: Landing ─────────────────────────────────────────────────────────
+
+class _LandingView extends StatelessWidget {
+  const _LandingView({
+    super.key,
+    required this.isLoading,
+    required this.loginError,
+    required this.onGoogle,
+    required this.onLogin,
+    required this.onSignup,
+    required this.onSetLocale,
+  });
+
+  final bool isLoading;
+  final String? loginError;
+  final VoidCallback onGoogle;
+  final VoidCallback onLogin;
+  final VoidCallback onSignup;
+  final Future<void> Function(AppLocale) onSetLocale;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = context.watch<ThemeProvider>().isDark;
+    final currentLocale = LocaleSettings.currentLocale;
+    final currentFlag = currentLocale == AppLocale.sv ? '🇸🇪' : '🇬🇧';
+
+    return Stack(
+      children: [
+        const _AmbientBg(),
+
+        SafeArea(
+          child: Column(
+            children: [
+              // Top-right: language + theme toggle
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8, right: 16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(9999),
+                      boxShadow: [
+                        BoxShadow(
+                          color: cs.onSurface.withValues(alpha: 0.05),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PopupMenuButton<AppLocale>(
+                          tooltip: 'Language',
+                          onSelected: onSetLocale,
+                          itemBuilder: (_) => [
+                            CheckedPopupMenuItem<AppLocale>(
+                              value: AppLocale.en,
+                              checked: currentLocale == AppLocale.en,
+                              child: const Text('🇬🇧 English'),
+                            ),
+                            CheckedPopupMenuItem<AppLocale>(
+                              value: AppLocale.sv,
+                              checked: currentLocale == AppLocale.sv,
+                              child: const Text('🇸🇪 Svenska'),
+                            ),
+                          ],
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 6, 10, 6),
+                            child: Text(currentFlag,
+                                style: const TextStyle(fontSize: 20)),
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 20,
+                          color: cs.outlineVariant.withValues(alpha: 0.4),
+                        ),
+                        IconButton(
+                          padding:
+                              const EdgeInsets.fromLTRB(10, 6, 16, 6),
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            isDark
+                                ? Icons.light_mode_outlined
+                                : Icons.dark_mode_outlined,
+                            size: 20,
+                            color: cs.onSurfaceVariant,
+                          ),
+                          onPressed: () =>
+                              context.read<ThemeProvider>().toggle(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Branding — flexible top half
+              Expanded(
+                flex: 5,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: GoogleFonts.lexend(
+                              fontSize: 56,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -2,
+                              height: 1.0,
+                              color: cs.onSurface,
+                            ),
+                            children: [
+                              const TextSpan(text: 'DRIVE '),
+                              TextSpan(
+                                text: 'TEST',
+                                style: GoogleFonts.lexend(
+                                  fontStyle: FontStyle.italic,
+                                  color: cs.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Your journey to excellence starts with a single tap.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            color: cs.onSurfaceVariant,
+                            height: 1.5,
+                          ),
+                        ),
+                        if (loginError != null) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: cs.error.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.error_outline,
+                                    color: cs.error, size: 16),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    loginError!,
+                                    style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13, color: cs.error),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Action cluster — bottom half
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // Google button
+                      _GradientButton(
+                        label: Translations.of(context).auth_express_google,
+                        loading: isLoading,
+                        onPressed: onGoogle,
+                        icon: isLoading
+                            ? null
+                            : SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: FaIcon(FontAwesomeIcons.google,
+                                    size: 18,
+                                    color: cs.onPrimary),
+                              ),
+                      ),
+                      const SizedBox(height: 14),
+                      // Login button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 58,
+                        child: ElevatedButton(
+                          onPressed: onLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: cs.surfaceContainerHighest,
+                            foregroundColor: cs.primary,
+                            elevation: 0,
+                            shape: const StadiumBorder(),
+                          ),
+                          child: Text(
+                            Translations.of(context).auth_tab_login,
+                            style: GoogleFonts.lexend(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Sign up link
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'New here?  ',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 15,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: onSignup,
+                            child: Text(
+                              'Create an account',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: cs.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── View 2: Login form ───────────────────────────────────────────────────────
+
+class _LoginView extends StatelessWidget {
+  const _LoginView({
+    super.key,
+    required this.isLoading,
+    required this.usernameCtrl,
+    required this.passwordCtrl,
+    required this.obscurePassword,
+    required this.onToggleObscure,
+    required this.loginError,
+    required this.fieldErrors,
+    required this.onLogin,
+    required this.onDemoLogin,
+    required this.onBack,
+    required this.onGoSignup,
+    required this.onForgotPassword,
+  });
+
+  final bool isLoading;
+  final TextEditingController usernameCtrl;
+  final TextEditingController passwordCtrl;
+  final bool obscurePassword;
+  final VoidCallback onToggleObscure;
+  final String? loginError;
+  final Map<String, String?> fieldErrors;
+  final VoidCallback onLogin;
+  final VoidCallback onDemoLogin;
+  final VoidCallback onBack;
+  final VoidCallback onGoSignup;
+  final VoidCallback onForgotPassword;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = Translations.of(context);
+
+    return Stack(
+      children: [
+        const _AmbientBg(),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _AuthAppBar(onBack: onBack),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Editorial headline
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned(
+                          top: -24,
+                          left: -16,
+                          child: Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: cs.secondaryContainer
+                                  .withValues(alpha: 0.2),
+                            ),
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Welcome\nBack',
+                              style: GoogleFonts.lexend(
+                                fontSize: 46,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -1.5,
+                                height: 1.0,
+                                color: cs.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Continue your kinetic journey.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Error banner
+                    if (loginError != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: cs.error.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline,
+                                color: cs.error, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(loginError!,
+                                  style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13, color: cs.error)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Username
+                    _AuthField(
+                      label: t.auth_username,
+                      controller: usernameCtrl,
+                      hint: 'username',
+                      keyboardType: TextInputType.emailAddress,
+                      error: fieldErrors['username'],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Password
+                    _AuthField(
+                      label: t.auth_password,
+                      controller: passwordCtrl,
+                      hint: '••••••••',
+                      obscureText: obscurePassword,
+                      error: fieldErrors['password'],
+                      suffixIcon: TextButton(
+                        onPressed: onToggleObscure,
+                        child: Text(
+                          obscurePassword
+                              ? t.auth_show_password
+                              : t.auth_hide_password,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: cs.outline,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Forgot password
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: onForgotPassword,
+                        child: Text(
+                          t.auth_forgot_password,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: cs.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Sign In button
+                    _GradientButton(
+                      label: t.auth_login_title,
+                      loading: isLoading,
+                      onPressed: onLogin,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Demo login
+                    Center(
+                      child: TextButton(
+                        onPressed: isLoading ? null : onDemoLogin,
+                        child: Text(
+                          t.auth_skip_demo_short,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: cs.outline,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Switch to signup
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account?  ",
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: onGoSignup,
+                            child: Text(
+                              t.auth_tab_signup,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: cs.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ─── View 3: Sign Up form ─────────────────────────────────────────────────────
+
+class _SignupView extends StatelessWidget {
+  const _SignupView({
+    super.key,
+    required this.isLoading,
+    required this.usernameCtrl,
+    required this.emailCtrl,
+    required this.passwordCtrl,
+    required this.obscurePassword,
+    required this.onToggleObscure,
+    required this.fieldErrors,
+    required this.onSignup,
+    required this.onBack,
+    required this.onGoLogin,
+  });
+
+  final bool isLoading;
+  final TextEditingController usernameCtrl;
+  final TextEditingController emailCtrl;
+  final TextEditingController passwordCtrl;
+  final bool obscurePassword;
+  final VoidCallback onToggleObscure;
+  final Map<String, String?> fieldErrors;
+  final VoidCallback onSignup;
+  final VoidCallback onBack;
+  final VoidCallback onGoLogin;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = Translations.of(context);
+
+    return Stack(
+      children: [
+        const _AmbientBg(),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _AuthAppBar(onBack: onBack),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Editorial headline
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned(
+                          top: -20,
+                          left: -16,
+                          child: Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: cs.secondaryContainer
+                                  .withValues(alpha: 0.22),
+                            ),
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RichText(
+                              text: TextSpan(
+                                style: GoogleFonts.lexend(
+                                  fontSize: 46,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -1.5,
+                                  height: 1.1,
+                                  color: cs.onSurface,
+                                ),
+                                children: [
+                                  const TextSpan(text: 'Join the\n'),
+                                  TextSpan(
+                                    text: 'Movement.',
+                                    style: GoogleFonts.lexend(
+                                      fontStyle: FontStyle.italic,
+                                      color: cs.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Accelerate your learning journey today.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 15,
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Username
+                    _AuthField(
+                      label: t.auth_username,
+                      controller: usernameCtrl,
+                      hint: 'Erik Andersson',
+                      error: fieldErrors['username'],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Email
+                    _AuthField(
+                      label: t.auth_email,
+                      controller: emailCtrl,
+                      hint: 'erik@example.se',
+                      keyboardType: TextInputType.emailAddress,
+                      error: fieldErrors['email'],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Password
+                    _AuthField(
+                      label: t.auth_password,
+                      controller: passwordCtrl,
+                      hint: '••••••••',
+                      obscureText: obscurePassword,
+                      error: fieldErrors['password'],
+                      suffixIcon: TextButton(
+                        onPressed: onToggleObscure,
+                        child: Text(
+                          obscurePassword
+                              ? t.auth_show_password
+                              : t.auth_hide_password,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: cs.outline,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 36),
+
+                    // Create Account button
+                    _GradientButton(
+                      label: t.auth_sign_up_btn,
+                      loading: isLoading,
+                      onPressed: onSignup,
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Switch to login
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Already have an account?  ',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: onGoLogin,
+                            child: Text(
+                              t.auth_tab_login,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: cs.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

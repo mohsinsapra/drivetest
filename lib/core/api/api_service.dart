@@ -5,7 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
+import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'dio_client.dart';
 
 class ApiService {
@@ -60,12 +62,23 @@ class ApiService {
     } catch (e) {
       debugPrint('Local logout error (non-fatal): $e');
     }
+    // Wipe all user-specific cached data (BcdCache, Hive boxes).
+    await UserCacheService.clearAll();
   }
 
   Future<dynamic> fetchCurrentUser() async {
     try {
       final response = await _dio.get('api/user/self/');
-      return response.data;
+      final data = response.data;
+      // Seed BcdCache from the embedded dashboard tree so subsequent
+      // BcdCache.ensureLoaded() calls skip all individual category/test fetches.
+      if (data is Map<String, dynamic>) {
+        final dashboard = data['bcd_dashboard'];
+        if (dashboard is List) {
+          BcdCache.instance.seedFromSelfResponse(dashboard);
+        }
+      }
+      return data;
     } catch (e) {
       throw Exception('Failed to fetch current user: $e');
     }
@@ -537,6 +550,7 @@ class ApiService {
     return [];
   }
 
+
   Future<List<dynamic>> fetchBCDAllCategories() async {
     final response = await _dio.get('api/v2/categories/');
     return _asList(response.data);
@@ -626,6 +640,24 @@ class ApiService {
       data: {'product_id': productId},
     );
     return response.data['clientSecret'] as String;
+  }
+
+  Future<String> createBCDBundlePaymentIntent(List<int> productIds) async {
+    final response = await _dio.post(
+      'api/payment/bcd/create-bundle-intent/',
+      data: {'product_ids': productIds},
+    );
+    return response.data['clientSecret'] as String;
+  }
+
+  /// Notify the backend that a Stripe PaymentIntent succeeded so it can
+  /// immediately mark the matching BCDUserSubscription(s) as PAID — before
+  /// the asynchronous Stripe webhook arrives.
+  Future<void> confirmBCDPayment(String paymentIntentId) async {
+    await _dio.post(
+      'api/payment/bcd/confirm-payment/',
+      data: {'payment_intent_id': paymentIntentId},
+    );
   }
 
   Future<String> createCheckoutSession({

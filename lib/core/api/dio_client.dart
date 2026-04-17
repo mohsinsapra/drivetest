@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:flutter/material.dart';
@@ -20,6 +20,7 @@ class DioClient {
   DioClient._internal();
 
   Dio? _dio;
+  MemCacheStore? _cacheStore;
   final keyString = 'ThisIsA32ByteLongSecretKeyForAES'; // 32-byte key
   List<int>? _key;
   // Initialize cipher
@@ -37,6 +38,13 @@ class DioClient {
   bool _logoutTriggeredFrom401 = false;
 
   Dio get dio => _dio!;
+
+  /// Clears all in-memory HTTP cached responses.
+  /// Call after actions that change server-side state (e.g. subscription purchase)
+  /// so the next request fetches fresh data instead of a stale cached response.
+  Future<void> clearCache() async {
+    await _cacheStore?.clean();
+  }
   List<int> get key => _key!;
   CryptoService get cryptoService => _cryptoService!;
 
@@ -61,9 +69,7 @@ class DioClient {
 
     // Fallback to SharedPreferences if not found in secure storage
     if (refreshToken == null || accessToken == null) {
-      final prefs = await SharedPreferences.getInstance();
-      refreshToken ??= prefs.getString('refreshToken');
-      accessToken ??= prefs.getString('accessToken');
+
 
       // If found in SharedPreferences, migrate to secure storage
       if (refreshToken != null && accessToken != null) {
@@ -79,9 +85,10 @@ class DioClient {
     _key = utf8.encode(keyString);
     _cryptoService = CryptoService(Uint8List.fromList(_key!));
 
+    _cacheStore = MemCacheStore();
     final options = CacheOptions(
       // A default store is required for interceptor.
-      store: MemCacheStore(),
+      store: _cacheStore,
 
       // All subsequent fields are optional.
 
@@ -229,6 +236,7 @@ class DioClient {
 
   Future<void> logoutAndRedirect() async {
     await logout();
+    await UserCacheService.clearAll();
     final context = NavigationService.navigatorKey.currentContext;
     if (context != null && context.mounted) {
       // ignore: use_build_context_synchronously
@@ -262,9 +270,7 @@ class DioClient {
 
     // Fallback to SharedPreferences if not found in secure storage
     if (refreshToken == null || accessToken == null) {
-      final prefs = await SharedPreferences.getInstance();
-      refreshToken ??= prefs.getString('refreshToken');
-      accessToken ??= prefs.getString('accessToken');
+
     }
   }
 
@@ -295,8 +301,6 @@ class DioClient {
       _lastFailedRefreshAt = null;
 
       // Mirror to SharedPreferences for iOS web browser resilience.
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('accessToken', accessToken!);
 
       // If a new refresh token is provided, update and save it
       if (response.data.containsKey('refresh')) {
@@ -306,7 +310,6 @@ class DioClient {
         } catch (e) {
           debugPrint('[DioClient] secure storage write (refresh) failed (non-fatal): $e');
         }
-        await prefs.setString('refreshToken', refreshToken!);
       }
 
       return true;
@@ -383,9 +386,7 @@ class DioClient {
     // recover tokens across sessions. flutter_secure_storage on iOS Safari
     // can lose its AES decryption key between sessions, causing read() to
     // return null and leaving the user logged out on reload.
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('accessToken', access);
-    await prefs.setString('refreshToken', refresh);
+
   }
 
   Future<void> logout() async {
@@ -398,9 +399,6 @@ class DioClient {
     await _secureStorage.deleteAll();
 
     // Remove tokens from SharedPreferences (rest is cleared by the caller)
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('refreshToken');
-    await prefs.remove('accessToken');
   }
 
   List<Question> _decryptQuestions(List<dynamic> data) {

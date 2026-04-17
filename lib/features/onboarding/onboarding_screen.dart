@@ -1,96 +1,181 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/bcd_cache.dart';
+import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/auth/auth_bottom_sheet.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
-import 'package:taxi_exam_app/features/bcd/bcd_subscriptions_screen.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_sub_category_screen.dart';
+import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
+import 'package:taxi_exam_app/main_screen.dart';
 
-class _ExamTopic {
-  final IconData icon;
-  final Color color;
-  const _ExamTopic(this.icon, this.color);
-}
-
-/// Maps a category name to a visual icon+color.
-/// Keyword matching — falls back to a generic icon.
-_ExamTopic _topicForName(String name) {
-  final n = name.toLowerCase();
-
-  // ── Specific Swedish exam names ───────────────────────────────────────────
-  // Motorcykel
-  if (n.contains('motorcykel') || n.contains('motorcycle') || n.contains('moped')) {
-    return const _ExamTopic(Icons.two_wheeler_rounded,      Color(0xFFE67E22));
-  }
-  // YKB Buss / buss
-  if (n.contains('buss') || n.contains('bus')) {
-    return const _ExamTopic(Icons.directions_bus_rounded,   Color(0xFF2779BC));
-  }
-  // YKB Lastbil / lastbil / truck
-  if (n.contains('lastbil') || n.contains('truck') || n.contains('ykb')) {
-    return const _ExamTopic(Icons.local_shipping_rounded,   Color(0xFF8E44AD));
-  }
-  // Gods åkeri — cargo haulage business
-  if (n.contains('åkeri') || n.contains('gods') || n.contains('cargo') || n.contains('haulage')) {
-    return const _ExamTopic(Icons.business_center_rounded,  Color(0xFF16A085));
-  }
-  // Vägmärkestest — road signs test
-  if (n.contains('vägmärke') || n.contains('road sign') || n.contains('traffic sign') || n.contains('skylt')) {
-    return const _ExamTopic(Icons.signpost_rounded,         Color(0xFFE74C3C));
-  }
-  // B-körkort / car licence
-  if (n.contains('körkort') || n.contains('b-kör') || n.contains('licence') || n.contains('license')) {
-    return const _ExamTopic(Icons.directions_car_rounded,   Color(0xFF00A86B));
-  }
-
-  // ── Generic fallbacks ─────────────────────────────────────────────────────
-  if (n.contains('taxi')) {
-    return const _ExamTopic(Icons.local_taxi_rounded,       Color(0xFFF39C12));
-  }
-  if (n.contains('teori') || n.contains('theory') || n.contains('rule') || n.contains('regel')) {
-    return const _ExamTopic(Icons.menu_book_rounded,        Color(0xFF6B4EFF));
-  }
-  if (n.contains('passager') || n.contains('passenger') || n.contains('säkerhet') || n.contains('safety')) {
-    return const _ExamTopic(Icons.people_rounded,           Color(0xFFE67E22));
-  }
-  if (n.contains('miljö') || n.contains('environment') || n.contains('eco')) {
-    return const _ExamTopic(Icons.eco_rounded,              Color(0xFF27AE60));
-  }
-  return const _ExamTopic(Icons.quiz_rounded,               Color(0xFF546E7A));
-}
+typedef OnboardingLoadProducts = Future<List<Map<String, dynamic>>> Function();
+typedef OnboardingIsLoggedIn = bool Function();
+typedef OnboardingAuthSheet = Future<bool> Function(BuildContext context);
+typedef OnboardingPayment = Future<void> Function(
+  BuildContext context,
+  List<Map<String, dynamic>> products,
+);
+typedef OnboardingSuccessOverlay = Future<SubscriptionSuccessResult?> Function(
+  BuildContext context,
+  List<Map<String, dynamic>> products,
+);
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+  const OnboardingScreen({
+    super.key,
+    this.loadProducts = _defaultLoadProducts,
+    this.isLoggedIn = _defaultIsLoggedIn,
+    this.showAuthSheet = _defaultShowAuthSheet,
+    this.processPayment = _defaultProcessPayment,
+    this.showSuccessOverlay = _defaultShowSuccessOverlay,
+  });
+
+  final OnboardingLoadProducts loadProducts;
+  final OnboardingIsLoggedIn isLoggedIn;
+  final OnboardingAuthSheet showAuthSheet;
+  final OnboardingPayment processPayment;
+  final OnboardingSuccessOverlay showSuccessOverlay;
+
+  static Future<List<Map<String, dynamic>>> _defaultLoadProducts() async {
+    final raw = await ApiService().fetchBCDSubscriptionProducts();
+    return raw.whereType<Map<String, dynamic>>().toList();
+  }
+
+  static Future<bool> _defaultShowAuthSheet(BuildContext context) async {
+    if (DioClient().accessToken != null) return true;
+    return showAuthBottomSheet(context);
+  }
+
+  static bool _defaultIsLoggedIn() => DioClient().accessToken != null;
+
+  static Future<void> _defaultProcessPayment(
+    BuildContext context,
+    List<Map<String, dynamic>> products,
+  ) async {
+    final api = ApiService();
+    final currency = products.first['currency']?.toString() ?? 'SEK';
+    String? capturedIntentId;
+
+    if (products.length == 1) {
+      final product = products.first;
+      await processStripePayment(
+        context,
+        createIntent: () async {
+          final secret = await api.createBCDPaymentIntent(product['id'] as int);
+          capturedIntentId = secret.split('_secret_').first;
+          return secret;
+        },
+        merchantName: 'Drive Test',
+        subtitle: product['name']?.toString() ?? 'Subscription',
+        displayAmount: product['price']?.toString() ?? '',
+        currency: currency,
+      );
+    } else {
+      final productIds = products.map((p) => p['id'] as int).toList();
+      final total = _sumPrices(products);
+      final names = products
+          .map((p) => p['name']?.toString() ?? '')
+          .where((n) => n.isNotEmpty)
+          .join(' + ');
+      await processStripePayment(
+        context,
+        createIntent: () async {
+          final secret = await api.createBCDBundlePaymentIntent(productIds);
+          capturedIntentId = secret.split('_secret_').first;
+          return secret;
+        },
+        merchantName: 'Drive Test',
+        subtitle: names,
+        displayAmount: total.toStringAsFixed(2),
+        currency: currency,
+      );
+    }
+
+    if (capturedIntentId != null) {
+      try {
+        await api.confirmBCDPayment(capturedIntentId!);
+      } catch (_) {}
+    }
+  }
+
+  static Future<SubscriptionSuccessResult?> _defaultShowSuccessOverlay(
+    BuildContext context,
+    List<Map<String, dynamic>> products,
+  ) async {
+    final currency = products.first['currency']?.toString() ?? 'SEK';
+    final name = products.length == 1
+        ? products.first['name']?.toString() ?? 'Subscription'
+        : products
+            .map((p) => p['name']?.toString() ?? '')
+            .where((n) => n.isNotEmpty)
+            .join(' & ');
+    final totalPrice = products.length == 1
+        ? products.first['price']?.toString() ?? ''
+        : _sumPrices(products).toStringAsFixed(2);
+    final maxDays = products.fold<int>(0, (max, p) {
+      final d = (p['duration_days'] as num?)?.toInt() ?? 0;
+      return d > max ? d : max;
+    });
+    final duration = maxDays <= 0
+        ? null
+        : maxDays >= 365
+            ? '${(maxDays / 365).round()} year'
+            : maxDays >= 30
+                ? '${(maxDays / 30).round()} months'
+                : '$maxDays days';
+    return showSubscriptionSuccess(
+      context,
+      productName: name,
+      duration: duration,
+      amount: totalPrice,
+      currency: currency,
+    );
+  }
+
+  static double _sumPrices(List<Map<String, dynamic>> products) =>
+      products.fold(0.0, (sum, p) {
+        final s = p['price']?.toString().replaceAll(',', '.').trim() ?? '';
+        return sum + (double.tryParse(s) ?? 0.0);
+      });
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const int _totalSteps = 3; // pages 0,1,2 = questions; page 3 = recommendations
+  // Pages: 0 = Category, 1 = Exam date, 2 = Weekly goal, 3 = Plan (purchase)
+  static const int _totalSteps = 3; // 4 pages (indices 0–3)
 
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
-  // Categories — shown on step 0 with icons, reused for recommendations
-  List<Map<String, dynamic>> _categories = [];
-  bool _loadingCategories = true;
+  // Products
+  List<Map<String, dynamic>> _products = [];
+  bool _loadingProducts = true;
+  final List<Map<String, dynamic>> _selectedProducts = [];
+  bool _purchaseInFlight = false;
 
-  // Step 0 — selected category indices
-  final Set<int> _selectedIndices = {};
-
-  // Step 1 — exam date
+  // Step 0 — exam date
   DateTime? _examDeadline;
   _DateOption? _selectedDateOption;
 
-  // Step 2 — practice days
-  int _practiceDaysPerWeek = 3;
+  // Step 0 — weekday study schedule (0=Mon … 6=Sun), default Mon–Fri
+  Set<int> _selectedWeekdays = {0, 1, 2, 3, 4};
 
   @override
   void initState() {
     super.initState();
-    _fetchCategoriesInBackground();
+    _fetchProductsInBackground();
   }
 
   @override
@@ -99,34 +184,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  Future<void> _fetchCategoriesInBackground() async {
+  Future<void> _fetchProductsInBackground() async {
     try {
-      final raw = await ApiService().fetchBCDAllCategories();
+      final raw = await widget.loadProducts();
       if (mounted) {
         setState(() {
-          _categories = raw.whereType<Map<String, dynamic>>().toList();
-          _loadingCategories = false;
+          _products = raw;
+          _loadingProducts = false;
         });
       }
     } catch (_) {
-      if (mounted) setState(() => _loadingCategories = false);
+      if (mounted) setState(() => _loadingProducts = false);
     }
   }
 
-  Future<void> _saveAndExit() async {
+  Future<void> _saveProgressPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('onboarding_complete', true);
       if (_examDeadline != null) {
         await prefs.setString('exam_deadline', _examDeadline!.toIso8601String());
       }
-      await prefs.setInt('practice_days_per_week', _practiceDaysPerWeek);
+      await prefs.setInt('practice_days_per_week', _selectedWeekdays.length);
     } catch (_) {}
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        AppPageRoute(builder: (_) => const AuthScreen()),
-      );
-    }
+  }
+
+  Future<void> _markOnboardingComplete() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('onboarding_complete', true);
+    } catch (_) {}
+  }
+
+  Future<void> _saveAndExit() async {
+    final navigator = Navigator.of(context);
+    await _saveProgressPrefs();
+    await _markOnboardingComplete();
+    if (!mounted) return;
+    navigator.pushReplacement(
+      AppPageRoute(builder: (_) => const AuthScreen()),
+    );
   }
 
   void _goNext() {
@@ -163,15 +259,96 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  List<Map<String, dynamic>> get _recommendedCategories =>
-      _categories.where((c) => c['is_subscribed'] != true).toList();
+  Future<void> _handlePurchaseTap({Map<String, dynamic>? only}) async {
+    final products = only != null
+        ? [only]
+        : List<Map<String, dynamic>>.from(_selectedProducts);
+    if (products.isEmpty || !mounted || _purchaseInFlight) return;
+
+    setState(() => _purchaseInFlight = true);
+
+    if (!widget.isLoggedIn()) {
+      final authed = await widget.showAuthSheet(context);
+      if (!authed || !mounted) {
+        if (mounted) setState(() => _purchaseInFlight = false);
+        return;
+      }
+    }
+
+    await _saveProgressPrefs();
+    if (!mounted) return;
+
+    try {
+      try {
+        await widget.processPayment(context, products);
+      } on stripe.StripeException catch (e) {
+        if (!mounted) return;
+        final msg = e.error.localizedMessage ?? '';
+        if (!msg.toLowerCase().contains('cancel')) {
+          showAppSnackBar(msg, type: SnackBarType.error);
+        }
+        return;
+      } catch (_) {
+        if (!mounted) return;
+        showAppSnackBar(
+          Translations.of(context).bcd_payment_failed,
+          type: SnackBarType.error,
+        );
+        return;
+      }
+
+      await _markOnboardingComplete();
+      if (!mounted) return;
+
+      await DioClient().clearCache();
+      BcdCache.instance.invalidate();
+      await BcdCache.instance.ensureLoaded();
+
+      SubscriptionSuccessResult? result;
+      try {
+        result = await widget.showSuccessOverlay(context, products);
+      } catch (_) {}
+
+      if (!mounted) return;
+
+      final navigator = Navigator.of(context);
+      Map<String, dynamic>? targetCategory;
+      if (result == SubscriptionSuccessResult.startTests) {
+        for (final p in products) {
+          final categoryBcdIds = p['category_bcd_ids'] as List<dynamic>?;
+          final targetBcdId = categoryBcdIds?.firstOrNull;
+          if (targetBcdId != null) {
+            final targetBcdIdStr = targetBcdId.toString();
+            targetCategory = BcdCache.instance.categories.firstWhereOrNull(
+              (c) => c['bcd_id']?.toString() == targetBcdIdStr,
+            );
+            if (targetCategory != null) break;
+          }
+        }
+      }
+
+      navigator.pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
+
+      if (targetCategory != null) {
+        final hasChildren = targetCategory['has_children'] == true;
+        final route = hasChildren
+            ? AppPageRoute(
+                builder: (_) => BCDSubCategoryScreen(parentCategory: targetCategory!),
+              )
+            : AppPageRoute(
+                builder: (_) => BCDCategoryHubScreen(category: targetCategory!),
+              );
+        navigator.push(route);
+      }
+    } finally {
+      if (mounted) setState(() => _purchaseInFlight = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -186,43 +363,59 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (i) => setState(() => _currentStep = i),
                 children: [
-                  _ExamTopicsPage(
-                    categories: _categories,
-                    loading: _loadingCategories,
-                    selectedIndices: _selectedIndices,
-                    onToggle: (i) => setState(() {
-                      _selectedIndices.contains(i)
-                          ? _selectedIndices.remove(i)
-                          : _selectedIndices.add(i);
+                  // Step 1: Choose Your Category
+                  _CategoryPage(
+                    products: _products,
+                    loading: _loadingProducts,
+                    selectedProducts: _selectedProducts,
+                    onToggle: (product) => setState(() {
+                      if (_selectedProducts.contains(product)) {
+                        _selectedProducts.remove(product);
+                      } else {
+                        _selectedProducts.add(product);
+                      }
                     }),
-                    onNext: _goNext,
+                    onBack: null,
+                    onNext: _selectedProducts.isEmpty ? null : _goNext,
                   ),
+                  // Step 2: Exam date
                   _ExamDatePage(
-                    selected: _selectedDateOption,
-                    deadline: _examDeadline,
-                    onSelect: (opt, date) => setState(() {
+                    selectedDateOption: _selectedDateOption,
+                    examDeadline: _examDeadline,
+                    onDateSelect: (opt, date) => setState(() {
                       _selectedDateOption = opt;
                       _examDeadline = date;
                     }),
-                    onCustom: _pickCustomDate,
+                    onCustomDate: _pickCustomDate,
                     onBack: _goBack,
                     onNext: _goNext,
                   ),
-                  _PracticeDaysPage(
-                    days: _practiceDaysPerWeek,
-                    onChanged: (d) => setState(() => _practiceDaysPerWeek = d),
+                  // Step 3: Weekly goal
+                  _WeeklyGoalPage(
+                    selectedWeekdays: _selectedWeekdays,
+                    onWeekdayToggle: (day) => setState(() {
+                      if (_selectedWeekdays.contains(day)) {
+                        if (_selectedWeekdays.length > 1) {
+                          _selectedWeekdays = Set.from(_selectedWeekdays)..remove(day);
+                        }
+                      } else {
+                        _selectedWeekdays = Set.from(_selectedWeekdays)..add(day);
+                      }
+                    }),
                     onBack: _goBack,
                     onNext: _goNext,
                   ),
-                  _RecommendationsPage(
-                    recommended: _recommendedCategories,
-                    onSubscribe: (_) {
-                      Navigator.of(context).push(
-                        AppPageRoute(
-                            builder: (_) => const BCDSubscriptionsScreen()),
-                      );
-                    },
-                    onGetStarted: _saveAndExit,
+                  // Step 4: Choose Your Plan
+                  _PlanPage(
+                    products: _selectedProducts,
+                    purchasing: _purchaseInFlight,
+                    onPurchaseOne: _purchaseInFlight
+                        ? null
+                        : (p) => _handlePurchaseTap(only: p),
+                    onPurchaseAll: _selectedProducts.isEmpty || _purchaseInFlight
+                        ? null
+                        : () => _handlePurchaseTap(),
+                    onBack: _goBack,
                   ),
                 ],
               ),
@@ -249,782 +442,1313 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
+    final cs = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(24, 16, 16, 0),
       child: Row(
         children: [
-          Expanded(
-            child: currentStep < totalSteps
-                ? Row(
-                    children: List.generate(totalSteps, (i) {
-                      final active = i == currentStep;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        margin: const EdgeInsets.only(right: 6),
-                        width: active ? 24 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: active
-                              ? primary
-                              : primary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      );
-                    }),
-                  )
-                : Text(
-                    Translations.of(context).onb_recommendations_title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-          ),
-          IconButton(
-            onPressed: onClose,
-            icon: Icon(
-              Icons.close_rounded,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-            tooltip: Translations.of(context).cancel,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Step 0: Visual exam topics (from API, mapped to icons) ──────────────────
-
-class _ExamTopicsPage extends StatelessWidget {
-  const _ExamTopicsPage({
-    required this.categories,
-    required this.loading,
-    required this.selectedIndices,
-    required this.onToggle,
-    required this.onNext,
-  });
-
-  final List<Map<String, dynamic>> categories;
-  final bool loading;
-  final Set<int> selectedIndices;
-  final ValueChanged<int> onToggle;
-  final VoidCallback onNext;
-
-  static const _kGridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
-    crossAxisCount: 2,
-    childAspectRatio: 1.35,
-    crossAxisSpacing: 12,
-    mainAxisSpacing: 12,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 8),
           Text(
-            t.onb_which_exams,
-            style: theme.textTheme.headlineSmall?.copyWith(
+            'GET STARTED',
+            style: GoogleFonts.lexend(
+              fontSize: 22,
               fontWeight: FontWeight.w800,
-              height: 1.2,
+              letterSpacing: -0.5,
+              color: cs.primary,
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            t.onb_select_all_apply,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: loading
-                ? _TopicShimmer(delegate: _kGridDelegate)
-                : categories.isEmpty
-                    ? Center(child: Text(t.onb_no_exams))
-                    : GridView.builder(
-                        gridDelegate: _kGridDelegate,
-                        itemCount: categories.length,
-                        itemBuilder: (context, i) {
-                          final name = categories[i]['name']?.toString() ?? '';
-                          return _TopicTile(
-                            name: name,
-                            topic: _topicForName(name),
-                            selected: selectedIndices.contains(i),
-                            onTap: () => onToggle(i),
-                          );
-                        },
-                      ),
-          ),
-          const SizedBox(height: 16),
-          _NextButton(label: t.onb_continue, onPressed: onNext),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopicTile extends StatelessWidget {
-  const _TopicTile({
-    required this.name,
-    required this.topic,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String name;
-  final _ExamTopic topic;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: selected
-              ? topic.color.withValues(alpha: isDark ? 0.25 : 0.14)
-              : topic.color.withValues(alpha: isDark ? 0.1 : 0.06),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: selected ? topic.color : topic.color.withValues(alpha: 0.2),
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Stack(
-          children: [
-            // Check badge
-            if (selected)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: topic.color,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.check_rounded, color: Colors.white, size: 13),
-                ),
-              ),
-            // Icon + label
-            Align(
-              alignment: Alignment.center,
-              child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: topic.color.withValues(alpha: selected ? 0.22 : (isDark ? 0.2 : 0.12)),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(topic.icon, color: topic.color, size: 24),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    name,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: selected ? topic.color : theme.colorScheme.onSurface,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TopicShimmer extends StatelessWidget {
-  const _TopicShimmer({required this.delegate});
-
-  final SliverGridDelegate delegate;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Shimmer.fromColors(
-      baseColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
-      child: GridView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: delegate,
-        itemCount: 6,
-        itemBuilder: (_, __) => Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Step 1: Exam date ────────────────────────────────────────────────────────
-
-enum _DateOption {
-  oneWeek,
-  twoWeeks,
-  threeWeeks,
-  oneMonth,
-  twoMonths,
-  threeMonths,
-  custom,
-}
-
-class _ExamDatePage extends StatelessWidget {
-  const _ExamDatePage({
-    required this.selected,
-    required this.deadline,
-    required this.onSelect,
-    required this.onCustom,
-    required this.onBack,
-    required this.onNext,
-  });
-
-  final _DateOption? selected;
-  final DateTime? deadline;
-  final void Function(_DateOption, DateTime) onSelect;
-  final VoidCallback onCustom;
-  final VoidCallback onBack;
-  final VoidCallback onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final theme = Theme.of(context);
-    final now = DateTime.now();
-
-    final options = [
-      _QuickOption(t.onb_1_week, _DateOption.oneWeek,
-          now.add(const Duration(days: 7))),
-      _QuickOption(t.onb_2_weeks, _DateOption.twoWeeks,
-          now.add(const Duration(days: 14))),
-      _QuickOption(t.onb_3_weeks, _DateOption.threeWeeks,
-          now.add(const Duration(days: 21))),
-      _QuickOption(t.onb_1_month, _DateOption.oneMonth,
-          DateTime(now.year, now.month + 1, now.day)),
-      _QuickOption(t.onb_2_months, _DateOption.twoMonths,
-          DateTime(now.year, now.month + 2, now.day)),
-      _QuickOption(t.onb_3_months, _DateOption.threeMonths,
-          DateTime(now.year, now.month + 3, now.day)),
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 8),
-          Text(
-            t.onb_exam_date_title,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            t.onb_exam_date_subtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: [
-                      for (final opt in options)
-                        _QuickDateTile(
-                          label: opt.label,
-                          isSelected: selected == opt.option,
-                          onTap: () => onSelect(opt.option, opt.date),
-                        ),
-                      _QuickDateTile(
-                        label: selected == _DateOption.custom &&
-                                deadline != null
-                            ? _formatDate(deadline!)
-                            : t.onb_custom_date,
-                        isSelected: selected == _DateOption.custom,
-                        icon: Icons.calendar_month_rounded,
-                        onTap: onCustom,
-                      ),
-                    ],
-                  ),
-                  if (deadline != null && selected != null) ...[
-                    const SizedBox(height: 24),
-                    _DeadlinePreview(deadline: deadline!),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _NavButtons(
-            onBack: onBack,
-            onNext: deadline != null ? onNext : null,
-            nextLabel: t.onb_continue,
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  String _formatDate(DateTime d) => '${d.day}/${d.month}/${d.year}';
-}
-
-class _QuickOption {
-  final String label;
-  final _DateOption option;
-  final DateTime date;
-  const _QuickOption(this.label, this.option, this.date);
-}
-
-class _QuickDateTile extends StatelessWidget {
-  const _QuickDateTile({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    this.icon,
-  });
-
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final IconData? icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? primary.withValues(alpha: 0.12)
-              : theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? primary : theme.dividerColor,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected
-                    ? primary
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: isSelected ? primary : theme.colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DeadlinePreview extends StatelessWidget {
-  const _DeadlinePreview({required this.deadline});
-
-  final DateTime deadline;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    final daysLeft = deadline.difference(DateTime.now()).inDays;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.flag_rounded, color: primary, size: 28),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${deadline.day}/${deadline.month}/${deadline.year}',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              Text(
-                Translations.of(context).dash_days_remaining(n: daysLeft),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Step 2: Practice days ────────────────────────────────────────────────────
-
-class _PracticeDaysPage extends StatelessWidget {
-  const _PracticeDaysPage({
-    required this.days,
-    required this.onChanged,
-    required this.onBack,
-    required this.onNext,
-  });
-
-  final int days;
-  final ValueChanged<int> onChanged;
-  final VoidCallback onBack;
-  final VoidCallback onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 8),
-          Text(
-            t.onb_practice_days_title,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            t.onb_practice_days_subtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-          ),
-          const SizedBox(height: 32),
+          const Spacer(),
+          // Step progress dots
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(7, (i) {
-              final d = i + 1;
-              final selected = d == days;
-              return GestureDetector(
-                onTap: () => onChanged(d),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 42,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: selected ? primary : theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: selected ? primary : theme.dividerColor,
-                      width: selected ? 2 : 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$d',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: selected
-                            ? Colors.white
-                            : theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
+            children: List.generate(totalSteps + 1, (i) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.only(left: 6),
+                width: 28,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: i <= currentStep ? cs.primary : cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(4),
                 ),
               );
             }),
           ),
-          const SizedBox(height: 20),
-          Center(
-            child: AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: theme.textTheme.bodyLarge!.copyWith(
-                color: primary,
-                fontWeight: FontWeight.w700,
-              ),
-              child: Text(t.onb_days_week_label(n: days)),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: onClose,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Icon(Icons.close_rounded, color: cs.outline, size: 20),
             ),
           ),
-          const Spacer(),
-          _NavButtons(
-            onBack: onBack,
-            onNext: onNext,
-            nextLabel: t.onb_continue,
-          ),
-          const SizedBox(height: 20),
         ],
       ),
     );
   }
 }
 
-// ─── Step 3: Recommendations ──────────────────────────────────────────────────
+// ─── Shared step header (Step X of 3 + headline) ─────────────────────────────
 
-class _RecommendationsPage extends StatelessWidget {
-  const _RecommendationsPage({
-    required this.recommended,
-    required this.onSubscribe,
-    required this.onGetStarted,
+class _StepHeader extends StatelessWidget {
+  const _StepHeader({
+    required this.stepLabel,
+    required this.headlinePlain,
+    required this.headlineItalic,
   });
 
-  final List<Map<String, dynamic>> recommended;
-  final ValueChanged<Map<String, dynamic>> onSubscribe;
-  final VoidCallback onGetStarted;
+  final String stepLabel;
+  final String headlinePlain;
+  final String headlineItalic;
 
   @override
   Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final theme = Theme.of(context);
+    final cs = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 8),
-          Text(
-            t.onb_recommendations_title,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          stepLabel.toUpperCase(),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2.5,
+            color: cs.outline,
+          ),
+        ),
+        const SizedBox(height: 6),
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.lexend(
+              fontSize: 30,
+              fontWeight: FontWeight.w700,
+              color: cs.onSurface,
               height: 1.2,
             ),
+            children: [
+              TextSpan(text: headlinePlain),
+              TextSpan(
+                text: headlineItalic,
+                style: GoogleFonts.lexend(
+                  fontStyle: FontStyle.italic,
+                  color: cs.primary,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            t.onb_recommendations_subtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: recommended.isEmpty
-                ? Center(
-                    child: Text(
-                      t.onb_no_exams,
-                      style: theme.textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: recommended.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, i) {
-                      final cat = recommended[i];
-                      final name = cat['name']?.toString() ?? '';
-                      return _RecommendationCard(
-                        name: name,
-                        onSubscribe: () => onSubscribe(cat),
-                      );
-                    },
-                  ),
-          ),
-          const SizedBox(height: 16),
-          _NextButton(label: t.onb_get_started, onPressed: onGetStarted),
-          const SizedBox(height: 20),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-class _RecommendationCard extends StatelessWidget {
-  const _RecommendationCard({
-    required this.name,
-    required this.onSubscribe,
-  });
+// ─── Shared CTA button (pill-shaped, full width) ──────────────────────────────
 
-  final String name;
-  final VoidCallback onSubscribe;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(Icons.school_rounded, color: primary, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              name,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: onSubscribe,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: primary,
-              side: BorderSide(color: primary),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              Translations.of(context).onb_subscribe,
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Shared button widgets ────────────────────────────────────────────────────
-
-class _NextButton extends StatelessWidget {
-  const _NextButton({required this.label, required this.onPressed});
+class _PrimaryButton extends StatelessWidget {
+  const _PrimaryButton({required this.label, required this.onPressed});
 
   final String label;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final cs = Theme.of(context).colorScheme;
     return SizedBox(
       width: double.infinity,
-      height: 52,
+      height: 56,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor:
-              theme.colorScheme.primary.withValues(alpha: 0.3),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          backgroundColor: cs.primary,
+          foregroundColor: cs.onPrimary,
+          disabledBackgroundColor: cs.primary.withValues(alpha: 0.28),
+          shape: const StadiumBorder(),
           elevation: 0,
         ),
         child: Text(
           label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: GoogleFonts.lexend(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
   }
 }
 
-class _NavButtons extends StatelessWidget {
-  const _NavButtons({
-    required this.onBack,
-    required this.onNext,
-    required this.nextLabel,
-  });
+// ─── Shared back + next button row ────────────────────────────────────────────
 
-  final VoidCallback onBack;
+class _NavRow extends StatelessWidget {
+  const _NavRow({required this.onBack, required this.onNext, required this.nextLabel});
+
+  final VoidCallback? onBack;
   final VoidCallback? onNext;
   final String nextLabel;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
-        SizedBox(
-          height: 52,
-          child: OutlinedButton(
-            onPressed: onBack,
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: theme.dividerColor),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+        if (onBack != null) ...[
+          SizedBox(
+            height: 56,
+            child: OutlinedButton(
+              onPressed: onBack,
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: cs.outlineVariant),
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(14),
+              ),
+              child: Icon(Icons.arrow_back_rounded, color: cs.onSurface, size: 20),
             ),
-            child: Icon(
-              Icons.arrow_back_rounded,
-              color: theme.colorScheme.onSurface,
+          ),
+          const SizedBox(width: 12),
+        ],
+        Expanded(child: _PrimaryButton(label: nextLabel, onPressed: onNext)),
+      ],
+    );
+  }
+}
+
+// ─── Step 1: Exam Date ────────────────────────────────────────────────────────
+
+enum _DateOption { threeMonths, sixMonths, twelveMonths, custom }
+
+class _ExamDatePage extends StatelessWidget {
+  const _ExamDatePage({
+    required this.selectedDateOption,
+    required this.examDeadline,
+    required this.onDateSelect,
+    required this.onCustomDate,
+    required this.onBack,
+    required this.onNext,
+  });
+
+  final _DateOption? selectedDateOption;
+  final DateTime? examDeadline;
+  final void Function(_DateOption, DateTime) onDateSelect;
+  final VoidCallback onCustomDate;
+  final VoidCallback? onBack;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final now = DateTime.now();
+
+    final dateOptions = [
+      (label: '3', sub: 'MONTHS', opt: _DateOption.threeMonths,
+        date: DateTime(now.year, now.month + 3, now.day)),
+      (label: '6', sub: 'MONTHS', opt: _DateOption.sixMonths,
+        date: DateTime(now.year, now.month + 6, now.day)),
+      (label: '12', sub: 'MONTHS', opt: _DateOption.twelveMonths,
+        date: DateTime(now.year, now.month + 12, now.day)),
+    ];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _StepHeader(
+            stepLabel: 'Step 2 of 4',
+            headlinePlain: 'When is your ',
+            headlineItalic: 'exam?',
+          ),
+          const SizedBox(height: 32),
+
+          Row(
+            children: [
+              Icon(Icons.calendar_today_rounded, color: cs.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                t.onb_exam_date_title,
+                style: GoogleFonts.lexend(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              for (final item in dateOptions) ...[
+                Expanded(
+                  child: _DateCard(
+                    number: item.label,
+                    sub: item.sub,
+                    selected: selectedDateOption == item.opt,
+                    onTap: () => onDateSelect(item.opt, item.date),
+                  ),
+                ),
+                if (item != dateOptions.last) const SizedBox(width: 10),
+              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: onCustomDate,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: selectedDateOption == _DateOption.custom
+                    ? cs.primaryContainer.withValues(alpha: 0.3)
+                    : cs.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(14),
+                border: selectedDateOption == _DateOption.custom
+                    ? Border.all(color: cs.primary, width: 2)
+                    : null,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.calendar_month_rounded,
+                    size: 16,
+                    color: selectedDateOption == _DateOption.custom
+                        ? cs.primary
+                        : cs.outline,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    selectedDateOption == _DateOption.custom && examDeadline != null
+                        ? '${examDeadline!.day}/${examDeadline!.month}/${examDeadline!.year}'
+                        : t.onb_custom_date,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: selectedDateOption == _DateOption.custom
+                          ? cs.primary
+                          : cs.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          if (examDeadline != null) ...[
+            const SizedBox(height: 16),
+            _DeadlineBanner(deadline: examDeadline!),
+          ],
+
+          const SizedBox(height: 32),
+          _NavRow(
+            onBack: onBack,
+            onNext: onNext,
+            nextLabel: t.onb_continue,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Step 2: Weekly Goal ──────────────────────────────────────────────────────
+
+class _WeeklyGoalPage extends StatelessWidget {
+  const _WeeklyGoalPage({
+    required this.selectedWeekdays,
+    required this.onWeekdayToggle,
+    required this.onBack,
+    required this.onNext,
+  });
+
+  final Set<int> selectedWeekdays;
+  final ValueChanged<int> onWeekdayToggle;
+  final VoidCallback? onBack;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+
+    const weekdayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _StepHeader(
+            stepLabel: 'Step 3 of 4',
+            headlinePlain: 'Set your weekly ',
+            headlineItalic: 'goal.',
+          ),
+          const SizedBox(height: 32),
+
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.flash_on_rounded, color: cs.secondary, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      t.onb_weekly_goal_title,
+                      style: GoogleFonts.lexend(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  t.onb_weekly_goal_sub,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(7, (i) {
+                    final selected = selectedWeekdays.contains(i);
+                    return _WeekdayToggle(
+                      letter: weekdayLetters[i],
+                      selected: selected,
+                      onTap: () => onWeekdayToggle(i),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+          _NavRow(
+            onBack: onBack,
+            onNext: onNext,
+            nextLabel: t.onb_continue,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DateCard extends StatelessWidget {
+  const _DateCard({
+    required this.number,
+    required this.sub,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String number;
+  final String sub;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 22),
+        decoration: BoxDecoration(
+          color: selected
+              ? cs.primaryContainer.withValues(alpha: 0.2)
+              : cs.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? cs.primary : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: cs.primary.withValues(alpha: 0.12),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          children: [
+            Text(
+              number,
+              style: GoogleFonts.lexend(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: selected ? cs.primary : cs.onSurface,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              sub,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.5,
+                color: selected ? cs.primary : cs.outline,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WeekdayToggle extends StatelessWidget {
+  const _WeekdayToggle({
+    required this.letter,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String letter;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            letter,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: cs.outline,
+            ),
+          ),
+          const SizedBox(height: 6),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: selected ? cs.primary : cs.surfaceContainerHighest,
+              border: selected
+                  ? null
+                  : Border.all(color: cs.outlineVariant, width: 1),
+            ),
+            child: Center(
+              child: Text(
+                letter,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? cs.onPrimary : cs.outline,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DeadlineBanner extends StatelessWidget {
+  const _DeadlineBanner({required this.deadline});
+
+  final DateTime deadline;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final daysLeft = deadline.difference(DateTime.now()).inDays;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: cs.primaryContainer.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.flag_rounded, color: cs.primary, size: 24),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${deadline.day}/${deadline.month}/${deadline.year}',
+                style: GoogleFonts.lexend(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
+              ),
+              Text(
+                Translations.of(context).dash_days_remaining(n: daysLeft),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Step 1: Choose Your Category ────────────────────────────────────────────
+
+class _CategoryPage extends StatelessWidget {
+  const _CategoryPage({
+    required this.products,
+    required this.loading,
+    required this.selectedProducts,
+    required this.onToggle,
+    required this.onBack,
+    required this.onNext,
+  });
+
+  final List<Map<String, dynamic>> products;
+  final bool loading;
+  final List<Map<String, dynamic>> selectedProducts;
+  final ValueChanged<Map<String, dynamic>> onToggle;
+  final VoidCallback? onBack;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _StepHeader(
+            stepLabel: 'Step 1 of 4',
+            headlinePlain: "What are you studying ",
+            headlineItalic: 'for?',
+          ),
+          const SizedBox(height: 28),
+          Expanded(
+            child: loading
+                ? const _CategoryShimmer()
+                : products.isEmpty
+                    ? Center(
+                        child: Text(
+                          t.onb_no_exams,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: products.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (_, i) => _CategoryCard(
+                          product: products[i],
+                          selected: selectedProducts.contains(products[i]),
+                          featured: i == 1 && products.length >= 3,
+                          onTap: () => onToggle(products[i]),
+                        ),
+                      ),
+          ),
+          const SizedBox(height: 16),
+          _NavRow(
+            onBack: onBack,
+            onNext: onNext,
+            nextLabel: t.onb_continue,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryCard extends StatelessWidget {
+  const _CategoryCard({
+    required this.product,
+    required this.selected,
+    required this.featured,
+    required this.onTap,
+  });
+
+  final Map<String, dynamic> product;
+  final bool selected;
+  final bool featured;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final title = product['name']?.toString().trim().isNotEmpty == true
+        ? product['name'].toString()
+        : 'Subscription';
+    final icon = _iconForProduct(product);
+
+    final bgColor = selected
+        ? cs.primary
+        : featured
+            ? cs.primaryContainer.withValues(alpha: 0.45)
+            : cs.surfaceContainerHighest;
+    final fgColor = selected ? cs.onPrimary : cs.onSurface;
+    final iconColor = selected
+        ? cs.onPrimary
+        : featured
+            ? cs.onPrimaryContainer
+            : cs.primary;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        height: 110,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          border: featured && !selected
+              ? Border.all(color: cs.surfaceContainerLowest, width: 3)
+              : null,
+          boxShadow: featured && !selected
+              ? [
+                  BoxShadow(
+                    color: cs.onSurface.withValues(alpha: 0.06),
+                    blurRadius: 32,
+                    offset: const Offset(0, 12),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: selected
+                    ? cs.onPrimary.withValues(alpha: 0.15)
+                    : cs.surfaceContainerLowest.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: iconColor, size: 26),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.lexend(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: fgColor,
+                      height: 1.2,
+                    ),
+                  ),
+                  if (featured && !selected)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'MOST POPULAR',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5,
+                          color: cs.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (selected)
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: cs.onPrimary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.check_rounded, color: cs.primary, size: 18),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryShimmer extends StatelessWidget {
+  const _CategoryShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Shimmer.fromColors(
+      baseColor: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[50]!,
+      child: Column(
+        children: List.generate(
+          4,
+          (_) => Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            height: 110,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _NextButton(label: nextLabel, onPressed: onNext),
+      ),
+    );
+  }
+}
+
+// ─── Step 2: Choose Your Plan (pricing tiers) ─────────────────────────────────
+
+class _PlanPage extends StatelessWidget {
+  const _PlanPage({
+    required this.products,
+    required this.purchasing,
+    required this.onPurchaseOne,
+    required this.onPurchaseAll,
+    required this.onBack,
+  });
+
+  final List<Map<String, dynamic>> products;
+  final bool purchasing;
+  final void Function(Map<String, dynamic>)? onPurchaseOne;
+  final VoidCallback? onPurchaseAll;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final isBundle = products.length > 1;
+    final currency = products.isNotEmpty
+        ? products.first['currency']?.toString() ?? 'SEK'
+        : 'SEK';
+    final total = products.fold<double>(0.0, (sum, p) {
+      final s = p['price']?.toString().replaceAll(',', '.').trim() ?? '';
+      return sum + (double.tryParse(s) ?? 0.0);
+    });
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _StepHeader(
+            stepLabel: 'Step 4 of 4',
+            headlinePlain: 'Your Path to ',
+            headlineItalic: 'Mastery.',
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Accelerate your learning with personalised study tools.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              color: cs.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 28),
+          if (products.isEmpty)
+            Center(
+              child: Text(
+                'No plan selected.',
+                style: GoogleFonts.plusJakartaSans(fontSize: 14),
+              ),
+            )
+          else
+            Column(
+              children: [
+                for (int i = 0; i < products.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: _PlanTierCard(
+                      product: products[i],
+                      featured: i == 0,
+                      purchasing: purchasing,
+                      onBuy: onPurchaseOne == null
+                          ? null
+                          : () => onPurchaseOne!(products[i]),
+                    ),
+                  ),
+              ],
+            ),
+          if (isBundle) ...[
+            const SizedBox(height: 4),
+            _BundleRow(total: total, currency: currency),
+            const SizedBox(height: 16),
+            _PrimaryButton(
+              label: 'Buy bundle — ${(total * 0.8).toStringAsFixed(2)} $currency',
+              onPressed: onPurchaseAll,
+            ),
+          ],
+          const SizedBox(height: 20),
+          Center(
+            child: Text(
+              '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 2.0,
+                color: cs.outline,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          _NavRow(
+            onBack: onBack,
+            onNext: null,
+            nextLabel: t.onb_continue,
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: TextButton(
+              onPressed: () {},
+              child: Text(
+                'RESTORE PURCHASES',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.5,
+                  color: cs.outline,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanTierCard extends StatelessWidget {
+  const _PlanTierCard({
+    required this.product,
+    required this.featured,
+    required this.purchasing,
+    required this.onBuy,
+  });
+
+  final Map<String, dynamic> product;
+  final bool featured;
+  final bool purchasing;
+  final VoidCallback? onBuy;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final title = product['name']?.toString().trim().isNotEmpty == true
+        ? product['name'].toString()
+        : 'Subscription';
+    final price = _formatProductPrice(product);
+    final duration = _formatProductDuration(product);
+
+    if (featured) {
+      // Dark highlighted "Best Value" card
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: cs.inverseSurface,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: cs.primary, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: cs.primary.withValues(alpha: 0.15),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: GoogleFonts.lexend(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: cs.onInverseSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  price,
+                  style: GoogleFonts.lexend(
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
+                    color: cs.inversePrimary,
+                    height: 1,
+                  ),
+                ),
+                if (duration != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      duration,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: cs.secondaryContainer,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 24),
+                _PlanFeatureRow(
+                  label: 'Full mock exam library',
+                  color: cs.secondaryContainer,
+                  textColor: cs.onInverseSurface.withValues(alpha: 0.9),
+                ),
+                const SizedBox(height: 10),
+                _PlanFeatureRow(
+                  label: 'Smart progress tracking',
+                  color: cs.secondaryContainer,
+                  textColor: cs.onInverseSurface.withValues(alpha: 0.9),
+                ),
+                const SizedBox(height: 10),
+                _PlanFeatureRow(
+                  label: 'Detailed answer explanations',
+                  color: cs.secondaryContainer,
+                  textColor: cs.onInverseSurface.withValues(alpha: 0.9),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: purchasing ? null : onBuy,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: cs.primary,
+                      foregroundColor: cs.onPrimary,
+                      disabledBackgroundColor: cs.primary.withValues(alpha: 0.3),
+                      shape: const StadiumBorder(),
+                      elevation: 0,
+                    ),
+                    child: purchasing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            'Get Best Deal',
+                            style: GoogleFonts.lexend(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // BEST VALUE badge
+          Positioned(
+            top: -14,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                decoration: BoxDecoration(
+                  color: cs.secondaryContainer,
+                  borderRadius: BorderRadius.circular(9999),
+                  boxShadow: [
+                    BoxShadow(
+                      color: cs.onSurface.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'BEST VALUE',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2.0,
+                    color: cs.onSecondaryContainer,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Standard non-featured card
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: cs.surfaceContainerHighest, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.lexend(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: cs.onSurface,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            price,
+            style: GoogleFonts.lexend(
+              fontSize: 34,
+              fontWeight: FontWeight.w900,
+              color: cs.onSurface,
+              height: 1,
+            ),
+          ),
+          if (duration != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                duration,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: cs.outline,
+                ),
+              ),
+            ),
+          const SizedBox(height: 20),
+          _PlanFeatureRow(
+            label: 'Full mock exam library',
+            color: cs.primary,
+            textColor: cs.onSurfaceVariant,
+          ),
+          const SizedBox(height: 10),
+          _PlanFeatureRow(
+            label: 'Smart progress tracking',
+            color: cs.primary,
+            textColor: cs.onSurfaceVariant,
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: OutlinedButton(
+              onPressed: purchasing ? null : onBuy,
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: cs.primary, width: 2),
+                shape: const StadiumBorder(),
+                foregroundColor: cs.primary,
+              ),
+              child: purchasing
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: cs.primary,
+                      ),
+                    )
+                  : Text(
+                      'Choose Plan',
+                      style: GoogleFonts.lexend(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanFeatureRow extends StatelessWidget {
+  const _PlanFeatureRow({
+    required this.label,
+    required this.color,
+    required this.textColor,
+  });
+
+  final String label;
+  final Color color;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(Icons.check_circle_rounded, color: color, size: 18),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            color: textColor,
+          ),
         ),
       ],
     );
   }
+}
+
+class _BundleRow extends StatelessWidget {
+  const _BundleRow({required this.total, required this.currency});
+
+  final double total;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final bundlePrice = total * 0.8;
+    final savings = total * 0.2;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: cs.secondaryContainer.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cs.secondaryContainer, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_offer_rounded, size: 18, color: cs.secondary),
+              const SizedBox(width: 8),
+              Text(
+                'You\'re getting 20% off',
+                style: GoogleFonts.lexend(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: cs.secondary,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '–20%',
+                  style: GoogleFonts.lexend(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: cs.onSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Text(
+                'Saving ${savings.toStringAsFixed(2)} $currency · ',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                '${total.toStringAsFixed(2)} $currency',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: cs.outline,
+                  decoration: TextDecoration.lineThrough,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${bundlePrice.toStringAsFixed(2)} $currency',
+                style: GoogleFonts.lexend(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: cs.secondary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+IconData _iconForProduct(Map<String, dynamic> product) {
+  final name = (product['name']?.toString() ?? '').toLowerCase();
+  if (name.contains('motorcykel') || name.contains(' mc ') || name.startsWith('mc ')) {
+    return Icons.two_wheeler_rounded;
+  }
+  if (name.contains('buss')) return Icons.directions_bus_rounded;
+  if (name.contains('lastbil')) return Icons.local_shipping_rounded;
+  if (name.contains('åkeri') || name.contains('gods')) return Icons.warehouse_rounded;
+  if (name.contains('b-körkort') || name.contains('personbil')) {
+    return Icons.directions_car_rounded;
+  }
+  if (name.contains('taxi')) return Icons.local_taxi_rounded;
+  if (name.contains('vägmärke')) return Icons.signpost_rounded;
+  return Icons.workspace_premium_rounded;
+}
+
+String _formatProductPrice(Map<String, dynamic> product) {
+  final price = product['price']?.toString().trim() ?? '';
+  final currency = product['currency']?.toString().trim() ?? '';
+  if (price.isEmpty && currency.isEmpty) return 'Price unavailable';
+  if (price.isEmpty) return currency;
+  if (currency.isEmpty) return price;
+  return '$price $currency';
+}
+
+String? _formatProductDuration(Map<String, dynamic> product) {
+  final rawDuration = product['duration_days'];
+  final days = rawDuration is num
+      ? rawDuration.toInt()
+      : int.tryParse('${rawDuration ?? ''}');
+  if (days == null || days <= 0) return null;
+  if (days >= 365) return '${(days / 365).round()} year access';
+  if (days >= 30) return '${(days / 30).round()} months access';
+  return days == 1 ? '1 day' : '$days days';
 }

@@ -10,13 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Kinetic Onboarding Experience** — a completely redesigned 4-step onboarding flow featuring product selection, plan tiers/pricing, and integrated Stripe payments. Includes custom animations, shimmering loading states, and a celebratory success overlay.
+- **Nordic Kinetic Design System** — major theme overhaul for both light and dark modes. Dark mode now uses a "midnight ink" palette (`#09082F`) with vibrant Swedish blue/yellow accents and refined `GoogleFonts` (Lexend and Plus Jakarta Sans) typography.
+- **Direct Stripe Bundle Payments** — support for purchasing multiple BCD products as a bundle with 20% savings and immediate backend payment confirmation.
+- **User Cache & Storage Services** — new `UserCacheService` and `AppStorage` for robust local data management, including automatic cache wiping on logout or session expiry.
+- **Onboarding Verification** — new widget tests to ensure the reliability of the multi-step onboarding and payment flow.
+- **Auth Bottom Sheet** — new reusable authentication component for streamlined login/signup entry points.
 
 ### Changed
--
+- **Auth Screen Overhaul** — modernized login/signup flow with state-based view navigation (landing, login, signup) and improved inline validation. Removed the legacy `TabController` dependency.
+- **Splash Screen Transition** — replaced the fade-out effect with a premium slide-up transition from bottom to top; uses `Curves.easeOutExpo` and increased duration (800ms) for a more kinetic and modern feel.
+- **Dashboard & API Optimization** — `fetchCurrentUser` now seeds the `BcdCache` directly from the user response dashboard tree, significantly reducing redundant API calls during app startup.
+- **Main Screen Navigation** — replaced the `PageView` with an `IndexedStack` for instant tab switching and improved state preservation; removed complex index mapping and manual keep-alive logic.
+- **Global Reset Flow** — enhanced logout logic to ensure all user-specific data (BCD cache, Hive boxes, in-memory providers) is reset before the next session starts.
+- **Dependency Updates** — added `google_fonts`, `shimmer`, and `collection` packages for improved UI/UX and data handling.
 
 ### Fixed
--
+- **Navigation Reliability** — improved tab switching and redirect logic when user permissions or visibility flags change dynamically.
+- **Theme Consistency** — fixed multiple hardcoded colors to properly resolve using the new Nordic Kinetic Design System tokens in both themes.
 
 ---
 

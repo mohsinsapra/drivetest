@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 
 class NotificationProvider extends ChangeNotifier {
   static NotificationProvider? _instance;
@@ -11,7 +12,7 @@ class NotificationProvider extends ChangeNotifier {
     return _instance!;
   }
 
-  static const _boxName = 'notifications';
+  static const _boxName = AppStorage.kNotifications;
 
   List<LocalNotification> _notifications = [];
 

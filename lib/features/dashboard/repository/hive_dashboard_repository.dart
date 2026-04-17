@@ -1,16 +1,12 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import '../models/subscribed_exam.dart';
 import 'dashboard_repository.dart';
 
 /// Hive-backed implementation of [DashboardRepository].
 /// Works on mobile, desktop, and Flutter web (Hive uses IndexedDB on web).
 class HiveDashboardRepository implements DashboardRepository {
-  static const _boxName = 'subscribed_exams';
-
-  Future<Box<SubscribedExam>> get _box async =>
-      Hive.isBoxOpen(_boxName)
-          ? Hive.box<SubscribedExam>(_boxName)
-          : await Hive.openBox<SubscribedExam>(_boxName);
+  Future<Box<SubscribedExam>> get _box => AppStorage.subscribedExamsBox();
 
   @override
   Future<List<SubscribedExam>> loadSubscribedExams() async {

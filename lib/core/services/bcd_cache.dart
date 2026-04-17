@@ -4,13 +4,24 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 
 /// Single-fetch cache for the entire BCD category/subcategory/test tree.
 ///
-/// Call [ensureLoaded] before reading any data. Subsequent calls are no-ops
-/// (returns immediately from memory). Screens that previously called
-/// [ApiService.fetchBCDAllCategories], [fetchBCDSubcategories], or
-/// [fetchBCDTests] now call this cache instead.
+/// ## Data source
+/// All data comes from the `/self` (api/user/self/) endpoint via its
+/// `bcd_dashboard` field — a nested tree that the backend already assembles in
+/// one shot.  We never call the individual `api/v2/categories/`,
+/// `api/v2/categories/{id}/subcategories/`, or `api/v2/categories/{id}/tests/`
+/// endpoints for dashboard data.
 ///
-/// After a subscription purchase, call [invalidate] so the next
-/// [ensureLoaded] re-fetches fresh subscription flags.
+/// ## Lifecycle
+///   • On login / app start: [seedFromSelfResponse] is called by
+///     [ApiService.fetchCurrentUser] with the `bcd_dashboard` list.
+///   • On [syncNow] (pull-to-refresh): the cache is invalidated, then
+///     [ApiService.fetchCurrentUser] is called again so [seedFromSelfResponse]
+///     re-populates it from a fresh `/self` response.
+///   • [ensureLoaded] is the general gate — it no-ops when already populated,
+///     and calls [_fetchAll] (which hits `/self`) as a fallback when not.
+///
+/// ## Thread safety
+/// Concurrent [ensureLoaded] callers wait on the same in-flight request.
 class BcdCache {
   BcdCache._();
   static final BcdCache instance = BcdCache._();
@@ -29,8 +40,10 @@ class BcdCache {
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
-  /// Fetches everything once. Safe to call from multiple screens simultaneously —
-  /// parallel callers wait on the same in-flight request.
+  /// Ensures the cache is populated before data is read.
+  ///
+  /// Safe to call from multiple screens simultaneously —
+  /// concurrent callers await the same in-flight request.
   Future<void> ensureLoaded() async {
     if (_categories != null) return;
 
@@ -61,7 +74,8 @@ class BcdCache {
   /// Tests for a category or subcategory [bcdId].
   List<Map<String, dynamic>> testsOf(int bcdId) => _tests[bcdId] ?? [];
 
-  /// Call after subscription purchase so next [ensureLoaded] re-fetches.
+  /// Wipe the cache so the next [ensureLoaded] re-fetches.
+  /// Call after subscription purchase or on logout.
   void invalidate() {
     _categories = null;
     _subcategories.clear();
@@ -69,53 +83,90 @@ class BcdCache {
     _loadCompleter = null;
   }
 
+  /// Populate the cache from the `bcd_dashboard` list already embedded in the
+  /// `/self` response — called by [ApiService.fetchCurrentUser] right after
+  /// the login / token-validation request.
+  ///
+  /// No-op if already loaded or a fetch is in-flight (the data is fresh enough).
+  void seedFromSelfResponse(List<dynamic> bcdDashboard) {
+    if (_categories != null || _loadCompleter != null) return;
+    _applyDashboard(bcdDashboard);
+    debugPrint('[BcdCache] seeded from /self: ${_categories!.length} categories');
+  }
+
   // ── Private ────────────────────────────────────────────────────────────────
 
+  /// Fallback loader: re-fetches `/self` and populates from `bcd_dashboard`.
+  ///
+  /// Uses a single HTTP request rather than the old N+2 separate calls to
+  /// api/v2/categories/, subcategories/, and tests/.
   Future<void> _fetchAll() async {
-    debugPrint('[BcdCache] fetching full BCD tree…');
-
-    final rawCats = await _api.fetchBCDAllCategories();
-    final cats =
-        rawCats.whereType<Map<String, dynamic>>().toList();
-    _categories = cats;
-
-    for (final cat in cats) {
-      final bcdId = cat['bcd_id'] as int?;
-      if (bcdId == null) continue;
-
-      if (cat['has_children'] == true) {
-        // Fetch subcategories
-        final rawSubs = await _api.fetchBCDSubcategories(bcdId);
-        final subs =
-            rawSubs.whereType<Map<String, dynamic>>().toList();
-        _subcategories[bcdId] = subs;
-
-        // Fetch tests for every subcategory
-        for (final sub in subs) {
-          final subId = sub['bcd_id'] as int?;
-          if (subId == null) continue;
-          await _fetchTests(subId);
-        }
-      } else {
-        // Leaf category — fetch tests directly
-        await _fetchTests(bcdId);
-      }
+    debugPrint('[BcdCache] loading dashboard tree from /self…');
+    final userData = await _api.fetchCurrentUser();
+    final dashboard = (userData as Map<String, dynamic>?)?['bcd_dashboard'];
+    if (dashboard is List && dashboard.isNotEmpty) {
+      _applyDashboard(dashboard);
+    } else {
+      _categories ??= []; // no BCD access — mark loaded with empty list
     }
-
     debugPrint(
-      '[BcdCache] loaded ${cats.length} categories, '
-      '${_subcategories.values.expand((s) => s).length} subcategories, '
-      '${_tests.values.expand((t) => t).length} tests',
+      '[BcdCache] loaded ${_categories?.length ?? 0} categories',
     );
   }
 
-  Future<void> _fetchTests(int bcdId) async {
-    try {
-      final raw = await _api.fetchBCDTests(bcdId);
-      _tests[bcdId] = raw.whereType<Map<String, dynamic>>().toList();
-    } catch (e) {
-      debugPrint('[BcdCache] failed fetching tests for bcd_id=$bcdId: $e');
-      _tests[bcdId] = [];
+  /// Parses a raw `bcd_dashboard` list from the `/self` response and
+  /// writes the results into [_categories], [_subcategories], and [_tests].
+  ///
+  /// Called from both [seedFromSelfResponse] (fast path, login) and
+  /// [_fetchAll] (fallback path via [ensureLoaded]).
+  void _applyDashboard(List<dynamic> bcdDashboard) {
+    final cats = <Map<String, dynamic>>[];
+    _subcategories.clear();
+    _tests.clear();
+
+    for (final raw in bcdDashboard) {
+      final cat = Map<String, dynamic>.from(raw as Map);
+      final bcdId = cat['bcd_id'] as int?;
+      if (bcdId == null) continue;
+
+      cats.add({
+        'bcd_id': bcdId,
+        'name': cat['name'],
+        'is_subscribed': cat['is_subscribed'],
+        'has_children': cat['has_children'],
+        'sort_order': cat['sort_order'],
+        'is_active': cat['is_active'],
+      });
+
+      // Subcategories (and their tests)
+      final subs = cat['sub_categories'] as List<dynamic>? ?? [];
+      if (subs.isNotEmpty) {
+        final subList = <Map<String, dynamic>>[];
+        for (final rawSub in subs) {
+          final sub = Map<String, dynamic>.from(rawSub as Map);
+          final subId = sub['bcd_id'] as int?;
+          if (subId == null) continue;
+          subList.add({
+            'bcd_id': subId,
+            'name': sub['name'],
+            'is_subscribed': sub['is_subscribed'],
+            'has_children': sub['has_children'],
+            'sort_order': sub['sort_order'],
+            'is_active': sub['is_active'],
+          });
+          _tests[subId] = (sub['tests'] as List<dynamic>? ?? [])
+              .whereType<Map<String, dynamic>>()
+              .toList();
+        }
+        _subcategories[bcdId] = subList;
+      }
+
+      // Tests directly on this root category (leaf categories)
+      _tests[bcdId] = (cat['tests'] as List<dynamic>? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .toList();
     }
+
+    _categories = cats;
   }
 }

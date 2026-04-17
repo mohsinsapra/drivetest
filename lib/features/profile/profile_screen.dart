@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -13,7 +12,6 @@ import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/profile/edit_profile_screen.dart';
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
-import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/features/support/help_screen.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
 
@@ -445,46 +443,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                                       onPressed: () async {
                                         Navigator.pop(context);
 
-                                        // Best-effort cleanup — errors must not block navigation
+                                        // _apiService.logout() handles all cleanup:
+                                        //   FCM deregister, server blacklist, token wipe,
+                                        //   UserCacheService.clearAll() → provider reset,
+                                        //   BcdCache, Hive boxes, SharedPreferences user keys.
+                                        // App-wide prefs (language, theme, onboarding) are
+                                        // intentionally preserved by AppStorage.clearUserData().
                                         try {
                                           await _apiService.logout();
                                         } catch (_) {}
 
-                                        try {
-                                          final prefs = await SharedPreferences
-                                              .getInstance();
-                                          final lang =
-                                              prefs.getString('language');
-                                          final isDark =
-                                              prefs.getBool('dark_mode');
-                                          final onboardingDone = prefs
-                                              .getBool('onboarding_complete');
-                                          await prefs.clear();
-                                          if (lang != null) {
-                                            await prefs.setString(
-                                                'language', lang);
-                                          }
-                                          if (isDark != null) {
-                                            await prefs.setBool(
-                                                'dark_mode', isDark);
-                                          }
-                                          if (onboardingDone != null) {
-                                            await prefs.setBool(
-                                                'onboarding_complete',
-                                                onboardingDone);
-                                          }
-                                        } catch (_) {}
-
-                                        try {
-                                          final attemptsBox = await Hive
-                                              .openBox<TestAttempt>(
-                                                  'testAttempts');
-                                          await attemptsBox.clear();
-                                          await Hive.close();
-                                          await Hive.deleteFromDisk();
-                                        } catch (_) {}
-
-                                        // Use global navigator key — avoids context-mounted issues
                                         final nav = NavigationService
                                             .navigatorKey.currentState;
                                         nav?.pushAndRemoveUntil(

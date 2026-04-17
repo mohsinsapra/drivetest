@@ -191,4 +191,12 @@ class SavedQuestionsService {
     if (questionId.isEmpty) return false;
     return toggleSavedScoped(questionId, questionText: '');
   }
+
+  /// Wipes the in-memory cache. Called by [AppStorage.clearUserData] on logout
+  /// so a new user's bookmarks are fetched fresh from the API/SharedPreferences.
+  static void clearMemoryCache() {
+    _memoryCache.clear();
+    _lastSyncedAt.clear();
+    _inFlightSync.clear();
+  }
 }

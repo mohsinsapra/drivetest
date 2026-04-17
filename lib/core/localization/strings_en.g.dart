@@ -350,9 +350,13 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get onb_3_months => '3 months';
 	String get onb_custom_date => 'Custom date';
 	String get onb_subscribe => 'Subscribe';
+	String get onb_sign_in_to_subscribe => 'Sign in to subscribe';
+	String get onb_sign_in_subtitle => 'Create a free account or log in to unlock full exam access';
 	String get onb_no_exams => 'No exams available right now';
 	String onb_days_week_label({required Object n}) => '${n} days/week';
 	String onb_step_of({required Object current, required Object total}) => 'Step ${current} of ${total}';
+	String get onb_weekly_goal_title => 'Weekly Study Goal';
+	String get onb_weekly_goal_sub => "Select the days you'll commit to studying.";
 
 	String get dash_exam_deadline => 'Exam Deadline';
 	String dash_days_remaining({required Object n}) => '${n} days left';
@@ -362,6 +366,23 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get dash_set_deadline => 'Set deadline';
 	String get dash_change_deadline => 'Change deadline';
 	String dash_practice_days({required Object n}) => '${n} days/week';
+	String get dash_hero_sub_start => 'Start your learning journey!';
+	String get dash_hero_sub_progress => 'Keep going, you\'re doing great!';
+	String get dash_hero_sub_almost => 'Almost ready for the exam!';
+	String get dash_hero_sub_done => 'All done — great work!';
+	String get dash_performance_overview => 'Performance Overview';
+	String get dash_focus_areas => 'Focus Areas';
+	String get dash_no_exams_found => 'No exams found.';
+	String get dash_stat_completed => 'Completed';
+	String get dash_stat_none_yet => 'None yet';
+	String dash_stat_of_n({required Object total}) => 'of ${total}';
+	String get dash_stat_per_session => 'Per session';
+	String get dash_exam_type_taxi => 'TAXI';
+	String get dash_exam_type_test => 'TEST';
+	String dash_streak_title({required Object n}) => '${n} day streak!';
+	String dash_streak_days({required Object n}) => '${n} days';
+	String dash_batches_count({required Object n}) => '${n} batches';
+	String dash_avg_score_label({required Object score}) => '${score}% avg';
 }
 
 /// Flat map(s) containing all translations.
@@ -679,9 +700,13 @@ extension on Translations {
 			case 'onb_3_months': return '3 months';
 			case 'onb_custom_date': return 'Custom date';
 			case 'onb_subscribe': return 'Subscribe';
+			case 'onb_sign_in_to_subscribe': return 'Sign in to subscribe';
+			case 'onb_sign_in_subtitle': return 'Create a free account or log in to unlock full exam access';
 			case 'onb_no_exams': return 'No exams available right now';
 			case 'onb_days_week_label': return ({required Object n}) => '${n} days/week';
 			case 'onb_step_of': return ({required Object current, required Object total}) => 'Step ${current} of ${total}';
+			case 'onb_weekly_goal_title': return 'Weekly Study Goal';
+			case 'onb_weekly_goal_sub': return "Select the days you'll commit to studying.";
 			case 'dash_exam_deadline': return 'Exam Deadline';
 			case 'dash_days_remaining': return ({required Object n}) => '${n} days left';
 			case 'dash_deadline_today': return 'Today!';
@@ -690,6 +715,23 @@ extension on Translations {
 			case 'dash_set_deadline': return 'Set deadline';
 			case 'dash_change_deadline': return 'Change deadline';
 			case 'dash_practice_days': return ({required Object n}) => '${n} days/week';
+			case 'dash_hero_sub_start': return 'Start your learning journey!';
+			case 'dash_hero_sub_progress': return 'Keep going, you\'re doing great!';
+			case 'dash_hero_sub_almost': return 'Almost ready for the exam!';
+			case 'dash_hero_sub_done': return 'All done — great work!';
+			case 'dash_performance_overview': return 'Performance Overview';
+			case 'dash_focus_areas': return 'Focus Areas';
+			case 'dash_no_exams_found': return 'No exams found.';
+			case 'dash_stat_completed': return 'Completed';
+			case 'dash_stat_none_yet': return 'None yet';
+			case 'dash_stat_of_n': return ({required Object total}) => 'of ${total}';
+			case 'dash_stat_per_session': return 'Per session';
+			case 'dash_exam_type_taxi': return 'TAXI';
+			case 'dash_exam_type_test': return 'TEST';
+			case 'dash_streak_title': return ({required Object n}) => '${n} day streak!';
+			case 'dash_streak_days': return ({required Object n}) => '${n} days';
+			case 'dash_batches_count': return ({required Object n}) => '${n} batches';
+			case 'dash_avg_score_label': return ({required Object score}) => '${score}% avg';
 			default: return null;
 		}
 	}

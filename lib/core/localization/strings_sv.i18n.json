@@ -322,9 +322,13 @@
   "onb_3_months": "3 månader",
   "onb_custom_date": "Eget datum",
   "onb_subscribe": "Prenumerera",
+  "onb_sign_in_to_subscribe": "Logga in för att prenumerera",
+  "onb_sign_in_subtitle": "Skapa ett gratis konto eller logga in för att få tillgång till fullständiga prov",
   "onb_no_exams": "Inga prov tillgängliga just nu",
   "onb_days_week_label": "{n} dagar/vecka",
   "onb_step_of": "Steg {current} av {total}",
+  "onb_weekly_goal_title": "Veckovis studiemål",
+  "onb_weekly_goal_sub": "Välj de dagar du ska studera.",
 
   "dash_exam_deadline": "Provdatum",
   "dash_days_remaining": "{n} dagar kvar",
@@ -333,5 +337,23 @@
   "dash_no_deadline": "Ingen deadline satt",
   "dash_set_deadline": "Sätt deadline",
   "dash_change_deadline": "Ändra deadline",
-  "dash_practice_days": "{n} dagar/vecka"
+  "dash_practice_days": "{n} dagar/vecka",
+
+  "dash_hero_sub_start": "Dags att börja din resa!",
+  "dash_hero_sub_progress": "Bra jobbat – fortsätt framåt!",
+  "dash_hero_sub_almost": "Snart redo för examen!",
+  "dash_hero_sub_done": "Allt avklarat – bra jobbat!",
+  "dash_performance_overview": "Prestationsöversikt",
+  "dash_focus_areas": "Fokusområden",
+  "dash_no_exams_found": "Inga prov hittades.",
+  "dash_stat_completed": "Genomförda",
+  "dash_stat_none_yet": "Inga ännu",
+  "dash_stat_of_n": "av {total}",
+  "dash_stat_per_session": "Per omgång",
+  "dash_exam_type_taxi": "TAXI",
+  "dash_exam_type_test": "PROV",
+  "dash_streak_title": "{n} dagars svit!",
+  "dash_streak_days": "{n} dagar",
+  "dash_batches_count": "{n} omgångar",
+  "dash_avg_score_label": "{score}% snitt"
 }

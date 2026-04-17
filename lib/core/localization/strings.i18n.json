@@ -322,9 +322,13 @@
   "onb_3_months": "3 months",
   "onb_custom_date": "Custom date",
   "onb_subscribe": "Subscribe",
+  "onb_sign_in_to_subscribe": "Sign in to subscribe",
+  "onb_sign_in_subtitle": "Create a free account or log in to unlock full exam access",
   "onb_no_exams": "No exams available right now",
   "onb_days_week_label": "{n} days/week",
   "onb_step_of": "Step {current} of {total}",
+  "onb_weekly_goal_title": "Weekly Study Goal",
+  "onb_weekly_goal_sub": "Select the days you'll commit to studying.",
 
   "dash_exam_deadline": "Exam Deadline",
   "dash_days_remaining": "{n} days left",
@@ -333,5 +337,23 @@
   "dash_no_deadline": "No deadline set",
   "dash_set_deadline": "Set deadline",
   "dash_change_deadline": "Change deadline",
-  "dash_practice_days": "{n} days/week"
+  "dash_practice_days": "{n} days/week",
+
+  "dash_hero_sub_start": "Start your learning journey!",
+  "dash_hero_sub_progress": "Keep going, you're doing great!",
+  "dash_hero_sub_almost": "Almost ready for the exam!",
+  "dash_hero_sub_done": "All done — great work!",
+  "dash_performance_overview": "Performance Overview",
+  "dash_focus_areas": "Focus Areas",
+  "dash_no_exams_found": "No exams found.",
+  "dash_stat_completed": "Completed",
+  "dash_stat_none_yet": "None yet",
+  "dash_stat_of_n": "of {total}",
+  "dash_stat_per_session": "Per session",
+  "dash_exam_type_taxi": "TAXI",
+  "dash_exam_type_test": "TEST",
+  "dash_streak_title": "{n} day streak!",
+  "dash_streak_days": "{n} days",
+  "dash_batches_count": "{n} batches",
+  "dash_avg_score_label": "{score}% avg"
 }

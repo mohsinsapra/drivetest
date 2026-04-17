@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
@@ -15,57 +18,109 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fade;
-  late final Animation<double> _scale;
+    with TickerProviderStateMixin {
+  // Entry animations (run once, 900 ms)
+  late final AnimationController _entryCtrl;
+  late final Animation<double> _fadeAnim;
+  late final Animation<double> _scaleAnim;
+  late final Animation<double> _boltSlideAnim;
+  late final Animation<double> _footerFadeAnim;
+
+  // Continuous spinning arc
+  late final AnimationController _spinCtrl;
+  late final Animation<double> _spinAnim;
+
+  // Pulsing glow dot
+  late final AnimationController _pulseCtrl;
+  late final Animation<double> _pulseAnim;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
+    _entryCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
-    );
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _scale = Tween<double>(begin: 0.80, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+      duration: const Duration(milliseconds: 900),
     );
 
-    _controller.forward();
+    _fadeAnim = CurvedAnimation(parent: _entryCtrl, curve: Curves.easeOut);
+
+    _scaleAnim = Tween<double>(begin: 0.82, end: 1.0).animate(
+      CurvedAnimation(parent: _entryCtrl, curve: Curves.easeOutBack),
+    );
+
+    // Bolt chip slides down into position from above
+    _boltSlideAnim = Tween<double>(begin: 20.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _entryCtrl,
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    // Footer fades in during the second half of entry
+    _footerFadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entryCtrl,
+        curve: const Interval(0.55, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    _spinCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+
+    _spinAnim = Tween<double>(begin: 0.0, end: 2 * math.pi).animate(_spinCtrl);
+
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+
+    _pulseAnim = Tween<double>(begin: 0.85, end: 1.18).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    );
+
+    _entryCtrl.forward();
     _run();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _entryCtrl.dispose();
+    _spinCtrl.dispose();
+    _pulseCtrl.dispose();
     super.dispose();
   }
 
+  // ── App bootstrap logic (unchanged from original) ────────────────────────
+
   Future<void> _run() async {
-    // Ensure splash is visible for a minimum time even on fast devices.
     final stopwatch = Stopwatch()..start();
 
-    // Read the onboarding flag first — SharedPreferences is local and fast.
-    // This ensures it is available even if _initializeApp times out or throws.
     bool onboardingComplete = false;
     try {
+      // ignore: unused_local_variable
       final prefs = await SharedPreferences.getInstance();
-      onboardingComplete = false; // TODO: remove — force onboarding for testing
-      // onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+      // onboardingComplete = false; // TODO: remove — force onboarding for testing
+      onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
     } catch (_) {}
 
     final data = await _initializeApp(onboardingComplete).timeout(
       const Duration(seconds: 12),
       onTimeout: () {
-        debugPrint('SplashScreen: _initializeApp hard timeout — proceeding unauthenticated');
+        debugPrint(
+          'SplashScreen: _initializeApp hard timeout — proceeding unauthenticated',
+        );
         DioClient().logout();
-        return {'onboardingComplete': onboardingComplete, 'isAuthenticated': false};
+        return {
+          'onboardingComplete': onboardingComplete,
+          'isAuthenticated': false,
+        };
       },
     );
-    final remaining =
-        const Duration(milliseconds: 1400) - stopwatch.elapsed;
+
+    final remaining = const Duration(milliseconds: 1400) - stopwatch.elapsed;
     if (remaining > Duration.zero) await Future.delayed(remaining);
 
     if (!mounted) return;
@@ -85,9 +140,20 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => next,
-        transitionDuration: const Duration(milliseconds: 500),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 800),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeOutExpo;
+
+          var tween =
+              Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
       ),
     );
   }
@@ -96,35 +162,28 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       await DioClient().reloadTokens();
 
-      final hasTokens = DioClient().refreshToken != null &&
-          DioClient().accessToken != null;
+      final hasTokens =
+          DioClient().refreshToken != null && DioClient().accessToken != null;
       bool isAuthenticated = false;
 
       if (hasTokens) {
         try {
-          // Cap at 7 s: a 401 with token refresh + retry can chain into
-          // ~75 s of Dio timeouts (5 s connect + 20 s receive, twice).
-          // Without this cap the splash screen hangs until all retries exhaust.
-          await ApiService().fetchCurrentUser().timeout(
-            const Duration(seconds: 7),
-          );
+          await ApiService()
+              .fetchCurrentUser()
+              .timeout(const Duration(seconds: 7));
           isAuthenticated = true;
         } catch (e) {
           debugPrint('SplashScreen: token validation failed — $e');
-          // Clear tokens so any in-flight background request's interceptor
-          // doesn't fire logoutAndRedirect() after we've already navigated.
           await DioClient().logout();
         }
 
-        // Notification init is non-fatal and must be outside the auth
-        // try/catch. On iOS web, requestPermission() can throw (Web Push
-        // unsupported pre-Safari 16.4), which was calling logout() and
-        // wiping tokens while isAuthenticated remained true → 401 on MainScreen.
         if (isAuthenticated) {
           try {
             await NotificationService.init(ApiService());
           } catch (e) {
-            debugPrint('SplashScreen: notification init failed (non-fatal) — $e');
+            debugPrint(
+              'SplashScreen: notification init failed (non-fatal) — $e',
+            );
           }
         }
       }
@@ -135,48 +194,272 @@ class _SplashScreenState extends State<SplashScreen>
       };
     } catch (e) {
       debugPrint('SplashScreen: init error — $e');
-      return {'onboardingComplete': onboardingComplete, 'isAuthenticated': false};
+      return {
+        'onboardingComplete': onboardingComplete,
+        'isAuthenticated': false,
+      };
     }
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: cs.surface,
       body: Stack(
         children: [
-          // ── Centred logo + name ──
-          Center(
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) => Opacity(
-                opacity: _fade.value,
-                child: Transform.scale(scale: _scale.value, child: child),
+          // ── Ambient background blobs ──────────────────────────────────
+          Positioned(
+            top: -size.height * 0.08,
+            left: -size.width * 0.08,
+            width: size.width * 0.65,
+            height: size.height * 0.55,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    cs.primaryContainer.withValues(alpha: 0.18),
+                    cs.primaryContainer.withValues(alpha: 0.0),
+                  ],
+                ),
               ),
-              child: Image.asset(
-                'assets/icon/icon.png',
-                width: 100,
-                height: 100,
+            ),
+          ),
+          Positioned(
+            bottom: -size.height * 0.08,
+            right: -size.width * 0.08,
+            width: size.width * 0.65,
+            height: size.height * 0.55,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    cs.secondaryContainer.withValues(alpha: 0.28),
+                    cs.secondaryContainer.withValues(alpha: 0.0),
+                  ],
+                ),
               ),
             ),
           ),
 
-          // ── Thin loading bar at the bottom ──
+          // ── Central branding cluster ──────────────────────────────────
+          Center(
+            child: AnimatedBuilder(
+              animation: _entryCtrl,
+              builder: (_, child) => Opacity(
+                opacity: _fadeAnim.value,
+                child: Transform.scale(scale: _scaleAnim.value, child: child),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Title group + floating bolt chip
+                  SizedBox(
+                    width: 300,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              'DRIVE TEST',
+                              style: GoogleFonts.lexend(
+                                fontSize: 58,
+                                fontWeight: FontWeight.w900,
+                                fontStyle: FontStyle.italic,
+                                letterSpacing: -1.5,
+                                color: cs.primary,
+                                height: 1.0,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: cs.secondaryContainer,
+                                borderRadius: BorderRadius.circular(9999),
+                              ),
+                              child: Text(
+                                'HELLO SWEDEN',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 2.5,
+                                  color: cs.onSecondaryContainer,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Bolt chip — animates down from above on entry
+                        AnimatedBuilder(
+                          animation: _boltSlideAnim,
+                          builder: (_, child) => Positioned(
+                            top: -16 + _boltSlideAnim.value,
+                            right: -16,
+                            child: Opacity(
+                              opacity: (_boltSlideAnim.value == 0)
+                                  ? 1.0
+                                  : 1.0 - (_boltSlideAnim.value / 20.0),
+                              child: child!,
+                            ),
+                          ),
+                          child: Transform.rotate(
+                            angle: 12 * math.pi / 180,
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: cs.secondaryContainer,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: cs.onSurface.withValues(alpha: 0.08),
+                                    blurRadius: 32,
+                                    offset: const Offset(0, 12),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.bolt,
+                                color: cs.onSecondaryContainer,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 60),
+
+                  // Kinetic loading ring
+                  SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Static outer ring
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: cs.primary.withValues(alpha: 0.18),
+                              width: 4,
+                            ),
+                          ),
+                        ),
+
+                        // Spinning ¾ arc
+                        AnimatedBuilder(
+                          animation: _spinAnim,
+                          builder: (_, __) => Transform.rotate(
+                            angle: _spinAnim.value,
+                            child: CustomPaint(
+                              size: const Size(64, 64),
+                              painter: _ArcPainter(color: cs.primary),
+                            ),
+                          ),
+                        ),
+
+                        // Pulsing glow dot
+                        AnimatedBuilder(
+                          animation: _pulseAnim,
+                          builder: (_, __) => Transform.scale(
+                            scale: _pulseAnim.value,
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: cs.tertiaryContainer,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: cs.tertiaryContainer.withValues(
+                                      alpha: 0.6,
+                                    ),
+                                    blurRadius: 15,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  AnimatedBuilder(
+                    animation: _fadeAnim,
+                    builder: (_, child) =>
+                        Opacity(opacity: _fadeAnim.value, child: child),
+                    child: Text(
+                      'Preparing your success...',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: cs.outline,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Editorial footer ──────────────────────────────────────────
           Positioned(
+            bottom: 52,
             left: 0,
             right: 0,
-            bottom: 0,
             child: AnimatedBuilder(
-              animation: _fade,
-              builder: (_, __) => Opacity(
-                opacity: _fade.value,
-                child: LinearProgressIndicator(
-                  backgroundColor: Colors.transparent,
-                  color: theme.colorScheme.primary.withValues(alpha: 0.5),
-                  minHeight: 2,
-                ),
+              animation: _footerFadeAnim,
+              builder: (_, child) => Opacity(
+                opacity: _footerFadeAnim.value,
+                child: child,
+              ),
+              child: Column(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 48,
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: cs.primaryContainer,
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'ACADEMIC EXCELLENCE THROUGH KINETIC LEARNING',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2.0,
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -184,4 +467,26 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
+}
+
+// ── Spinning arc painter (¾ circle, bottom-right quarter omitted) ──────────
+class _ArcPainter extends CustomPainter {
+  const _ArcPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+
+    final rect = Rect.fromLTWH(2, 2, size.width - 4, size.height - 4);
+    // 270° arc starting from the top (−π/2), leaving a gap at the bottom-right
+    canvas.drawArc(rect, -math.pi / 2, 3 * math.pi / 2, false, paint);
+  }
+
+  @override
+  bool shouldRepaint(_ArcPainter old) => old.color != color;
 }

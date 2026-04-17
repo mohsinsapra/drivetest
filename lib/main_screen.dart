@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
@@ -47,30 +45,12 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  late PageController _pageController;
   final ApiService _apiService = ApiService();
 
   // Hidden until backend confirms; prevents the Home tab from appearing
   // on first launch for users who don't have legacy tests enabled.
   bool _showLegacyTests = false;
   bool _showBcdTests = false;
-  bool _listenerAttached = false;
-
-  // Only the screens currently shown in the nav, in nav order.
-  List<Widget> get _visibleScreens =>
-      _navEntries.map((e) => _kAllScreens[e.pageIndex]).toList();
-
-  // Translate a fixed page index → position in the current PageView.
-  int _toPageViewIndex(int fixedIndex) {
-    final idx = _navEntries.indexWhere((e) => e.pageIndex == fixedIndex);
-    return idx >= 0 ? idx : 0;
-  }
-
-  // Translate a PageView position → fixed page index.
-  int _toFixedIndex(int pvIndex) {
-    if (pvIndex < 0 || pvIndex >= _navEntries.length) return _kPageDashboard;
-    return _navEntries[pvIndex].pageIndex;
-  }
 
   // Returns only the tabs the user should see, each pointing to a fixed page.
   // Progress is always first. Home + Tests only appear when the backend sets
@@ -111,7 +91,6 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: _kPageDashboard);
     _loadTabFlags();
     NotificationService.init(_apiService).ignore();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -155,66 +134,26 @@ class MainScreenState extends State<MainScreen> {
       _showBcdTests = newShowBcd;
     });
 
-    // Correct the PageView position after nav changes.
-    // If the current page is no longer visible, redirect to Progress.
-    // Either way, jump to the new PageView position (the visible list shifted).
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final visiblePages = _navEntries.map((e) => e.pageIndex).toSet();
-      final targetFixed =
-          visiblePages.contains(currentPage) ? currentPage : _kPageDashboard;
-      if (!visiblePages.contains(currentPage)) {
-        provider.setIndex(_kPageDashboard);
-      }
-      if (_pageController.hasClients) {
-        _pageController.jumpToPage(_toPageViewIndex(targetFixed));
-      }
-    });
+    // If the current page is no longer visible after the tab change, redirect to Progress.
+    final visiblePages = _navEntries.map((e) => e.pageIndex).toSet();
+    if (!visiblePages.contains(currentPage)) {
+      provider.setIndex(_kPageDashboard);
+    }
   }
 
   Future<void> _loadTabFlags() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final userJson = prefs.getString('user');
-      if (userJson != null && userJson.isNotEmpty) {
-        final parsed = jsonDecode(userJson);
-        if (parsed is Map<String, dynamic>) {
-          await _applyFlagsFromMap(parsed);
-        }
-      }
+     
 
       final fresh = await _apiService.fetchCurrentUser();
       if (fresh is Map<String, dynamic>) {
-        await prefs.setString('user', jsonEncode(fresh));
+      
         await _applyFlagsFromMap(fresh);
+   
       }
     } catch (_) {
       // Keep defaults if loading flags fails.
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_listenerAttached) return;
-    _listenerAttached = true;
-    Provider.of<MainScreenProvider>(context).addListener(() {
-      if (!mounted) return;
-      final index =
-          Provider.of<MainScreenProvider>(context, listen: false).currentIndex;
-      _pageController.jumpToPage(_toPageViewIndex(index));
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _onPageChanged(int pvIndex) {
-    Provider.of<MainScreenProvider>(context, listen: false)
-        .setIndex(_toFixedIndex(pvIndex));
   }
 
   @override
@@ -232,12 +171,11 @@ class MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          PageView(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            physics: const ClampingScrollPhysics(),
-            children:
-                _visibleScreens.map((s) => _KeepAlivePage(child: s)).toList(),
+          // IndexedStack keeps every screen alive and switches instantly
+          // without any index-mapping between visible tabs and screen positions.
+          IndexedStack(
+            index: currentPage,
+            children: _kAllScreens,
           ),
           Positioned(
             left: 0,
@@ -280,10 +218,14 @@ class _FloatingNavArea extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _FloatingNavPill(
-            currentIndex: currentIndex,
-            items: items,
-            onTap: onTap,
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOutCubic,
+            child: _FloatingNavPill(
+              currentIndex: currentIndex,
+              items: items,
+              onTap: onTap,
+            ),
           ),
         ],
       ),
@@ -524,31 +466,6 @@ class _FloatingFabState extends State<_FloatingFab>
         ),
       ),
     );
-  }
-}
-
-// ─── Keep-alive wrapper ──────────────────────────────────────────────────────
-
-/// Keeps a PageView child alive so it isn't rebuilt every time the user
-/// switches tabs. Without this, screens like HomeScreen re-run API calls
-/// on every tab return.
-class _KeepAlivePage extends StatefulWidget {
-  final Widget child;
-  const _KeepAlivePage({required this.child});
-
-  @override
-  State<_KeepAlivePage> createState() => _KeepAlivePageState();
-}
-
-class _KeepAlivePageState extends State<_KeepAlivePage>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return widget.child;
   }
 }
 

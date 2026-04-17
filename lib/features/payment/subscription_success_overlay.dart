@@ -3,17 +3,19 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
+/// Result of the success overlay interaction.
+enum SubscriptionSuccessResult { startTests, backHome }
+
 /// Shows a full-screen success modal after a successful purchase.
-Future<void> showSubscriptionSuccess(
+Future<SubscriptionSuccessResult?> showSubscriptionSuccess(
   BuildContext context, {
   required String productName,
   String? duration,
   String? amount,
   String? currency,
   int autoDismissSeconds = 5,
-  VoidCallback? onStartTests,
 }) async {
-  await Navigator.of(context).push(
+  final result = await Navigator.of(context).push<SubscriptionSuccessResult>(
     PageRouteBuilder(
       fullscreenDialog: true,
       opaque: false,
@@ -24,7 +26,6 @@ Future<void> showSubscriptionSuccess(
         duration: duration,
         amount: amount,
         currency: currency,
-        onStartTests: onStartTests,
       ),
       transitionsBuilder: (_, animation, __, child) => FadeTransition(
         opacity: animation,
@@ -32,6 +33,7 @@ Future<void> showSubscriptionSuccess(
       ),
     ),
   );
+  return result;
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -41,14 +43,12 @@ class _PurchaseSuccessScreen extends StatefulWidget {
   final String? duration;
   final String? amount;
   final String? currency;
-  final VoidCallback? onStartTests;
 
   const _PurchaseSuccessScreen({
     required this.productName,
     this.duration,
     this.amount,
     this.currency,
-    this.onStartTests,
   });
 
   @override
@@ -96,11 +96,12 @@ class _PurchaseSuccessScreenState extends State<_PurchaseSuccessScreen>
   }
 
   void _handleStartTests() {
-    Navigator.of(context).pop();
-    widget.onStartTests?.call();
+    Navigator.of(context).pop(SubscriptionSuccessResult.startTests);
   }
 
-  void _handleBackToHome() => Navigator.of(context).pop();
+  void _handleBackToHome() {
+    Navigator.of(context).pop(SubscriptionSuccessResult.backHome);
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -25,6 +25,7 @@ import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/providers/font_provider.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
+import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
@@ -113,6 +114,14 @@ Future<void> _appMain() async {
   if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(SubscribedExamAdapter());
   if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(ExamNodeAdapter());
   final notificationProvider = await NotificationProvider.create();
+  final dashboardProvider = DashboardProvider(repository: HiveDashboardRepository());
+
+  // Wire up provider reset so both logout paths (explicit + 401 auto-logout)
+  // wipe in-memory state before the next user's session starts.
+  UserCacheService.onProviderReset = () async {
+    dashboardProvider.reset();
+    await notificationProvider.clearAll();
+  };
 
   try {
     // Load .env.local first (test keys). If it exists, its values are passed as
@@ -171,11 +180,7 @@ Future<void> _appMain() async {
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
             ChangeNotifierProvider(create: (_) => FontProvider()),
             ChangeNotifierProvider<NotificationProvider>.value(value: notificationProvider),
-            ChangeNotifierProvider(
-              create: (_) => DashboardProvider(
-                repository: HiveDashboardRepository(),
-              ),
-            ),
+            ChangeNotifierProvider<DashboardProvider>.value(value: dashboardProvider),
           ],
           child: MyApp(),
         ),
@@ -184,73 +189,109 @@ Future<void> _appMain() async {
   );
 }
 
+// ── Nordic Kinetic Design System – dark theme ──────────────────────────────
+// Derived from the same token set: surfaces shift to midnight ink,
+// accents stay vibrant (blue primary, yellow secondary, orange tertiary).
 ThemeData buildDarkTheme(String font) => ThemeData(
   fontFamily: font,
-  brightness: Brightness.dark,
-  colorScheme: const ColorScheme(
-    primary: Color(0xFF5AADFF),
-    primaryContainer: Color(0xFF2779BC),
-    secondary: Colors.green,
-    secondaryContainer: Colors.greenAccent,
-    surface: Color(0xFF1E1E1E),
-    error: Colors.redAccent,
-    onPrimary: Colors.white,
-    onSecondary: Colors.white,
-    onSurface: Colors.white,
-    onError: Colors.white,
-    brightness: Brightness.dark,
+  textTheme: TextTheme(
+    bodyLarge: TextStyle(fontFamily: font),
+    bodyMedium: TextStyle(fontFamily: font),
+    titleLarge: TextStyle(fontFamily: font),
   ),
-  scaffoldBackgroundColor: const Color(0xFF121212),
-  cardColor: const Color(0xFF242424),
+  colorScheme: const ColorScheme(
+    brightness: Brightness.dark,
+    // Primary – Swedish blue (lighter in dark mode for contrast)
+    primary: Color(0xFF6A89FF),          // inverse-primary used as dark primary
+    primaryContainer: Color(0xFF002278), // on-primary-fixed-variant
+    onPrimary: Color(0xFF000000),
+    onPrimaryContainer: Color(0xFF829BFF),
+    // Secondary – Swedish yellow (unchanged, still pops)
+    secondary: Color(0xFFEFC900),        // secondary-fixed-dim
+    secondaryContainer: Color(0xFF665500),
+    onSecondary: Color(0xFF453900),
+    onSecondaryContainer: Color(0xFFFFD709),
+    // Tertiary – orange
+    tertiary: Color(0xFFFF7F36),         // tertiary-fixed-dim
+    tertiaryContainer: Color(0xFF642600),
+    onTertiary: Color(0xFF2F0E00),
+    onTertiaryContainer: Color(0xFFFF955E),
+    // Surface hierarchy (inverted — midnight ink base)
+    surface: Color(0xFF09082F),          // inverse-surface as dark base
+    onSurface: Color(0xFF9999C6),        // inverse-on-surface
+    surfaceContainerHighest: Color(0xFF1E1D45),
+    onSurfaceVariant: Color(0xFF7B7CAC),
+    // Outline
+    outline: Color(0xFF575881),
+    outlineVariant: Color(0xFF363660),
+    // Error
+    error: Color(0xFFF74B6D),            // error-container as dark error
+    onError: Color(0xFF510017),
+    errorContainer: Color(0xFFA70138),
+    onErrorContainer: Color(0xFFFFEFEF),
+    // Inverse (flip back to light tokens)
+    inverseSurface: Color(0xFFF8F5FF),
+    onInverseSurface: Color(0xFF2A2B51),
+    inversePrimary: Color(0xFF0049E6),
+    scrim: Color(0xFF000000),
+    shadow: Color(0xFF000000),
+  ),
+  scaffoldBackgroundColor: const Color(0xFF09082F),
+  cardColor: const Color(0xFF12113A),
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: const Color(0xFF12113A),
+    labelStyle: TextStyle(color: const Color(0xFF575881), fontFamily: font),
+    hintStyle: TextStyle(color: const Color(0xFF363660), fontFamily: font),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0x26363660), width: 1),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0x26363660), width: 1),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0x666A89FF), width: 1),
+    ),
+  ),
   appBarTheme: AppBarTheme(
-    backgroundColor: const Color(0xFF1A1A1A),
+    backgroundColor: const Color(0xFF09082F),
     elevation: 0,
-    iconTheme: const IconThemeData(color: Colors.white),
+    scrolledUnderElevation: 0,
+    surfaceTintColor: Colors.transparent,
+    iconTheme: const IconThemeData(color: Color(0xFF9999C6)),
     titleTextStyle: TextStyle(
-      color: Colors.white,
+      color: const Color(0xFF9999C6),
       fontSize: 20,
       fontFamily: font,
       fontWeight: FontWeight.w600,
     ),
     toolbarTextStyle: TextStyle(
-      color: Colors.white,
+      color: const Color(0xFF9999C6),
       fontSize: 18,
       fontFamily: font,
     ),
   ),
-  inputDecorationTheme: InputDecorationTheme(
-    labelStyle: TextStyle(color: const Color(0xFF9E9E9E), fontFamily: font),
-    hintStyle: TextStyle(color: const Color(0xFF757575), fontFamily: font),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF3A3A3C), width: 0.5),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF3A3A3C), width: 0.5),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF5AADFF), width: 1),
-    ),
-  ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF5AADFF),
-      foregroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-      ),
+      backgroundColor: const Color(0xFF6A89FF),
+      foregroundColor: const Color(0xFF000000),
+      shape: const StadiumBorder(),
+      elevation: 0,
     ),
   ),
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-    selectedItemColor: Color(0xFF5AADFF),
-    unselectedItemColor: Colors.grey,
-    backgroundColor: Color(0xFF1A1A1A),
+    selectedItemColor: Color(0xFF6A89FF),
+    unselectedItemColor: Color(0xFF575881),
+    backgroundColor: Color(0xFF09082F),
+    elevation: 0,
   ),
-  dividerColor: const Color(0xFF3A3A3A),
+  dividerColor: Colors.transparent,
 );
 
+// ── Nordic Kinetic Design System – light theme ─────────────────────────────
 ThemeData buildLightTheme(String font) => ThemeData(
   fontFamily: font,
   textTheme: TextTheme(
@@ -259,70 +300,97 @@ ThemeData buildLightTheme(String font) => ThemeData(
     titleLarge: TextStyle(fontFamily: font),
   ),
   colorScheme: const ColorScheme(
-    primary: Color.fromARGB(255, 39, 121, 188),
-    primaryContainer: Color(0xFF2779BC),
-    secondary: Colors.green,
-    secondaryContainer: Colors.greenAccent,
-    surface: Colors.white,
-    error: Colors.red,
-    onPrimary: Colors.white,
-    onSecondary: Colors.white,
-    onSurface: Colors.black,
-    onError: Colors.white,
     brightness: Brightness.light,
+    // Primary – Swedish blue
+    primary: Color(0xFF0049E6),
+    primaryContainer: Color(0xFF829BFF),
+    onPrimary: Color(0xFFF2F1FF),
+    onPrimaryContainer: Color(0xFF001A63),
+    // Secondary – Swedish yellow
+    secondary: Color(0xFF6C5A00),
+    secondaryContainer: Color(0xFFFFD709),
+    onSecondary: Color(0xFFFFF2CD),
+    onSecondaryContainer: Color(0xFF5B4B00),
+    // Tertiary – energetic orange
+    tertiary: Color(0xFF9B3F00),
+    tertiaryContainer: Color(0xFFFF955E),
+    onTertiary: Color(0xFFFFF0EA),
+    onTertiaryContainer: Color(0xFF562000),
+    // Surface hierarchy
+    surface: Color(0xFFF8F5FF),
+    onSurface: Color(0xFF2A2B51),
+    surfaceContainerHighest: Color(0xFFDBD9FF),
+    onSurfaceVariant: Color(0xFF575881),
+    // Outline
+    outline: Color(0xFF73739E),
+    outlineVariant: Color(0xFFA9A9D7),
+    // Error
+    error: Color(0xFFB41340),
+    onError: Color(0xFFFFEFEF),
+    errorContainer: Color(0xFFF74B6D),
+    onErrorContainer: Color(0xFF510017),
+    // Inverse
+    inverseSurface: Color(0xFF09082F),
+    onInverseSurface: Color(0xFF9999C6),
+    inversePrimary: Color(0xFF6A89FF),
+    scrim: Color(0xFF000000),
+    shadow: Color(0xFF000000),
   ),
+  scaffoldBackgroundColor: const Color(0xFFF8F5FF),
+  cardColor: const Color(0xFFFFFFFF),
   inputDecorationTheme: InputDecorationTheme(
-    fillColor: const Color(0xFF757575),
-    labelStyle: TextStyle(color: const Color(0xFF757575), fontFamily: font),
-    hintStyle: TextStyle(color: const Color(0xFF9E9E9E), fontFamily: font),
+    filled: true,
+    fillColor: const Color(0xFFFFFFFF),
+    labelStyle: TextStyle(color: const Color(0xFF73739E), fontFamily: font),
+    hintStyle: TextStyle(color: const Color(0xFFA9A9D7), fontFamily: font),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFBDBDBD), width: 0.5),
+      borderSide: const BorderSide(color: Color(0x26A9A9D7), width: 1),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFBDBDBD), width: 0.5),
+      borderSide: const BorderSide(color: Color(0x26A9A9D7), width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF2779BC), width: 1),
+      borderSide: const BorderSide(color: Color(0x6673739E), width: 1),
     ),
   ),
-  scaffoldBackgroundColor: Colors.white,
   appBarTheme: AppBarTheme(
-    backgroundColor: Colors.white,
+    backgroundColor: const Color(0xFFF8F5FF),
     elevation: 0,
-    iconTheme: const IconThemeData(color: Colors.black),
+    scrolledUnderElevation: 0,
+    surfaceTintColor: Colors.transparent,
+    iconTheme: const IconThemeData(color: Color(0xFF2A2B51)),
     titleTextStyle: TextStyle(
-      color: Colors.black,
+      color: const Color(0xFF2A2B51),
       fontSize: 20,
       fontFamily: font,
       fontWeight: FontWeight.w600,
     ),
     toolbarTextStyle: TextStyle(
-      color: Colors.black,
+      color: const Color(0xFF2A2B51),
       fontSize: 18,
       fontFamily: font,
     ),
   ),
-  buttonTheme: const ButtonThemeData(
-    buttonColor: Color.fromARGB(255, 201, 160, 11),
-    textTheme: ButtonTextTheme.primary,
-  ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: const Color.fromARGB(255, 39, 121, 188),
-      foregroundColor: Colors.white,
+      backgroundColor: const Color(0xFF0049E6),
+      foregroundColor: const Color(0xFFF2F1FF),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+        borderRadius: BorderRadius.all(Radius.circular(9999)),
       ),
+      elevation: 0,
     ),
   ),
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-    selectedItemColor: Color.fromARGB(255, 39, 121, 188),
-    unselectedItemColor: Colors.grey,
-    backgroundColor: Colors.white,
+    selectedItemColor: Color(0xFF0049E6),
+    unselectedItemColor: Color(0xFF73739E),
+    backgroundColor: Color(0xFFF8F5FF),
+    elevation: 0,
   ),
+  dividerColor: Colors.transparent,
 );
 
 

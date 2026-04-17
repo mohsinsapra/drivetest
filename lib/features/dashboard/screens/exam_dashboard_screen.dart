@@ -9,14 +9,10 @@ import '../models/dashboard_stats.dart';
 import '../models/exam_node.dart';
 import '../models/subscribed_exam.dart';
 import '../providers/dashboard_provider.dart';
-import 'widgets/batch_progress_card.dart';
-import 'widgets/category_progress_card.dart';
-import 'widgets/exam_overview_card.dart';
-import 'widgets/section_header.dart';
-import 'widgets/selected_exam_summary_card.dart';
-import 'widgets/smart_insights_card.dart';
-import 'widgets/exam_deadline_card.dart';
-import 'widgets/weekly_streak_card.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Screen
+// ─────────────────────────────────────────────────────────────────────────────
 
 class ExamDashboardScreen extends StatefulWidget {
   const ExamDashboardScreen({super.key});
@@ -29,7 +25,6 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Defer init until the first frame so context is available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DashboardProvider>().init();
     });
@@ -38,12 +33,12 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DashboardProvider>();
+    final t = Translations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(Translations.of(context).dash_my_progress),
+
         actions: [
-          // Subtle spinner while background API sync runs
           if (provider.syncing)
             const Padding(
               padding: EdgeInsets.only(right: 8),
@@ -54,12 +49,6 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
               ),
             )
           else
-            IconButton(
-              icon: const Icon(Icons.sync_rounded),
-              tooltip: Translations.of(context).dash_sync_from_server,
-              onPressed: () => context.read<DashboardProvider>().syncNow(),
-            ),
-          // Notification bell with unread badge
           Consumer<NotificationProvider>(
             builder: (_, notifProvider, __) => Stack(
               clipBehavior: Clip.none,
@@ -67,9 +56,7 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
                 IconButton(
                   icon: const Icon(Icons.notifications_none_rounded),
                   onPressed: () => Navigator.of(context).push(
-                    AppPageRoute(
-                      builder: (_) => const NotificationsScreen(),
-                    ),
+                    AppPageRoute(builder: (_) => const NotificationsScreen()),
                   ),
                 ),
                 if (notifProvider.unreadCount > 0)
@@ -94,12 +81,11 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
         DashboardStatus.idle || DashboardStatus.loading =>
           const Center(child: CircularProgressIndicator()),
         DashboardStatus.error => _ErrorView(
-            message: provider.error ?? Translations.of(context).dash_unknown_error,
+            message: provider.error ?? t.dash_unknown_error,
             onRetry: () => context.read<DashboardProvider>().init(),
           ),
         DashboardStatus.loaded => RefreshIndicator(
-            onRefresh: () =>
-                context.read<DashboardProvider>().syncNow(),
+            onRefresh: () => context.read<DashboardProvider>().syncNow(),
             child: _DashboardBody(provider: provider),
           ),
       },
@@ -113,222 +99,597 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
 
 class _DashboardBody extends StatelessWidget {
   const _DashboardBody({required this.provider});
-
   final DashboardProvider provider;
 
   @override
   Widget build(BuildContext context) {
     final stats = provider.selectedStats;
     final t = Translations.of(context);
+    final theme = Theme.of(context);
 
     return CustomScrollView(
       slivers: [
-        // ── 0. Exam deadline card ────────────────────────────────────────
-        const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: ExamDeadlineCard(),
-          ),
+        // ── Hero ──────────────────────────────────────────────────────────────
+        SliverToBoxAdapter(child: _HeroSection(stats: stats)),
+
+        // ── My Exams carousel ─────────────────────────────────────────────────
+        SliverToBoxAdapter(
+          child: _ExamCarouselSection(provider: provider),
         ),
 
-        // ── 1. Top exam overview ─────────────────────────────────────────
-        SliverToBoxAdapter(
-          child: SectionHeader(
-            title: t.dash_my_exams,
-            subtitle: t.dash_tap_to_dive,
+        // ── Performance overview ──────────────────────────────────────────────
+        if (stats != null)
+          SliverToBoxAdapter(
+            child: _PerformanceOverviewSection(stats: stats),
           ),
-        ),
-        SliverToBoxAdapter(
-          child: _ExamOverviewRow(provider: provider),
-        ),
 
-        // ── 2. Selected exam deep-dive ───────────────────────────────────
+        // ── Focus areas ───────────────────────────────────────────────────────
         if (stats != null) ...[
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: SectionHeader(
-                title: stats.exam.name,
-                subtitle: t.dash_overview,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: SelectedExamSummaryCard(
-              stats: stats,
-              onContinueTap: stats.continueNode == null
-                  ? null
-                  : () {
-                      final batch = stats.continueNode!;
-                      // Resolve category name for 3-layer exams
-                      String? catName;
-                      if (stats.exam.hasCategories) {
-                        catName = stats.categoryStats
-                            ?.where((c) => c.node.id == batch.node.parentId)
-                            .map((c) => c.node.name)
-                            .firstOrNull;
-                      }
-                      _launchBatch(context, stats.exam, batch.node, catName);
-                    },
-            ),
-          ),
-
-          // ── 3. Categories + batches ──────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: SectionHeader(
-                title: stats.exam.hasCategories ? t.dash_categories_header : t.dash_batches_header,
-                subtitle: stats.exam.hasCategories ? t.dash_expand_categories : null,
-              ),
-            ),
-          ),
-
-          if (stats.exam.hasCategories)
-            _ThreeLayerContent(stats: stats)
-          else
-            _TwoLayerContent(stats: stats),
-
-          // ── 4. Weekly Streak ─────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: SectionHeader(
-                title: t.dash_weekly_streak,
-                subtitle: t.dash_consistency_builds,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: WeeklyStreakCard(streak: stats.streak),
-          ),
-
-          // ── 5. Smart Insights ────────────────────────────────────────
-          if (stats.totalAttempts > 0) ...[
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: SectionHeader(
-                  title: t.dash_smart_insights,
-                  subtitle: t.dash_based_on_attempts,
+              padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
+              child: Text(
+                t.dash_focus_areas,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-            SliverToBoxAdapter(
-              child: SmartInsightsCard(stats: stats),
-            ),
-          ],
-
-          // Bottom padding
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
+          ),
+          SliverToBoxAdapter(
+            child: _FocusCategoriesSection(stats: stats),
+          ),
         ],
+
+        // ── Weekly streak ─────────────────────────────────────────────────────
+        if (stats != null) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
+              child: Text(
+                t.dash_weekly_streak,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: _WeeklyStreakSection(streak: stats.streak),
+          ),
+        ],
+
+        const SliverToBoxAdapter(child: SizedBox(height: 120)),
       ],
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Overview row (horizontal scroll)
+// Hero
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _ExamOverviewRow extends StatelessWidget {
-  const _ExamOverviewRow({required this.provider});
-
-  final DashboardProvider provider;
+class _HeroSection extends StatelessWidget {
+  const _HeroSection({this.stats});
+  final ExamDashboardStats? stats;
 
   @override
   Widget build(BuildContext context) {
-    final exams = provider.exams;
-    final selectedId = provider.selectedExam?.id;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final t = Translations.of(context);
+    final progress = stats?.overallProgressPercent ?? 0;
 
-    return SizedBox(
-      height: 170,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: exams.length,
-        itemBuilder: (context, i) {
-          final exam = exams[i];
-          final progress = provider.overviewProgress[exam.id] ?? 0;
+    final String subtitle;
+    if (progress == 0) {
+      subtitle = t.dash_hero_sub_start;
+    } else if (progress < 50) {
+      subtitle = t.dash_hero_sub_progress;
+    } else if (progress < 100) {
+      subtitle = t.dash_hero_sub_almost;
+    } else {
+      subtitle = t.dash_hero_sub_done;
+    }
 
-          // Derive continue label from selected stats if this exam is selected
-          String? continueLabel;
-          if (exam.id == selectedId && provider.selectedStats != null) {
-            final next = provider.selectedStats!.continueNode;
-            if (next != null) {
-              continueLabel = Translations.of(context)
-                  .dash_continue_label
-                  .replaceAll('{name}', next.node.name);
-            }
-          }
-
-          return ExamOverviewCard(
-            exam: exam,
-            progressPercent: progress,
-            isSelected: exam.id == selectedId,
-            continueLabel: continueLabel,
-            onTap: () => context.read<DashboardProvider>().selectExam(exam),
-          );
-        },
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t.dash_my_progress,
+            style: theme.textTheme.displaySmall?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: -1,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: cs.onSurface.withValues(alpha: 0.55),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Test launcher
+// Exam carousel
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Navigates to [BCDTestScreen] for BCD batch nodes. No-op for non-BCD.
-void _launchBatch(
-  BuildContext context,
-  SubscribedExam exam,
-  ExamNode batchNode,
-  String? categoryName,
-) {
-  if (!exam.isBcd) return;
+class _ExamCarouselSection extends StatelessWidget {
+  const _ExamCarouselSection({required this.provider});
+  final DashboardProvider provider;
 
-  // Derive the direct-parent bcd_id that BCDTestScreen expects
-  final parentBcdId = int.tryParse(batchNode.parentId ?? exam.id) ?? 0;
-  final parentName = categoryName ?? exam.name;
+  @override
+  Widget build(BuildContext context) {
+    final exams = provider.exams;
+    final cs = Theme.of(context).colorScheme;
+    final t = Translations.of(context);
 
-  Navigator.push(
-    context,
-    AppPageRoute(
-      builder: (_) => BCDTestScreen(
-        testId: int.tryParse(batchNode.id) ?? 0,
-        testName: batchNode.name,
-        passScore: batchNode.passScore,
-        timeLimit: batchNode.targetDurationSeconds ~/ 60,
-        parentCategoryName: parentName,
-        parentCategoryBcdId: parentBcdId,
-      ),
-    ),
-  ).then((_) {
-    // Refresh stats after the user returns from the test
-    if (context.mounted) context.read<DashboardProvider>().refresh();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+          child: Text(
+            t.dash_my_exams,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        if (exams.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              t.dash_no_exams_found,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: cs.onSurface.withValues(alpha: 0.45),
+              ),
+            ),
+          )
+        else
+          SizedBox(
+            height: 190,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: exams.length,
+              itemBuilder: (context, i) {
+                final exam = exams[i];
+                final isSelected = exam.id == provider.selectedExam?.id;
+                final progress = provider.overviewProgress[exam.id] ?? 0.0;
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: GestureDetector(
+                    onTap: () =>
+                        context.read<DashboardProvider>().selectExam(exam),
+                    child: _ExamCard(
+                      exam: exam,
+                      progress: progress,
+                      isActive: isSelected,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _ExamCard extends StatelessWidget {
+  const _ExamCard({
+    required this.exam,
+    required this.progress,
+    required this.isActive,
   });
+  final SubscribedExam exam;
+  final double progress; // 0–100
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final progressValue = (progress / 100.0).clamp(0.0, 1.0);
+    final progressLabel = '${progress.toStringAsFixed(0)}%';
+    final t = Translations.of(context);
+    final typeLabel = exam.isBcd ? t.dash_exam_type_test : t.dash_exam_type_taxi;
+
+    if (isActive) {
+      return Container(
+        width: 260,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [cs.primary, cs.primaryContainer],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: cs.primary.withValues(alpha: 0.35),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -20,
+              top: -20,
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    typeLabel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+                Text(
+                  exam.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _CircularProgressRing(
+                      value: progressValue,
+                      label: progressLabel,
+                      trackColor: Colors.white.withValues(alpha: 0.2),
+                      progressColor: Colors.white,
+                      textColor: Colors.white,
+                    ),
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Inactive card
+    return Container(
+      width: 260,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              typeLabel,
+              style: TextStyle(
+                color: cs.onSurface.withValues(alpha: 0.55),
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
+          Text(
+            exam.name,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _CircularProgressRing(
+                value: progressValue,
+                label: progressLabel,
+                trackColor: cs.surfaceContainerHighest,
+                progressColor: cs.primary,
+                textColor: cs.onSurface,
+              ),
+              Icon(
+                Icons.arrow_forward_rounded,
+                color: cs.onSurface.withValues(alpha: 0.3),
+                size: 20,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CircularProgressRing extends StatelessWidget {
+  const _CircularProgressRing({
+    required this.value,
+    required this.label,
+    required this.trackColor,
+    required this.progressColor,
+    required this.textColor,
+  });
+  final double value;
+  final String label;
+  final Color trackColor;
+  final Color progressColor;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CircularProgressIndicator(
+            value: value,
+            strokeWidth: 4,
+            backgroundColor: trackColor,
+            valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3-layer content: expandable categories → batches
+// Performance overview
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _ThreeLayerContent extends StatefulWidget {
-  const _ThreeLayerContent({required this.stats});
+class _PerformanceOverviewSection extends StatelessWidget {
+  const _PerformanceOverviewSection({required this.stats});
   final ExamDashboardStats stats;
 
   @override
-  State<_ThreeLayerContent> createState() => _ThreeLayerContentState();
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    final t = Translations.of(context);
+    final avgSecs = stats.avgDurationSeconds;
+    final avgMinutes = avgSecs ~/ 60;
+    final avgTimeLabel = avgSecs == 0 ? '—' : '${avgMinutes}m';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
+          child: Text(
+            t.dash_performance_overview,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: _StatCard(
+                  icon: Icons.history_rounded,
+                  iconBgColor: cs.primary.withValues(alpha: 0.1),
+                  iconColor: cs.primary,
+                  label: t.dash_total_attempts,
+                  value: '${stats.totalAttempts}',
+                  subtitle: stats.totalAttempts == 0
+                      ? t.dash_stat_none_yet
+                      : t.dash_stat_completed,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _StatCard(
+                  icon: Icons.layers_rounded,
+                  iconBgColor: cs.secondaryContainer.withValues(alpha: 0.5),
+                  iconColor: cs.secondary,
+                  label: t.dash_batches_done,
+                  value: '${stats.completedBatchCount}',
+                  subtitle: t.dash_stat_of_n(total: stats.totalBatchCount),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _StatCard(
+                  icon: Icons.timer_rounded,
+                  iconBgColor: cs.tertiaryContainer.withValues(alpha: 0.3),
+                  iconColor: cs.tertiary,
+                  label: t.dash_avg_time,
+                  value: avgTimeLabel,
+                  subtitle: avgSecs > 0 ? t.dash_stat_per_session : '—',
+                  subtitleColor: avgSecs > 0 ? cs.tertiary : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-class _ThreeLayerContentState extends State<_ThreeLayerContent> {
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.icon,
+    required this.iconBgColor,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+    required this.subtitle,
+    this.subtitleColor,
+  });
+  final IconData icon;
+  final Color iconBgColor;
+  final Color iconColor;
+  final String label;
+  final String value;
+  final String subtitle;
+  final Color? subtitleColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 16, color: iconColor),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: cs.onSurface.withValues(alpha: 0.5),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+              height: 1.3,
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: subtitleColor ?? cs.onSurface.withValues(alpha: 0.4),
+              fontWeight: FontWeight.w500,
+              fontSize: 9,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Focus categories
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _FocusCategoriesSection extends StatefulWidget {
+  const _FocusCategoriesSection({required this.stats});
+  final ExamDashboardStats stats;
+
+  @override
+  State<_FocusCategoriesSection> createState() =>
+      _FocusCategoriesSectionState();
+}
+
+class _FocusCategoriesSectionState extends State<_FocusCategoriesSection> {
   final Set<String> _expanded = {};
 
   @override
   void initState() {
     super.initState();
-    // Auto-expand first category
     final cats = widget.stats.categoryStats;
     if (cats != null && cats.isNotEmpty) {
       _expanded.add(cats.first.node.id);
@@ -336,119 +697,240 @@ class _ThreeLayerContentState extends State<_ThreeLayerContent> {
   }
 
   @override
+  void didUpdateWidget(_FocusCategoriesSection old) {
+    super.didUpdateWidget(old);
+    if (old.stats.exam.id != widget.stats.exam.id) {
+      _expanded.clear();
+      final cats = widget.stats.categoryStats;
+      if (cats != null && cats.isNotEmpty) {
+        _expanded.add(cats.first.node.id);
+      }
+    }
+  }
+
+  Color _colorForIndex(int i) {
+    const colors = [
+      Color(0xFF1976D2),
+      Color(0xFFF9A825),
+      Color(0xFFE65100),
+      Color(0xFF43A047),
+      Color(0xFF8E24AA),
+      Color(0xFF00897B),
+    ];
+    return colors[i % colors.length];
+  }
+
+  IconData _iconForIndex(int i) {
+    const icons = [
+      Icons.security_rounded,
+      Icons.payments_rounded,
+      Icons.library_books_rounded,
+      Icons.directions_car_rounded,
+      Icons.gavel_rounded,
+      Icons.health_and_safety_rounded,
+    ];
+    return icons[i % icons.length];
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final cats = widget.stats.categoryStats ?? [];
+    final stats = widget.stats;
+    final cs = Theme.of(context).colorScheme;
 
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final catStat = cats[index];
-          final isExpanded = _expanded.contains(catStat.node.id);
+    if (stats.categoryStats != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: stats.categoryStats!.asMap().entries.map((entry) {
+            final i = entry.key;
+            final cat = entry.value;
+            final isExpanded = _expanded.contains(cat.node.id);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _CategoryListItem(
+                cat: cat,
+                icon: _iconForIndex(i),
+                color: _colorForIndex(i),
+                isExpanded: isExpanded,
+                onToggle: () => setState(() {
+                  if (isExpanded) {
+                    _expanded.remove(cat.node.id);
+                  } else {
+                    _expanded.add(cat.node.id);
+                  }
+                }),
+                stats: stats,
+              ),
+            );
+          }).toList(),
+        ),
+      );
+    }
 
-          return _CategorySection(
-            catStat: catStat,
-            isExpanded: isExpanded,
-            exam: widget.stats.exam,
-            onToggle: () => setState(() {
-              if (isExpanded) {
-                _expanded.remove(catStat.node.id);
-              } else {
-                _expanded.add(catStat.node.id);
-              }
-            }),
-          );
-        },
-        childCount: cats.length,
+    // 2-layer exam: show batches directly
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            children: stats.allBatchStats
+                .asMap()
+                .entries
+                .map((e) => _BatchRow(
+                      batch: e.value,
+                      isLast: e.key == stats.allBatchStats.length - 1,
+                      onTap: stats.exam.isBcd
+                          ? () => _launchBatch(
+                              context, stats.exam, e.value.node, null)
+                          : null,
+                    ))
+                .toList(),
+          ),
+        ),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Collapsible category section
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _CategorySection extends StatelessWidget {
-  const _CategorySection({
-    required this.catStat,
+class _CategoryListItem extends StatelessWidget {
+  const _CategoryListItem({
+    required this.cat,
+    required this.icon,
+    required this.color,
     required this.isExpanded,
-    required this.exam,
     required this.onToggle,
+    required this.stats,
   });
-
-  final CategoryStats catStat;
+  final CategoryStats cat;
+  final IconData icon;
+  final Color color;
   final bool isExpanded;
-  final SubscribedExam exam;
   final VoidCallback onToggle;
+  final ExamDashboardStats stats;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    final t = Translations.of(context);
+    final statusText = cat.touchedBatches == 0
+        ? t.dash_not_started
+        : t.dash_avg_score_label(score: cat.averageScore.toStringAsFixed(0));
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: cs.onSurface.withOpacity(0.08)),
+        color: isExpanded ? cs.surfaceContainerLow : theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isExpanded
+              ? cs.primary.withValues(alpha: 0.15)
+              : cs.onSurface.withValues(alpha: 0.06),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         child: Column(
           children: [
-            // Category header — tappable to expand/collapse
-            CategoryProgressCard(
-              stats: catStat,
-              nested: true,
-              showChevron: true,
-              isExpanded: isExpanded,
+            InkWell(
               onTap: onToggle,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: color, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            cat.node.name,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            '${t.dash_batches_count(n: cat.totalBatches)} • $statusText',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: cs.onSurface.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    AnimatedRotation(
+                      turns: isExpanded ? 0.25 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        Icons.chevron_right_rounded,
+                        color: cs.onSurface.withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-
-            // Animated batch list
             AnimatedSize(
-              duration: const Duration(milliseconds: 240),
+              duration: const Duration(milliseconds: 220),
               curve: Curves.easeInOut,
               child: isExpanded
-                  ? Column(
-                      children: [
-                        Divider(
-                          height: 1,
-                          indent: 14,
-                          endIndent: 14,
-                          color: cs.onSurface.withOpacity(0.08),
+                  ? Container(
+                      decoration: BoxDecoration(
+                        color: cs.surface,
+                        border: Border(
+                          top: BorderSide(
+                            color: cs.onSurface.withValues(alpha: 0.07),
+                          ),
                         ),
-                        ...catStat.batchStats.asMap().entries.map((entry) {
-                          final i = entry.key;
-                          final batchStat = entry.value;
-                          final isLast = i == catStat.batchStats.length - 1;
-                          return Column(
-                            children: [
-                              BatchProgressCard(
-                                stats: batchStat,
-                                nested: true,
-                                onTap: exam.isBcd
-                                    ? () => _launchBatch(
-                                          context,
-                                          exam,
-                                          batchStat.node,
-                                          catStat.node.name,
-                                        )
-                                    : null,
-                              ),
-                              if (!isLast)
-                                Divider(
-                                  height: 1,
-                                  indent: 36,
-                                  endIndent: 14,
-                                  color: cs.onSurface.withOpacity(0.05),
-                                ),
-                            ],
-                          );
-                        }),
-                        const SizedBox(height: 4),
-                      ],
+                      ),
+                      child: Column(
+                        children: cat.batchStats
+                            .asMap()
+                            .entries
+                            .map((e) => _BatchRow(
+                                  batch: e.value,
+                                  isLast: e.key == cat.batchStats.length - 1,
+                                  onTap: stats.exam.isBcd
+                                      ? () => _launchBatch(
+                                            context,
+                                            stats.exam,
+                                            e.value.node,
+                                            cat.node.name,
+                                          )
+                                      : null,
+                                ))
+                            .toList(),
+                      ),
                     )
                   : const SizedBox.shrink(),
             ),
@@ -460,28 +942,288 @@ class _CategorySection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2-layer content: batches directly, no category wrapper
+// Weekly streak
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _TwoLayerContent extends StatelessWidget {
-  const _TwoLayerContent({required this.stats});
-  final ExamDashboardStats stats;
+class _WeeklyStreakSection extends StatelessWidget {
+  const _WeeklyStreakSection({required this.streak});
+  final StreakSummary streak;
 
   @override
   Widget build(BuildContext context) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final batchStat = stats.allBatchStats[index];
-          return BatchProgressCard(
-            stats: batchStat,
-            onTap: stats.exam.isBcd
-                ? () => _launchBatch(context, stats.exam, batchStat.node, null)
-                : null,
-          );
-        },
-        childCount: stats.allBatchStats.length,
+    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final t = Translations.of(context);
+    final now = DateTime.now();
+    final monday = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - 1));
+    final days = List.generate(7, (i) => monday.add(Duration(days: i)));
+    final dayLabels = [
+      t.dash_day_mon,
+      t.dash_day_tue,
+      t.dash_day_wed,
+      t.dash_day_thu,
+      t.dash_day_fri,
+      t.dash_day_sat,
+      t.dash_day_sun,
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: cs.inverseSurface,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Left: streak info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.local_fire_department_rounded,
+                        color: Colors.amber,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          t.dash_streak_title(n: streak.currentStreak),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: cs.onInverseSurface,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _StreakStatLabel(
+                        label: t.dash_streak_current,
+                        value: t.dash_streak_days(n: streak.currentStreak),
+                        valueColor: cs.onInverseSurface,
+                        labelColor: cs.onInverseSurface,
+                      ),
+                      Container(
+                        width: 1,
+                        height: 32,
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        color: Colors.white.withValues(alpha: 0.12),
+                      ),
+                      _StreakStatLabel(
+                        label: t.dash_streak_best,
+                        value: t.dash_streak_days(n: streak.bestStreak),
+                        valueColor: cs.onInverseSurface,
+                        labelColor: cs.onInverseSurface,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Right: bar chart
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List.generate(7, (i) {
+                final day = days[i];
+                final isActive = streak.isActiveDay(day);
+                final isToday = day.year == now.year &&
+                    day.month == now.month &&
+                    day.day == now.day;
+                final isFuture = day.isAfter(now);
+
+                return Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 400),
+                            height: isActive
+                                ? 40
+                                : (isToday && !isFuture ? 18 : 0),
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? Colors.amber
+                                  : Colors.amber.withValues(alpha: 0.35),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        dayLabels[i],
+                        style: TextStyle(
+                          color: isToday
+                              ? Colors.amber
+                              : cs.onInverseSurface.withValues(alpha: 0.5),
+                          fontSize: 9,
+                          fontWeight: isToday
+                              ? FontWeight.w800
+                              : FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _StreakStatLabel extends StatelessWidget {
+  const _StreakStatLabel({
+    required this.label,
+    required this.value,
+    required this.valueColor,
+    required this.labelColor,
+  });
+  final String label;
+  final String value;
+  final Color valueColor;
+  final Color labelColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            color: labelColor.withValues(alpha: 0.6),
+            fontSize: 9,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            color: valueColor,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Batch row
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _BatchRow extends StatelessWidget {
+  const _BatchRow({
+    required this.batch,
+    this.onTap,
+    this.isLast = false,
+  });
+  final BatchStats batch;
+  final VoidCallback? onTap;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    Color dotColor;
+    if (batch.isCompleted) {
+      dotColor = Colors.green;
+    } else if (batch.isLowScore) {
+      dotColor = Colors.orange;
+    } else if (batch.isUntouched) {
+      dotColor = cs.onSurface.withValues(alpha: 0.2);
+    } else {
+      dotColor = cs.primary;
+    }
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: dotColor,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    batch.node.name,
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                ),
+                if (batch.isUntouched)
+                  Text(
+                    Translations.of(context).dash_not_started,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cs.onSurface.withValues(alpha: 0.35),
+                    ),
+                  )
+                else ...[
+                  Text(
+                    '${batch.averageScore.toStringAsFixed(0)}%',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: dotColor,
+                    ),
+                  ),
+                  if (onTap != null) ...[
+                    const SizedBox(width: 2),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 16,
+                      color: cs.onSurface.withValues(alpha: 0.3),
+                    ),
+                  ],
+                ],
+              ],
+            ),
+          ),
+        ),
+        if (!isLast)
+          Divider(
+            height: 1,
+            indent: 36,
+            color: cs.onSurface.withValues(alpha: 0.05),
+          ),
+      ],
     );
   }
 }
@@ -517,4 +1259,36 @@ class _ErrorView extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Navigation helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+void _launchBatch(
+  BuildContext context,
+  SubscribedExam exam,
+  ExamNode batchNode,
+  String? categoryName,
+) {
+  if (!exam.isBcd) return;
+
+  final parentBcdId = int.tryParse(batchNode.parentId ?? exam.id) ?? 0;
+  final parentName = categoryName ?? exam.name;
+
+  Navigator.push(
+    context,
+    AppPageRoute(
+      builder: (_) => BCDTestScreen(
+        testId: int.tryParse(batchNode.id) ?? 0,
+        testName: batchNode.name,
+        passScore: batchNode.passScore,
+        timeLimit: batchNode.targetDurationSeconds ~/ 60,
+        parentCategoryName: parentName,
+        parentCategoryBcdId: parentBcdId,
+      ),
+    ),
+  ).then((_) {
+    if (context.mounted) context.read<DashboardProvider>().refresh();
+  });
 }

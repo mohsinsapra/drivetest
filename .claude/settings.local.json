@@ -111,7 +111,8 @@
       "Bash(dart analyze:*)",
       "Bash(flutter --version)",
       "Bash(awk '{ *)",
-      "Bash(DJANGO_SETTINGS_MODULE=taxi_exam_backend.settings python -c \"import django; django.setup\\(\\); from questions.views_v2 import AllCategoryListV2, SubCategoryListV2; print\\('OK'\\)\")"
+      "Bash(DJANGO_SETTINGS_MODULE=taxi_exam_backend.settings python -c \"import django; django.setup\\(\\); from questions.views_v2 import AllCategoryListV2, SubCategoryListV2; print\\('OK'\\)\")",
+      "Bash(find lib *)"
     ],
     "deny": [],
     "ask": []

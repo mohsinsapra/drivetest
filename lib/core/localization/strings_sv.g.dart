@@ -347,9 +347,13 @@ class TranslationsSv implements Translations {
 	@override String get onb_3_months => '3 månader';
 	@override String get onb_custom_date => 'Eget datum';
 	@override String get onb_subscribe => 'Prenumerera';
+	@override String get onb_sign_in_to_subscribe => 'Logga in för att prenumerera';
+	@override String get onb_sign_in_subtitle => 'Skapa ett gratis konto eller logga in för att få tillgång till fullständiga prov';
 	@override String get onb_no_exams => 'Inga prov tillgängliga just nu';
 	@override String onb_days_week_label({required Object n}) => '${n} dagar/vecka';
 	@override String onb_step_of({required Object current, required Object total}) => 'Steg ${current} av ${total}';
+	@override String get onb_weekly_goal_title => 'Veckovis studiemål';
+	@override String get onb_weekly_goal_sub => 'Välj de dagar du ska studera.';
 
 	@override String get dash_exam_deadline => 'Provdatum';
 	@override String dash_days_remaining({required Object n}) => '${n} dagar kvar';
@@ -359,6 +363,23 @@ class TranslationsSv implements Translations {
 	@override String get dash_set_deadline => 'Sätt deadline';
 	@override String get dash_change_deadline => 'Ändra deadline';
 	@override String dash_practice_days({required Object n}) => '${n} dagar/vecka';
+	@override String get dash_hero_sub_start => 'Dags att börja din resa!';
+	@override String get dash_hero_sub_progress => 'Bra jobbat – fortsätt framåt!';
+	@override String get dash_hero_sub_almost => 'Snart redo för examen!';
+	@override String get dash_hero_sub_done => 'Allt avklarat – bra jobbat!';
+	@override String get dash_performance_overview => 'Prestationsöversikt';
+	@override String get dash_focus_areas => 'Fokusområden';
+	@override String get dash_no_exams_found => 'Inga prov hittades.';
+	@override String get dash_stat_completed => 'Genomförda';
+	@override String get dash_stat_none_yet => 'Inga ännu';
+	@override String dash_stat_of_n({required Object total}) => 'av ${total}';
+	@override String get dash_stat_per_session => 'Per omgång';
+	@override String get dash_exam_type_taxi => 'TAXI';
+	@override String get dash_exam_type_test => 'PROV';
+	@override String dash_streak_title({required Object n}) => '${n} dagars svit!';
+	@override String dash_streak_days({required Object n}) => '${n} dagar';
+	@override String dash_batches_count({required Object n}) => '${n} omgångar';
+	@override String dash_avg_score_label({required Object score}) => '${score}% snitt';
 }
 
 /// Flat map(s) containing all translations.
@@ -676,9 +697,13 @@ extension on TranslationsSv {
 			case 'onb_3_months': return '3 månader';
 			case 'onb_custom_date': return 'Eget datum';
 			case 'onb_subscribe': return 'Prenumerera';
+			case 'onb_sign_in_to_subscribe': return 'Logga in för att prenumerera';
+			case 'onb_sign_in_subtitle': return 'Skapa ett gratis konto eller logga in för att få tillgång till fullständiga prov';
 			case 'onb_no_exams': return 'Inga prov tillgängliga just nu';
 			case 'onb_days_week_label': return ({required Object n}) => '${n} dagar/vecka';
 			case 'onb_step_of': return ({required Object current, required Object total}) => 'Steg ${current} av ${total}';
+			case 'onb_weekly_goal_title': return 'Veckovis studiemål';
+			case 'onb_weekly_goal_sub': return 'Välj de dagar du ska studera.';
 			case 'dash_exam_deadline': return 'Provdatum';
 			case 'dash_days_remaining': return ({required Object n}) => '${n} dagar kvar';
 			case 'dash_deadline_today': return 'Idag!';
@@ -687,6 +712,23 @@ extension on TranslationsSv {
 			case 'dash_set_deadline': return 'Sätt deadline';
 			case 'dash_change_deadline': return 'Ändra deadline';
 			case 'dash_practice_days': return ({required Object n}) => '${n} dagar/vecka';
+			case 'dash_hero_sub_start': return 'Dags att börja din resa!';
+			case 'dash_hero_sub_progress': return 'Bra jobbat – fortsätt framåt!';
+			case 'dash_hero_sub_almost': return 'Snart redo för examen!';
+			case 'dash_hero_sub_done': return 'Allt avklarat – bra jobbat!';
+			case 'dash_performance_overview': return 'Prestationsöversikt';
+			case 'dash_focus_areas': return 'Fokusområden';
+			case 'dash_no_exams_found': return 'Inga prov hittades.';
+			case 'dash_stat_completed': return 'Genomförda';
+			case 'dash_stat_none_yet': return 'Inga ännu';
+			case 'dash_stat_of_n': return ({required Object total}) => 'av ${total}';
+			case 'dash_stat_per_session': return 'Per omgång';
+			case 'dash_exam_type_taxi': return 'TAXI';
+			case 'dash_exam_type_test': return 'PROV';
+			case 'dash_streak_title': return ({required Object n}) => '${n} dagars svit!';
+			case 'dash_streak_days': return ({required Object n}) => '${n} dagar';
+			case 'dash_batches_count': return ({required Object n}) => '${n} omgångar';
+			case 'dash_avg_score_label': return ({required Object score}) => '${score}% snitt';
 			default: return null;
 		}
 	}
