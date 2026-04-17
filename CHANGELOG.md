@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+108] - 2026-04-17
+
+### Added
 - **Kinetic Onboarding Experience** — a completely redesigned 4-step onboarding flow featuring product selection, plan tiers/pricing, and integrated Stripe payments. Includes custom animations, shimmering loading states, and a celebratory success overlay.
 - **Nordic Kinetic Design System** — major theme overhaul for both light and dark modes. Dark mode now uses a "midnight ink" palette (`#09082F`) with vibrant Swedish blue/yellow accents and refined `GoogleFonts` (Lexend and Plus Jakarta Sans) typography.
 - **Direct Stripe Bundle Payments** — support for purchasing multiple BCD products as a bundle with 20% savings and immediate backend payment confirmation.
@@ -29,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Navigation Reliability** — improved tab switching and redirect logic when user permissions or visibility flags change dynamically.
 - **Theme Consistency** — fixed multiple hardcoded colors to properly resolve using the new Nordic Kinetic Design System tokens in both themes.
 
+---
 ---
 
 ## [1.0.3+107] - 2026-04-16

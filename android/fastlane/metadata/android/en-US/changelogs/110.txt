@@ -1,0 +1,3 @@
+Added
+• **Kinetic Onboarding Experience** — a completely redesigned 4-step onboarding flow featuring product selection, plan tiers/pricing, and integrated Stripe payments. Includes custom animations, shimmering loading states, and a celebratory success overlay.
+• **Nordic Kinetic Design System** — major theme overhaul for both light and dark modes. Dark mode now uses a "midnight ink" palette (`#09082F`) with vibrant Swedish blue/yellow accents and refined `GoogleFonts` (Lexend and Plus Jakart...
