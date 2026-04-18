@@ -544,7 +544,6 @@ class _BCDTestsListScreen extends StatefulWidget {
 }
 
 class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
-  final _api = ApiService();
   List<dynamic> _tests = [];
   bool _loading = true;
 
@@ -569,7 +568,8 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
 
   Future<void> _load() async {
     try {
-      final data = await _api.fetchBCDTests(widget.categoryBcdId);
+      await BcdCache.instance.ensureLoaded();
+      final data = BcdCache.instance.testsOf(widget.categoryBcdId);
       if (mounted) {
         setState(() {
           _tests = widget.practiceOnly
