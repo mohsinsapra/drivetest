@@ -98,15 +98,21 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _run() async {
     final stopwatch = Stopwatch()..start();
 
+    // SharedPreferences read and token reload are independent — run in parallel.
     bool onboardingComplete = false;
     try {
-      // ignore: unused_local_variable
-      final prefs = await SharedPreferences.getInstance();
-      // onboardingComplete = false; // TODO: remove — force onboarding for testing
+      final results = await Future.wait([
+        SharedPreferences.getInstance(),
+        DioClient().reloadTokens(),
+      ]);
+      final prefs = results[0] as SharedPreferences;
       onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
     } catch (_) {}
 
-    final data = await _initializeApp(onboardingComplete).timeout(
+    final hasTokens =
+        DioClient().refreshToken != null && DioClient().accessToken != null;
+
+    final data = await _initializeApp(onboardingComplete, hasTokens).timeout(
       const Duration(seconds: 12),
       onTimeout: () {
         debugPrint(
@@ -158,14 +164,12 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Future<Map<String, bool>> _initializeApp(bool onboardingComplete) async {
+  // hasTokens is pre-computed in _run() alongside SharedPreferences to avoid
+  // calling reloadTokens() twice.
+  Future<Map<String, bool>> _initializeApp(
+      bool onboardingComplete, bool hasTokens) async {
+    bool isAuthenticated = false;
     try {
-      await DioClient().reloadTokens();
-
-      final hasTokens =
-          DioClient().refreshToken != null && DioClient().accessToken != null;
-      bool isAuthenticated = false;
-
       if (hasTokens) {
         try {
           await ApiService()
@@ -178,27 +182,17 @@ class _SplashScreenState extends State<SplashScreen>
         }
 
         if (isAuthenticated) {
-          try {
-            await NotificationService.init(ApiService());
-          } catch (e) {
-            debugPrint(
-              'SplashScreen: notification init failed (non-fatal) — $e',
-            );
-          }
+          // Non-fatal — don't block navigation waiting for FCM registration.
+          NotificationService.init(ApiService()).ignore();
         }
       }
-
-      return {
-        'onboardingComplete': onboardingComplete,
-        'isAuthenticated': isAuthenticated,
-      };
     } catch (e) {
       debugPrint('SplashScreen: init error — $e');
-      return {
-        'onboardingComplete': onboardingComplete,
-        'isAuthenticated': false,
-      };
     }
+    return {
+      'onboardingComplete': onboardingComplete,
+      'isAuthenticated': isAuthenticated,
+    };
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────

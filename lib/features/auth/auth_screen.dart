@@ -583,15 +583,101 @@ class _AuthAppBar extends StatelessWidget {
   }
 }
 
-// ─── Ambient background blobs ─────────────────────────────────────────────────
+// ─── Unified animated background for all auth screens ──────────────────────────
+// Contains ambient glow, kinetic stripes, and free-motion items (vehicles + energy)
+// that loop seamlessly via phase offset.
 
-class _AmbientBg extends StatelessWidget {
-  const _AmbientBg();
+class _AmbientItem {
+  const _AmbientItem({
+    required this.icon,
+    required this.startX,
+    required this.startY,
+    required this.velX,
+    required this.velY,
+    required this.rotSpeed,
+    required this.phase,
+    required this.iconSize,
+    required this.opacity,
+  });
+  final IconData icon;
+  final double startX;   // normalized entry position (can be < 0 or > 1 = off-screen)
+  final double startY;
+  final double velX;     // total x travel over one cycle (screen fractions)
+  final double velY;     // total y travel over one cycle
+  final double rotSpeed; // full rotations per cycle (negative = counter-clockwise)
+  final double phase;    // 0–1 stagger offset so items enter at different times
+  final double iconSize;
+  final double opacity;
+}
+
+const _kAmbientItems = [
+  // ── vehicles ──
+  _AmbientItem(icon: Icons.directions_car_rounded,  startX: -0.18, startY: 0.12, velX:  1.40, velY:  0.08, rotSpeed:  0.50, phase: 0.00, iconSize: 18, opacity: 0.08),
+  _AmbientItem(icon: Icons.local_taxi,              startX: -0.18, startY: 0.45, velX:  1.35, velY: -0.06, rotSpeed:  0.40, phase: 0.22, iconSize: 17, opacity: 0.08),
+  _AmbientItem(icon: Icons.pedal_bike,              startX: -0.18, startY: 0.72, velX:  1.30, velY:  0.10, rotSpeed:  0.70, phase: 0.55, iconSize: 16, opacity: 0.07),
+  _AmbientItem(icon: Icons.two_wheeler,             startX:  1.18, startY: 0.28, velX: -1.38, velY:  0.05, rotSpeed: -0.45, phase: 0.12, iconSize: 15, opacity: 0.07),
+  _AmbientItem(icon: Icons.airport_shuttle_rounded, startX:  1.18, startY: 0.60, velX: -1.32, velY: -0.08, rotSpeed: -0.35, phase: 0.68, iconSize: 16, opacity: 0.06),
+  _AmbientItem(icon: Icons.electric_scooter,        startX:  1.18, startY: 0.85, velX: -1.28, velY:  0.04, rotSpeed: -0.60, phase: 0.38, iconSize: 14, opacity: 0.06),
+  _AmbientItem(icon: Icons.directions_bus_rounded,  startX:  0.20, startY: -0.18, velX:  0.06, velY:  1.40, rotSpeed:  0.30, phase: 0.05, iconSize: 20, opacity: 0.06),
+  _AmbientItem(icon: Icons.local_shipping_rounded,  startX:  0.65, startY: -0.18, velX: -0.04, velY:  1.35, rotSpeed: -0.25, phase: 0.48, iconSize: 17, opacity: 0.06),
+  _AmbientItem(icon: Icons.directions_railway,      startX:  0.40, startY:  1.18, velX:  0.08, velY: -1.40, rotSpeed:  0.20, phase: 0.30, iconSize: 18, opacity: 0.06),
+  _AmbientItem(icon: Icons.traffic,                 startX:  0.80, startY:  1.18, velX: -0.05, velY: -1.32, rotSpeed: -0.15, phase: 0.75, iconSize: 15, opacity: 0.05),
+
+  // ── energy & environment (cloud, flash, thunder) ──
+  _AmbientItem(icon: Icons.bolt_rounded,            startX: -0.25, startY: 0.30, velX:  1.50, velY:  0.15, rotSpeed:  2.00, phase: 0.10, iconSize: 22, opacity: 0.12),
+  _AmbientItem(icon: Icons.cloud_rounded,           startX:  1.25, startY: 0.15, velX: -1.50, velY:  0.05, rotSpeed:  0.15, phase: 0.45, iconSize: 26, opacity: 0.10),
+  _AmbientItem(icon: Icons.electric_bolt_rounded,   startX:  0.30, startY: -0.25, velX:  0.08, velY:  1.50, rotSpeed: -1.50, phase: 0.70, iconSize: 20, opacity: 0.12),
+  _AmbientItem(icon: Icons.flash_on_rounded,        startX:  0.70, startY:  1.25, velX: -0.08, velY: -1.50, rotSpeed:  1.20, phase: 0.25, iconSize: 20, opacity: 0.10),
+  _AmbientItem(icon: Icons.auto_awesome_rounded,    startX: -0.20, startY:  0.80, velX:  1.40, velY: -0.15, rotSpeed:  3.00, phase: 0.88, iconSize: 18, opacity: 0.15),
+  _AmbientItem(icon: Icons.thunderstorm_rounded,    startX:  1.20, startY:  0.60, velX: -1.40, velY: -0.08, rotSpeed:  0.30, phase: 0.35, iconSize: 22, opacity: 0.08),
+  _AmbientItem(icon: Icons.cyclone,                 startX:  0.50, startY:  1.20, velX: -0.15, velY: -1.40, rotSpeed:  4.00, phase: 0.58, iconSize: 18, opacity: 0.07),
+  _AmbientItem(icon: Icons.wb_sunny_rounded,        startX: -0.20, startY:  0.05, velX:  1.40, velY:  0.02, rotSpeed:  0.05, phase: 0.82, iconSize: 24, opacity: 0.08),
+
+  // ── diagonals ──
+  _AmbientItem(icon: Icons.local_taxi,              startX: -0.18, startY: -0.12, velX:  1.30, velY:  1.25, rotSpeed:  0.55, phase: 0.18, iconSize: 16, opacity: 0.07),
+  _AmbientItem(icon: Icons.directions_car_rounded,  startX: -0.15, startY:  0.35, velX:  1.25, velY:  0.90, rotSpeed:  0.45, phase: 0.62, iconSize: 15, opacity: 0.06),
+  _AmbientItem(icon: Icons.two_wheeler,             startX:  1.15, startY: -0.10, velX: -1.28, velY:  1.20, rotSpeed: -0.50, phase: 0.42, iconSize: 14, opacity: 0.06),
+];
+
+class _AnimatedAuthBg extends StatefulWidget {
+  const _AnimatedAuthBg();
+
+  @override
+  State<_AnimatedAuthBg> createState() => _AnimatedAuthBgState();
+}
+
+class _AnimatedAuthBgState extends State<_AnimatedAuthBg>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final List<double> _randomScales;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 42),
+    )..repeat();
+
+    // Generate fixed random scales once to keep items consistent during loop
+    final rand = math.Random(42); // Seed for deterministic but varied look
+    _randomScales = List.generate(
+      _kAmbientItems.length,
+      (_) => 0.7 + rand.nextDouble() * 0.5, // scale between 0.7x and 1.2x
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
+
     return Stack(
       children: [
         // Top-left glow
@@ -617,7 +703,7 @@ class _AmbientBg extends StatelessWidget {
           bottom: -size.height * 0.08,
           right: -size.width * 0.12,
           child: Transform.rotate(
-            angle: 0.21, // ~12°
+            angle: 0.21,
             child: Container(
               width: size.width * 0.6,
               height: size.width * 0.6,
@@ -646,150 +732,27 @@ class _AmbientBg extends StatelessWidget {
             ),
           ),
         ),
-      ],
-    );
-  }
-}
-
-// ─── Animated vehicle background (landing only) ───────────────────────────────
-// Each vehicle enters from off-screen along a straight path in any direction,
-// continuously rotates, and loops seamlessly via phase offset.
-
-class _VehicleItem {
-  const _VehicleItem({
-    required this.icon,
-    required this.startX,
-    required this.startY,
-    required this.velX,
-    required this.velY,
-    required this.rotSpeed,
-    required this.phase,
-    required this.iconSize,
-    required this.opacity,
-  });
-  final IconData icon;
-  final double startX;   // normalized entry position (can be < 0 or > 1 = off-screen)
-  final double startY;
-  final double velX;     // total x travel over one cycle (screen fractions)
-  final double velY;     // total y travel over one cycle
-  final double rotSpeed; // full rotations per cycle (negative = counter-clockwise)
-  final double phase;    // 0–1 stagger offset so vehicles enter at different times
-  final double iconSize;
-  final double opacity;
-}
-
-const _kVehicles = [
-  // ── left → right ──
-  _VehicleItem(icon: Icons.directions_car_rounded,  startX: -0.18, startY: 0.12, velX:  1.40, velY:  0.08, rotSpeed:  0.50, phase: 0.00, iconSize: 18, opacity: 0.08),
-  _VehicleItem(icon: Icons.local_taxi,              startX: -0.18, startY: 0.45, velX:  1.35, velY: -0.06, rotSpeed:  0.40, phase: 0.22, iconSize: 17, opacity: 0.08),
-  _VehicleItem(icon: Icons.pedal_bike,              startX: -0.18, startY: 0.72, velX:  1.30, velY:  0.10, rotSpeed:  0.70, phase: 0.55, iconSize: 16, opacity: 0.07),
-  // ── right → left ──
-  _VehicleItem(icon: Icons.two_wheeler,             startX:  1.18, startY: 0.28, velX: -1.38, velY:  0.05, rotSpeed: -0.45, phase: 0.12, iconSize: 15, opacity: 0.07),
-  _VehicleItem(icon: Icons.airport_shuttle_rounded, startX:  1.18, startY: 0.60, velX: -1.32, velY: -0.08, rotSpeed: -0.35, phase: 0.68, iconSize: 16, opacity: 0.06),
-  _VehicleItem(icon: Icons.electric_scooter,        startX:  1.18, startY: 0.85, velX: -1.28, velY:  0.04, rotSpeed: -0.60, phase: 0.38, iconSize: 14, opacity: 0.06),
-  // ── top → bottom ──
-  _VehicleItem(icon: Icons.directions_bus_rounded,  startX:  0.20, startY: -0.18, velX:  0.06, velY:  1.40, rotSpeed:  0.30, phase: 0.05, iconSize: 20, opacity: 0.06),
-  _VehicleItem(icon: Icons.local_shipping_rounded,  startX:  0.65, startY: -0.18, velX: -0.04, velY:  1.35, rotSpeed: -0.25, phase: 0.48, iconSize: 17, opacity: 0.06),
-  // ── bottom → top ──
-  _VehicleItem(icon: Icons.directions_railway,      startX:  0.40, startY:  1.18, velX:  0.08, velY: -1.40, rotSpeed:  0.20, phase: 0.30, iconSize: 18, opacity: 0.06),
-  _VehicleItem(icon: Icons.traffic,                 startX:  0.80, startY:  1.18, velX: -0.05, velY: -1.32, rotSpeed: -0.15, phase: 0.75, iconSize: 15, opacity: 0.05),
-  // ── diagonal: top-left → bottom-right ──
-  _VehicleItem(icon: Icons.local_taxi,              startX: -0.18, startY: -0.12, velX:  1.30, velY:  1.25, rotSpeed:  0.55, phase: 0.18, iconSize: 16, opacity: 0.07),
-  _VehicleItem(icon: Icons.directions_car_rounded,  startX: -0.15, startY:  0.35, velX:  1.25, velY:  0.90, rotSpeed:  0.45, phase: 0.62, iconSize: 15, opacity: 0.06),
-  // ── diagonal: top-right → bottom-left ──
-  _VehicleItem(icon: Icons.two_wheeler,             startX:  1.15, startY: -0.10, velX: -1.28, velY:  1.20, rotSpeed: -0.50, phase: 0.42, iconSize: 14, opacity: 0.06),
-  _VehicleItem(icon: Icons.electric_scooter,        startX:  1.12, startY:  0.20, velX: -1.20, velY:  1.10, rotSpeed: -0.40, phase: 0.85, iconSize: 13, opacity: 0.05),
-  // ── diagonal: bottom-left → top-right ──
-  _VehicleItem(icon: Icons.pedal_bike,              startX: -0.15, startY:  1.15, velX:  1.22, velY: -1.30, rotSpeed:  0.60, phase: 0.33, iconSize: 15, opacity: 0.06),
-  // ── diagonal: bottom-right → top-left ──
-  _VehicleItem(icon: Icons.airport_shuttle_rounded, startX:  1.15, startY:  1.12, velX: -1.25, velY: -1.20, rotSpeed: -0.35, phase: 0.58, iconSize: 16, opacity: 0.06),
-];
-
-class _AnimatedVehiclesBg extends StatefulWidget {
-  const _AnimatedVehiclesBg();
-
-  @override
-  State<_AnimatedVehiclesBg> createState() => _AnimatedVehiclesBgState();
-}
-
-class _AnimatedVehiclesBgState extends State<_AnimatedVehiclesBg>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 38),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final size = MediaQuery.sizeOf(context);
-
-    return Stack(
-      children: [
-        // Static ambient blobs
-        Positioned(
-          top: -size.height * 0.1,
-          left: -size.width * 0.15,
-          width: size.width * 0.7,
-          height: size.width * 0.7,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  cs.primaryContainer.withValues(alpha: 0.18),
-                  cs.primaryContainer.withValues(alpha: 0.0),
-                ],
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: -size.height * 0.08,
-          right: -size.width * 0.12,
-          child: Transform.rotate(
-            angle: 0.21,
-            child: Container(
-              width: size.width * 0.6,
-              height: size.width * 0.6,
-              decoration: BoxDecoration(
-                color: cs.secondaryContainer.withValues(alpha: 0.25),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(120),
-                ),
-              ),
-            ),
-          ),
-        ),
-        // Free-motion vehicles with rotation
+        // Free-motion items with rotation
         AnimatedBuilder(
           animation: _ctrl,
           builder: (context, _) {
             return Stack(
-              children: _kVehicles.map((v) {
+              children: List.generate(_kAmbientItems.length, (i) {
+                final v = _kAmbientItems[i];
+                final scale = _randomScales[i];
                 final progress = (_ctrl.value + v.phase) % 1.0;
                 final px = v.startX + v.velX * progress;
                 final py = v.startY + v.velY * progress;
                 final angle = progress * v.rotSpeed * 2 * math.pi;
+
                 // Fade in/out near the edges of travel (first/last 8% of path)
                 final fade = (progress < 0.08
-                    ? progress / 0.08
-                    : progress > 0.92
-                        ? (1.0 - progress) / 0.08
-                        : 1.0)
+                        ? progress / 0.08
+                        : progress > 0.92
+                            ? (1.0 - progress) / 0.08
+                            : 1.0)
                     .clamp(0.0, 1.0);
+
                 return Positioned(
                   left: size.width * px,
                   top: size.height * py,
@@ -797,11 +760,15 @@ class _AnimatedVehiclesBgState extends State<_AnimatedVehiclesBg>
                     opacity: v.opacity * fade,
                     child: Transform.rotate(
                       angle: angle,
-                      child: Icon(v.icon, size: v.iconSize, color: cs.primary),
+                      child: Icon(
+                        v.icon,
+                        size: v.iconSize * scale,
+                        color: cs.primary,
+                      ),
                     ),
                   ),
                 );
-              }).toList(),
+              }),
             );
           },
         ),
@@ -839,7 +806,7 @@ class _LandingView extends StatelessWidget {
 
     return Stack(
       children: [
-        const _AnimatedVehiclesBg(),
+        const _AnimatedAuthBg(),
 
         SafeArea(
           child: Column(
@@ -1103,7 +1070,7 @@ class _LoginView extends StatelessWidget {
 
     return Stack(
       children: [
-        const _AmbientBg(),
+        const _AnimatedAuthBg(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1327,7 +1294,7 @@ class _SignupView extends StatelessWidget {
 
     return Stack(
       children: [
-        const _AmbientBg(),
+        const _AnimatedAuthBg(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

@@ -56,57 +56,46 @@ void main() async {
 }
 
 Future<void> _appMain() async {
-  final config = ClarityConfig(
-    projectId: "u3uu96m9ip",
-    logLevel: LogLevel.None,
-  );
-
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  if (kIsWeb) {
-    final clarityWeb = ClarityWeb.instance;
-    await clarityWeb.initClarityWeb('u3wxqg5xo0');
-    clarityWeb.setIsCanvasMirrorActive(false);
-  }
+  // ── Round 1: Firebase + DioClient + Hive + Clarity are fully independent.
+  // Run them all in parallel instead of sequentially.
+  final firebaseFuture = kIsWeb
+      ? Firebase.initializeApp(
+          options: const FirebaseOptions(
+            apiKey: String.fromEnvironment('FIREBASE_API_KEY',
+                defaultValue: 'AIzaSyCNHfjgw5mcgg5d7NayRluVTXwHPlpoGWM'),
+            authDomain: String.fromEnvironment('FIREBASE_AUTH_DOMAIN',
+                defaultValue: 'drive-test-a4f94.firebaseapp.com'),
+            projectId: String.fromEnvironment('FIREBASE_PROJECT_ID',
+                defaultValue: 'drive-test-a4f94'),
+            storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET',
+                defaultValue: 'drive-test-a4f94.firebasestorage.app'),
+            messagingSenderId: String.fromEnvironment(
+                'FIREBASE_MESSAGING_SENDER_ID',
+                defaultValue: '640394192831'),
+            appId: String.fromEnvironment('FIREBASE_APP_ID',
+                defaultValue:
+                    '1:640394192831:web:2f7c45b3bae1a15f1a630a'),
+            measurementId: String.fromEnvironment('FIREBASE_MEASUREMENT_ID',
+                defaultValue: 'G-2Y166BG2F3'),
+          ))
+      : Firebase.initializeApp();
 
-  if (kIsWeb) {
-    // For web, use build-time environment variables (passed via --dart-define)
-    const firebaseApiKey = String.fromEnvironment('FIREBASE_API_KEY',
-      defaultValue: "AIzaSyCNHfjgw5mcgg5d7NayRluVTXwHPlpoGWM");
-    const firebaseAuthDomain = String.fromEnvironment('FIREBASE_AUTH_DOMAIN',
-      defaultValue: "drive-test-a4f94.firebaseapp.com");
-    const firebaseProjectId = String.fromEnvironment('FIREBASE_PROJECT_ID',
-      defaultValue: "drive-test-a4f94");
-    const firebaseStorageBucket = String.fromEnvironment('FIREBASE_STORAGE_BUCKET',
-      defaultValue: "drive-test-a4f94.firebasestorage.app");
-    const firebaseMessagingSenderId = String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID',
-      defaultValue: "640394192831");
-    const firebaseAppId = String.fromEnvironment('FIREBASE_APP_ID',
-      defaultValue: "1:640394192831:web:2f7c45b3bae1a15f1a630a");
-    const firebaseMeasurementId = String.fromEnvironment('FIREBASE_MEASUREMENT_ID',
-      defaultValue: "G-2Y166BG2F3");
+  final clarityFuture = kIsWeb
+      ? ClarityWeb.instance
+          .initClarityWeb('u3wxqg5xo0')
+          .then((_) => ClarityWeb.instance.setIsCanvasMirrorActive(false))
+      : Future<void>.value();
 
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: firebaseApiKey,
-        authDomain: firebaseAuthDomain,
-        projectId: firebaseProjectId,
-        storageBucket: firebaseStorageBucket,
-        messagingSenderId: firebaseMessagingSenderId,
-        appId: firebaseAppId,
-        measurementId: firebaseMeasurementId,
-      ),
-    );
-  } else {
-    // For mobile, use the config files (google-services.json / GoogleService-Info.plist)
-    await Firebase.initializeApp();
-  }
+  await Future.wait([
+    firebaseFuture,
+    clarityFuture,
+    DioClient().init(),
+    Hive.initFlutter(),
+  ]);
 
-  await DioClient().init();
-
-  // Hive must always init — runs before any try/catch so web storage works too
-  await Hive.initFlutter();
+  // Hive adapters are synchronous and must follow Hive.initFlutter()
   if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(TestAttemptAdapter());
   if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(QuestionAdapter());
   if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(OptionAdapter());
@@ -123,56 +112,32 @@ Future<void> _appMain() async {
     await notificationProvider.clearAll();
   };
 
+  // ── Round 2: SharedPreferences + dotenv/Stripe are independent of each
+  // other — run them in parallel.
+  late SharedPreferences prefs;
+  await Future.wait([
+    SharedPreferences.getInstance().then((p) => prefs = p),
+    _initEnvAndStripe(),
+  ]);
+
+  // Restore saved locale, falling back to system language
   try {
-    // Load .env.local first (test keys). If it exists, its values are passed as
-    // mergeWith when loading .env — mergeWith lines are appended LAST so they
-    // win over file lines, meaning .env.local values always override .env.
-    // In production .env.local is not bundled, so the catch is hit and we fall
-    // back to plain .env (prod keys).
-    Map<String, String> localOverrides = {};
-    // On web, make web-run already injects all values via --dart-define.
-    // Skip dotenv loading to avoid 404 asset requests in the browser console.
-    if (!kIsWeb) {
-      try {
-        await dotenv.load(fileName: '.env.local');
-        localOverrides = Map<String, String>.from(dotenv.env);
-      } catch (_) {}
-      try {
-        await dotenv.load(fileName: '.env', mergeWith: localOverrides);
-      } catch (e) {
-        debugPrint('Failed to load .env: $e');
-      }
-    }
-
-    // dart-define values (CI / release builds) take final precedence
-    const stripeKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
-    final publishableKey = stripeKey.isNotEmpty
-        ? stripeKey
-        : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
-    Stripe.publishableKey = publishableKey;
-    // flutter_stripe_web requires applySettings() to initialise Stripe.js
-    if (kIsWeb) {
-      await Stripe.instance.applySettings();
-    }
-
-    await Upgrader.clearSavedSettings();
-
-    // Restore saved locale, falling back to system language
-    final prefs = await SharedPreferences.getInstance();
     final savedLang = prefs.getString('language');
     if (savedLang != null) {
       LocaleSettings.setLocale(savedLang == 'sv' ? AppLocale.sv : AppLocale.en);
     } else {
-      final systemLang = WidgetsBinding.instance.platformDispatcher.locale.languageCode.toLowerCase();
+      final systemLang = WidgetsBinding.instance.platformDispatcher.locale
+          .languageCode
+          .toLowerCase();
       LocaleSettings.setLocale(systemLang == 'sv' ? AppLocale.sv : AppLocale.en);
     }
   } catch (e) {
-    debugPrint('Initialization error: $e');
+    debugPrint('Locale init error: $e');
   }
 
   runApp(
     ClarityWidget(
-      clarityConfig: config,
+      clarityConfig: ClarityConfig(projectId: 'u3uu96m9ip', logLevel: LogLevel.None),
       app: TranslationProvider(
         child: MultiProvider(
           providers: [
@@ -187,6 +152,34 @@ Future<void> _appMain() async {
       ),
     ),
   );
+}
+
+// Loads .env files then configures Stripe. Sequential internally (local
+// overrides must be read before base .env), but runs in parallel with
+// SharedPreferences in _appMain round 2.
+Future<void> _initEnvAndStripe() async {
+  try {
+    // On web, --dart-define injects all values; skip dotenv to avoid 404s.
+    if (!kIsWeb) {
+      Map<String, String> localOverrides = {};
+      try {
+        await dotenv.load(fileName: '.env.local');
+        localOverrides = Map<String, String>.from(dotenv.env);
+      } catch (_) {}
+      try {
+        await dotenv.load(fileName: '.env', mergeWith: localOverrides);
+      } catch (e) {
+        debugPrint('Failed to load .env: $e');
+      }
+    }
+    const stripeKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
+    Stripe.publishableKey = stripeKey.isNotEmpty
+        ? stripeKey
+        : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
+    if (kIsWeb) await Stripe.instance.applySettings();
+  } catch (e) {
+    debugPrint('Env/Stripe init error: $e');
+  }
 }
 
 // ── Nordic Kinetic Design System – dark theme ──────────────────────────────
