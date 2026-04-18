@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/core/services/user_cache_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'dio_client.dart';
 
 class ApiService {
@@ -70,12 +72,24 @@ class ApiService {
     try {
       final response = await _dio.get('api/user/self/');
       final data = response.data;
-      // Seed BcdCache from the embedded dashboard tree so subsequent
-      // BcdCache.ensureLoaded() calls skip all individual category/test fetches.
       if (data is Map<String, dynamic>) {
+        // Seed BcdCache from the embedded dashboard tree so subsequent
+        // BcdCache.ensureLoaded() calls skip all individual category/test fetches.
         final dashboard = data['bcd_dashboard'];
         if (dashboard is List) {
           BcdCache.instance.seedFromSelfResponse(dashboard);
+        }
+        // Persist user fields so the profile screen can read them immediately.
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final existing = prefs.getString(AppStorage.kUserJson);
+          final Map<String, dynamic> merged =
+              existing != null ? Map<String, dynamic>.from(jsonDecode(existing) as Map) : {};
+          if (data['username'] != null) merged['username'] = data['username'];
+          if (data['email'] != null) merged['email'] = data['email'];
+          await prefs.setString(AppStorage.kUserJson, jsonEncode(merged));
+        } catch (e) {
+          debugPrint('[ApiService] failed to cache user fields: $e');
         }
       }
       return data;
