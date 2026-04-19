@@ -27,11 +27,17 @@ class DashboardHelpers {
       // For 2-layer: parentId is null → match against exam.id (top-level bcd_id)
       // For 3-layer: parentId is the subcategory bcd_id
       final expectedParentBcdId = batchNode.parentId ?? exam.id;
-      return all.where((a) =>
-        a.isBcd &&
-        a.bcdCategoryId?.toString() == expectedParentBcdId &&
-        a.categoryId == batchNode.id,
-      ).toList();
+      return all.where((a) {
+        // Modern attempts: bcdCategoryId is set — match by parent + (id or name)
+        if (a.isBcd) {
+          if (a.bcdCategoryId?.toString() != expectedParentBcdId) return false;
+          return a.categoryId == batchNode.id ||
+              (a.categoryId == null && a.categoryName == batchNode.name);
+        }
+        // Legacy attempts (bcd_category_id: null → isBcd = false): match by name only.
+        // These are historically-synced attempts that lack bcdCategoryId entirely.
+        return a.categoryName != null && a.categoryName == batchNode.name;
+      }).toList();
     } else {
       return all.where((a) =>
         a.isCompleted &&
@@ -126,13 +132,41 @@ class DashboardHelpers {
     }
 
     final streak = computeStreakSummary(allAttempts, exam: exam);
+    final examAttempts = _examLevelAttemptCount(allAttempts, exam);
 
     return ExamDashboardStats(
       exam: exam,
       categoryStats: categoryStats,
       allBatchStats: allBatchStats,
       streak: streak,
+      examAttempts: examAttempts,
     );
+  }
+
+  /// Counts all attempts that belong to [exam] using broad bcdCategoryId matching.
+  /// Unlike [attemptsForBatch], this works even when [TestAttempt.categoryId] is
+  /// null — which is the case for historically-synced attempts from the backend.
+  static int _examLevelAttemptCount(
+    List<TestAttempt> all,
+    SubscribedExam exam,
+  ) {
+    if (exam.isBcd) {
+      final validParentIds = {
+        exam.id,
+        ...exam.allCategories.map((c) => c.id),
+      };
+      final batchNames = exam.allBatches.map((b) => b.name).toSet();
+      return all
+          .where((a) =>
+              (a.isBcd &&
+                  validParentIds.contains(a.bcdCategoryId?.toString())) ||
+              (!a.isBcd &&
+                  a.categoryName != null &&
+                  batchNames.contains(a.categoryName)))
+          .length;
+    } else {
+      return all.where((a) => a.isCompleted && a.licenceId == exam.id).length;
+    }
   }
 
   // ─── Overall exam progress (for overview card) ────────────────────────────
@@ -160,13 +194,16 @@ class DashboardHelpers {
     final relevant = allAttempts.where((a) {
       if (exam == null) return true;
       if (exam.isBcd) {
-        if (!a.isBcd) return false;
-        // Any attempt whose direct parent belongs to this exam's tree
         final validParentIds = {
           exam.id,
           ...exam.allCategories.map((c) => c.id),
         };
-        return validParentIds.contains(a.bcdCategoryId?.toString());
+        if (a.isBcd) {
+          return validParentIds.contains(a.bcdCategoryId?.toString());
+        }
+        // Legacy attempts: match by batch name
+        final batchNames = exam.allBatches.map((b) => b.name).toSet();
+        return a.categoryName != null && batchNames.contains(a.categoryName);
       } else {
         return a.isCompleted && a.licenceId == exam.id;
       }
@@ -222,6 +259,33 @@ class DashboardHelpers {
       weeklyGoal: 5,
       thisWeekActiveDayCount: thisWeekActive.length,
     );
+  }
+
+  // ─── Paused attempt lookup ─────────────────────────────────────────────────
+
+  /// Returns the most recent paused attempt that belongs to [exam], or null.
+  static TestAttempt? latestPausedAttemptForExam(
+    List<TestAttempt> all,
+    SubscribedExam exam,
+  ) {
+    final batchNames = exam.allBatches.map((b) => b.name).toSet();
+    final validParentIds = {
+      exam.id,
+      ...exam.allCategories.map((c) => c.id),
+    };
+
+    final paused = all.where((a) {
+      if (!a.isPaused) return false;
+      if (exam.isBcd) {
+        if (a.isBcd) return validParentIds.contains(a.bcdCategoryId?.toString());
+        return a.categoryName != null && batchNames.contains(a.categoryName);
+      }
+      return a.licenceId == exam.id;
+    }).toList();
+
+    if (paused.isEmpty) return null;
+    paused.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    return paused.first;
   }
 
   // ─── Formatting ───────────────────────────────────────────────────────────

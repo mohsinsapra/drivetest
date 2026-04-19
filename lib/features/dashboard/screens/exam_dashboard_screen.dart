@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_test_screen.dart';
 import 'package:taxi_exam_app/features/notifications/notifications_screen.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
+import '../helpers/dashboard_helpers.dart';
 import '../models/dashboard_stats.dart';
 import '../models/exam_node.dart';
 import '../models/subscribed_exam.dart';
@@ -274,6 +278,11 @@ class _ExamCarouselSection extends StatelessWidget {
                       exam: exam,
                       progress: progress,
                       isActive: isSelected,
+                      onArrowTap: () => _handleExamArrowTap(
+                        context,
+                        exam,
+                        provider,
+                      ),
                     ),
                   ),
                 );
@@ -290,10 +299,12 @@ class _ExamCard extends StatelessWidget {
     required this.exam,
     required this.progress,
     required this.isActive,
+    this.onArrowTap,
   });
   final SubscribedExam exam;
   final double progress; // 0–100
   final bool isActive;
+  final VoidCallback? onArrowTap;
 
   @override
   Widget build(BuildContext context) {
@@ -381,17 +392,21 @@ class _ExamCard extends StatelessWidget {
                       progressColor: Colors.white,
                       textColor: Colors.white,
                     ),
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Colors.white,
-                        size: 18,
+                    GestureDetector(
+                      onTap: onArrowTap,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                       ),
                     ),
                   ],
@@ -458,10 +473,17 @@ class _ExamCard extends StatelessWidget {
                 progressColor: cs.primary,
                 textColor: cs.onSurface,
               ),
-              Icon(
-                Icons.arrow_forward_rounded,
-                color: cs.onSurface.withValues(alpha: 0.3),
-                size: 20,
+              GestureDetector(
+                onTap: onArrowTap,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    color: cs.onSurface.withValues(alpha: 0.3),
+                    size: 20,
+                  ),
+                ),
               ),
             ],
           ),
@@ -770,36 +792,24 @@ class _FocusCategoriesSectionState extends State<_FocusCategoriesSection> {
     // 2-layer exam: show batches directly
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Column(
-            children: stats.allBatchStats
-                .asMap()
-                .entries
-                .map((e) => _BatchRow(
-                      batch: e.value,
-                      isLast: e.key == stats.allBatchStats.length - 1,
-                      onTap: stats.exam.isBcd
-                          ? () => _launchBatch(
-                              context, stats.exam, e.value.node, null)
-                          : null,
-                    ))
-                .toList(),
-          ),
-        ),
+      child: Column(
+        children: stats.allBatchStats
+            .asMap()
+            .entries
+            .map((e) => Padding(
+                  padding: EdgeInsets.only(
+                    bottom: e.key < stats.allBatchStats.length - 1 ? 8 : 0,
+                  ),
+                  child: _BatchRow(
+                    batch: e.value,
+                    exam: stats.exam,
+                    onTap: stats.exam.isBcd
+                        ? () => _launchBatch(
+                            context, stats.exam, e.value.node, null)
+                        : null,
+                  ),
+                ))
+            .toList(),
       ),
     );
   }
@@ -906,28 +916,33 @@ class _CategoryListItem extends StatelessWidget {
               child: isExpanded
                   ? Container(
                       decoration: BoxDecoration(
-                        color: cs.surface,
                         border: Border(
                           top: BorderSide(
                             color: cs.onSurface.withValues(alpha: 0.07),
                           ),
                         ),
                       ),
+                      padding: const EdgeInsets.all(10),
                       child: Column(
                         children: cat.batchStats
                             .asMap()
                             .entries
-                            .map((e) => _BatchRow(
-                                  batch: e.value,
-                                  isLast: e.key == cat.batchStats.length - 1,
-                                  onTap: stats.exam.isBcd
-                                      ? () => _launchBatch(
-                                            context,
-                                            stats.exam,
-                                            e.value.node,
-                                            cat.node.name,
-                                          )
-                                      : null,
+                            .map((e) => Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: e.key < cat.batchStats.length - 1 ? 8 : 0,
+                                  ),
+                                  child: _BatchRow(
+                                    batch: e.value,
+                                    exam: stats.exam,
+                                    onTap: stats.exam.isBcd
+                                        ? () => _launchBatch(
+                                              context,
+                                              stats.exam,
+                                              e.value.node,
+                                              cat.node.name,
+                                            )
+                                        : null,
+                                  ),
                                 ))
                             .toList(),
                       ),
@@ -1139,20 +1154,28 @@ class _StreakStatLabel extends StatelessWidget {
 // Batch row
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _BatchRow extends StatelessWidget {
+class _BatchRow extends StatefulWidget {
   const _BatchRow({
     required this.batch,
+    required this.exam,
     this.onTap,
-    this.isLast = false,
   });
   final BatchStats batch;
+  final SubscribedExam exam;
   final VoidCallback? onTap;
-  final bool isLast;
+
+  @override
+  State<_BatchRow> createState() => _BatchRowState();
+}
+
+class _BatchRowState extends State<_BatchRow> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final batch = widget.batch;
 
     Color dotColor;
     if (batch.isCompleted) {
@@ -1165,66 +1188,378 @@ class _BatchRow extends StatelessWidget {
       dotColor = cs.primary;
     }
 
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-            child: Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: dotColor,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    batch.node.name,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w500),
-                  ),
-                ),
-                if (batch.isUntouched)
-                  Text(
-                    Translations.of(context).dash_not_started,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: cs.onSurface.withValues(alpha: 0.35),
+    final allAttempts = context.watch<DashboardProvider>().attempts;
+    final batchAttempts = DashboardHelpers.attemptsForBatch(
+      allAttempts,
+      widget.exam,
+      batch.node,
+    )..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+    final hasPaused = batchAttempts.any((a) => a.isPaused);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      decoration: BoxDecoration(
+        color: _expanded ? cs.surfaceContainerLow : theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _expanded
+              ? cs.primary.withValues(alpha: 0.15)
+              : cs.onSurface.withValues(alpha: 0.06),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          children: [
+            InkWell(
+              onTap: () => setState(() => _expanded = !_expanded),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: dotColor,
+                      ),
                     ),
-                  )
-                else ...[
-                  Text(
-                    '${batch.averageScore.toStringAsFixed(0)}%',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: dotColor,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        batch.node.name,
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w500),
+                      ),
                     ),
-                  ),
-                  if (onTap != null) ...[
-                    const SizedBox(width: 2),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 16,
-                      color: cs.onSurface.withValues(alpha: 0.3),
+                    if (hasPaused)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Icon(
+                          Icons.pause_circle_outline_rounded,
+                          size: 14,
+                          color: Colors.orange,
+                        ),
+                      ),
+                    if (batch.isUntouched)
+                      Text(
+                        Translations.of(context).dash_not_started,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: cs.onSurface.withValues(alpha: 0.35),
+                        ),
+                      )
+                    else
+                      Text(
+                        '${batch.averageScore.toStringAsFixed(0)}%',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: dotColor,
+                        ),
+                      ),
+                    const SizedBox(width: 4),
+                    AnimatedRotation(
+                      turns: _expanded ? 0.25 : 0.0,
+                      duration: const Duration(milliseconds: 220),
+                      child: Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: cs.onSurface.withValues(alpha: 0.3),
+                      ),
                     ),
                   ],
-                ],
+                ),
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              child: _expanded
+                  ? Container(
+                      decoration: BoxDecoration(
+                        color: cs.surface,
+                        border: Border(
+                          top: BorderSide(
+                            color: cs.onSurface.withValues(alpha: 0.07),
+                          ),
+                        ),
+                      ),
+                      child: _BatchAttemptHistory(
+                        batchAttempts: batchAttempts,
+                        exam: widget.exam,
+                        batch: batch,
+                        onNewTest: widget.onTap,
+                        onResume: (attempt) =>
+                            _resumeAttempt(context, attempt, widget.exam, batch),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Batch attempt history (expandable panel inside _BatchRow)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _BatchAttemptHistory extends StatelessWidget {
+  const _BatchAttemptHistory({
+    required this.batchAttempts,
+    required this.exam,
+    required this.batch,
+    required this.onNewTest,
+    required this.onResume,
+  });
+  final List<TestAttempt> batchAttempts;
+  final SubscribedExam exam;
+  final BatchStats batch;
+  final VoidCallback? onNewTest;
+  final void Function(TestAttempt) onResume;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final fmt = DateFormat('d MMM y');
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.07)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Action buttons row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+            child: Row(
+              children: [
+                if (onNewTest != null)
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: onNewTest,
+                      icon: const Icon(Icons.add_rounded, size: 16),
+                      label: const Text('New Test'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        textStyle: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-        ),
-        if (!isLast)
-          Divider(
-            height: 1,
-            indent: 36,
-            color: cs.onSurface.withValues(alpha: 0.05),
-          ),
-      ],
+
+          if (batchAttempts.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+              child: Text(
+                'No attempts yet',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: cs.onSurface.withValues(alpha: 0.4),
+                ),
+              ),
+            )
+          else ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+              child: Text(
+                'Previous attempts',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: cs.onSurface.withValues(alpha: 0.5),
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            ...batchAttempts.map((a) {
+              final isPaused = a.isPaused;
+              final scoreColor = a.hasPassed ? Colors.green : cs.error;
+              final dur = a.durationSeconds ?? 0;
+              final durLabel = dur > 0
+                  ? DashboardHelpers.formatDuration(dur)
+                  : '—';
+
+              return Column(
+                children: [
+                  InkWell(
+                    onTap: isPaused ? () => onResume(a) : null,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isPaused
+                                ? Icons.pause_circle_filled_rounded
+                                : (a.hasPassed
+                                    ? Icons.check_circle_rounded
+                                    : Icons.cancel_rounded),
+                            size: 18,
+                            color: isPaused
+                                ? Colors.orange
+                                : (a.hasPassed ? Colors.green : cs.error),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  fmt.format(a.dateTime),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  durLabel,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: cs.onSurface.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (isPaused)
+                            Text(
+                              'Resume',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            )
+                          else
+                            Text(
+                              '${a.score.toStringAsFixed(0)}%',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: scoreColor,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (a != batchAttempts.last)
+                    Divider(
+                      height: 1,
+                      indent: 38,
+                      color: cs.onSurface.withValues(alpha: 0.05),
+                    ),
+                ],
+              );
+            }),
+            const SizedBox(height: 4),
+          ],
+        ],
+      ),
     );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Resume attempt navigation helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+void _resumeAttempt(
+  BuildContext context,
+  TestAttempt attempt,
+  SubscribedExam exam,
+  BatchStats batch,
+) {
+  if (attempt.questions.isNotEmpty) {
+    Navigator.push(
+      context,
+      AppPageRoute(
+        builder: (_) => Testscreen(
+          questions: attempt.questions,
+          instantMarking: true,
+          licenceId: attempt.licenceId ?? '',
+          categoryId: attempt.categoryId ?? '',
+          licenceName: attempt.licenceName ?? '',
+          categoryName: attempt.categoryName ?? '',
+          initialQuestionIndex: attempt.currentQuestionIndex,
+          userSelections: attempt.userSelections,
+          resumeTestId: attempt.testId,
+          bcdCategoryId: attempt.bcdCategoryId,
+        ),
+      ),
+    ).then((_) {
+      if (context.mounted) context.read<DashboardProvider>().refresh();
+    });
+  } else {
+    // No questions stored (synced from backend) — start fresh for this batch
+    _launchBatch(context, exam, batch.node, null);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Exam card arrow tap handler
+// ─────────────────────────────────────────────────────────────────────────────
+
+void _handleExamArrowTap(
+  BuildContext context,
+  SubscribedExam exam,
+  DashboardProvider provider,
+) {
+  final paused = DashboardHelpers.latestPausedAttemptForExam(
+    provider.attempts,
+    exam,
+  );
+
+  if (paused != null) {
+    // Resume the most recent paused attempt
+    if (paused.questions.isNotEmpty) {
+      Navigator.push(
+        context,
+        AppPageRoute(
+          builder: (_) => Testscreen(
+            questions: paused.questions,
+            instantMarking: true,
+            licenceId: paused.licenceId ?? '',
+            categoryId: paused.categoryId ?? '',
+            licenceName: paused.licenceName ?? '',
+            categoryName: paused.categoryName ?? '',
+            initialQuestionIndex: paused.currentQuestionIndex,
+            userSelections: paused.userSelections,
+            resumeTestId: paused.testId,
+            bcdCategoryId: paused.bcdCategoryId,
+          ),
+        ),
+      ).then((_) {
+        if (context.mounted) provider.refresh();
+      });
+    } else {
+      // No questions saved — find the batch and start fresh
+      final stats = provider.selectedStats;
+      final continueNode = stats?.continueNode;
+      if (continueNode != null) {
+        _launchBatch(context, exam, continueNode.node, null);
+      }
+    }
+    return;
+  }
+
+  // No paused attempt — launch the continue node
+  provider.selectExam(exam);
+  final stats = provider.selectedStats;
+  final continueNode = stats?.continueNode;
+  if (continueNode != null) {
+    _launchBatch(context, exam, continueNode.node, null);
   }
 }
 

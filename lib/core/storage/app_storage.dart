@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
+import 'package:taxi_exam_app/core/services/home_data_cache.dart';
 import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/features/dashboard/models/subscribed_exam.dart';
 
@@ -88,6 +89,7 @@ class AppStorage {
     // 3. In-memory service caches
     BcdCache.instance.invalidate();
     SavedQuestionsService.clearMemoryCache();
+    HomeDataCache.invalidate();
   }
 
   // ── Internal helpers ────────────────────────────────────────────────────────

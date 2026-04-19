@@ -142,12 +142,17 @@ class ExamDashboardStats {
 
   final StreakSummary streak;
 
+  /// Exam-level attempt count computed from bcdCategoryId matching — accurate
+  /// even for historically-synced attempts where categoryId may be null.
+  final int _examAttempts;
+
   const ExamDashboardStats({
     required this.exam,
     required this.categoryStats,
     required this.allBatchStats,
     required this.streak,
-  });
+    int examAttempts = 0,
+  }) : _examAttempts = examAttempts;
 
   double get overallProgressPercent {
     final batches = allBatchStats;
@@ -156,8 +161,13 @@ class ExamDashboardStats {
     return completed / batches.length * 100;
   }
 
-  int get totalAttempts =>
-      allBatchStats.fold(0, (sum, b) => sum + b.attempts);
+  /// Total attempts for this exam. Uses the exam-level count (by bcdCategoryId)
+  /// when per-batch matching yields 0 — this handles historically-synced attempts
+  /// that have a null categoryId from the backend.
+  int get totalAttempts {
+    final batchSum = allBatchStats.fold(0, (sum, b) => sum + b.attempts);
+    return batchSum > 0 ? batchSum : _examAttempts;
+  }
 
   int get completedBatchCount =>
       allBatchStats.where((b) => b.isCompleted).length;

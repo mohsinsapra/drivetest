@@ -499,7 +499,8 @@ class ApiService {
         status: data['status'] as String? ?? 'completed',
         currentQuestionIndex: data['current_question_index'] as int? ?? 0,
         licenceId: data['licence_id'] as String?,
-        categoryId: data['category_id'] as String?,
+        categoryId: data['category_id'] as String? ??
+            data['bcd_test_id']?.toString(),
         durationSeconds: data['duration_seconds'] as int?,
         bcdCategoryId: (data['bcd_category_id'] as num?)?.toInt() ??
             int.tryParse((data['bcd_category_id'] ?? '').toString()),

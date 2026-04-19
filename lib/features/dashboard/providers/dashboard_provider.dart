@@ -52,6 +52,10 @@ class DashboardProvider extends ChangeNotifier {
   Map<String, double> _overviewProgress = {};
   Map<String, double> get overviewProgress => _overviewProgress;
 
+  /// All loaded test attempts — used by UI for per-batch history and resume.
+  List<TestAttempt> _attempts = [];
+  List<TestAttempt> get attempts => _attempts;
+
   /// True while background API sync is running (after initial load).
   bool _syncing = false;
   bool get syncing => _syncing;
@@ -92,6 +96,7 @@ class DashboardProvider extends ChangeNotifier {
     _attemptsSub?.cancel();        // drop the old box subscription
     _attemptsSub = null;
     _exams = [];
+    _attempts = [];
     _selectedExam = null;
     _selectedStats = null;
     _overviewProgress = {};
@@ -120,6 +125,7 @@ class DashboardProvider extends ChangeNotifier {
   /// Call after saving a [TestAttempt] so dashboard stats stay current.
   void refresh() {
     _loadAttempts().then((attempts) {
+      _attempts = attempts;
       _buildOverviewProgress(attempts);
       if (_selectedExam != null) {
         _selectedStats =
@@ -156,6 +162,7 @@ class DashboardProvider extends ChangeNotifier {
     _attemptsSub?.cancel();
     _attemptsSub = null;
     _exams = [];
+    _attempts = [];
     _selectedExam = null;
     _selectedStats = null;
     _overviewProgress = {};
@@ -230,7 +237,9 @@ class DashboardProvider extends ChangeNotifier {
 
   Future<void> _applyExams(List<SubscribedExam> exams) async {
     _exams = exams;
+    await _syncAttemptsIfEmpty();
     final attempts = await _loadAttempts();
+    _attempts = attempts;
     _buildOverviewProgress(attempts);
 
     // Preserve selection if the same exam still exists; otherwise pick first
@@ -239,6 +248,26 @@ class DashboardProvider extends ChangeNotifier {
         ?? (exams.isNotEmpty ? exams.first : null);
 
     if (target != null) _selectExam(target, attempts);
+  }
+
+  /// Fetches test attempts from the backend and stores them in Hive when the
+  /// box is empty (e.g. after logout clears the cache). Called once per
+  /// [_applyExams] so the dashboard always has historical data on first load.
+  Future<void> _syncAttemptsIfEmpty() async {
+    try {
+      final box = await AppStorage.testAttemptsBox();
+      if (box.isNotEmpty) return;
+      final apiService = ApiService();
+      final remoteList = await apiService.fetchTestAttempts();
+      for (final data in remoteList) {
+        final id = data['attempt_id'] as String? ?? '';
+        if (id.isEmpty || box.containsKey(id)) continue;
+        final attempt = apiService.testAttemptFromJson(data);
+        if (attempt != null) await box.put(id, attempt);
+      }
+    } catch (e) {
+      debugPrint('[DashboardProvider] _syncAttemptsIfEmpty failed: $e');
+    }
   }
 
   /// Opens the testAttempts box if needed — works on all platforms including
