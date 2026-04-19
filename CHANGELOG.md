@@ -13,6 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+114] - 2026-04-19
+
+### Added
+-
+
+### Changed
 - `_BatchRow` refactored into a self-contained expandable card (matching `_CategoryListItem` style) with `AnimatedContainer`, `ClipRRect`, `AnimatedSize`, and `AnimatedRotation` chevron — attempts now expand visually inside their own batch card
 - Batch rows in category list and 2-layer exam view now rendered as individual padded cards instead of a shared grouped container
 - Removed `isLast`/divider logic from `_BatchRow` in favour of gap-based spacing between cards
@@ -20,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
+---
 ---
 
 ## [1.0.3+113] - 2026-04-18
