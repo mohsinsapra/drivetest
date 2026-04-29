@@ -1334,13 +1334,8 @@ class _BatchAttemptHistory extends StatelessWidget {
     final cs = theme.colorScheme;
     final fmt = DateFormat('d MMM y');
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cs.onSurface.withValues(alpha: 0.07)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1386,83 +1381,86 @@ class _BatchAttemptHistory extends StatelessWidget {
                 ),
               ),
             ),
-            ...batchAttempts.map((a) {
-              final isPaused = a.isPaused;
-              final scoreColor = a.hasPassed ? Colors.green : cs.error;
-              final dur = a.durationSeconds ?? 0;
-              final durLabel = dur > 0
-                  ? DashboardHelpers.formatDuration(dur)
-                  : '—';
+            ...() {
+              final shown = batchAttempts.take(3).toList();
+              return shown.map((a) {
+                final isPaused = a.isPaused;
+                final scoreColor = a.hasPassed ? Colors.green : cs.error;
+                final dur = a.durationSeconds ?? 0;
+                final durLabel = dur > 0
+                    ? DashboardHelpers.formatDuration(dur)
+                    : '—';
 
-              return Column(
-                children: [
-                  InkWell(
-                    onTap: isPaused ? () => onResume(a) : null,
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isPaused
-                                ? Icons.pause_circle_filled_rounded
-                                : (a.hasPassed
-                                    ? Icons.check_circle_rounded
-                                    : Icons.cancel_rounded),
-                            size: 18,
-                            color: isPaused
-                                ? Colors.orange
-                                : (a.hasPassed ? Colors.green : cs.error),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  fmt.format(a.dateTime),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                Text(
-                                  durLabel,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: cs.onSurface.withValues(alpha: 0.5),
-                                  ),
-                                ),
-                              ],
+                return Column(
+                  children: [
+                    InkWell(
+                      onTap: isPaused ? () => onResume(a) : null,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isPaused
+                                  ? Icons.pause_circle_filled_rounded
+                                  : (a.hasPassed
+                                      ? Icons.check_circle_rounded
+                                      : Icons.cancel_rounded),
+                              size: 18,
+                              color: isPaused
+                                  ? Colors.orange
+                                  : (a.hasPassed ? Colors.green : cs.error),
                             ),
-                          ),
-                          if (isPaused)
-                            Text(
-                              'Resume',
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: Colors.orange,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            )
-                          else
-                            Text(
-                              '${a.score.toStringAsFixed(0)}%',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: scoreColor,
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    fmt.format(a.dateTime),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    durLabel,
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: cs.onSurface.withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                        ],
+                            if (isPaused)
+                              Text(
+                                'Resume',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              )
+                            else
+                              Text(
+                                '${a.score.toStringAsFixed(0)}%',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: scoreColor,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  if (a != batchAttempts.last)
-                    Divider(
-                      height: 1,
-                      indent: 38,
-                      color: cs.onSurface.withValues(alpha: 0.05),
-                    ),
-                ],
-              );
-            }),
+                    if (a != shown.last)
+                      Divider(
+                        height: 1,
+                        indent: 38,
+                        color: cs.onSurface.withValues(alpha: 0.05),
+                      ),
+                  ],
+                );
+              });
+            }(),
             const SizedBox(height: 4),
           ],
         ],
