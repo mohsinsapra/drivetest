@@ -10,13 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Tutorial to guide users through the translation process (select language, peek at original text, navigate between questions)
+- New localization strings for tutorial steps in English and Swedish
+- New launcher icon foreground assets in multiple resolutions for adaptive icons
 
 ### Changed
--
+- Batch attempt history panel now shows at most 3 most recent attempts and removes the inner bordered container for a cleaner layout
+- Updated launcher icon configuration to use the new foreground asset for adaptive icons
+- Refactored screens to use `TestscreenWrapper` for consistency in navigation
 
 ### Fixed
--
+- Duplicate notifications prevented within a short time frame
 
 ---
 
