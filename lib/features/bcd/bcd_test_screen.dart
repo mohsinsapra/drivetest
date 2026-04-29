@@ -1,20 +1,12 @@
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
-import 'package:taxi_exam_app/core/models/option.dart';
-import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/bcd/providers/bcd_provider.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
-import 'bcd_text_utils.dart';
-
-final _api = ApiService();
-
-/// Thin loader: fetches BCD questions, converts to [Question]/[Option],
-/// then replaces itself with the standard [Testscreen].
+/// Thin loader: fetches BCD questions via [BcdProvider], then replaces
+/// itself with the standard [Testscreen].
 class BCDTestScreen extends StatefulWidget {
   final int testId;
   final String testName;
@@ -38,38 +30,42 @@ class BCDTestScreen extends StatefulWidget {
 }
 
 class _BCDTestScreenState extends State<BCDTestScreen> {
-  final _api = ApiService();
+  final _provider = BcdProvider();
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _provider.addListener(_onStateChange);
+    _provider.loadTestQuestions(widget.testId);
   }
 
-  Future<void> _load() async {
-    try {
-      final raw = await _api.fetchBCDTestQuestions(widget.testId);
-      final questions = raw.map(_toQuestion).toList();
-      final prefs = await SharedPreferences.getInstance();
-      final shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
-      if (shuffleOnDevice) {
-        questions.shuffle(Random());
-      }
+  @override
+  void dispose() {
+    _provider.removeListener(_onStateChange);
+    super.dispose();
+  }
 
-      if (!mounted) return;
-
-      if (questions.isEmpty) {
+  void _onStateChange() {
+    if (!mounted) return;
+    if (_provider.testQuestionsError != null) {
+      showAppSnackBar(
+        Translations.of(context).bcd_failed_test_questions,
+        type: SnackBarType.error,
+      );
+      Navigator.pop(context);
+      return;
+    }
+    if (!_provider.testQuestionsLoading) {
+      if (_provider.testQuestions.isEmpty) {
         showAppSnackBar(Translations.of(context).bcd_no_questions);
         Navigator.pop(context);
         return;
       }
-
-      // Replace this loader screen with Testscreen
       Navigator.pushReplacement(
         context,
         AppPageRoute(
           builder: (_) => Testscreen(
-            questions: questions,
+            questions: _provider.testQuestions,
             instantMarking: true,
             licenceId: '',
             categoryId: widget.testId.toString(),
@@ -83,10 +79,6 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
           ),
         ),
       );
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(Translations.of(context).bcd_failed_test_questions, type: SnackBarType.error);
-      Navigator.pop(context);
     }
   }
 
@@ -97,42 +89,4 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
       body: const Center(child: CircularProgressIndicator()),
     );
   }
-}
-
-/// Convert a single BCD question JSON map to a [Question].
-Question _toQuestion(dynamic raw) {
-  final q = raw as Map<String, dynamic>;
-  final answers = (q['bcd_answers'] as List<dynamic>?) ?? [];
-
-  final options = answers.map((a) {
-    final ans = a as Map<String, dynamic>;
-    return Option(
-      optionLabel: ans['label']?.toString() ?? '',
-      text: cleanBcdText(ans['content']?.toString() ?? ''),
-      imageUrl: '',
-    );
-  }).toList();
-
-  // Build full URL for question image if present (legacy single image)
-  final rawImagePath = q['image_url']?.toString() ?? '';
-  final imageUrl =
-      rawImagePath.isNotEmpty ? _api.bcdMediaUrl(rawImagePath) : '';
-
-  // Build full URLs for all images (new multi-image support)
-  final rawImages = (q['images'] as List<dynamic>?) ?? [];
-  final images = rawImages
-      .map((e) => e.toString())
-      .where((e) => e.isNotEmpty)
-      .map((path) => _api.bcdMediaUrl(path))
-      .toList();
-
-  return Question(
-    questionId: q['bcd_id']?.toString() ?? '',
-    text: cleanBcdText(q['content']?.toString() ?? ''),
-    imageUrl: imageUrl,
-    images: images,
-    correctAnswer: q['correct_answer']?.toString() ?? '',
-    answerExplanation: cleanBcdText(q['explanation']?.toString() ?? ''),
-    options: options,
-  );
 }

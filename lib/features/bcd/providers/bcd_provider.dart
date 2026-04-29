@@ -1,0 +1,106 @@
+import 'dart:math';
+
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/models/option.dart';
+import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_text_utils.dart';
+
+class BcdProvider extends ChangeNotifier {
+  static final BcdProvider _instance = BcdProvider._();
+  factory BcdProvider() => _instance;
+  BcdProvider._();
+
+  final _api = ApiService();
+
+  // ── Traffic signs ─────────────────────────────────────────────────────────
+
+  List<dynamic> signs = [];
+  bool signsLoading = false;
+
+  // ── Test questions ────────────────────────────────────────────────────────
+
+  List<Question> testQuestions = [];
+  bool testQuestionsLoading = false;
+  String? testQuestionsError;
+
+  // ── Public API ────────────────────────────────────────────────────────────
+
+  String mediaUrl(String path) => _api.bcdMediaUrl(path);
+
+  Future<void> loadTrafficSigns() async {
+    signsLoading = true;
+    notifyListeners();
+    try {
+      signs = await _api.fetchBCDTrafficSigns();
+    } finally {
+      signsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> refreshTrafficSignsSilently() async {
+    try {
+      signs = await _api.fetchBCDTrafficSigns();
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> loadTestQuestions(int testId) async {
+    testQuestionsLoading = true;
+    testQuestionsError = null;
+    testQuestions = [];
+    notifyListeners();
+    try {
+      final raw = await _api.fetchBCDTestQuestions(testId);
+      final prefs = await SharedPreferences.getInstance();
+      final shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
+      final questions = (raw as List).map(_toQuestion).toList();
+      if (shuffleOnDevice) questions.shuffle(Random());
+      testQuestions = questions;
+    } catch (e) {
+      testQuestionsError = e.toString();
+    } finally {
+      testQuestionsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ── Private helpers ───────────────────────────────────────────────────────
+
+  Question _toQuestion(dynamic raw) {
+    final q = raw as Map<String, dynamic>;
+    final answers = (q['bcd_answers'] as List<dynamic>?) ?? [];
+
+    final options = answers.map((a) {
+      final ans = a as Map<String, dynamic>;
+      return Option(
+        optionLabel: ans['label']?.toString() ?? '',
+        text: cleanBcdText(ans['content']?.toString() ?? ''),
+        imageUrl: '',
+      );
+    }).toList();
+
+    final rawImagePath = q['image_url']?.toString() ?? '';
+    final imageUrl =
+        rawImagePath.isNotEmpty ? _api.bcdMediaUrl(rawImagePath) : '';
+
+    final rawImages = (q['images'] as List<dynamic>?) ?? [];
+    final images = rawImages
+        .map((e) => e.toString())
+        .where((e) => e.isNotEmpty)
+        .map((path) => _api.bcdMediaUrl(path))
+        .toList();
+
+    return Question(
+      questionId: q['bcd_id']?.toString() ?? '',
+      text: cleanBcdText(q['content']?.toString() ?? ''),
+      imageUrl: imageUrl,
+      images: images,
+      correctAnswer: q['correct_answer']?.toString() ?? '',
+      answerExplanation: cleanBcdText(q['explanation']?.toString() ?? ''),
+      options: options,
+    );
+  }
+}

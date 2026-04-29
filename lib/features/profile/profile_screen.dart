@@ -1,16 +1,12 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/profile/edit_profile_screen.dart';
+import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
 import 'package:taxi_exam_app/features/support/help_screen.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
@@ -24,9 +20,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
-  String? _username;
-  String? _email;
-  final ApiService _apiService = ApiService();
+  final _profile = ProfileProvider();
 
   late final AnimationController _ctrl;
   late final Animation<double> _avatarScale;
@@ -64,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           curve: const Interval(0.2, 0.6, curve: Curves.easeOut)),
     );
 
-    _loadUserFromPrefs();
+    _profile.loadUserFromPrefs();
     _ctrl.forward();
   }
 
@@ -72,20 +66,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   void dispose() {
     _ctrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadUserFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final storedUser = prefs.getString('user');
-    if (storedUser != null) {
-      final Map<String, dynamic> userMap = jsonDecode(storedUser);
-      if (mounted) {
-        setState(() {
-          _username = userMap['username'] ?? 'Unknown';
-          _email = userMap['email'] ?? '';
-        });
-      }
-    }
   }
 
   Future<void> _showAppFeedbackDialog() async {
@@ -162,12 +142,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     final msg = (payload['message'] ?? '').trim();
     if (msg.isEmpty) return;
 
-    final ok = await _apiService.submitAppFeedback(
+    final ok = await _profile.submitFeedback(
       message: msg,
       subject: payload['subject'] ?? '',
-      screenContext: 'profile',
       feedbackType: payload['type'] ?? 'app_issue',
-      contactEmail: _email ?? '',
     );
 
     if (!mounted) return;
@@ -192,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           await nav.push(
             AppPageRoute(builder: (_) => const EditProfileScreen()),
           );
-          await _loadUserFromPrefs();
+          await _profile.loadUserFromPrefs();
           return;
         case 1:
           await nav.push(
@@ -321,12 +299,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _username ?? t.loading,
+                      _profile.username ?? t.loading,
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      _email ?? '',
+                      _profile.email ?? '',
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 24),
@@ -408,9 +386,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           borderRadius:
                               BorderRadius.vertical(top: Radius.circular(24)),
                         ),
-                        builder: (sheetContext) => _LogoutSheet(
-                          apiService: _apiService,
-                        ),
+                        builder: (sheetContext) => const _LogoutSheet(),
                       );
                     },
                     style: TextButton.styleFrom(
@@ -479,8 +455,7 @@ class _ProfileTileState extends State<_ProfileTile>
 }
 
 class _LogoutSheet extends StatefulWidget {
-  final ApiService apiService;
-  const _LogoutSheet({required this.apiService});
+  const _LogoutSheet();
 
   @override
   State<_LogoutSheet> createState() => _LogoutSheetState();
@@ -491,27 +466,9 @@ class _LogoutSheetState extends State<_LogoutSheet> {
 
   Future<void> _doLogout() async {
     setState(() => _isLoading = true);
-
-    // _apiService.logout() handles all cleanup:
-    //   FCM deregister, server blacklist, token wipe,
-    //   UserCacheService.clearAll() → provider reset,
-    //   BcdCache, Hive boxes, SharedPreferences user keys.
-    // App-wide prefs (language, theme, onboarding) are
-    // intentionally preserved by AppStorage.clearUserData().
-    try {
-      await widget.apiService.logout();
-    } catch (_) {}
-
+    await ProfileProvider().logout();
     if (!mounted) return;
-    final nav = NavigationService.navigatorKey.currentState;
-    nav?.pushAndRemoveUntil(
-      AppPageRoute(builder: (_) => const AuthScreen()),
-      (route) => false,
-    );
-    showAppSnackBar(
-      'Logged out successfully.',
-      type: SnackBarType.success,
-    );
+    showAppSnackBar('Logged out successfully.', type: SnackBarType.success);
   }
 
   @override

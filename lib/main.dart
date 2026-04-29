@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -25,6 +26,7 @@ import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/providers/font_provider.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
+import 'package:taxi_exam_app/core/services/session_validation_service.dart';
 import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -104,6 +106,15 @@ Future<void> _appMain() async {
   if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(ExamNodeAdapter());
   final notificationProvider = await NotificationProvider.create();
   final dashboardProvider = DashboardProvider(repository: HiveDashboardRepository());
+  final sessionValidationObserver = SessionValidationLifecycleObserver(
+    SessionValidationService(
+      isAuthenticated: () => DioClient().accessToken != null,
+      fetchCurrentUser: () => ApiService().fetchCurrentUser().then((_) {}),
+      minInterval: kReleaseMode
+          ? const Duration(seconds: 30)
+          : const Duration(seconds: 5),
+    ),
+  )..attach();
 
   // Wire up provider reset so both logout paths (explicit + 401 auto-logout)
   // wipe in-memory state before the next user's session starts.
@@ -147,7 +158,7 @@ Future<void> _appMain() async {
             ChangeNotifierProvider<NotificationProvider>.value(value: notificationProvider),
             ChangeNotifierProvider<DashboardProvider>.value(value: dashboardProvider),
           ],
-          child: MyApp(),
+          child: MyApp(sessionValidationObserver: sessionValidationObserver),
         ),
       ),
     ),
@@ -387,8 +398,21 @@ ThemeData buildLightTheme(String font) => ThemeData(
 );
 
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({super.key, required this.sessionValidationObserver});
+
+  final SessionValidationLifecycleObserver sessionValidationObserver;
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void dispose() {
+    widget.sessionValidationObserver.detach();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

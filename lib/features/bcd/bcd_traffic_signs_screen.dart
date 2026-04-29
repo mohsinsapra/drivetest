@@ -7,6 +7,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/features/bcd/providers/bcd_provider.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'bcd_text_utils.dart';
 
@@ -20,19 +21,17 @@ class BCDTrafficSignsScreen extends StatefulWidget {
 }
 
 class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
-  final _api = ApiService();
+  final _provider = BcdProvider();
   final _scrollController = ScrollController();
-  List<dynamic> _signs = [];
-  bool _loading = true;
   String _search = '';
   Timer? _refreshTimer;
 
   static const _autoRefreshInterval = Duration(hours: 1);
 
   List<dynamic> get _filtered {
-    if (_search.isEmpty) return _signs;
+    if (_search.isEmpty) return _provider.signs;
     final q = _search.toLowerCase();
-    return _signs.where((s) {
+    return _provider.signs.where((s) {
       final title = (s['title'] ?? '').toString().toLowerCase();
       final content = (s['content'] ?? '').toString().toLowerCase();
       return title.contains(q) || content.contains(q);
@@ -42,41 +41,33 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
   @override
   void initState() {
     super.initState();
+    _provider.addListener(_onProviderChange);
     _load();
     _refreshTimer =
-        Timer.periodic(_autoRefreshInterval, (_) => _silentRefresh());
+        Timer.periodic(_autoRefreshInterval, (_) => _provider.refreshTrafficSignsSilently());
   }
 
   @override
   void dispose() {
+    _provider.removeListener(_onProviderChange);
     _refreshTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final data = await _api.fetchBCDTrafficSigns();
-      if (mounted) {
-        setState(() {
-          _signs = data;
-          _loading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _loading = false);
-        showAppSnackBar(Translations.of(context).bcd_failed_traffic_signs, type: SnackBarType.error);
-      }
-    }
+  void _onProviderChange() {
+    if (mounted) setState(() {});
   }
 
-  Future<void> _silentRefresh() async {
+  Future<void> _load() async {
     try {
-      final data = await _api.fetchBCDTrafficSigns();
-      if (mounted) setState(() => _signs = data);
-    } catch (_) {}
+      await _provider.loadTrafficSigns();
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_traffic_signs,
+            type: SnackBarType.error);
+      }
+    }
   }
 
   @override
@@ -107,7 +98,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
             ),
           ),
           Expanded(
-            child: _loading
+            child: _provider.signsLoading
                 ? const _Shimmer()
                 : _filtered.isEmpty
                     ? ListView(children: [
@@ -121,7 +112,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
                         ),
                       ])
                     : RefreshIndicator(
-                        onRefresh: _load,
+                        onRefresh: _provider.loadTrafficSigns,
                         child: ListView.builder(
                           controller: _scrollController,
                           padding:
@@ -182,14 +173,14 @@ class _SignGroupCardState extends State<_SignGroupCard> {
     final previewUrls = <String>[];
     for (final img in images.take(3)) {
       final fn = img['file_name']?.toString() ?? '';
-      if (fn.isNotEmpty) previewUrls.add(ApiService().bcdMediaUrl(fn));
+      if (fn.isNotEmpty) previewUrls.add(BcdProvider().mediaUrl(fn));
     }
     if (previewUrls.isEmpty) {
       for (final child in children.take(3)) {
         final childImgs = (child['images'] as List<dynamic>? ?? []);
         if (childImgs.isNotEmpty) {
           final fn = childImgs.first['file_name']?.toString() ?? '';
-          if (fn.isNotEmpty) previewUrls.add(ApiService().bcdMediaUrl(fn));
+          if (fn.isNotEmpty) previewUrls.add(BcdProvider().mediaUrl(fn));
         }
       }
     }

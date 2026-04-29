@@ -1,0 +1,12 @@
+# .graphifyignore
+vendor/
+node_modules/
+dist/
+*.generated.py
+
+ios/
+android/
+linux/
+macos/
+windows/
+build/

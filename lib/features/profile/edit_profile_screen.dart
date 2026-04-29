@@ -1,16 +1,7 @@
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
-import 'package:taxi_exam_app/core/models/test_attempt.dart';
-import 'package:taxi_exam_app/core/services/navigation_service.dart';
-import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:taxi_exam_app/features/auth/auth_screen.dart';
+import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -20,32 +11,26 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final ApiService _apiService = ApiService();
+  final _profile = ProfileProvider();
 
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
-  bool _loading = true;
-  bool _savingProfile = false;
-  bool _settingPassword = false;
-  bool _deletingAccount = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _hasPassword = true;
-  bool _isGoogleAccount = false;
-  bool _isDemo = false;
 
   @override
   void initState() {
     super.initState();
+    _profile.addListener(_onProfileChange);
     _loadProfile();
   }
 
   @override
   void dispose() {
+    _profile.removeListener(_onProfileChange);
     _usernameController.dispose();
     _emailController.dispose();
     _newPasswordController.dispose();
@@ -55,24 +40,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _loadProfile() async {
     try {
-      final user = await _apiService.fetchCurrentUser();
+      await _profile.loadProfile();
       if (!mounted) return;
-
-      final userMap = Map<String, dynamic>.from(user as Map);
-      setState(() {
-        _usernameController.text = (userMap['username'] ?? '').toString();
-        _emailController.text = (userMap['email'] ?? '').toString();
-        _hasPassword =
-            (userMap['has_password'] ?? userMap['has_usable_password']) == true;
-        _isGoogleAccount = userMap['is_google_account'] == true;
-        _isDemo = userMap['is_demo'] == true;
-        _loading = false;
-      });
+      _usernameController.text = _profile.username ?? '';
+      _emailController.text = _profile.email ?? '';
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loading = false);
       showAppSnackBar('Failed to load profile data.', type: SnackBarType.error);
     }
+  }
+
+  void _onProfileChange() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _saveProfile() async {
@@ -88,26 +67,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
-    setState(() => _savingProfile = true);
     try {
-      final updated = await _apiService.updateProfile(
-        username: username,
-        email: email,
-      );
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user', jsonEncode(updated));
-
+      await _profile.saveProfile(username: username, email: email);
       if (!mounted) return;
       showAppSnackBar('Profile updated.', type: SnackBarType.success);
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(
-        _extractApiErrorMessage(e),
-        type: SnackBarType.error,
-      );
-    } finally {
-      if (mounted) setState(() => _savingProfile = false);
+      showAppSnackBar(_profile.extractApiError(e), type: SnackBarType.error);
     }
   }
 
@@ -116,10 +82,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final confirm = _confirmPasswordController.text;
 
     if (password.length < 6) {
-      showAppSnackBar(
-        'Password must be at least 6 characters.',
-        type: SnackBarType.error,
-      );
+      showAppSnackBar('Password must be at least 6 characters.',
+          type: SnackBarType.error);
       return;
     }
     if (password != confirm) {
@@ -127,22 +91,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
-    setState(() => _settingPassword = true);
     try {
-      await _apiService.setPassword(newPassword: password);
+      await _profile.setPassword(password);
       if (!mounted) return;
-
-      setState(() {
-        _hasPassword = true;
-        _newPasswordController.clear();
-        _confirmPasswordController.clear();
-      });
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
       showAppSnackBar('Password set successfully.', type: SnackBarType.success);
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(_extractApiErrorMessage(e), type: SnackBarType.error);
-    } finally {
-      if (mounted) setState(() => _settingPassword = false);
+      showAppSnackBar(_profile.extractApiError(e), type: SnackBarType.error);
     }
   }
 
@@ -171,88 +128,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (confirmed != true) return;
 
-    setState(() => _deletingAccount = true);
     try {
-      await _apiService.deleteAccount();
-
-      try {
-        await _apiService.logout();
-      } catch (_) {}
-
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final lang = prefs.getString('language');
-        final isDark = prefs.getBool('dark_mode');
-        final onboardingDone = prefs.getBool('onboarding_complete');
-        await prefs.clear();
-        if (lang != null) await prefs.setString('language', lang);
-        if (isDark != null) await prefs.setBool('dark_mode', isDark);
-        if (onboardingDone != null) {
-          await prefs.setBool('onboarding_complete', onboardingDone);
-        }
-      } catch (_) {}
-
-      try {
-        final attemptsBox = await Hive.openBox<TestAttempt>('testAttempts');
-        await attemptsBox.clear();
-        await Hive.close();
-        await Hive.deleteFromDisk();
-      } catch (_) {}
-
-      final nav = NavigationService.navigatorKey.currentState;
-      nav?.pushAndRemoveUntil(
-        AppPageRoute(builder: (_) => const AuthScreen()),
-        (route) => false,
-      );
-      showAppSnackBar(
-        t.auth_deleted_account_welcome_back,
-        type: SnackBarType.success,
-      );
+      await _profile.deleteAccount();
+      if (!mounted) return;
+      showAppSnackBar(t.auth_deleted_account_welcome_back,
+          type: SnackBarType.success);
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(_extractApiErrorMessage(e), type: SnackBarType.error);
-      setState(() => _deletingAccount = false);
+      showAppSnackBar(_profile.extractApiError(e), type: SnackBarType.error);
     }
-  }
-
-  String _extractApiErrorMessage(Object error) {
-    if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map) {
-        final map = Map<String, dynamic>.from(data);
-        final usernameErrors = map['username'];
-        final emailErrors = map['email'];
-        final detail = map['detail'];
-
-        if (usernameErrors is List && usernameErrors.isNotEmpty) {
-          final first = usernameErrors.first.toString();
-          if (first.toLowerCase().contains('already exists')) {
-            return 'This username is already taken.';
-          }
-          return first;
-        }
-        if (emailErrors is List && emailErrors.isNotEmpty) {
-          final first = emailErrors.first.toString();
-          if (first.toLowerCase().contains('already exists')) {
-            return 'This email is already in use.';
-          }
-          return first;
-        }
-        if (detail != null && detail.toString().trim().isNotEmpty) {
-          return detail.toString();
-        }
-      }
-      if (data is String && data.trim().isNotEmpty) return data;
-    }
-    return 'Request failed. Please try again.';
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+    if (_profile.profileLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -260,7 +150,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (_isDemo) ...[
+          if (_profile.isDemo) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -285,32 +175,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
           TextField(
             controller: _usernameController,
-            readOnly: _isDemo,
+            readOnly: _profile.isDemo,
             decoration: InputDecoration(
               labelText: 'Username',
               border: const OutlineInputBorder(),
-              filled: _isDemo,
-              fillColor: _isDemo ? const Color(0xFFF5F5F5) : null,
-              suffixIcon: _isDemo ? const Icon(Icons.lock_outline, size: 18) : null,
+              filled: _profile.isDemo,
+              fillColor: _profile.isDemo ? const Color(0xFFF5F5F5) : null,
+              suffixIcon: _profile.isDemo
+                  ? const Icon(Icons.lock_outline, size: 18)
+                  : null,
             ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            readOnly: _isDemo,
+            readOnly: _profile.isDemo,
             decoration: InputDecoration(
               labelText: 'Email',
               border: const OutlineInputBorder(),
-              filled: _isDemo,
-              fillColor: _isDemo ? const Color(0xFFF5F5F5) : null,
-              suffixIcon: _isDemo ? const Icon(Icons.lock_outline, size: 18) : null,
+              filled: _profile.isDemo,
+              fillColor: _profile.isDemo ? const Color(0xFFF5F5F5) : null,
+              suffixIcon: _profile.isDemo
+                  ? const Icon(Icons.lock_outline, size: 18)
+                  : null,
             ),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: (_savingProfile || _isDemo) ? null : _saveProfile,
-            child: _savingProfile
+            onPressed: (_profile.savingProfile || _profile.isDemo)
+                ? null
+                : _saveProfile,
+            child: _profile.savingProfile
                 ? const SizedBox(
                     width: 20,
                     height: 20,
@@ -318,12 +214,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   )
                 : const Text('Save Changes'),
           ),
-          if (_isGoogleAccount) ...[
+          if (_profile.isGoogleAccount) ...[
             const SizedBox(height: 28),
-            const Divider(
-              thickness: 0.6,
-              color: Color(0xFFE6E6E6),
-            ),
+            const Divider(thickness: 0.6, color: Color(0xFFE6E6E6)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
@@ -344,14 +237,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
             ),
-          ] else if (!_hasPassword) ...[
+          ] else if (!_profile.hasPassword) ...[
             const SizedBox(height: 28),
             const Divider(),
             const SizedBox(height: 12),
-            const Text(
-              'Set Password',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
+            const Text('Set Password',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             TextField(
               controller: _newPasswordController,
@@ -360,12 +251,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 labelText: 'New Password',
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(_obscurePassword
+                      ? Icons.visibility
+                      : Icons.visibility_off),
                 ),
               ),
             ),
@@ -377,11 +267,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 labelText: 'Confirm Password',
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _obscureConfirmPassword = !_obscureConfirmPassword;
-                    });
-                  },
+                  onPressed: () => setState(() =>
+                      _obscureConfirmPassword = !_obscureConfirmPassword),
                   icon: Icon(_obscureConfirmPassword
                       ? Icons.visibility
                       : Icons.visibility_off),
@@ -390,8 +277,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: _settingPassword ? null : _setPassword,
-              child: _settingPassword
+              onPressed: _profile.settingPassword ? null : _setPassword,
+              child: _profile.settingPassword
                   ? const SizedBox(
                       width: 20,
                       height: 20,
@@ -401,25 +288,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ],
           const SizedBox(height: 28),
-          const Divider(
-            thickness: 0.6,
-            color: Color(0xFFE6E6E6),
-          ),
+          const Divider(thickness: 0.6, color: Color(0xFFE6E6E6)),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.red,
               side: const BorderSide(color: Colors.red),
             ),
-            onPressed: _deletingAccount ? null : _deleteAccount,
-            icon: _deletingAccount
+            onPressed: _profile.deletingAccount ? null : _deleteAccount,
+            icon: _profile.deletingAccount
                 ? const SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.delete_forever),
-            label: Text(_deletingAccount ? 'Deleting...' : 'Delete Account'),
+            label: Text(
+                _profile.deletingAccount ? 'Deleting...' : 'Delete Account'),
           ),
         ],
       ),
