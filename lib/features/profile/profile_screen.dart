@@ -58,12 +58,18 @@ class _ProfileScreenState extends State<ProfileScreen>
           curve: const Interval(0.2, 0.6, curve: Curves.easeOut)),
     );
 
+    _profile.addListener(_onProfileChanged);
     _profile.loadUserFromPrefs();
     _ctrl.forward();
   }
 
+  void _onProfileChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    _profile.removeListener(_onProfileChanged);
     _ctrl.dispose();
     super.dispose();
   }

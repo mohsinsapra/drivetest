@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
@@ -156,6 +157,13 @@ class MainScreenState extends State<MainScreen> {
     }
   }
 
+  void _handleNavigationChange(MainScreenProvider provider, int pageIndex) {
+    final didChange = provider.setIndex(pageIndex);
+    if (didChange) {
+      playNavigationFeedback();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MainScreenProvider>(context);
@@ -185,7 +193,7 @@ class MainScreenState extends State<MainScreen> {
               currentIndex: selectedNavIndex,
               items: entries,
               onTap: (pageIndex) {
-                provider.setIndex(pageIndex);
+                _handleNavigationChange(provider, pageIndex);
               },
               bottomInset: mq.padding.bottom,
             ),
@@ -476,8 +484,12 @@ class MainScreenProvider extends ChangeNotifier {
 
   int get currentIndex => _currentIndex;
 
-  void setIndex(int index) {
+  bool setIndex(int index) {
+    if (_currentIndex == index) {
+      return false;
+    }
     _currentIndex = index;
     notifyListeners();
+    return true;
   }
 }
