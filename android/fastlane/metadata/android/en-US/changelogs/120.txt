@@ -1,0 +1,8 @@
+Added
+-
+
+Changed
+-
+
+Fixed
+• Vibration not working on Android and tablets during navigation — now uses the `vibration` package instead of iOS-only `HapticFeedback.selectionClick()`

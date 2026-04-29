@@ -16,8 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Fixed
+-
+
+---
+
+## [1.0.3+118] - 2026-04-29
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
 - Vibration not working on Android and tablets during navigation — now uses the `vibration` package instead of iOS-only `HapticFeedback.selectionClick()`
 
+---
 ---
 
 ## [1.0.3+117] - 2026-04-29
