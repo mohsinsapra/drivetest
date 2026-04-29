@@ -115,7 +115,19 @@
       "Bash(find lib *)",
       "Bash(sed -i '' 's/builder: \\(_\\) => Testscreen\\(/builder: \\(_\\) => TestscreenWrapper\\(/g' lib/features/home/attempt_detail_screen.dart lib/features/home/home_screen.dart lib/features/tests/licences_screen.dart lib/features/tests/result_screen.dart lib/features/tests/saved_questions_preview_screen.dart lib/features/dashboard/screens/exam_dashboard_screen.dart)",
       "Bash(sed -i '' 's/builder: \\(context\\) => Testscreen\\(/builder: \\(context\\) => TestscreenWrapper\\(/g' lib/features/tests/result_screen.dart)",
-      "Bash(identify /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/icon/icon.png)"
+      "Bash(identify /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/icon/icon.png)",
+      "Bash(flutter emulators *)",
+      "Bash(adb -s emulator-5554 shell pm list packages)",
+      "Bash(mkdir -p /tmp/taxi_screenshots)",
+      "Bash(adb -s emulator-5554 shell am start -n com.mohsinsapra.drivetest/com.mohsinsapra.drivetest.MainActivity)",
+      "Bash(adb -s emulator-5554 exec-out screencap -p)",
+      "Bash(adb -s emulator-5554 shell input tap 678 110)",
+      "Bash(adb -s emulator-5554 shell wm size)",
+      "Bash(adb -s emulator-5554 shell wm density)",
+      "Bash(adb -s emulator-5554 shell input tap 988 157)",
+      "Bash(adb -s emulator-5554 shell input tap 540 1731)",
+      "Bash(adb -s emulator-5554 shell input tap 540 1199)",
+      "Bash(adb -s emulator-5554 shell input text \"muhammad.mohsin@dosell.com\")"
     ],
     "deny": [],
     "ask": []
