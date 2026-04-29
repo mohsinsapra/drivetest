@@ -170,7 +170,7 @@ class AttemptDetailScreen extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   AppPageRoute(
-                    builder: (_) => Testscreen(
+                    builder: (_) => TestscreenWrapper(
                       questions: questions,
                       instantMarking: true,
                       licenceId: '',

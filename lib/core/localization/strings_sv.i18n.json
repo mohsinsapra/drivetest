@@ -355,5 +355,22 @@
   "dash_streak_title": "{n} dagars svit!",
   "dash_streak_days": "{n} dagar",
   "dash_batches_count": "{n} omgångar",
-  "dash_avg_score_label": "{score}% snitt"
+  "dash_avg_score_label": "{score}% snitt",
+
+  "tut_step1_title": "Steg 1 av 3 — Översätt",
+  "tut_step1_body": "Tryck på språkknappen för att öppna listan och välj sedan engelska (eller valfritt annat språk).",
+  "tut_step1b_title": "Steg 1 av 3 — Välj ett språk",
+  "tut_step1b_body": "Välj ett annat språk från listan, till exempel engelska.",
+  "tut_step2a_title": "Steg 2 av 4 — Kika på originalet",
+  "tut_step2a_body": "Tryck och håll var som helst på frågan (inte svarsalternativen) för att tillfälligt se den ursprungliga svenska texten.",
+  "tut_step2b_title": "Steg 2 av 4 — Släpp nu",
+  "tut_step2b_body": "Släpp fingret för att gå tillbaka till den översatta texten.",
+  "tut_step3a_title": "Steg 3 av 4 — Nästa fråga",
+  "tut_step3a_body": "Svep åt vänster för att gå till nästa fråga.",
+  "tut_step3b_title": "Steg 4 av 4 — Kom tillbaka",
+  "tut_step3b_body": "Svep nu åt höger för att gå tillbaka till föregående fråga.",
+  "tut_complete_title": "Klart!",
+  "tut_complete_body": "Bra jobbat med genomgången.\nDu vet nu hur du översätter frågor, kikar på originaltexten och navigerar mellan dem.",
+  "tut_complete_subtitle": "Du är redo att förbereda dig för ditt taxikörkortsprov!",
+  "tut_start_practicing": "Börja öva!"
 }

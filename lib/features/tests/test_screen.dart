@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:vibration/vibration.dart';
 import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/constants/language_options.dart';
 import 'package:taxi_exam_app/core/models/image_viewer.dart';
@@ -18,9 +21,15 @@ import 'package:taxi_exam_app/core/widgets/question_progress_header.dart';
 import 'package:taxi_exam_app/core/widgets/test_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
 
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/core/services/home_data_cache.dart';
 import 'package:translator/translator.dart';
+
+const _kTranslationTutorialKey = 'translation_tutorial_shown_v1';
+
+/// Thin alias kept for call-site compatibility after adding the tutorial.
+typedef TestscreenWrapper = Testscreen;
 
 class Testscreen extends StatefulWidget {
   final List<Question> questions;
@@ -70,6 +79,20 @@ class _TestscreenState extends State<Testscreen> {
   int currentQuestionIndex = 0;
   Map<int, String> userSelections = {};
   final ApiService _apiService = ApiService();
+
+  // GlobalKeys for the translation tutorial.
+  final _langMenuKey = GlobalKey<PopupMenuButtonState<String>>();
+  final _langButtonKey = GlobalKey();
+  final _peekAreaKey = GlobalKey();
+
+  // True while phase-1 of the tutorial is active (waiting for language pick).
+  bool _tutorialPhase1Active = false;
+
+  // Overlay shown while dropdown is open, prompting language selection (phase 1b).
+  OverlayEntry? _langPickOverlay;
+
+  // Overlay shown during phase-2 (gesture-transparent instruction card).
+  OverlayEntry? _phase2Overlay;
 
   final ttsService = TtsService();
   late PageController _pageController;
@@ -130,6 +153,217 @@ class _TestscreenState extends State<Testscreen> {
     _loadSavedQuestionIds();
     // Pre-open the Hive box so saves never hang waiting for it to open
     Hive.openBox<TestAttempt>('testAttempts');
+
+    if (!widget.isReviewMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndShowTutorial());
+    }
+  }
+
+  Future<void> _checkAndShowTutorial() async {
+    if (!kDebugMode) {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_kTranslationTutorialKey) == true) return;
+      await prefs.setBool(_kTranslationTutorialKey, true);
+    }
+    if (!mounted) return;
+    await Future.delayed(const Duration(milliseconds: 700));
+    if (!mounted) return;
+    _showTutorialPhase1();
+  }
+
+  TutorialCoachMark? _phase1Coach;
+  // Fine-grained tutorial state for phases 2 and 3.
+  bool _tutorialPhase2Active = false;   // "press & hold" card visible
+  bool _tutorialPhase2bActive = false;  // user is holding — "now release" card visible
+  bool _tutorialPhase3aActive = false;  // "swipe left" card visible
+  bool _tutorialPhase3bActive = false;  // "now swipe right" card visible
+
+  void _showTutorialPhase1() {
+    setState(() => _tutorialPhase1Active = true);
+    final t = Translations.of(context);
+
+    _phase1Coach = TutorialCoachMark(
+      targets: [
+        TargetFocus(
+          identify: 'lang_button',
+          keyTarget: _langButtonKey,
+          shape: ShapeLightFocus.RRect,
+          radius: 20,
+          enableTargetTab: true,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (_, __) => _TutorialCard(
+                icon: LucideIcons.languages,
+                title: t.tut_step1_title,
+                body: t.tut_step1_body,
+              ),
+            ),
+          ],
+        ),
+      ],
+      colorShadow: Colors.black87,
+      paddingFocus: 8,
+      opacityShadow: 0.85,
+      hideSkip: false,
+      textSkip: t.intro_skip,
+      // Dismiss overlay on tap so dropdown can open immediately after.
+      onClickTarget: (_) {
+        _phase1Coach?.finish();
+        Future.delayed(const Duration(milliseconds: 150), () {
+          _langMenuKey.currentState?.showButtonMenu();
+          _showLangPickHint();
+        });
+      },
+      onSkip: () {
+        _dismissLangPickHint();
+        setState(() => _tutorialPhase1Active = false);
+        return true;
+      },
+    );
+
+    _phase1Coach!.show(context: context);
+  }
+
+  // Phase 1b — hint card shown while the dropdown is open.
+  void _showLangPickHint() {
+    if (!mounted) return;
+    _dismissLangPickHint();
+    final t = Translations.of(context);
+    _langPickOverlay = OverlayEntry(
+      builder: (_) => Positioned(
+        left: 16,
+        right: 16,
+        bottom: 120,
+        child: IgnorePointer(
+          child: _TutorialCard(
+            icon: Icons.translate,
+            title: t.tut_step1b_title,
+            body: t.tut_step1b_body,
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context).insert(_langPickOverlay!);
+  }
+
+  void _dismissLangPickHint() {
+    _langPickOverlay?.remove();
+    _langPickOverlay = null;
+  }
+
+  // ── Tutorial overlay helpers ──────────────────────────────────────────────
+
+  void _dismissPhase2Overlay() {
+    _phase2Overlay?.remove();
+    _phase2Overlay = null;
+  }
+
+  void _replaceOverlay(OverlayEntry entry) {
+    _dismissPhase2Overlay();
+    _phase2Overlay = entry;
+    Overlay.of(context).insert(entry);
+  }
+
+  // Phase 2a — "Press & hold to peek original".
+  void _showTutorialPhase2() {
+    if (!mounted) return;
+    setState(() { _tutorialPhase2Active = true; _tutorialPhase2bActive = false; });
+    final t = Translations.of(context);
+    _replaceOverlay(OverlayEntry(
+      builder: (_) => Positioned(
+        left: 16, right: 16, bottom: 120,
+        child: IgnorePointer(
+          child: _TutorialCard(
+            icon: Icons.touch_app_outlined,
+            title: t.tut_step2a_title,
+            body: t.tut_step2a_body,
+          ),
+        ),
+      ),
+    ));
+  }
+
+  // Phase 2b — shown while user is holding: "Now release to go back".
+  void _showReleaseHint() {
+    if (!mounted) return;
+    setState(() { _tutorialPhase2bActive = true; });
+    final t = Translations.of(context);
+    _replaceOverlay(OverlayEntry(
+      builder: (_) => Positioned(
+        left: 16, right: 16, bottom: 120,
+        child: IgnorePointer(
+          child: _TutorialCard(
+            icon: Icons.pan_tool_outlined,
+            title: t.tut_step2b_title,
+            body: t.tut_step2b_body,
+          ),
+        ),
+      ),
+    ));
+  }
+
+  // Phase 3a — "Swipe left to go to the next question".
+  void _showTutorialPhase3a() {
+    if (!mounted) return;
+    setState(() { _tutorialPhase3aActive = true; _tutorialPhase2Active = false; _tutorialPhase2bActive = false; });
+    final t = Translations.of(context);
+    _replaceOverlay(OverlayEntry(
+      builder: (_) => Positioned(
+        left: 16, right: 16, bottom: 120,
+        child: IgnorePointer(
+          child: _TutorialCard(
+            icon: Icons.swipe_left_outlined,
+            title: t.tut_step3a_title,
+            body: t.tut_step3a_body,
+          ),
+        ),
+      ),
+    ));
+  }
+
+  // Phase 3b — "Now swipe right to come back".
+  void _showTutorialPhase3b() {
+    if (!mounted) return;
+    setState(() { _tutorialPhase3aActive = false; _tutorialPhase3bActive = true; });
+    final t = Translations.of(context);
+    _replaceOverlay(OverlayEntry(
+      builder: (_) => Positioned(
+        left: 16, right: 16, bottom: 120,
+        child: IgnorePointer(
+          child: _TutorialCard(
+            icon: Icons.swipe_right_outlined,
+            title: t.tut_step3b_title,
+            body: t.tut_step3b_body,
+          ),
+        ),
+      ),
+    ));
+  }
+
+  void _dismissTutorial({bool celebrate = false}) {
+    _dismissPhase2Overlay();
+    setState(() {
+      _tutorialPhase1Active = false;
+      _tutorialPhase2Active = false;
+      _tutorialPhase2bActive = false;
+      _tutorialPhase3aActive = false;
+      _tutorialPhase3bActive = false;
+    });
+    if (celebrate && mounted) _showTutorialComplete();
+  }
+
+  void _showTutorialComplete() {
+    OverlayEntry? entry;
+    entry = OverlayEntry(
+      builder: (_) => _TutorialCompleteOverlay(
+        onDone: () => entry?.remove(),
+      ),
+    );
+    Overlay.of(context).insert(entry);
+    Vibration.hasVibrator().then((has) {
+      if (has == true) Vibration.vibrate(pattern: [0, 80, 60, 120, 60, 200]);
+    });
   }
 
   Future<void> _loadSavedQuestionIds() async {
@@ -265,15 +499,23 @@ class _TestscreenState extends State<Testscreen> {
     _pageController.dispose();
     ttsService.flutterTts.stop();
     ttsService.ttsState = TtsState.stopped;
+    _dismissLangPickHint();
+    _dismissPhase2Overlay();
     super.dispose();
   }
 
   void _onPageChanged(int index) {
-    setState(() {
-      currentQuestionIndex = index;
-    });
-    ttsService.flutterTts.stop(); // Stop TTS when changing page
-    ttsService.ttsState = TtsState.stopped; // Reset TTS state
+    final prevIndex = currentQuestionIndex;
+    setState(() { currentQuestionIndex = index; });
+    ttsService.flutterTts.stop();
+    ttsService.ttsState = TtsState.stopped;
+    if (_tutorialPhase3aActive && index > prevIndex) {
+      // Swiped left — show "now swipe right" card.
+      Future.delayed(const Duration(milliseconds: 300), _showTutorialPhase3b);
+    } else if (_tutorialPhase3bActive && index < prevIndex) {
+      // Swiped right — tutorial complete, celebrate.
+      _dismissTutorial(celebrate: true);
+    }
   }
 
   void _selectOption(String optionId, int index) {
@@ -711,6 +953,7 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   Future<void> _onLanguageSelected(String value) async {
+    _dismissLangPickHint();
     ttsService.flutterTts.stop();
     ttsService.ttsState = TtsState.stopped;
 
@@ -736,6 +979,13 @@ class _TestscreenState extends State<Testscreen> {
         _previousLanguageCode = previousCode;
         currentLanguageCode = value;
       });
+      // Phase 1 of the tutorial just completed — user picked a language.
+      // Show phase 2 after a short delay so the translation appears first.
+      if (_tutorialPhase1Active) {
+        setState(() => _tutorialPhase1Active = false);
+        await Future.delayed(const Duration(milliseconds: 500));
+        _showTutorialPhase2();
+      }
     }
   }
 
@@ -835,8 +1085,10 @@ class _TestscreenState extends State<Testscreen> {
               ),
             if (!isSmallScreen)
               Container(
+                key: _langButtonKey,
                 margin: const EdgeInsets.only(right: 8),
                 child: PopupMenuButton<String>(
+                  key: _langMenuKey,
                   onSelected: _onLanguageSelected,
                   itemBuilder: (BuildContext context) => languageOptions
                       .map((lang) => PopupMenuItem<String>(
@@ -1005,8 +1257,23 @@ class _TestscreenState extends State<Testscreen> {
             optionTexts = question.options.map((e) => e.text).toList();
 
             return GestureDetector(
-              onLongPress: _revertToPreviousLanguage,
-              onLongPressUp: () => _revertToPreviousLanguage(),
+              onLongPress: () {
+                _revertToPreviousLanguage();
+                // Tutorial: user started holding — update card to "now release".
+                if (_tutorialPhase2Active && !_tutorialPhase2bActive) {
+                  _showReleaseHint();
+                }
+              },
+              onLongPressUp: () {
+                _revertToPreviousLanguage();
+                // Tutorial: user released — advance to "swipe left" step.
+                if (_tutorialPhase2bActive) {
+                  Future.delayed(
+                    const Duration(milliseconds: 600),
+                    _showTutorialPhase3a,
+                  );
+                }
+              },
               child: Padding(
               padding: EdgeInsets.all(20.0 * s),
               child: SingleChildScrollView(
@@ -1074,7 +1341,12 @@ class _TestscreenState extends State<Testscreen> {
                       );
                     }),
 
-                    SizedBox(height: 12 * s),
+                    // Peek-area anchor — only on the first question so the
+                    // tutorial key is stable and in the widget tree.
+                    if (index == 0)
+                      SizedBox(key: _peekAreaKey, height: 12 * s)
+                    else
+                      SizedBox(height: 12 * s),
 
                     // Bookmark button
                     if (!widget.isReviewMode &&
@@ -1179,7 +1451,7 @@ class _TestscreenState extends State<Testscreen> {
             ),
             );
           },
-        ),
+        ),  // PageView
         bottomNavigationBar: NavigationControls(
           atFirst: currentQuestionIndex == 0,
           atLast: currentQuestionIndex == widget.questions.length - 1,
@@ -1380,6 +1652,253 @@ class _TestscreenState extends State<Testscreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _TutorialCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+
+  const _TutorialCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = (screenWidth - 32).clamp(0.0, 420.0);
+
+    return Align(
+      alignment: Alignment.center,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(icon, color: cs.primary, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                body,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: cs.onSurface.withValues(alpha: 0.65),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Tutorial completion overlay ───────────────────────────────────────────────
+
+class _TutorialCompleteOverlay extends StatefulWidget {
+  final VoidCallback onDone;
+  const _TutorialCompleteOverlay({required this.onDone});
+
+  @override
+  State<_TutorialCompleteOverlay> createState() => _TutorialCompleteOverlayState();
+}
+
+class _TutorialCompleteOverlayState extends State<_TutorialCompleteOverlay>
+    with TickerProviderStateMixin {
+  // Slide-up for the full screen sheet.
+  late final AnimationController _sheetCtrl;
+  late final Animation<Offset> _sheetSlide;
+
+  // Scale + fade for the check circle icon.
+  late final AnimationController _iconCtrl;
+  late final Animation<double> _iconScale;
+  late final Animation<double> _iconFade;
+
+  // Fade-in for the text block.
+  late final AnimationController _textCtrl;
+  late final Animation<double> _textFade;
+  late final Animation<Offset> _textSlide;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _sheetCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _sheetSlide = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _sheetCtrl, curve: Curves.easeOutCubic));
+
+    _iconCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _iconScale = Tween<double>(begin: 0.0, end: 1.0)
+        .animate(CurvedAnimation(parent: _iconCtrl, curve: Curves.elasticOut));
+    _iconFade = CurvedAnimation(parent: _iconCtrl, curve: const Interval(0.0, 0.5));
+
+    _textCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+    _textFade = CurvedAnimation(parent: _textCtrl, curve: Curves.easeOut);
+    _textSlide = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _textCtrl, curve: Curves.easeOutCubic));
+
+    // Stagger the animations.
+    _sheetCtrl.forward().then((_) {
+      _iconCtrl.forward().then((_) {
+        _textCtrl.forward();
+      });
+    });
+  }
+
+  void _dismiss() {
+    _sheetCtrl.reverse().then((_) => widget.onDone());
+  }
+
+  @override
+  void dispose() {
+    _sheetCtrl.dispose();
+    _iconCtrl.dispose();
+    _textCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final t = Translations.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return SlideTransition(
+      position: _sheetSlide,
+      child: Container(
+        color: cs.surface,
+        width: double.infinity,
+        height: double.infinity,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: (screenWidth * 0.06).clamp(16.0, 48.0),
+              vertical: 32,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 24),
+                // Animated check circle.
+                ScaleTransition(
+                  scale: _iconScale,
+                  child: FadeTransition(
+                    opacity: _iconFade,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: cs.primary.withValues(alpha: 0.1),
+                      ),
+                      child: Icon(Icons.check_circle_rounded, size: 80, color: cs.primary),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // Text block fades + slides in after icon.
+                FadeTransition(
+                  opacity: _textFade,
+                  child: SlideTransition(
+                    position: _textSlide,
+                    child: Column(
+                      children: [
+                        Text(
+                          t.tut_complete_title,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: cs.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          t.tut_complete_body,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: cs.onSurface.withValues(alpha: 0.6),
+                            height: 1.6,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          t.tut_complete_subtitle,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurface.withValues(alpha: 0.85),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _dismiss,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              t.tut_start_practicing,
+                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

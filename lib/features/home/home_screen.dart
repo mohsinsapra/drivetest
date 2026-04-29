@@ -574,7 +574,7 @@ class _HomeScreenState extends State<HomeScreen>
                   await Navigator.push(
                     context,
                     AppPageRoute(
-                      builder: (_) => Testscreen(
+                      builder: (_) => TestscreenWrapper(
                         questions: a.questions,
                         instantMarking: true,
                         licenceId: a.licenceId ?? '',

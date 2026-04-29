@@ -78,7 +78,7 @@ class ResultScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           AppPageRoute(
-                            builder: (context) => Testscreen(
+                            builder: (context) => TestscreenWrapper(
                               questions: questions,
                               instantMarking: true,
                               licenceId: licenceId,

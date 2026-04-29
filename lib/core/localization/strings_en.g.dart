@@ -383,6 +383,22 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String dash_streak_days({required Object n}) => '${n} days';
 	String dash_batches_count({required Object n}) => '${n} batches';
 	String dash_avg_score_label({required Object score}) => '${score}% avg';
+	String get tut_step1_title => 'Step 1 of 3 — Translate';
+	String get tut_step1_body => 'Tap the language button to open the list, then select English (or any other language).';
+	String get tut_step1b_title => 'Step 1 of 3 — Choose a language';
+	String get tut_step1b_body => 'Select a different language from the list, for example English.';
+	String get tut_step2a_title => 'Step 2 of 4 — Peek original';
+	String get tut_step2a_body => 'Press and hold anywhere on the question (not the options) to temporarily see the original Swedish text.';
+	String get tut_step2b_title => 'Step 2 of 4 — Now release';
+	String get tut_step2b_body => 'Release your finger to go back to the translated text.';
+	String get tut_step3a_title => 'Step 3 of 4 — Next question';
+	String get tut_step3a_body => 'Swipe left to go to the next question.';
+	String get tut_step3b_title => 'Step 4 of 4 — Come back';
+	String get tut_step3b_body => 'Now swipe right to come back to the previous question.';
+	String get tut_complete_title => 'You\'re all set!';
+	String get tut_complete_body => 'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
+	String get tut_complete_subtitle => 'You\'re ready to prepare for your taxi exam!';
+	String get tut_start_practicing => 'Start practicing!';
 }
 
 /// Flat map(s) containing all translations.
@@ -732,6 +748,22 @@ extension on Translations {
 			case 'dash_streak_days': return ({required Object n}) => '${n} days';
 			case 'dash_batches_count': return ({required Object n}) => '${n} batches';
 			case 'dash_avg_score_label': return ({required Object score}) => '${score}% avg';
+			case 'tut_step1_title': return 'Step 1 of 3 — Translate';
+			case 'tut_step1_body': return 'Tap the language button to open the list, then select English (or any other language).';
+			case 'tut_step1b_title': return 'Step 1 of 3 — Choose a language';
+			case 'tut_step1b_body': return 'Select a different language from the list, for example English.';
+			case 'tut_step2a_title': return 'Step 2 of 4 — Peek original';
+			case 'tut_step2a_body': return 'Press and hold anywhere on the question (not the options) to temporarily see the original Swedish text.';
+			case 'tut_step2b_title': return 'Step 2 of 4 — Now release';
+			case 'tut_step2b_body': return 'Release your finger to go back to the translated text.';
+			case 'tut_step3a_title': return 'Step 3 of 4 — Next question';
+			case 'tut_step3a_body': return 'Swipe left to go to the next question.';
+			case 'tut_step3b_title': return 'Step 4 of 4 — Come back';
+			case 'tut_step3b_body': return 'Now swipe right to come back to the previous question.';
+			case 'tut_complete_title': return 'You\'re all set!';
+			case 'tut_complete_body': return 'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
+			case 'tut_complete_subtitle': return 'You\'re ready to prepare for your taxi exam!';
+			case 'tut_start_practicing': return 'Start practicing!';
 			default: return null;
 		}
 	}

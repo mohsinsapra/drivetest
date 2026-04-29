@@ -355,5 +355,22 @@
   "dash_streak_title": "{n} day streak!",
   "dash_streak_days": "{n} days",
   "dash_batches_count": "{n} batches",
-  "dash_avg_score_label": "{score}% avg"
+  "dash_avg_score_label": "{score}% avg",
+
+  "tut_step1_title": "Step 1 of 3 — Translate",
+  "tut_step1_body": "Tap the language button to open the list, then select English (or any other language).",
+  "tut_step1b_title": "Step 1 of 3 — Choose a language",
+  "tut_step1b_body": "Select a different language from the list, for example English.",
+  "tut_step2a_title": "Step 2 of 4 — Peek original",
+  "tut_step2a_body": "Press and hold anywhere on the question (not the options) to temporarily see the original Swedish text.",
+  "tut_step2b_title": "Step 2 of 4 — Now release",
+  "tut_step2b_body": "Release your finger to go back to the translated text.",
+  "tut_step3a_title": "Step 3 of 4 — Next question",
+  "tut_step3a_body": "Swipe left to go to the next question.",
+  "tut_step3b_title": "Step 4 of 4 — Come back",
+  "tut_step3b_body": "Now swipe right to come back to the previous question.",
+  "tut_complete_title": "You're all set!",
+  "tut_complete_body": "Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.",
+  "tut_complete_subtitle": "You're ready to prepare for your taxi exam!",
+  "tut_start_practicing": "Start practicing!"
 }

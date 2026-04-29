@@ -246,7 +246,7 @@ class _SavedQuestionsPreviewScreenState
                   Navigator.push(
                     context,
                     AppPageRoute(
-                      builder: (_) => Testscreen(
+                      builder: (_) => TestscreenWrapper(
                         questions: _questions,
                         instantMarking: true,
                         licenceId: widget.licenceId,

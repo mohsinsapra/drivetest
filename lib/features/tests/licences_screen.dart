@@ -615,7 +615,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           Navigator.push(
             context,
             AppPageRoute(
-              builder: (_) => Testscreen(
+              builder: (_) => TestscreenWrapper(
                 questions: fetchedQuestions,
                 instantMarking: true,
                 licenceId: selectedLicenseType?['licence_id'],

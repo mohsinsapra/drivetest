@@ -112,7 +112,10 @@
       "Bash(flutter --version)",
       "Bash(awk '{ *)",
       "Bash(DJANGO_SETTINGS_MODULE=taxi_exam_backend.settings python -c \"import django; django.setup\\(\\); from questions.views_v2 import AllCategoryListV2, SubCategoryListV2; print\\('OK'\\)\")",
-      "Bash(find lib *)"
+      "Bash(find lib *)",
+      "Bash(sed -i '' 's/builder: \\(_\\) => Testscreen\\(/builder: \\(_\\) => TestscreenWrapper\\(/g' lib/features/home/attempt_detail_screen.dart lib/features/home/home_screen.dart lib/features/tests/licences_screen.dart lib/features/tests/result_screen.dart lib/features/tests/saved_questions_preview_screen.dart lib/features/dashboard/screens/exam_dashboard_screen.dart)",
+      "Bash(sed -i '' 's/builder: \\(context\\) => Testscreen\\(/builder: \\(context\\) => TestscreenWrapper\\(/g' lib/features/tests/result_screen.dart)",
+      "Bash(identify /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/icon/icon.png)"
     ],
     "deny": [],
     "ask": []

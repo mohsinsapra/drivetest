@@ -46,12 +46,22 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   /// Add a new incoming notification (called from NotificationService).
+  /// Skips if an identical notification (same type + title + body) was added
+  /// within the last 10 seconds — prevents FCM retransmissions from doubling up.
   Future<void> add(String title, String body, {String type = 'general'}) async {
+    final now = DateTime.now();
+    final isDuplicate = _notifications.any((n) =>
+        n.type == type &&
+        n.title == title &&
+        n.body == body &&
+        now.difference(n.receivedAt).inSeconds < 10);
+    if (isDuplicate) return;
+
     final box = Hive.box<LocalNotification>(_boxName);
     final n = LocalNotification(
       title: title,
       body: body,
-      receivedAt: DateTime.now(),
+      receivedAt: now,
       type: type,
     );
     try {

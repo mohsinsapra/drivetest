@@ -380,6 +380,22 @@ class TranslationsSv implements Translations {
 	@override String dash_streak_days({required Object n}) => '${n} dagar';
 	@override String dash_batches_count({required Object n}) => '${n} omgångar';
 	@override String dash_avg_score_label({required Object score}) => '${score}% snitt';
+	@override String get tut_step1_title => 'Steg 1 av 3 — Översätt';
+	@override String get tut_step1_body => 'Tryck på språkknappen för att öppna listan och välj sedan engelska (eller valfritt annat språk).';
+	@override String get tut_step1b_title => 'Steg 1 av 3 — Välj ett språk';
+	@override String get tut_step1b_body => 'Välj ett annat språk från listan, till exempel engelska.';
+	@override String get tut_step2a_title => 'Steg 2 av 4 — Kika på originalet';
+	@override String get tut_step2a_body => 'Tryck och håll var som helst på frågan (inte svarsalternativen) för att tillfälligt se den ursprungliga svenska texten.';
+	@override String get tut_step2b_title => 'Steg 2 av 4 — Släpp nu';
+	@override String get tut_step2b_body => 'Släpp fingret för att gå tillbaka till den översatta texten.';
+	@override String get tut_step3a_title => 'Steg 3 av 4 — Nästa fråga';
+	@override String get tut_step3a_body => 'Svep åt vänster för att gå till nästa fråga.';
+	@override String get tut_step3b_title => 'Steg 4 av 4 — Kom tillbaka';
+	@override String get tut_step3b_body => 'Svep nu åt höger för att gå tillbaka till föregående fråga.';
+	@override String get tut_complete_title => 'Klart!';
+	@override String get tut_complete_body => 'Bra jobbat med genomgången.\nDu vet nu hur du översätter frågor, kikar på originaltexten och navigerar mellan dem.';
+	@override String get tut_complete_subtitle => 'Du är redo att förbereda dig för ditt taxikörkortsprov!';
+	@override String get tut_start_practicing => 'Börja öva!';
 }
 
 /// Flat map(s) containing all translations.
@@ -729,6 +745,22 @@ extension on TranslationsSv {
 			case 'dash_streak_days': return ({required Object n}) => '${n} dagar';
 			case 'dash_batches_count': return ({required Object n}) => '${n} omgångar';
 			case 'dash_avg_score_label': return ({required Object score}) => '${score}% snitt';
+			case 'tut_step1_title': return 'Steg 1 av 3 — Översätt';
+			case 'tut_step1_body': return 'Tryck på språkknappen för att öppna listan och välj sedan engelska (eller valfritt annat språk).';
+			case 'tut_step1b_title': return 'Steg 1 av 3 — Välj ett språk';
+			case 'tut_step1b_body': return 'Välj ett annat språk från listan, till exempel engelska.';
+			case 'tut_step2a_title': return 'Steg 2 av 4 — Kika på originalet';
+			case 'tut_step2a_body': return 'Tryck och håll var som helst på frågan (inte svarsalternativen) för att tillfälligt se den ursprungliga svenska texten.';
+			case 'tut_step2b_title': return 'Steg 2 av 4 — Släpp nu';
+			case 'tut_step2b_body': return 'Släpp fingret för att gå tillbaka till den översatta texten.';
+			case 'tut_step3a_title': return 'Steg 3 av 4 — Nästa fråga';
+			case 'tut_step3a_body': return 'Svep åt vänster för att gå till nästa fråga.';
+			case 'tut_step3b_title': return 'Steg 4 av 4 — Kom tillbaka';
+			case 'tut_step3b_body': return 'Svep nu åt höger för att gå tillbaka till föregående fråga.';
+			case 'tut_complete_title': return 'Klart!';
+			case 'tut_complete_body': return 'Bra jobbat med genomgången.\nDu vet nu hur du översätter frågor, kikar på originaltexten och navigerar mellan dem.';
+			case 'tut_complete_subtitle': return 'Du är redo att förbereda dig för ditt taxikörkortsprov!';
+			case 'tut_start_practicing': return 'Börja öva!';
 			default: return null;
 		}
 	}

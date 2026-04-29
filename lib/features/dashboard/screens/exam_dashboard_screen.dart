@@ -1485,7 +1485,7 @@ void _resumeAttempt(
     Navigator.push(
       context,
       AppPageRoute(
-        builder: (_) => Testscreen(
+        builder: (_) => TestscreenWrapper(
           questions: attempt.questions,
           instantMarking: true,
           licenceId: attempt.licenceId ?? '',
@@ -1527,7 +1527,7 @@ void _handleExamArrowTap(
       Navigator.push(
         context,
         AppPageRoute(
-          builder: (_) => Testscreen(
+          builder: (_) => TestscreenWrapper(
             questions: paused.questions,
             instantMarking: true,
             licenceId: paused.licenceId ?? '',
