@@ -1,0 +1,8 @@
+Added
+• Tutorial to guide users through the translation process (select language, peek at original text, navigate between questions)
+• New localization strings for tutorial steps in English and Swedish
+• New launcher icon foreground assets in multiple resolutions for adaptive icons
+
+Changed
+• Batch attempt history panel now shows at most 3 most recent attempts and removes the inner bordered container for a cleaner layout
+• Updated launcher icon configuration to use the new foreground asset fo...

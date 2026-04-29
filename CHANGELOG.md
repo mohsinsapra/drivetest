@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+117] - 2026-04-29
+
+### Added
 - Tutorial to guide users through the translation process (select language, peek at original text, navigate between questions)
 - New localization strings for tutorial steps in English and Swedish
 - New launcher icon foreground assets in multiple resolutions for adaptive icons
@@ -22,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Duplicate notifications prevented within a short time frame
 
+---
 ---
 
 ## [1.0.3+116] - 2026-04-29
