@@ -29,7 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Fixed
-- Vibration not working on Android and tablets during navigation — now uses the `vibration` package instead of iOS-only `HapticFeedback.selectionClick()`
+- Navigation vibration now uses the `vibration` package on Android and supported mobile browsers, keeps `HapticFeedback.selectionClick()` on native iOS, and adds the missing Android `VIBRATE` permission
+- Navigation vibration on iOS browsers remains limited by browser support for the Web Vibration API
 
 ---
 ---
