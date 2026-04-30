@@ -23,13 +23,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.3+120] - 2026-04-30
 
 ### Added
--
+- Nav bar loading state: a single animated spinner pill replaces the nav tabs while tab-visibility flags are being fetched from the backend on app start
 
 ### Changed
--
+- Splash-to-screen transition duration reduced from 800 ms to 400 ms; curve changed from `easeOutExpo` to `easeOutCubic` for a snappier, non-dragging feel
+- Auth screen ambient background animation deferred by 450 ms so it no longer competes with the incoming slide transition
+- `MainScreen` and `HomeScreen` heavy init work (API calls, Hive opens) moved into `addPostFrameCallback` so they fire after the first frame rather than during the route transition
+- FCM `NotificationService.deregister()` on logout and `NotificationService.init()` after login are now fire-and-forget (`.ignore()`) — `getToken()` has no native timeout and was blocking both flows indefinitely
 
 ### Fixed
--
+- Logout button stuck in loading state indefinitely — `NotificationService.deregister()` was awaited on the logout path; `_messaging.getToken()` inside it could hang forever with no timeout
+- Google login showed success toast but stayed on auth screen loading — `NotificationService.init()` was awaited for up to 6 seconds before navigation was triggered
+- Added `finally` block to logout sheet so `_isLoading` always resets to `false` if the widget remains mounted after navigation
 
 ---
 ---
