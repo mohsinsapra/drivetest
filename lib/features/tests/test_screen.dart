@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:vibration/vibration.dart';
+import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -361,9 +361,7 @@ class _TestscreenState extends State<Testscreen> {
       ),
     );
     Overlay.of(context).insert(entry);
-    Vibration.hasVibrator().then((has) {
-      if (has == true) Vibration.vibrate(pattern: [0, 80, 60, 120, 60, 200]);
-    });
+    vibratePass();
   }
 
   Future<void> _loadSavedQuestionIds() async {
@@ -399,9 +397,11 @@ class _TestscreenState extends State<Testscreen> {
   void _onTimerExpired() {
     showAppSnackBar('Time is up! Submitting your test.');
     _saveTestAttempt();
+    final passed = _calculateResult();
+    if (passed) { vibratePass(); } else { vibrateFail(); }
     showResultDialog(
       context: context,
-      hasPassed: _calculateResult(),
+      hasPassed: passed,
       questions: widget.questions,
       userSelections: userSelections,
       licenceId: widget.licenceId,
@@ -527,6 +527,10 @@ class _TestscreenState extends State<Testscreen> {
     if (_instantMarking && userSelections[index] != null) {
       return;
     }
+    if (_instantMarking &&
+        optionId != widget.questions[index].correctAnswer) {
+      vibrateWrongAnswer();
+    }
     setState(() {
       userSelections[index] = optionId;
     });
@@ -546,9 +550,11 @@ class _TestscreenState extends State<Testscreen> {
         onCancel: () {}, // nothing extra to do
         onConfirm: () {
           _saveTestAttempt();
+          final passed = _calculateResult();
+          if (passed) { vibratePass(); } else { vibrateFail(); }
           showResultDialog(
             context: context,
-            hasPassed: _calculateResult(),
+            hasPassed: passed,
             questions: widget.questions,
             userSelections: userSelections,
             licenceId: widget.licenceId,
@@ -1471,8 +1477,7 @@ class _TestscreenState extends State<Testscreen> {
               onConfirm: () {
                 _saveTestAttempt(); // store Hive record
                 final passed = _calculateResult();
-
-                // After saving, show the pass/fail dialog
+                if (passed) { vibratePass(); } else { vibrateFail(); }
                 showResultDialog(
                   context: context,
                   hasPassed: passed,

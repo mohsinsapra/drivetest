@@ -10,6 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Haptic/vibration feedback on login and logout
+- Haptic/vibration feedback on wrong answer when instant-check mode is active
+- Haptic/vibration feedback on test pass (celebration pattern) and test fail
+- Web vibration support via `navigator.vibrate()` for mobile browsers (Chrome on Android)
+
+### Changed
+- Vibration now uses both `HapticFeedback` and the `Vibration` package on Android for maximum device coverage (tablets and phones)
+- Bumped `vibration` package to 3.1.8
+
+### Fixed
+- Vibrations were silently skipped on web (package had no web plugin); now handled via js_interop
+- Fixed iOS CocoaPods conflict: Firebase/CoreOnly version mismatch between Podfile.lock (12.4.0) and firebase_core plugin (12.9.0); resolved by regenerating Podfile.lock
+
+---
+
+## [1.0.3+121] - 2026-04-30
+
+### Added
 -
 
 ### Changed
@@ -18,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
+---
 ---
 
 ## [1.0.3+120] - 2026-04-30

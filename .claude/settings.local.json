@@ -127,7 +127,10 @@
       "Bash(adb -s emulator-5554 shell input tap 988 157)",
       "Bash(adb -s emulator-5554 shell input tap 540 1731)",
       "Bash(adb -s emulator-5554 shell input tap 540 1199)",
-      "Bash(adb -s emulator-5554 shell input text \"muhammad.mohsin@dosell.com\")"
+      "Bash(adb -s emulator-5554 shell input text \"muhammad.mohsin@dosell.com\")",
+      "Bash(grep -A5 \"name: vibration$\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/pubspec.lock)",
+      "Bash(find /Users/muhammadmohsin/.pub-cache/hosted/pub.dev/vibration_platform_interface-* -name \"*.dart\")",
+      "Bash(sort -t- -k5 -V)"
     ],
     "deny": [],
     "ask": []

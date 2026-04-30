@@ -15,6 +15,7 @@ import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/forgot_password_screen.dart';
+import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 enum _AuthView { landing, login, signup }
@@ -129,6 +130,7 @@ class _AuthScreenState extends State<AuthScreen> {
       final isFirstLogin = await _apiService.googleAuth(
           idToken: idToken, accessToken: accessToken);
       if (!mounted) return;
+      vibrateLoginLogout();
       try {
         await _navigateToMain(isFirstLogin: isFirstLogin);
       } catch (navError) {
@@ -185,6 +187,7 @@ class _AuthScreenState extends State<AuthScreen> {
         _loginPasswordCtrl.text,
       );
       if (!mounted) return;
+      vibrateLoginLogout();
       try {
         await _navigateToMain(isFirstLogin: isFirstLogin);
       } catch (navError) {

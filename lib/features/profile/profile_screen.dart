@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
@@ -474,6 +475,7 @@ class _LogoutSheetState extends State<_LogoutSheet> {
     setState(() => _isLoading = true);
     try {
       await ProfileProvider().logout();
+      vibrateLoginLogout();
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
