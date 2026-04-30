@@ -52,6 +52,7 @@ class MainScreenState extends State<MainScreen> {
   // on first launch for users who don't have legacy tests enabled.
   bool _showLegacyTests = false;
   bool _showBcdTests = false;
+  bool _tabsLoading = true;
 
   // Returns only the tabs the user should see, each pointing to a fixed page.
   // Progress is always first. Home + Tests only appear when the backend sets
@@ -92,13 +93,12 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTabFlags();
-    NotificationService.init(_apiService).ignore();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Provider.of<MainScreenProvider>(context, listen: false)
-            .setIndex(_kPageDashboard);
-      }
+      if (!mounted) return;
+      Provider.of<MainScreenProvider>(context, listen: false)
+          .setIndex(_kPageDashboard);
+      _loadTabFlags();
+      NotificationService.init(_apiService).ignore();
     });
   }
 
@@ -144,16 +144,14 @@ class MainScreenState extends State<MainScreen> {
 
   Future<void> _loadTabFlags() async {
     try {
-     
-
       final fresh = await _apiService.fetchCurrentUser();
       if (fresh is Map<String, dynamic>) {
-      
         await _applyFlagsFromMap(fresh);
-   
       }
     } catch (_) {
       // Keep defaults if loading flags fails.
+    } finally {
+      if (mounted) setState(() => _tabsLoading = false);
     }
   }
 
@@ -189,13 +187,66 @@ class MainScreenState extends State<MainScreen> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: _FloatingNavArea(
-              currentIndex: selectedNavIndex,
-              items: entries,
-              onTap: (pageIndex) {
-                _handleNavigationChange(provider, pageIndex);
-              },
-              bottomInset: mq.padding.bottom,
+            child: _tabsLoading
+                ? _NavLoadingIndicator(bottomInset: mq.padding.bottom)
+                : _FloatingNavArea(
+                    currentIndex: selectedNavIndex,
+                    items: entries,
+                    onTap: (pageIndex) {
+                      _handleNavigationChange(provider, pageIndex);
+                    },
+                    bottomInset: mq.padding.bottom,
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Nav loading indicator ───────────────────────────────────────────────────
+
+class _NavLoadingIndicator extends StatelessWidget {
+  final double bottomInset;
+
+  const _NavLoadingIndicator({required this.bottomInset});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset + 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 56,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(50),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.09),
+                  blurRadius: 24,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: cs.primary,
+                ),
+              ),
             ),
           ),
         ],

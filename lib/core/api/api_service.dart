@@ -40,12 +40,9 @@ class ApiService {
   }
 
   Future<void> logout() async {
-    // Deregister FCM token and reset NotificationService state before clearing credentials
-    try {
-      await NotificationService.deregister(this);
-    } catch (e) {
-      debugPrint('FCM deregister on logout failed (non-fatal): $e');
-    }
+    // Fire-and-forget: FCM deregistration is best-effort. getToken() can block
+    // indefinitely if Firebase is slow, so we never await it on the logout path.
+    NotificationService.deregister(this).ignore();
     final refreshToken = _dioClient.refreshToken;
     // Best-effort: blacklist the refresh token on the server
     if (refreshToken != null) {

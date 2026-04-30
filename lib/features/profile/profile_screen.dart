@@ -472,7 +472,11 @@ class _LogoutSheetState extends State<_LogoutSheet> {
 
   Future<void> _doLogout() async {
     setState(() => _isLoading = true);
-    await ProfileProvider().logout();
+    try {
+      await ProfileProvider().logout();
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
     if (!mounted) return;
     showAppSnackBar('Logged out successfully.', type: SnackBarType.success);
   }

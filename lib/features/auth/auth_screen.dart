@@ -81,12 +81,9 @@ class _AuthScreenState extends State<AuthScreen> {
       _showWelcomeMessage(Map<String, dynamic>.from(user as Map),
           isFirstLogin: isFirstLogin);
     }
-    try {
-      await NotificationService.init(ApiService())
-          .timeout(const Duration(seconds: 6));
-    } catch (e) {
-      debugPrint('AuthScreen: notification init failed (non-fatal) — $e');
-    }
+    // Fire-and-forget: FCM init calls getToken() which can block indefinitely.
+    // Navigate immediately and let token registration complete in the background.
+    NotificationService.init(ApiService()).ignore();
     if (!mounted) return;
     final navigator = Navigator.of(context);
     final afterAuth = widget.onAfterAuth;
@@ -657,14 +654,19 @@ class _AnimatedAuthBgState extends State<_AnimatedAuthBg>
     _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 42),
-    )..repeat();
+    );
 
-    // Generate fixed random scales once to keep items consistent during loop
-    final rand = math.Random(42); // Seed for deterministic but varied look
+    final rand = math.Random(42);
     _randomScales = List.generate(
       _kAmbientItems.length,
-      (_) => 0.7 + rand.nextDouble() * 0.5, // scale between 0.7x and 1.2x
+      (_) => 0.7 + rand.nextDouble() * 0.5,
     );
+
+    // Defer the animation until the route transition finishes so it doesn't
+    // compete with the slide-in and cause dropped frames.
+    Future.delayed(const Duration(milliseconds: 450), () {
+      if (mounted) _ctrl.repeat();
+    });
   }
 
   @override

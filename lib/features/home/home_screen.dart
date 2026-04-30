@@ -72,7 +72,6 @@ class _HomeScreenState extends State<HomeScreen>
     _fadeAnimation =
         CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
 
-    _loadPreviousAttempts(forceSync: true);
     _tabListener = () {
       if (_mainScreenProvider?.currentIndex == 0 && mounted) {
         // On tab return: always refresh from local Hive instantly;
@@ -85,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen>
       _mainScreenProvider =
           Provider.of<MainScreenProvider>(context, listen: false);
       _mainScreenProvider!.addListener(_tabListener);
+      _loadPreviousAttempts(forceSync: true);
     });
   }
 
