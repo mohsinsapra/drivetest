@@ -32,6 +32,7 @@ platform :android do
       track: "alpha",
       skip_upload_metadata: true,
       skip_upload_images: true,
+      skip_upload_screenshots: false,
       version_code: current_build_number,
       aab: "../build/app/outputs/bundle/release/app-release.aab",
       json_key_data: play_store_json_key
