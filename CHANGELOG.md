@@ -23,6 +23,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.3+123] - 2026-05-02
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.3+123] - 2026-05-02
+
+### Added
 - New pass/fail result screen with animated circular score progress, PASSED/FAILED pill, correct/wrong/skipped stats row, and per-question review list
 - Result dialog redesigned as a themed modal with colored header, trophy/sad icon, large score %, and PASSED/FAILED badge
 

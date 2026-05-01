@@ -1,12 +1,8 @@
 Added
-• Haptic/vibration feedback on login and logout
-• Haptic/vibration feedback on wrong answer when instant-check mode is active
-• Haptic/vibration feedback on test pass (celebration pattern) and test fail
-• Web vibration support via `navigator.vibrate()` for mobile browsers (Chrome on Android)
+-
 
 Changed
-• Vibration now uses both `HapticFeedback` and the `Vibration` package on Android for maximum device coverage (tablets and phones)
-• Bumped `vibration` package to 3.1.8
+-
 
 Fixed
-• Vibrations ...
+-
