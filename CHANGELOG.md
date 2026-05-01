@@ -10,6 +10,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+123] - 2026-05-02
+
+### Added
+- New pass/fail result screen with animated circular score progress, PASSED/FAILED pill, correct/wrong/skipped stats row, and per-question review list
+- Result dialog redesigned as a themed modal with colored header, trophy/sad icon, large score %, and PASSED/FAILED badge
+
+### Changed
+- Tutorial hint cards (swipe left/right, press & hold) now use the theme primary color as background with white text — no more plain white cards
+- Tutorial completion overlay elements now animate in separately (icon → title → body → subtitle → button) with staggered slide-up + fade transitions
+- Tutorial completion overlay is now properly centered on screen (was broken inside ScrollView)
+- `_calculateResult()` refactored to delegate to new `_computeScorePercent()` helper; score is now passed to the result dialog
+
+### Fixed
+- Yellow double-underline on all tutorial overlay text — caused by `Text` widgets having no `Material` ancestor in `OverlayEntry` builders; fixed by wrapping each overlay in `Material(color: Colors.transparent)`
+
+---
+
+## [1.0.3+122] - 2026-05-01
+
+### Added
 - Haptic/vibration feedback on login and logout
 - Haptic/vibration feedback on wrong answer when instant-check mode is active
 - Haptic/vibration feedback on test pass (celebration pattern) and test fail
@@ -23,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vibrations were silently skipped on web (package had no web plugin); now handled via js_interop
 - Fixed iOS CocoaPods conflict: Firebase/CoreOnly version mismatch between Podfile.lock (12.4.0) and firebase_core plugin (12.9.0); resolved by regenerating Podfile.lock
 
+---
 ---
 
 ## [1.0.3+121] - 2026-04-30

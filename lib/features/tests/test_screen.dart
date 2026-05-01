@@ -181,6 +181,7 @@ class _TestscreenState extends State<Testscreen> {
   void _showTutorialPhase1() {
     setState(() => _tutorialPhase1Active = true);
     final t = Translations.of(context);
+    final primary = Theme.of(context).colorScheme.primary;
 
     _phase1Coach = TutorialCoachMark(
       targets: [
@@ -197,6 +198,7 @@ class _TestscreenState extends State<Testscreen> {
                 icon: LucideIcons.languages,
                 title: t.tut_step1_title,
                 body: t.tut_step1_body,
+                primaryColor: primary,
               ),
             ),
           ],
@@ -230,16 +232,21 @@ class _TestscreenState extends State<Testscreen> {
     if (!mounted) return;
     _dismissLangPickHint();
     final t = Translations.of(context);
+    final theme = Theme.of(context);
     _langPickOverlay = OverlayEntry(
       builder: (_) => Positioned(
         left: 16,
         right: 16,
         bottom: 120,
-        child: IgnorePointer(
-          child: _TutorialCard(
-            icon: Icons.translate,
-            title: t.tut_step1b_title,
-            body: t.tut_step1b_body,
+        child: Material(
+          color: Colors.transparent,
+          child: IgnorePointer(
+            child: _TutorialCard(
+              icon: Icons.translate,
+              title: t.tut_step1b_title,
+              body: t.tut_step1b_body,
+              primaryColor: theme.colorScheme.primary,
+            ),
           ),
         ),
       ),
@@ -270,14 +277,19 @@ class _TestscreenState extends State<Testscreen> {
     if (!mounted) return;
     setState(() { _tutorialPhase2Active = true; _tutorialPhase2bActive = false; });
     final t = Translations.of(context);
+    final primary = Theme.of(context).colorScheme.primary;
     _replaceOverlay(OverlayEntry(
       builder: (_) => Positioned(
         left: 16, right: 16, bottom: 120,
-        child: IgnorePointer(
-          child: _TutorialCard(
-            icon: Icons.touch_app_outlined,
-            title: t.tut_step2a_title,
-            body: t.tut_step2a_body,
+        child: Material(
+          color: Colors.transparent,
+          child: IgnorePointer(
+            child: _TutorialCard(
+              icon: Icons.touch_app_outlined,
+              title: t.tut_step2a_title,
+              body: t.tut_step2a_body,
+              primaryColor: primary,
+            ),
           ),
         ),
       ),
@@ -289,14 +301,19 @@ class _TestscreenState extends State<Testscreen> {
     if (!mounted) return;
     setState(() { _tutorialPhase2bActive = true; });
     final t = Translations.of(context);
+    final primary = Theme.of(context).colorScheme.primary;
     _replaceOverlay(OverlayEntry(
       builder: (_) => Positioned(
         left: 16, right: 16, bottom: 120,
-        child: IgnorePointer(
-          child: _TutorialCard(
-            icon: Icons.pan_tool_outlined,
-            title: t.tut_step2b_title,
-            body: t.tut_step2b_body,
+        child: Material(
+          color: Colors.transparent,
+          child: IgnorePointer(
+            child: _TutorialCard(
+              icon: Icons.pan_tool_outlined,
+              title: t.tut_step2b_title,
+              body: t.tut_step2b_body,
+              primaryColor: primary,
+            ),
           ),
         ),
       ),
@@ -308,14 +325,19 @@ class _TestscreenState extends State<Testscreen> {
     if (!mounted) return;
     setState(() { _tutorialPhase3aActive = true; _tutorialPhase2Active = false; _tutorialPhase2bActive = false; });
     final t = Translations.of(context);
+    final primary = Theme.of(context).colorScheme.primary;
     _replaceOverlay(OverlayEntry(
       builder: (_) => Positioned(
         left: 16, right: 16, bottom: 120,
-        child: IgnorePointer(
-          child: _TutorialCard(
-            icon: Icons.swipe_left_outlined,
-            title: t.tut_step3a_title,
-            body: t.tut_step3a_body,
+        child: Material(
+          color: Colors.transparent,
+          child: IgnorePointer(
+            child: _TutorialCard(
+              icon: Icons.swipe_left_outlined,
+              title: t.tut_step3a_title,
+              body: t.tut_step3a_body,
+              primaryColor: primary,
+            ),
           ),
         ),
       ),
@@ -327,14 +349,19 @@ class _TestscreenState extends State<Testscreen> {
     if (!mounted) return;
     setState(() { _tutorialPhase3aActive = false; _tutorialPhase3bActive = true; });
     final t = Translations.of(context);
+    final primary = Theme.of(context).colorScheme.primary;
     _replaceOverlay(OverlayEntry(
       builder: (_) => Positioned(
         left: 16, right: 16, bottom: 120,
-        child: IgnorePointer(
-          child: _TutorialCard(
-            icon: Icons.swipe_right_outlined,
-            title: t.tut_step3b_title,
-            body: t.tut_step3b_body,
+        child: Material(
+          color: Colors.transparent,
+          child: IgnorePointer(
+            child: _TutorialCard(
+              icon: Icons.swipe_right_outlined,
+              title: t.tut_step3b_title,
+              body: t.tut_step3b_body,
+              primaryColor: primary,
+            ),
           ),
         ),
       ),
@@ -356,8 +383,11 @@ class _TestscreenState extends State<Testscreen> {
   void _showTutorialComplete() {
     OverlayEntry? entry;
     entry = OverlayEntry(
-      builder: (_) => _TutorialCompleteOverlay(
-        onDone: () => entry?.remove(),
+      builder: (_) => Material(
+        color: Colors.transparent,
+        child: _TutorialCompleteOverlay(
+          onDone: () => entry?.remove(),
+        ),
       ),
     );
     Overlay.of(context).insert(entry);
@@ -402,6 +432,8 @@ class _TestscreenState extends State<Testscreen> {
     showResultDialog(
       context: context,
       hasPassed: passed,
+      score: _computeScorePercent(),
+      passScorePercent: widget.passScorePercent,
       questions: widget.questions,
       userSelections: userSelections,
       licenceId: widget.licenceId,
@@ -555,6 +587,8 @@ class _TestscreenState extends State<Testscreen> {
           showResultDialog(
             context: context,
             hasPassed: passed,
+            score: _computeScorePercent(),
+            passScorePercent: widget.passScorePercent,
             questions: widget.questions,
             userSelections: userSelections,
             licenceId: widget.licenceId,
@@ -577,20 +611,19 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   bool _calculateResult() {
+    return _computeScorePercent() >= widget.passScorePercent;
+  }
+
+  double _computeScorePercent() {
+    if (widget.questions.isEmpty) return 0;
     int correctAnswers = 0;
-
     for (int i = 0; i < widget.questions.length; i++) {
-      final question = widget.questions[i];
-      final selectedOptionLabel = userSelections[i];
-
-      if (selectedOptionLabel != null &&
-          selectedOptionLabel == question.correctAnswer) {
+      final sel = userSelections[i];
+      if (sel != null && sel == widget.questions[i].correctAnswer) {
         correctAnswers++;
       }
     }
-
-    double scorePercentage = (correctAnswers / widget.questions.length) * 100;
-    return scorePercentage >= widget.passScorePercent;
+    return (correctAnswers / widget.questions.length) * 100;
   }
 
   void _saveTestAttempt() async {
@@ -1481,6 +1514,8 @@ class _TestscreenState extends State<Testscreen> {
                 showResultDialog(
                   context: context,
                   hasPassed: passed,
+                  score: _computeScorePercent(),
+                  passScorePercent: widget.passScorePercent,
                   questions: widget.questions,
                   userSelections: userSelections,
                   licenceId: widget.licenceId,
@@ -1665,17 +1700,19 @@ class _TutorialCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
+  final Color? primaryColor;
 
   const _TutorialCard({
     required this.icon,
     required this.title,
     required this.body,
+    this.primaryColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final cs = Theme.of(context).colorScheme;
+    final color = primaryColor ?? cs.primary;
     final screenWidth = MediaQuery.of(context).size.width;
     final maxWidth = (screenWidth - 32).clamp(0.0, 420.0);
 
@@ -1685,49 +1722,61 @@ class _TutorialCard extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
+            color: color,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: color.withValues(alpha: 0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(icon, color: cs.primary, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: cs.onSurface,
-                      ),
-                    ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                body,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: cs.onSurface.withValues(alpha: 0.65),
-                  height: 1.4,
+                  child: Icon(icon, color: Colors.white, size: 18),
                 ),
-              ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        body,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.88),
+                          height: 1.4,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1746,65 +1795,88 @@ class _TutorialCompleteOverlay extends StatefulWidget {
 }
 
 class _TutorialCompleteOverlayState extends State<_TutorialCompleteOverlay>
-    with TickerProviderStateMixin {
-  // Slide-up for the full screen sheet.
-  late final AnimationController _sheetCtrl;
-  late final Animation<Offset> _sheetSlide;
+    with SingleTickerProviderStateMixin {
+  // Single controller: sheet slides up first (0→0.3), then content staggers (0.3→1.0).
+  late final AnimationController _ctrl;
 
-  // Scale + fade for the check circle icon.
-  late final AnimationController _iconCtrl;
+  late final Animation<Offset> _sheetSlide;
   late final Animation<double> _iconScale;
   late final Animation<double> _iconFade;
-
-  // Fade-in for the text block.
-  late final AnimationController _textCtrl;
-  late final Animation<double> _textFade;
-  late final Animation<Offset> _textSlide;
+  late final Animation<double> _titleFade;
+  late final Animation<Offset> _titleSlide;
+  late final Animation<double> _bodyFade;
+  late final Animation<Offset> _bodySlide;
+  late final Animation<double> _subtitleFade;
+  late final Animation<Offset> _subtitleSlide;
+  late final Animation<double> _buttonFade;
+  late final Animation<Offset> _buttonSlide;
 
   @override
   void initState() {
     super.initState();
 
-    _sheetCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+
+    Animation<double> curved(double begin, double end, Curve curve) =>
+        CurvedAnimation(parent: _ctrl, curve: Interval(begin, end, curve: curve));
+
+    const upStart = Offset(0, 0.18);
+
     _sheetSlide = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _sheetCtrl, curve: Curves.easeOutCubic));
+        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0, 0.28, curve: Curves.easeOutCubic)));
 
-    _iconCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _iconFade  = curved(0.22, 0.40, Curves.easeOut);
     _iconScale = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _iconCtrl, curve: Curves.elasticOut));
-    _iconFade = CurvedAnimation(parent: _iconCtrl, curve: const Interval(0.0, 0.5));
+        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.22, 0.45, curve: Curves.elasticOut)));
 
-    _textCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
-    _textFade = CurvedAnimation(parent: _textCtrl, curve: Curves.easeOut);
-    _textSlide = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _textCtrl, curve: Curves.easeOutCubic));
+    _titleFade  = curved(0.40, 0.55, Curves.easeOut);
+    _titleSlide = Tween<Offset>(begin: upStart, end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.40, 0.55, curve: Curves.easeOutCubic)));
 
-    // Stagger the animations.
-    _sheetCtrl.forward().then((_) {
-      _iconCtrl.forward().then((_) {
-        _textCtrl.forward();
-      });
-    });
+    _bodyFade  = curved(0.52, 0.67, Curves.easeOut);
+    _bodySlide = Tween<Offset>(begin: upStart, end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.52, 0.67, curve: Curves.easeOutCubic)));
+
+    _subtitleFade  = curved(0.63, 0.78, Curves.easeOut);
+    _subtitleSlide = Tween<Offset>(begin: upStart, end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.63, 0.78, curve: Curves.easeOutCubic)));
+
+    _buttonFade  = curved(0.78, 1.0, Curves.easeOut);
+    _buttonSlide = Tween<Offset>(begin: upStart, end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.78, 1.0, curve: Curves.easeOutCubic)));
+
+    _ctrl.forward();
   }
 
   void _dismiss() {
-    _sheetCtrl.reverse().then((_) => widget.onDone());
+    _ctrl.reverse().then((_) => widget.onDone());
   }
 
   @override
   void dispose() {
-    _sheetCtrl.dispose();
-    _iconCtrl.dispose();
-    _textCtrl.dispose();
+    _ctrl.dispose();
     super.dispose();
+  }
+
+  Widget _staggered({
+    required Animation<double> fade,
+    required Animation<Offset> slide,
+    required Widget child,
+  }) {
+    return FadeTransition(
+      opacity: fade,
+      child: SlideTransition(position: slide, child: child),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final t = Translations.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
+    final hPad = (MediaQuery.of(context).size.width * 0.07).clamp(20.0, 52.0);
 
     return SlideTransition(
       position: _sheetSlide,
@@ -1813,93 +1885,117 @@ class _TutorialCompleteOverlayState extends State<_TutorialCompleteOverlay>
         width: double.infinity,
         height: double.infinity,
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: (screenWidth * 0.06).clamp(16.0, 48.0),
-              vertical: 32,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 24),
-                // Animated check circle.
-                ScaleTransition(
-                  scale: _iconScale,
-                  child: FadeTransition(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Icon
+                  FadeTransition(
                     opacity: _iconFade,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: cs.primary.withValues(alpha: 0.1),
+                    child: ScaleTransition(
+                      scale: _iconScale,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: cs.primary.withValues(alpha: 0.1),
+                        ),
+                        child: Icon(
+                          Icons.check_circle_rounded,
+                          size: 80,
+                          color: cs.primary,
+                        ),
                       ),
-                      child: Icon(Icons.check_circle_rounded, size: 80, color: cs.primary),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-                // Text block fades + slides in after icon.
-                FadeTransition(
-                  opacity: _textFade,
-                  child: SlideTransition(
-                    position: _textSlide,
-                    child: Column(
-                      children: [
-                        Text(
-                          t.tut_complete_title,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            color: cs.primary,
+                  // Title
+                  _staggered(
+                    fade: _titleFade,
+                    slide: _titleSlide,
+                    child: Text(
+                      t.tut_complete_title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: cs.primary,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Body
+                  _staggered(
+                    fade: _bodyFade,
+                    slide: _bodySlide,
+                    child: Text(
+                      t.tut_complete_body,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: cs.onSurface.withValues(alpha: 0.6),
+                        height: 1.6,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Subtitle
+                  _staggered(
+                    fade: _subtitleFade,
+                    slide: _subtitleSlide,
+                    child: Text(
+                      t.tut_complete_subtitle,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface.withValues(alpha: 0.85),
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Button
+                  _staggered(
+                    fade: _buttonFade,
+                    slide: _buttonSlide,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _dismiss,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          t.tut_complete_body,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: cs.onSurface.withValues(alpha: 0.6),
-                            height: 1.6,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          t.tut_complete_subtitle,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
+                        child: Text(
+                          t.tut_start_practicing,
+                          style: const TextStyle(
+                            fontSize: 17,
                             fontWeight: FontWeight.w600,
-                            color: cs.onSurface.withValues(alpha: 0.85),
+                            decoration: TextDecoration.none,
                           ),
                         ),
-                        const SizedBox(height: 40),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _dismiss,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Text(
-                              t.tut_start_practicing,
-                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
