@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -12,15 +15,81 @@ import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 const _webVapidKey =
     'BO08sXwRIqAQU5FPLThK2rB2ti66imtY6oqsikvEP_2txuKE6k-AhO6zLdgHFXD__5jvGfCK5SlpLeMFD4SJEYQ';
 
+class NotificationPayload {
+  const NotificationPayload({
+    required this.title,
+    required this.body,
+    required this.type,
+  });
+
+  final String title;
+  final String body;
+  final String type;
+
+  bool get hasVisibleContent => title.isNotEmpty || body.isNotEmpty;
+}
+
+NotificationPayload notificationPayloadFromRaw({
+  String? title,
+  String? body,
+  Map<String, dynamic> data = const {},
+}) {
+  final resolvedTitle = (title?.trim().isNotEmpty == true)
+      ? title!.trim()
+      : (data['title']?.toString().trim() ?? '');
+  final resolvedBody = (body?.trim().isNotEmpty == true)
+      ? body!.trim()
+      : (data['body']?.toString().trim() ?? '');
+  final resolvedType = (data['type']?.toString().trim().isNotEmpty == true)
+      ? data['type'].toString().trim()
+      : 'general';
+
+  return NotificationPayload(
+    title: resolvedTitle,
+    body: resolvedBody,
+    type: resolvedType,
+  );
+}
+
+NotificationPayload _payloadFromMessage(RemoteMessage message) {
+  return notificationPayloadFromRaw(
+    title: message.notification?.title,
+    body: message.notification?.body,
+    data: Map<String, dynamic>.from(message.data),
+  );
+}
+
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await Hive.initFlutter();
+  if (!Hive.isAdapterRegistered(3)) {
+    Hive.registerAdapter(LocalNotificationAdapter());
+  }
+
+  final payload = _payloadFromMessage(message);
+  if (!payload.hasVisibleContent) return;
+
+  final provider = await NotificationProvider.ensureInitialized();
+  await provider.add(payload.title, payload.body, type: payload.type);
+  debugPrint('[FCM] stored background message: ${message.messageId}');
+}
+
 class NotificationService {
   static final _messaging = FirebaseMessaging.instance;
   static bool _isInitialized = false;
+  static bool _backgroundHandlerRegistered = false;
   static StreamSubscription<String>? _tokenRefreshSub;
   static StreamSubscription<RemoteMessage>? _onMessageSub;
   static StreamSubscription<RemoteMessage>? _onOpenedSub;
 
   /// Call once after Firebase.initializeApp and after the user is authenticated.
   static Future<void> init(ApiService api) async {
+    if (!_backgroundHandlerRegistered) {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      _backgroundHandlerRegistered = true;
+    }
+
     if (_isInitialized) {
       // App session may survive logout/login without reattaching listeners.
       // Re-register token so backend always has the current active device.
@@ -37,6 +106,11 @@ class NotificationService {
       sound: true,
     );
     debugPrint('[FCM] permission status: ${settings.authorizationStatus}');
+    await _messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
     // Register current token
     await _registerToken(api);
@@ -53,19 +127,21 @@ class NotificationService {
     // Foreground messages — store locally and show snackbar
     _onMessageSub =
         FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      final title = message.notification?.title ?? '';
-      final body = message.notification?.body ?? '';
-      final type = (message.data['type'] ?? 'general').toString();
-      if (title.isNotEmpty || body.isNotEmpty) {
+      final payload = _payloadFromMessage(message);
+      if (payload.hasVisibleContent) {
         try {
-          await NotificationProvider.instance.add(title, body, type: type);
+          await NotificationProvider.instance.add(
+            payload.title,
+            payload.body,
+            type: payload.type,
+          );
         } catch (e) {
           debugPrint('[FCM] failed to persist notification: $e');
         }
         showAppSnackBar(
-          '$title: $body',
-          type: _toastStyle(type),
-          icon: _toastIcon(type),
+          '${payload.title}: ${payload.body}',
+          type: _toastStyle(payload.type),
+          icon: _toastIcon(payload.type),
         );
       }
     });
@@ -76,6 +152,23 @@ class NotificationService {
       debugPrint('[FCM] opened from background: ${message.messageId}');
       // Future: navigate based on message.data['screen']
     });
+
+    final initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      final payload = _payloadFromMessage(initialMessage);
+      if (payload.hasVisibleContent) {
+        try {
+          await NotificationProvider.instance.add(
+            payload.title,
+            payload.body,
+            type: payload.type,
+          );
+        } catch (e) {
+          debugPrint('[FCM] failed to persist launch notification: $e');
+        }
+      }
+      debugPrint('[FCM] opened from terminated: ${initialMessage.messageId}');
+    }
 
     _isInitialized = true;
   }

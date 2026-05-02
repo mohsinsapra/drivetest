@@ -12,6 +12,8 @@ class NotificationProvider extends ChangeNotifier {
     return _instance!;
   }
 
+  static bool get isInitialized => _instance != null;
+
   static const _boxName = AppStorage.kNotifications;
 
   List<LocalNotification> _notifications = [];
@@ -43,6 +45,11 @@ class NotificationProvider extends ChangeNotifier {
     provider._notifications = box.values.toList().reversed.toList();
     _instance = provider;
     return provider;
+  }
+
+  static Future<NotificationProvider> ensureInitialized() async {
+    if (_instance != null) return _instance!;
+    return create();
   }
 
   /// Add a new incoming notification (called from NotificationService).
