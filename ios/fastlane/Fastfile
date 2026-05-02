@@ -1,21 +1,74 @@
+# Load root project .env so credentials live in one place
+root_env = File.expand_path("../../.env", __dir__)
+if File.exist?(root_env)
+  File.foreach(root_env) do |line|
+    line.strip!
+    next if line.empty? || line.start_with?("#")
+    key, value = line.split("=", 2)
+    ENV[key] ||= value if key && value
+  end
+end
+
 default_platform(:ios)
 
 platform :ios do
-  desc "Deploy Beta"
-  lane :beta do
-    # Update version in pubspec.yaml and CHANGELOG.md
+  desc "Build IPA only (no upload)"
+  lane :build do
     update_flutter_version
-
-    # Get changelog
-    changelog_text = get_latest_changelog_entry
-
-    build_app(scheme: "Runner")
-    upload_to_testflight(
-      changelog: changelog_text
+    get_provisioning_profile(
+      app_identifier: "com.mohsinsapra.drivetest",
+      team_id: "MBWC2B7V68"
     )
-
-    # Tag the release
+    build_app(
+      scheme: "Runner",
+      export_method: "app-store",
+      export_options: {
+        method: "app-store",
+        teamID: "MBWC2B7V68",
+        signingStyle: "manual",
+        signingCertificate: "Apple Distribution",
+        provisioningProfiles: {
+          "com.mohsinsapra.drivetest" => ENV["SIGH_NAME"]
+        }
+      }
+    )
+    ipa_path = Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]
+    UI.success("✅ IPA ready: #{ipa_path}")
     tag_release
+  end
+
+  desc "Upload last built IPA to TestFlight"
+  lane :upload do
+    ipa_path = File.expand_path("../Runner.ipa", __dir__)
+    UI.user_error!("No IPA found at #{ipa_path} — run `fastlane build` first") unless File.exist?(ipa_path)
+
+    app_password = ENV["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"]
+    UI.user_error!("Set FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD in ios/fastlane/.env") if app_password.nil? || app_password.empty? || app_password == "your-app-specific-password-here"
+
+    sh("xcrun altool --upload-app " \
+       "-f '#{ipa_path}' " \
+       "-t ios " \
+       "-u mohsin.sapra@gmail.com " \
+       "-p '#{app_password}' " \
+       "--asc-provider 128337297 " \
+       "--output-format normal")
+  end
+
+  desc "Build + upload to TestFlight"
+  lane :beta do
+    build
+    upload
+  end
+
+  desc "Deploy to both iOS TestFlight and Android Play Store alpha"
+  lane :deploy_all do
+    UI.message("🍎 Starting iOS build & upload...")
+    beta
+
+    UI.message("🤖 Starting Android build & upload...")
+    sh("cd ../../android && bundle exec fastlane beta")
+
+    UI.success("✅ Deployed to both iOS TestFlight and Android Play Store!")
   end
 
   desc "Deploy Production"
@@ -26,7 +79,10 @@ platform :ios do
     # Get changelog
     changelog_text = get_latest_changelog_entry
 
-    build_app(scheme: "Runner")
+    build_app(
+      scheme: "Runner",
+      export_options: "ExportOptions.plist"
+    )
     upload_to_app_store(
       release_notes: {
         "en-US" => changelog_text

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="fastlane.lanes">
+    
+    
+    
+      
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000202">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="1: xcrun altool --upload-app -f '/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/ios/Runner.ipa' -t ios -u mohsin.sapra@gmail.com -p 'oknc-vmhh-amvb-vust' --asc-provider 128337297 --output-format normal" time="86.439">
+        
+      </testcase>
+    
+  </testsuite>
+</testsuites>

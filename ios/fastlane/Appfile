@@ -1,6 +1,7 @@
-# app_identifier("[[APP_IDENTIFIER]]") # The bundle identifier of your app
-# apple_id("[[APPLE_ID]]") # Your Apple Developer Portal username
-
+app_identifier("com.mohsinsapra.drivetest")
+apple_id("mohsin.sapra@gmail.com")
+itc_team_id("128337297") # App Store Connect Team ID (Alpha Tjanster AB)
+team_id("MBWC2B7V68")     # Developer Portal Team ID
 
 # For more information about the Appfile, see:
 #     https://docs.fastlane.tools/advanced/#appfile

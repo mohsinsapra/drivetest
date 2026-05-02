@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core
+.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core
 
 # Colors for output
 COLOR_RESET = \033[0m
@@ -76,7 +76,7 @@ help:
 	@echo "$(COLOR_GREEN)Mobile Deployment:$(COLOR_RESET)"
 	@echo "  make android-beta     - Deploy Android to Google Play alpha"
 	@echo "  make android-deploy   - Deploy Android to alpha, then promote to production"
-	@echo "  make deploy-all       - Deploy web, then deploy Android to alpha and production"
+	@echo "  make deploy-all       - Deploy web + Android production + iOS TestFlight"
 	@echo "  make ios-beta         - Deploy iOS to TestFlight"
 	@echo ""
 	@echo "$(COLOR_GREEN)Utility Commands:$(COLOR_RESET)"
@@ -247,16 +247,22 @@ release-all:
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
 
-## deploy-all: Deploy web + Android production, single commit at the end
+## deploy-all: Deploy web + Android production + iOS TestFlight, single commit at the end
 deploy-all:
 	@$(MAKE) -s _web-deploy-core
 	@$(MAKE) -s _android-deploy-core
+	@$(MAKE) -s _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
-## ios-beta: Deploy iOS to TestFlight
-ios-beta:
+## _ios-beta-core: Deploy iOS to TestFlight (no git commit)
+_ios-beta-core:
 	@echo "$(COLOR_GREEN)Deploying iOS to TestFlight...$(COLOR_RESET)"
-	@cd ios && fastlane beta
+	@cd ios && bundle exec fastlane beta
+
+## ios-beta: Deploy iOS to TestFlight and commit to main repo
+ios-beta:
+	@$(MAKE) -s _ios-beta-core
+	@$(MAKE) -s _commit-and-push
 
 ## clean: Clean build artifacts
 clean:
