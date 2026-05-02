@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -85,6 +86,11 @@ class _AuthScreenState extends State<AuthScreen> {
       // returns from Safari on iOS). Navigation must not be blocked — the
       // MainScreen will re-fetch user data on its own.
       debugPrint('_navigateToMain: fetchCurrentUser failed (non-fatal): $e');
+      await Sentry.addBreadcrumb(Breadcrumb(
+        message: 'fetchCurrentUser failed after login (non-fatal): $e',
+        category: 'auth',
+        level: SentryLevel.warning,
+      ));
     }
     if (user != null) {
       _showWelcomeMessage(Map<String, dynamic>.from(user as Map),
@@ -123,20 +129,25 @@ class _AuthScreenState extends State<AuthScreen> {
       _loginError = null;
     });
     try {
+      await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: started', category: 'auth'));
       final googleSignIn = GoogleSignInHelper.create();
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
+        await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: user cancelled', category: 'auth'));
         setState(() => _isLoading = false);
         return;
       }
+      await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: user obtained, fetching auth tokens', category: 'auth'));
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
       final accessToken = googleAuth.accessToken;
       if (idToken == null && accessToken == null) {
         throw Exception('No authentication token received');
       }
+      await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: tokens received, calling backend googleAuth', category: 'auth'));
       final isFirstLogin = await _apiService.googleAuth(
           idToken: idToken, accessToken: accessToken);
+      await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: backend googleAuth succeeded, isFirstLogin=$isFirstLogin', category: 'auth'));
       if (!mounted) return;
       vibrateLoginLogout();
       try {

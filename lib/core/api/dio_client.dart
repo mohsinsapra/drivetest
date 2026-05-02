@@ -2,6 +2,7 @@ import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -132,6 +133,9 @@ class DioClient {
       receiveTimeout: const Duration(milliseconds: 20000),
     ));
     _dio!.interceptors.add(DioCacheInterceptor(options: options));
+    // Adds automatic HTTP breadcrumbs and performance tracing to every request.
+    // Sentry will show the full sequence: which calls succeeded, failed, and timing.
+    _dio!.addSentry(captureFailedRequests: true);
     _dio!.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
         final skipAuth = options.extra['skipAuth'] == true;

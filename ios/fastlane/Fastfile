@@ -1,4 +1,6 @@
 # Load root project .env so credentials live in one place
+require "base64"
+
 root_env = File.expand_path("../../.env", __dir__)
 if File.exist?(root_env)
   File.foreach(root_env) do |line|
@@ -19,27 +21,18 @@ platform :ios do
       app_identifier: "com.mohsinsapra.drivetest",
       team_id: "MBWC2B7V68"
     )
-    build_app(
-      scheme: "Runner",
-      export_method: "app-store",
-      export_options: {
-        method: "app-store",
-        teamID: "MBWC2B7V68",
-        signingStyle: "manual",
-        signingCertificate: "Apple Distribution",
-        provisioningProfiles: {
-          "com.mohsinsapra.drivetest" => ENV["SIGH_NAME"]
-        }
-      }
-    )
-    ipa_path = Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]
+    ipa_path = build_ios_archive
     UI.success("✅ IPA ready: #{ipa_path}")
     tag_release
   end
 
   desc "Upload last built IPA to TestFlight"
   lane :upload do
-    ipa_path = File.expand_path("../Runner.ipa", __dir__)
+    ipa_path = Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]
+    if ipa_path.to_s.strip.empty? || !File.exist?(ipa_path)
+      fallback_ipa_path = File.expand_path("../Runner.ipa", __dir__)
+      ipa_path = fallback_ipa_path if File.exist?(fallback_ipa_path)
+    end
     UI.user_error!("No IPA found at #{ipa_path} — run `fastlane build` first") unless File.exist?(ipa_path)
 
     app_password = ENV["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"]
@@ -79,11 +72,9 @@ platform :ios do
     # Get changelog
     changelog_text = get_latest_changelog_entry
 
-    build_app(
-      scheme: "Runner",
-      export_options: "ExportOptions.plist"
-    )
+    ipa_path = build_ios_archive(export_options: "ExportOptions.plist")
     upload_to_app_store(
+      ipa: ipa_path,
       release_notes: {
         "en-US" => changelog_text
       }
@@ -164,6 +155,88 @@ platform :ios do
       rescue => e
         puts "⚠️  Failed to create tag (may already exist): #{e.message}"
       end
+    end
+  end
+
+  private_lane :build_ios_archive do |options|
+    options ||= {}
+    build_options = {
+      scheme: "Runner",
+      xcargs: "DART_DEFINES=#{resolve_xcode_dart_defines}"
+    }
+
+    if options[:export_options]
+      build_options[:export_options] = options[:export_options]
+    else
+      build_options[:export_method] = "app-store"
+      build_options[:export_options] = {
+        method: "app-store",
+        teamID: "MBWC2B7V68",
+        signingStyle: "manual",
+        signingCertificate: "Apple Distribution",
+        provisioningProfiles: {
+          "com.mohsinsapra.drivetest" => ENV["SIGH_NAME"]
+        }
+      }
+    end
+
+    build_app(**build_options)
+    ipa_path = Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]
+    UI.user_error!("Fastlane did not produce an IPA path") if ipa_path.to_s.strip.empty?
+
+    ipa_path
+  end
+
+  private_lane :resolve_flutter_dart_defines do
+    explicit_defines = ENV["FLUTTER_DART_DEFINES"].to_s.strip
+    return explicit_defines unless explicit_defines.empty?
+
+    env_vars = load_root_env
+    google_server_client_id = env_vars["GOOGLE_SERVER_CLIENT_ID"].to_s.strip
+    stripe_publishable_key = env_vars["STRIPE_PUBLISHABLE_KEY"].to_s.strip
+
+    defines = []
+    defines << "--dart-define=GOOGLE_SERVER_CLIENT_ID=#{google_server_client_id}" unless google_server_client_id.empty?
+    defines << "--dart-define=STRIPE_PUBLISHABLE_KEY=#{stripe_publishable_key}" unless stripe_publishable_key.empty?
+
+    defines.join(" ")
+  end
+
+  private_lane :resolve_xcode_dart_defines do
+    env_vars = load_root_env
+    explicit_defines = ENV["FLUTTER_DART_DEFINES"].to_s.strip
+
+    define_entries =
+      if explicit_defines.empty?
+        entries = []
+        google_server_client_id = env_vars["GOOGLE_SERVER_CLIENT_ID"].to_s.strip
+        stripe_publishable_key = env_vars["STRIPE_PUBLISHABLE_KEY"].to_s.strip
+
+        entries << "GOOGLE_SERVER_CLIENT_ID=#{google_server_client_id}" unless google_server_client_id.empty?
+        entries << "STRIPE_PUBLISHABLE_KEY=#{stripe_publishable_key}" unless stripe_publishable_key.empty?
+        entries
+      else
+        explicit_defines.split(/\s+/).filter_map do |arg|
+          next unless arg.start_with?("--dart-define=")
+
+          arg.delete_prefix("--dart-define=")
+        end
+      end
+
+    define_entries.map { |entry| Base64.strict_encode64(entry) }.join(",")
+  end
+
+  private_lane :load_root_env do
+    env_path = File.expand_path("../../.env", __dir__)
+    return {} unless File.exist?(env_path)
+
+    File.readlines(env_path).each_with_object({}) do |line, vars|
+      next if line.strip.empty? || line.lstrip.start_with?("#")
+
+      key, value = line.split("=", 2)
+      next if key.nil? || value.nil?
+
+      vars[key.strip] = value.strip
     end
   end
 end
