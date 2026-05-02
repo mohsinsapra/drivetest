@@ -21,8 +21,8 @@ class GoogleSignInHelper {
         );
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
+        // clientId is read automatically from GoogleService-Info.plist on iOS
         return GoogleSignIn(
-          clientId: _webClientId.isEmpty ? null : _webClientId,
           serverClientId: _serverClientId.isEmpty ? null : _serverClientId,
         );
       default:

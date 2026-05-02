@@ -37,7 +37,15 @@ Upload last built IPA to TestFlight
 [bundle exec] fastlane ios beta
 ```
 
-Build + open Transporter (Beta)
+Build + upload to TestFlight
+
+### ios deploy_all
+
+```sh
+[bundle exec] fastlane ios deploy_all
+```
+
+Deploy to both iOS TestFlight and Android Play Store alpha
 
 ### ios production
 

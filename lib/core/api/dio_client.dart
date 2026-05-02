@@ -25,7 +25,9 @@ class DioClient {
   List<int>? _key;
   // Initialize cipher
   CryptoService? _cryptoService;
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage(
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
   bool _initialized = false;
 
   String? accessToken;

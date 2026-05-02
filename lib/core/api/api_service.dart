@@ -91,6 +91,11 @@ class ApiService {
       }
       return data;
     } catch (e) {
+      // 401 is already handled by DioClient (token refresh → logout).
+      // Re-throwing it as a generic Exception floods Sentry with noise.
+      if (e is DioException && e.response?.statusCode == 401) {
+        rethrow;
+      }
       throw Exception('Failed to fetch current user: $e');
     }
   }
