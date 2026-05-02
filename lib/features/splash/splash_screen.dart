@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -178,7 +179,17 @@ class _SplashScreenState extends State<SplashScreen>
           isAuthenticated = true;
         } catch (e) {
           debugPrint('SplashScreen: token validation failed — $e');
-          await DioClient().logout();
+          // Only wipe tokens on a confirmed 401 (server explicitly rejected them).
+          // A connection/DNS/timeout error means the network is unavailable —
+          // keep the tokens so the user stays logged in and can retry later.
+          final is401 = e is DioException && e.response?.statusCode == 401;
+          if (is401) {
+            await DioClient().logout();
+          } else {
+            // Network unreachable — treat as authenticated to avoid a spurious
+            // logout. The MainScreen will refresh data once connectivity returns.
+            isAuthenticated = true;
+          }
         }
 
         if (isAuthenticated) {
