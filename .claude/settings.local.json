@@ -130,7 +130,16 @@
       "Bash(adb -s emulator-5554 shell input text \"muhammad.mohsin@dosell.com\")",
       "Bash(grep -A5 \"name: vibration$\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/pubspec.lock)",
       "Bash(find /Users/muhammadmohsin/.pub-cache/hosted/pub.dev/vibration_platform_interface-* -name \"*.dart\")",
-      "Bash(sort -t- -k5 -V)"
+      "Bash(sort -t- -k5 -V)",
+      "Bash(rm \"/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/android/fastlane/metadata/android/en-US/images/phoneScreenshots/\"*.png)",
+      "Bash(cp \"/Users/muhammadmohsin/Downloads/sample ss/o:p/android/\"*.jpg \"/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/android/fastlane/metadata/android/en-US/images/phoneScreenshots/\")",
+      "Bash(rm \"/Users/muhammadmohsin/Documents/Learning/TAXI/App/drivetest-homepage/content/image/\"*)",
+      "Bash(cp \"/Users/muhammadmohsin/Downloads/sample ss/o:p/android/\"*.jpg \"/Users/muhammadmohsin/Documents/Learning/TAXI/App/drivetest-homepage/content/image/\")",
+      "Bash(mv 1.jpg 6a6me7mkszbvoiqnn1on.jpg)",
+      "Bash(mv 2.jpg q6tzx1wdwmk86qex4gdv.jpg)",
+      "Bash(mv 3.jpg ym4gezkegld1f88zv1yf.jpg)",
+      "Bash(mv 4.jpg 1guchg1f5o1j2hacglba.jpg)",
+      "Bash(mv 5.jpg o7rinojm7v51173xgq02.jpg)"
     ],
     "deny": [],
     "ask": []
