@@ -14,6 +14,7 @@ import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:no_screenshot/no_screenshot.dart';
 import 'package:taxi_exam_app/core/widgets/navigation_controls.dart';
 import 'package:taxi_exam_app/core/widgets/option_tile.dart';
@@ -562,6 +563,8 @@ class _TestscreenState extends State<Testscreen> {
     if (_instantMarking &&
         optionId != widget.questions[index].correctAnswer) {
       vibrateWrongAnswer();
+    } else {
+      playNavigationFeedback();
     }
     setState(() {
       userSelections[index] = optionId;
@@ -998,6 +1001,7 @@ class _TestscreenState extends State<Testscreen> {
 
     final targetLang = value.toLowerCase();
     if (targetLang == currentLanguageCode.toLowerCase()) return;
+    HapticFeedback.selectionClick();
 
     final previousCode = currentLanguageCode;
 
@@ -1395,6 +1399,7 @@ class _TestscreenState extends State<Testscreen> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(8),
                           onTap: () async {
+                            HapticFeedback.lightImpact();
                             final qId = widget.questions[index].questionId;
                             final isSaved =
                                 await SavedQuestionsService.toggleSavedScoped(

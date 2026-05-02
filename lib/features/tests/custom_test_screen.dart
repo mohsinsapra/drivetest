@@ -2,6 +2,7 @@ import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async'; // Import for TimeoutException
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -248,6 +249,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
               subtitle: const Text('Enable a time limit for the test'),
               value: isTimed,
               onChanged: (value) {
+                HapticFeedback.lightImpact();
                 setState(() {
                   isTimed = value;
                   if (value && timerMinutes <= 0) {
@@ -314,6 +316,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
               subtitle: const Text('Show correct answer after each question'),
               value: isInstantMarking,
               onChanged: (value) {
+                HapticFeedback.lightImpact();
                 setState(() => isInstantMarking = value);
                 _savePreferences();
               },
@@ -327,6 +330,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
                   'Get a fresh set of different questions every time you start a test'),
               value: randomize,
               onChanged: (value) {
+                HapticFeedback.lightImpact();
                 setState(() => randomize = value);
                 _savePreferences();
               },
@@ -340,6 +344,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
                   'Keep the same questions but show them in a different order each time'),
               value: shuffleOnDevice,
               onChanged: (value) {
+                HapticFeedback.lightImpact();
                 setState(() => shuffleOnDevice = value);
                 _savePreferences();
               },

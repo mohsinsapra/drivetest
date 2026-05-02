@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -272,8 +273,10 @@ class _ExamCarouselSection extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: GestureDetector(
-                    onTap: () =>
-                        context.read<DashboardProvider>().selectExam(exam),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      context.read<DashboardProvider>().selectExam(exam);
+                    },
                     child: _ExamCard(
                       exam: exam,
                       progress: progress,

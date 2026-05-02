@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class TestOptionCard extends StatelessWidget {
   final String label;
@@ -18,7 +19,7 @@ class TestOptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () { HapticFeedback.selectionClick(); onTap(); },
       child: Card(
         elevation: 3,
         shape: RoundedRectangleBorder(

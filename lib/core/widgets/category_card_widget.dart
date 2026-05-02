@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class CategoryCard extends StatelessWidget {
@@ -22,7 +23,7 @@ class CategoryCard extends StatelessWidget {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
+          onTap: () { HapticFeedback.selectionClick(); onTap(); },
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),

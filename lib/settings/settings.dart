@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -273,7 +274,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: Text(t.settings_timed_test),
                     subtitle: Text(t.settings_timed_test_sub),
                     value: isTimed,
-                    onChanged: (v) => setState(() => isTimed = v),
+                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => isTimed = v); },
                   ),
 
                   const Divider(height: 1, indent: 16, endIndent: 16),
@@ -282,7 +283,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: Text(t.settings_instant_marking),
                     subtitle: Text(t.settings_instant_marking_sub),
                     value: isInstantMarking,
-                    onChanged: (v) => setState(() => isInstantMarking = v),
+                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => isInstantMarking = v); },
                   ),
 
                   const Divider(height: 1, indent: 16, endIndent: 16),
@@ -293,7 +294,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       'Get a fresh set of different questions every time you start a test',
                     ),
                     value: randomize,
-                    onChanged: (v) => setState(() => randomize = v),
+                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => randomize = v); },
                   ),
 
                   const Divider(height: 1, indent: 16, endIndent: 16),
@@ -304,7 +305,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       'Keep the same questions but show them in a different order each time',
                     ),
                     value: shuffleOnDevice,
-                    onChanged: (v) => setState(() => shuffleOnDevice = v),
+                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => shuffleOnDevice = v); },
                   ),
 
                   const Divider(height: 1, indent: 16, endIndent: 16),
@@ -363,8 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: Text(t.settings_include_saved),
                     subtitle: Text(t.settings_include_saved_sub),
                     value: includeSavedQuestions,
-                    onChanged: (v) =>
-                        setState(() => includeSavedQuestions = v),
+                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => includeSavedQuestions = v); },
                   ),
 
                   const SizedBox(height: 8),
@@ -517,7 +517,7 @@ class _LangChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
+        onTap: () { HapticFeedback.selectionClick(); onTap(); },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding:

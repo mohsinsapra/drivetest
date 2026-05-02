@@ -73,6 +73,7 @@ void showAppSnackBar(
         child: FadeTransition(opacity: animation, child: child),
       );
     },
+    borderSide: BorderSide.none,
     borderRadius: BorderRadius.circular(50),
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
     showProgressBar: false,

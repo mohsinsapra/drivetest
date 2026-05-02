@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class LicenseTypeCard extends StatelessWidget {
   final Map<String, dynamic> licenseType;
@@ -13,7 +14,7 @@ class LicenseTypeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () { HapticFeedback.selectionClick(); onTap(); },
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
