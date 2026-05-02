@@ -77,7 +77,15 @@ class _AuthScreenState extends State<AuthScreen> {
   // ── Navigation after auth ─────────────────────────────────────────────────
 
   Future<void> _navigateToMain({required bool isFirstLogin}) async {
-    final user = await _apiService.fetchCurrentUser();
+    dynamic user;
+    try {
+      user = await _apiService.fetchCurrentUser();
+    } catch (e) {
+      // Transient network failure (e.g. DNS hiccup right after Google OAuth
+      // returns from Safari on iOS). Navigation must not be blocked — the
+      // MainScreen will re-fetch user data on its own.
+      debugPrint('_navigateToMain: fetchCurrentUser failed (non-fatal): $e');
+    }
     if (user != null) {
       _showWelcomeMessage(Map<String, dynamic>.from(user as Map),
           isFirstLogin: isFirstLogin);

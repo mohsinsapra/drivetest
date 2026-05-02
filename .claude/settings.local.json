@@ -141,7 +141,10 @@
       "Bash(mv 4.jpg 1guchg1f5o1j2hacglba.jpg)",
       "Bash(mv 5.jpg o7rinojm7v51173xgq02.jpg)",
       "Bash(security find-identity *)",
-      "Bash(flutter doctor *)"
+      "Bash(flutter doctor *)",
+      "Bash(xargs ls *)",
+      "Bash(nslookup taxiexam.hayatpoetry.com)",
+      "Bash(dig taxiexam.hayatpoetry.com)"
     ],
     "deny": [],
     "ask": []
