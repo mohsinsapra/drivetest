@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toastification/toastification.dart';
@@ -42,8 +44,8 @@ void main() async {
       options.dsn = sentryDsn;
       options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
       options.environment = kReleaseMode
-          ? (kIsWeb ? 'production-web' : 'production-android')
-          : (kIsWeb ? 'debug-web' : 'debug-android');
+          ? (kIsWeb ? 'production-web' : Platform.isAndroid ? 'production-android' : 'production-ios')
+          : (kIsWeb ? 'debug-web' : Platform.isAndroid ? 'debug-android' : 'debug-ios');
       // Drop known Flutter CanvasKit engine bug: WebGL context loss fires
       // onContextLost before _handledContextLostEvent is initialised.
       // The browser recovers the GL context automatically — not actionable.
