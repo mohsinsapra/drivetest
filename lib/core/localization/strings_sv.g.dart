@@ -328,7 +328,6 @@ class TranslationsSv implements Translations {
 	@override String get dash_streak_msg_progress_other => '{n} dagars svit! {left} sessioner kvar för att nå veckans mål.';
 	@override String get dash_completed => 'Avklarad!';
 	@override String get dash_tap_to_explore => 'Tryck för att utforska';
-
 	@override String get onb_which_exams => 'Vilka prov förbereder du dig för?';
 	@override String get onb_select_all_apply => 'Välj alla som passar';
 	@override String get onb_exam_date_title => 'När är ditt prov?';
@@ -350,19 +349,18 @@ class TranslationsSv implements Translations {
 	@override String get onb_sign_in_to_subscribe => 'Logga in för att prenumerera';
 	@override String get onb_sign_in_subtitle => 'Skapa ett gratis konto eller logga in för att få tillgång till fullständiga prov';
 	@override String get onb_no_exams => 'Inga prov tillgängliga just nu';
-	@override String onb_days_week_label({required Object n}) => '${n} dagar/vecka';
-	@override String onb_step_of({required Object current, required Object total}) => 'Steg ${current} av ${total}';
+	@override String get onb_days_week_label => '{n} dagar/vecka';
+	@override String get onb_step_of => 'Steg {current} av {total}';
 	@override String get onb_weekly_goal_title => 'Veckovis studiemål';
 	@override String get onb_weekly_goal_sub => 'Välj de dagar du ska studera.';
-
 	@override String get dash_exam_deadline => 'Provdatum';
-	@override String dash_days_remaining({required Object n}) => '${n} dagar kvar';
+	@override String get dash_days_remaining => '{n} dagar kvar';
 	@override String get dash_deadline_today => 'Idag!';
 	@override String get dash_deadline_passed => 'Deadline passerad';
 	@override String get dash_no_deadline => 'Ingen deadline satt';
 	@override String get dash_set_deadline => 'Sätt deadline';
 	@override String get dash_change_deadline => 'Ändra deadline';
-	@override String dash_practice_days({required Object n}) => '${n} dagar/vecka';
+	@override String get dash_practice_days => '{n} dagar/vecka';
 	@override String get dash_hero_sub_start => 'Dags att börja din resa!';
 	@override String get dash_hero_sub_progress => 'Bra jobbat – fortsätt framåt!';
 	@override String get dash_hero_sub_almost => 'Snart redo för examen!';
@@ -372,14 +370,14 @@ class TranslationsSv implements Translations {
 	@override String get dash_no_exams_found => 'Inga prov hittades.';
 	@override String get dash_stat_completed => 'Genomförda';
 	@override String get dash_stat_none_yet => 'Inga ännu';
-	@override String dash_stat_of_n({required Object total}) => 'av ${total}';
+	@override String get dash_stat_of_n => 'av {total}';
 	@override String get dash_stat_per_session => 'Per omgång';
 	@override String get dash_exam_type_taxi => 'TAXI';
 	@override String get dash_exam_type_test => 'PROV';
-	@override String dash_streak_title({required Object n}) => '${n} dagars svit!';
-	@override String dash_streak_days({required Object n}) => '${n} dagar';
-	@override String dash_batches_count({required Object n}) => '${n} omgångar';
-	@override String dash_avg_score_label({required Object score}) => '${score}% snitt';
+	@override String get dash_streak_title => '{n} dagars svit!';
+	@override String get dash_streak_days => '{n} dagar';
+	@override String get dash_batches_count => '{n} omgångar';
+	@override String get dash_avg_score_label => '{score}% snitt';
 	@override String get tut_step1_title => 'Steg 1 av 3 — Översätt';
 	@override String get tut_step1_body => 'Tryck på språkknappen för att öppna listan och välj sedan engelska (eller valfritt annat språk).';
 	@override String get tut_step1b_title => 'Steg 1 av 3 — Välj ett språk';
@@ -396,6 +394,19 @@ class TranslationsSv implements Translations {
 	@override String get tut_complete_body => 'Bra jobbat med genomgången.\nDu vet nu hur du översätter frågor, kikar på originaltexten och navigerar mellan dem.';
 	@override String get tut_complete_subtitle => 'Du är redo att förbereda dig för ditt taxikörkortsprov!';
 	@override String get tut_start_practicing => 'Börja öva!';
+	@override String get sg_title => 'Studiemål';
+	@override String get sg_section_exam_date => 'PROVDATUM';
+	@override String get sg_section_practice_days => 'ÖVNINGSDAGAR';
+	@override String get sg_practice_days_sub => 'Välj de dagar du förbinder dig att öva varje vecka.';
+	@override String get sg_days_per_week => '{n} dag(ar) / vecka';
+	@override String get sg_save => 'Spara inställningar';
+	@override String get sg_settings_saved => 'Inställningar sparade!';
+	@override String get sg_months => 'MÅNADER';
+	@override String get sg_custom_date => 'Eget datum';
+	@override String get sg_deadline_passed => 'Provdatum har passerat';
+	@override String get sg_days_remaining => '{n} dagar kvar';
+	@override String get sg_notif_note => 'Du får två påminnelser varje övningsdag — en på morgonen och en på kvällen — vid slumpmässiga tider för att hjälpa dig bygga en vana.';
+	@override String get sg_profile_menu_label => 'Studiemål';
 }
 
 /// Flat map(s) containing all translations.
@@ -716,18 +727,18 @@ extension on TranslationsSv {
 			case 'onb_sign_in_to_subscribe': return 'Logga in för att prenumerera';
 			case 'onb_sign_in_subtitle': return 'Skapa ett gratis konto eller logga in för att få tillgång till fullständiga prov';
 			case 'onb_no_exams': return 'Inga prov tillgängliga just nu';
-			case 'onb_days_week_label': return ({required Object n}) => '${n} dagar/vecka';
-			case 'onb_step_of': return ({required Object current, required Object total}) => 'Steg ${current} av ${total}';
+			case 'onb_days_week_label': return '{n} dagar/vecka';
+			case 'onb_step_of': return 'Steg {current} av {total}';
 			case 'onb_weekly_goal_title': return 'Veckovis studiemål';
 			case 'onb_weekly_goal_sub': return 'Välj de dagar du ska studera.';
 			case 'dash_exam_deadline': return 'Provdatum';
-			case 'dash_days_remaining': return ({required Object n}) => '${n} dagar kvar';
+			case 'dash_days_remaining': return '{n} dagar kvar';
 			case 'dash_deadline_today': return 'Idag!';
 			case 'dash_deadline_passed': return 'Deadline passerad';
 			case 'dash_no_deadline': return 'Ingen deadline satt';
 			case 'dash_set_deadline': return 'Sätt deadline';
 			case 'dash_change_deadline': return 'Ändra deadline';
-			case 'dash_practice_days': return ({required Object n}) => '${n} dagar/vecka';
+			case 'dash_practice_days': return '{n} dagar/vecka';
 			case 'dash_hero_sub_start': return 'Dags att börja din resa!';
 			case 'dash_hero_sub_progress': return 'Bra jobbat – fortsätt framåt!';
 			case 'dash_hero_sub_almost': return 'Snart redo för examen!';
@@ -737,14 +748,14 @@ extension on TranslationsSv {
 			case 'dash_no_exams_found': return 'Inga prov hittades.';
 			case 'dash_stat_completed': return 'Genomförda';
 			case 'dash_stat_none_yet': return 'Inga ännu';
-			case 'dash_stat_of_n': return ({required Object total}) => 'av ${total}';
+			case 'dash_stat_of_n': return 'av {total}';
 			case 'dash_stat_per_session': return 'Per omgång';
 			case 'dash_exam_type_taxi': return 'TAXI';
 			case 'dash_exam_type_test': return 'PROV';
-			case 'dash_streak_title': return ({required Object n}) => '${n} dagars svit!';
-			case 'dash_streak_days': return ({required Object n}) => '${n} dagar';
-			case 'dash_batches_count': return ({required Object n}) => '${n} omgångar';
-			case 'dash_avg_score_label': return ({required Object score}) => '${score}% snitt';
+			case 'dash_streak_title': return '{n} dagars svit!';
+			case 'dash_streak_days': return '{n} dagar';
+			case 'dash_batches_count': return '{n} omgångar';
+			case 'dash_avg_score_label': return '{score}% snitt';
 			case 'tut_step1_title': return 'Steg 1 av 3 — Översätt';
 			case 'tut_step1_body': return 'Tryck på språkknappen för att öppna listan och välj sedan engelska (eller valfritt annat språk).';
 			case 'tut_step1b_title': return 'Steg 1 av 3 — Välj ett språk';
@@ -761,6 +772,19 @@ extension on TranslationsSv {
 			case 'tut_complete_body': return 'Bra jobbat med genomgången.\nDu vet nu hur du översätter frågor, kikar på originaltexten och navigerar mellan dem.';
 			case 'tut_complete_subtitle': return 'Du är redo att förbereda dig för ditt taxikörkortsprov!';
 			case 'tut_start_practicing': return 'Börja öva!';
+			case 'sg_title': return 'Studiemål';
+			case 'sg_section_exam_date': return 'PROVDATUM';
+			case 'sg_section_practice_days': return 'ÖVNINGSDAGAR';
+			case 'sg_practice_days_sub': return 'Välj de dagar du förbinder dig att öva varje vecka.';
+			case 'sg_days_per_week': return '{n} dag(ar) / vecka';
+			case 'sg_save': return 'Spara inställningar';
+			case 'sg_settings_saved': return 'Inställningar sparade!';
+			case 'sg_months': return 'MÅNADER';
+			case 'sg_custom_date': return 'Eget datum';
+			case 'sg_deadline_passed': return 'Provdatum har passerat';
+			case 'sg_days_remaining': return '{n} dagar kvar';
+			case 'sg_notif_note': return 'Du får två påminnelser varje övningsdag — en på morgonen och en på kvällen — vid slumpmässiga tider för att hjälpa dig bygga en vana.';
+			case 'sg_profile_menu_label': return 'Studiemål';
 			default: return null;
 		}
 	}

@@ -24,7 +24,7 @@ class SelectedExamSummaryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.onSurface.withOpacity(0.08)),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +50,7 @@ class SelectedExamSummaryCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: (stats.overallProgressPercent / 100).clamp(0.0, 1.0),
               minHeight: 6,
-              backgroundColor: cs.onSurface.withOpacity(0.1),
+              backgroundColor: cs.onSurface.withValues(alpha: 0.1),
               valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
             ),
           ),
@@ -68,12 +68,14 @@ class SelectedExamSummaryCard extends StatelessWidget {
                 ),
                 _StatCell(
                   label: t.dash_batches_done,
-                  value: '${stats.completedBatchCount}/${stats.totalBatchCount}',
+                  value:
+                      '${stats.completedBatchCount}/${stats.totalBatchCount}',
                   icon: Icons.check_circle_outline_rounded,
                 ),
                 _StatCell(
                   label: t.dash_avg_time,
-                  value: DashboardHelpers.formatDuration(stats.avgDurationSeconds),
+                  value:
+                      DashboardHelpers.formatDuration(stats.avgDurationSeconds),
                   icon: Icons.timer_outlined,
                 ),
               ],
@@ -114,7 +116,7 @@ class _ProgressPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: cs.primary.withOpacity(0.12),
+        color: cs.primary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -155,7 +157,7 @@ class _StatCell extends StatelessWidget {
           Text(
             label,
             style: theme.textTheme.labelSmall
-                ?.copyWith(color: cs.onSurface.withOpacity(0.5)),
+                ?.copyWith(color: cs.onSurface.withValues(alpha: 0.5)),
             textAlign: TextAlign.center,
           ),
         ],
@@ -177,7 +179,7 @@ class _ContinueBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: cs.primary.withOpacity(0.08),
+          color: cs.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
@@ -186,7 +188,9 @@ class _ContinueBanner extends StatelessWidget {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                Translations.of(context).dash_continue_label.replaceAll('{name}', batchName),
+                Translations.of(context)
+                    .dash_continue_label
+                    .replaceAll('{name}', batchName),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: cs.primary,
                       fontWeight: FontWeight.w600,
@@ -194,7 +198,8 @@ class _ContinueBanner extends StatelessWidget {
               ),
             ),
             if (onTap != null)
-              Icon(Icons.arrow_forward_ios_rounded, size: 12, color: cs.primary),
+              Icon(Icons.arrow_forward_ios_rounded,
+                  size: 12, color: cs.primary),
           ],
         ),
       ),

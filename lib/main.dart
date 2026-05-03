@@ -32,6 +32,8 @@ import 'package:taxi_exam_app/core/services/session_validation_service.dart';
 import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/streak_notification_service.dart';
+import 'package:taxi_exam_app/features/streak/streak_settings_provider.dart';
 
 void main() async {
   const sentryDsn = String.fromEnvironment(
@@ -43,6 +45,13 @@ void main() async {
     (options) {
       options.dsn = sentryDsn;
       options.tracesSampleRate = kReleaseMode ? 0.2 : 1.0;
+      // Only inject sentry-trace / baggage headers on requests to the
+      // production host. Without this, the CORS preflight for the dev
+      // server (192.168.x.x) is rejected because it doesn't whitelist
+      // those headers.
+      options.tracePropagationTargets
+        ..clear()
+        ..add('taxiexam.hayatpoetry.com');
       options.environment = kReleaseMode
           ? (kIsWeb ? 'production-web' : Platform.isAndroid ? 'production-android' : 'production-ios')
           : (kIsWeb ? 'debug-web' : Platform.isAndroid ? 'debug-android' : 'debug-ios');
@@ -108,6 +117,9 @@ Future<void> _appMain() async {
   if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(ExamNodeAdapter());
   final notificationProvider = await NotificationProvider.create();
   final dashboardProvider = DashboardProvider(repository: HiveDashboardRepository());
+  final streakSettingsProvider = StreakSettingsProvider();
+  await streakSettingsProvider.load();
+  StreakNotificationService.init().ignore();
   final sessionValidationObserver = SessionValidationLifecycleObserver(
     SessionValidationService(
       isAuthenticated: () => DioClient().accessToken != null,
@@ -124,6 +136,12 @@ Future<void> _appMain() async {
     dashboardProvider.reset();
     await notificationProvider.clearAll();
   };
+
+  // Keep DashboardProvider's weeklyGoal in sync with StreakSettingsProvider.
+  dashboardProvider.setWeeklyGoal(streakSettingsProvider.weeklyGoal);
+  streakSettingsProvider.addListener(() {
+    dashboardProvider.setWeeklyGoal(streakSettingsProvider.weeklyGoal);
+  });
 
   // ── Round 2: SharedPreferences + dotenv/Stripe are independent of each
   // other — run them in parallel.
@@ -159,6 +177,7 @@ Future<void> _appMain() async {
             ChangeNotifierProvider(create: (_) => FontProvider()),
             ChangeNotifierProvider<NotificationProvider>.value(value: notificationProvider),
             ChangeNotifierProvider<DashboardProvider>.value(value: dashboardProvider),
+            ChangeNotifierProvider<StreakSettingsProvider>.value(value: streakSettingsProvider),
           ],
           child: MyApp(sessionValidationObserver: sessionValidationObserver),
         ),

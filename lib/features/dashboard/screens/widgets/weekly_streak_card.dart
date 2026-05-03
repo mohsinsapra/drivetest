@@ -13,9 +13,8 @@ class WeeklyStreakCard extends StatelessWidget {
     final cs = theme.colorScheme;
     final t = Translations.of(context);
     final today = DateTime.now();
-    final monday =
-        DateTime(today.year, today.month, today.day)
-            .subtract(Duration(days: today.weekday - 1));
+    final monday = DateTime(today.year, today.month, today.day)
+        .subtract(Duration(days: today.weekday - 1));
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -23,7 +22,7 @@ class WeeklyStreakCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.onSurface.withOpacity(0.08)),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +57,7 @@ class WeeklyStreakCard extends StatelessWidget {
                   Text(
                     t.dash_streak_weekly_goal,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: cs.onSurface.withOpacity(0.5),
+                      color: cs.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -67,13 +66,12 @@ class WeeklyStreakCard extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(3),
                       child: LinearProgressIndicator(
-                        value: (streak.thisWeekActiveDayCount /
-                                streak.weeklyGoal)
-                            .clamp(0.0, 1.0),
+                        value:
+                            (streak.thisWeekActiveDayCount / streak.weeklyGoal)
+                                .clamp(0.0, 1.0),
                         minHeight: 5,
-                        backgroundColor: cs.onSurface.withOpacity(0.1),
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(cs.primary),
+                        backgroundColor: cs.onSurface.withValues(alpha: 0.1),
+                        valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
                       ),
                     ),
                   ),
@@ -115,14 +113,22 @@ class WeeklyStreakCard extends StatelessWidget {
 
   String _dayLabel(int weekday, Translations t) {
     switch (weekday) {
-      case 1: return t.dash_day_mon;
-      case 2: return t.dash_day_tue;
-      case 3: return t.dash_day_wed;
-      case 4: return t.dash_day_thu;
-      case 5: return t.dash_day_fri;
-      case 6: return t.dash_day_sat;
-      case 7: return t.dash_day_sun;
-      default: return '';
+      case 1:
+        return t.dash_day_mon;
+      case 2:
+        return t.dash_day_tue;
+      case 3:
+        return t.dash_day_wed;
+      case 4:
+        return t.dash_day_thu;
+      case 5:
+        return t.dash_day_fri;
+      case 6:
+        return t.dash_day_sat;
+      case 7:
+        return t.dash_day_sun;
+      default:
+        return '';
     }
   }
 }
@@ -161,7 +167,7 @@ class _StreakStat extends StatelessWidget {
             Text(
               label,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: cs.onSurface.withOpacity(0.5),
+                color: cs.onSurface.withValues(alpha: 0.5),
                 height: 1.2,
               ),
             ),
@@ -189,11 +195,11 @@ class _DayDot extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     Color dotColor;
     if (isFuture) {
-      dotColor = cs.onSurface.withOpacity(0.12);
+      dotColor = cs.onSurface.withValues(alpha: 0.12);
     } else if (isActive) {
       dotColor = cs.primary;
     } else {
-      dotColor = cs.onSurface.withOpacity(0.18);
+      dotColor = cs.onSurface.withValues(alpha: 0.18);
     }
 
     return Column(
@@ -201,9 +207,8 @@ class _DayDot extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: isToday
-                    ? cs.primary
-                    : cs.onSurface.withOpacity(0.5),
+                color:
+                    isToday ? cs.primary : cs.onSurface.withValues(alpha: 0.5),
                 fontWeight: isToday ? FontWeight.w700 : FontWeight.normal,
               ),
         ),
@@ -214,13 +219,10 @@ class _DayDot extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: dotColor,
-            border: isToday
-                ? Border.all(color: cs.primary, width: 2)
-                : null,
+            border: isToday ? Border.all(color: cs.primary, width: 2) : null,
           ),
           child: isActive
-              ? Icon(Icons.check_rounded,
-                  size: 14, color: cs.onPrimary)
+              ? Icon(Icons.check_rounded, size: 14, color: cs.onPrimary)
               : null,
         ),
       ],
@@ -241,7 +243,7 @@ class _StreakInsight extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: cs.onSurface.withOpacity(0.05),
+        color: cs.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -252,7 +254,7 @@ class _StreakInsight extends StatelessWidget {
             child: Text(
               message,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: cs.onSurface.withOpacity(0.65),
+                color: cs.onSurface.withValues(alpha: 0.65),
               ),
             ),
           ),

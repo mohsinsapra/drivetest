@@ -22,7 +22,7 @@ class SmartInsightsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.onSurface.withOpacity(0.08)),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
       ),
       child: Column(
         children: [
@@ -33,7 +33,8 @@ class SmartInsightsCard extends StatelessWidget {
               title: t.dash_insight_strongest,
               subtitle: t.dash_insight_area_detail
                   .replaceAll('{name}', strongest.node.name)
-                  .replaceAll('{score}', strongest.averageScore.toStringAsFixed(0)),
+                  .replaceAll(
+                      '{score}', strongest.averageScore.toStringAsFixed(0)),
               isFirst: true,
             ),
           if (weakest != null)
@@ -43,7 +44,8 @@ class SmartInsightsCard extends StatelessWidget {
               title: t.dash_insight_weakest,
               subtitle: t.dash_insight_area_detail
                   .replaceAll('{name}', weakest.node.name)
-                  .replaceAll('{score}', weakest.averageScore.toStringAsFixed(0)),
+                  .replaceAll(
+                      '{score}', weakest.averageScore.toStringAsFixed(0)),
             ),
           if (continueNode != null)
             _InsightTile(
@@ -114,7 +116,7 @@ class _InsightTile extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.12),
+                  color: iconColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, size: 18, color: iconColor),
@@ -128,7 +130,7 @@ class _InsightTile extends StatelessWidget {
                       title,
                       style: theme.textTheme.labelMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: cs.onSurface.withOpacity(0.55),
+                        color: cs.onSurface.withValues(alpha: 0.55),
                         letterSpacing: 0.3,
                       ),
                     ),
@@ -150,7 +152,7 @@ class _InsightTile extends StatelessWidget {
           Divider(
             height: 1,
             indent: 62,
-            color: cs.onSurface.withOpacity(0.06),
+            color: cs.onSurface.withValues(alpha: 0.06),
           ),
       ],
     );

@@ -74,6 +74,18 @@ class DashboardProvider extends ChangeNotifier {
   /// Subscription to testAttempts Hive box — triggers refresh on any write.
   StreamSubscription<BoxEvent>? _attemptsSub;
 
+  int _weeklyGoal = 5;
+
+  void setWeeklyGoal(int goal) {
+    if (_weeklyGoal == goal) return;
+    _weeklyGoal = goal;
+    if (_selectedExam != null && _attempts.isNotEmpty) {
+      _selectedStats = DashboardHelpers.computeExamStats(
+          _selectedExam!, _attempts, weeklyGoal: _weeklyGoal);
+      notifyListeners();
+    }
+  }
+
   // ─── Public API ────────────────────────────────────────────────────────────
 
   Future<void> init() async {
@@ -128,8 +140,8 @@ class DashboardProvider extends ChangeNotifier {
       _attempts = attempts;
       _buildOverviewProgress(attempts);
       if (_selectedExam != null) {
-        _selectedStats =
-            DashboardHelpers.computeExamStats(_selectedExam!, attempts);
+        _selectedStats = DashboardHelpers.computeExamStats(
+            _selectedExam!, attempts, weeklyGoal: _weeklyGoal);
       }
       notifyListeners();
     });
@@ -291,6 +303,7 @@ class DashboardProvider extends ChangeNotifier {
 
   void _selectExam(SubscribedExam exam, List<TestAttempt> attempts) {
     _selectedExam = exam;
-    _selectedStats = DashboardHelpers.computeExamStats(exam, attempts);
+    _selectedStats = DashboardHelpers.computeExamStats(exam, attempts,
+        weeklyGoal: _weeklyGoal);
   }
 }

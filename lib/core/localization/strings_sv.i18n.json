@@ -372,5 +372,18 @@
   "tut_complete_title": "Klart!",
   "tut_complete_body": "Bra jobbat med genomgången.\nDu vet nu hur du översätter frågor, kikar på originaltexten och navigerar mellan dem.",
   "tut_complete_subtitle": "Du är redo att förbereda dig för ditt taxikörkortsprov!",
-  "tut_start_practicing": "Börja öva!"
+  "tut_start_practicing": "Börja öva!",
+  "sg_title": "Studiemål",
+  "sg_section_exam_date": "PROVDATUM",
+  "sg_section_practice_days": "ÖVNINGSDAGAR",
+  "sg_practice_days_sub": "Välj de dagar du förbinder dig att öva varje vecka.",
+  "sg_days_per_week": "{n} dag(ar) / vecka",
+  "sg_save": "Spara inställningar",
+  "sg_settings_saved": "Inställningar sparade!",
+  "sg_months": "MÅNADER",
+  "sg_custom_date": "Eget datum",
+  "sg_deadline_passed": "Provdatum har passerat",
+  "sg_days_remaining": "{n} dagar kvar",
+  "sg_notif_note": "Du får två påminnelser varje övningsdag — en på morgonen och en på kvällen — vid slumpmässiga tider för att hjälpa dig bygga en vana.",
+  "sg_profile_menu_label": "Studiemål"
 }

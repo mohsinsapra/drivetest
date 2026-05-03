@@ -3,6 +3,7 @@ default_platform(:android)
 platform :android do
   desc "Deploy Beta"
   lane :beta do
+    ENV['BUILD_VARIANT'] = 'alpha'
     play_store_json_key = resolve_play_store_json_key
 
     previous_build_number = google_play_track_version_codes(
@@ -163,18 +164,27 @@ end
   end
 
   private_lane :resolve_flutter_dart_defines do
+    build_variant = ENV["BUILD_VARIANT"].to_s.strip
+    build_variant = "debug" if build_variant.empty?
+
     explicit_defines = ENV["FLUTTER_DART_DEFINES"].to_s.strip
-    return explicit_defines unless explicit_defines.empty?
+    if explicit_defines.empty?
+      env_vars = load_root_env
+      google_server_client_id = env_vars["GOOGLE_SERVER_CLIENT_ID"].to_s.strip
+      stripe_publishable_key = env_vars["STRIPE_PUBLISHABLE_KEY"].to_s.strip
 
-    env_vars = load_root_env
-    google_server_client_id = env_vars["GOOGLE_SERVER_CLIENT_ID"].to_s.strip
-    stripe_publishable_key = env_vars["STRIPE_PUBLISHABLE_KEY"].to_s.strip
-
-    defines = []
-    defines << "--dart-define=GOOGLE_SERVER_CLIENT_ID=#{google_server_client_id}" unless google_server_client_id.empty?
-    defines << "--dart-define=STRIPE_PUBLISHABLE_KEY=#{stripe_publishable_key}" unless stripe_publishable_key.empty?
-
-    defines.join(" ")
+      defines = []
+      defines << "--dart-define=GOOGLE_SERVER_CLIENT_ID=#{google_server_client_id}" unless google_server_client_id.empty?
+      defines << "--dart-define=STRIPE_PUBLISHABLE_KEY=#{stripe_publishable_key}" unless stripe_publishable_key.empty?
+      defines << "--dart-define=BUILD_VARIANT=#{build_variant}"
+      defines.join(" ")
+    else
+      # Inject BUILD_VARIANT unless the caller already specified it
+      unless explicit_defines.include?("BUILD_VARIANT=")
+        explicit_defines += " --dart-define=BUILD_VARIANT=#{build_variant}"
+      end
+      explicit_defines
+    end
   end
 
   private_lane :load_root_env do

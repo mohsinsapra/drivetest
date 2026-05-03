@@ -36,12 +36,12 @@ class ExamOverviewCard extends StatelessWidget {
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected
-              ? cs.primary.withOpacity(0.12)
-              : theme.cardColor,
+          color:
+              isSelected ? cs.primary.withValues(alpha: 0.12) : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? cs.primary : cs.onSurface.withOpacity(0.08),
+            color:
+                isSelected ? cs.primary : cs.onSurface.withValues(alpha: 0.08),
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -59,7 +59,7 @@ class ExamOverviewCard extends StatelessWidget {
                     CircularProgressIndicator(
                       value: progress,
                       strokeWidth: 6,
-                      backgroundColor: cs.onSurface.withOpacity(0.1),
+                      backgroundColor: cs.onSurface.withValues(alpha: 0.1),
                       valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
                     ),
                     Center(
@@ -101,7 +101,7 @@ class ExamOverviewCard extends StatelessWidget {
                     ? Translations.of(context).dash_completed
                     : Translations.of(context).dash_tap_to_explore,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: cs.onSurface.withOpacity(0.45),
+                  color: cs.onSurface.withValues(alpha: 0.45),
                 ),
               ),
           ],

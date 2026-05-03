@@ -10,13 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Streak notification reminders** — scheduled local notifications fire on each selected practice day at a random morning (08:00–10:00) and evening (19:00–21:00) time; times are generated once and persisted so they remain stable across restarts
+- `StreakNotificationService` — manages notification scheduling, permission requests, and per-weekday cancel/reschedule via `flutter_local_notifications`
+- `StreakSettingsProvider` — `ChangeNotifier` that persists weekly practice-day selection and exposes it app-wide; weekly goal synced to `DashboardProvider` on startup and on every change
+- `StreakSettingsScreen` — UI for configuring practice days and viewing scheduled notification times
+- Android monochrome notification icon (`res/drawable/ic_notification.xml`) — white bell on transparent background, replaces launcher icon as the small notification icon to comply with Android 5+ requirements
+- `RECEIVE_BOOT_COMPLETED` permission on Android — allows streak notifications to be rescheduled after device reboot
 
 ### Changed
--
+- Sentry `tracePropagationTargets` restricted to the production host (`taxiexam.hayatpoetry.com`) — prevents CORS preflight rejection on the local dev server caused by injected `sentry-trace`/`baggage` headers
 
 ### Fixed
--
+- Duplicate `as tz` import alias in `StreakNotificationService` — `timezone/data/latest_all.dart` renamed to `tz_data` to resolve the conflict with `timezone/timezone.dart`
+- Added `mounted` guard in `OnboardingScreen` before showing the subscription success overlay — prevents a `setState` call after widget disposal
 
 ---
 

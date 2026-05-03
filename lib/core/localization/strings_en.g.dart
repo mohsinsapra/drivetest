@@ -331,7 +331,6 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get dash_streak_msg_progress_other => '{n} day streak! {left} more sessions to hit your weekly goal.';
 	String get dash_completed => 'Completed!';
 	String get dash_tap_to_explore => 'Tap to explore';
-
 	String get onb_which_exams => 'Which exams are you preparing for?';
 	String get onb_select_all_apply => 'Select all that apply';
 	String get onb_exam_date_title => 'When is your exam?';
@@ -353,19 +352,18 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get onb_sign_in_to_subscribe => 'Sign in to subscribe';
 	String get onb_sign_in_subtitle => 'Create a free account or log in to unlock full exam access';
 	String get onb_no_exams => 'No exams available right now';
-	String onb_days_week_label({required Object n}) => '${n} days/week';
-	String onb_step_of({required Object current, required Object total}) => 'Step ${current} of ${total}';
+	String get onb_days_week_label => '{n} days/week';
+	String get onb_step_of => 'Step {current} of {total}';
 	String get onb_weekly_goal_title => 'Weekly Study Goal';
-	String get onb_weekly_goal_sub => "Select the days you'll commit to studying.";
-
+	String get onb_weekly_goal_sub => 'Select the days you\'ll commit to studying.';
 	String get dash_exam_deadline => 'Exam Deadline';
-	String dash_days_remaining({required Object n}) => '${n} days left';
+	String get dash_days_remaining => '{n} days left';
 	String get dash_deadline_today => 'Today!';
 	String get dash_deadline_passed => 'Deadline passed';
 	String get dash_no_deadline => 'No deadline set';
 	String get dash_set_deadline => 'Set deadline';
 	String get dash_change_deadline => 'Change deadline';
-	String dash_practice_days({required Object n}) => '${n} days/week';
+	String get dash_practice_days => '{n} days/week';
 	String get dash_hero_sub_start => 'Start your learning journey!';
 	String get dash_hero_sub_progress => 'Keep going, you\'re doing great!';
 	String get dash_hero_sub_almost => 'Almost ready for the exam!';
@@ -375,14 +373,14 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get dash_no_exams_found => 'No exams found.';
 	String get dash_stat_completed => 'Completed';
 	String get dash_stat_none_yet => 'None yet';
-	String dash_stat_of_n({required Object total}) => 'of ${total}';
+	String get dash_stat_of_n => 'of {total}';
 	String get dash_stat_per_session => 'Per session';
 	String get dash_exam_type_taxi => 'TAXI';
 	String get dash_exam_type_test => 'TEST';
-	String dash_streak_title({required Object n}) => '${n} day streak!';
-	String dash_streak_days({required Object n}) => '${n} days';
-	String dash_batches_count({required Object n}) => '${n} batches';
-	String dash_avg_score_label({required Object score}) => '${score}% avg';
+	String get dash_streak_title => '{n} day streak!';
+	String get dash_streak_days => '{n} days';
+	String get dash_batches_count => '{n} batches';
+	String get dash_avg_score_label => '{score}% avg';
 	String get tut_step1_title => 'Step 1 of 3 — Translate';
 	String get tut_step1_body => 'Tap the language button to open the list, then select English (or any other language).';
 	String get tut_step1b_title => 'Step 1 of 3 — Choose a language';
@@ -399,6 +397,19 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get tut_complete_body => 'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
 	String get tut_complete_subtitle => 'You\'re ready to prepare for your taxi exam!';
 	String get tut_start_practicing => 'Start practicing!';
+	String get sg_title => 'Study Goals';
+	String get sg_section_exam_date => 'EXAM DATE';
+	String get sg_section_practice_days => 'PRACTICE DAYS';
+	String get sg_practice_days_sub => 'Pick the days you commit to practising each week.';
+	String get sg_days_per_week => '{n} day(s) / week';
+	String get sg_save => 'Save Settings';
+	String get sg_settings_saved => 'Settings saved!';
+	String get sg_months => 'MONTHS';
+	String get sg_custom_date => 'Custom date';
+	String get sg_deadline_passed => 'Exam date passed';
+	String get sg_days_remaining => '{n} days remaining';
+	String get sg_notif_note => 'You\'ll get two reminders on each practice day — one in the morning and one in the evening — at randomised times to help you build a habit.';
+	String get sg_profile_menu_label => 'Study Goals';
 }
 
 /// Flat map(s) containing all translations.
@@ -719,18 +730,18 @@ extension on Translations {
 			case 'onb_sign_in_to_subscribe': return 'Sign in to subscribe';
 			case 'onb_sign_in_subtitle': return 'Create a free account or log in to unlock full exam access';
 			case 'onb_no_exams': return 'No exams available right now';
-			case 'onb_days_week_label': return ({required Object n}) => '${n} days/week';
-			case 'onb_step_of': return ({required Object current, required Object total}) => 'Step ${current} of ${total}';
+			case 'onb_days_week_label': return '{n} days/week';
+			case 'onb_step_of': return 'Step {current} of {total}';
 			case 'onb_weekly_goal_title': return 'Weekly Study Goal';
-			case 'onb_weekly_goal_sub': return "Select the days you'll commit to studying.";
+			case 'onb_weekly_goal_sub': return 'Select the days you\'ll commit to studying.';
 			case 'dash_exam_deadline': return 'Exam Deadline';
-			case 'dash_days_remaining': return ({required Object n}) => '${n} days left';
+			case 'dash_days_remaining': return '{n} days left';
 			case 'dash_deadline_today': return 'Today!';
 			case 'dash_deadline_passed': return 'Deadline passed';
 			case 'dash_no_deadline': return 'No deadline set';
 			case 'dash_set_deadline': return 'Set deadline';
 			case 'dash_change_deadline': return 'Change deadline';
-			case 'dash_practice_days': return ({required Object n}) => '${n} days/week';
+			case 'dash_practice_days': return '{n} days/week';
 			case 'dash_hero_sub_start': return 'Start your learning journey!';
 			case 'dash_hero_sub_progress': return 'Keep going, you\'re doing great!';
 			case 'dash_hero_sub_almost': return 'Almost ready for the exam!';
@@ -740,14 +751,14 @@ extension on Translations {
 			case 'dash_no_exams_found': return 'No exams found.';
 			case 'dash_stat_completed': return 'Completed';
 			case 'dash_stat_none_yet': return 'None yet';
-			case 'dash_stat_of_n': return ({required Object total}) => 'of ${total}';
+			case 'dash_stat_of_n': return 'of {total}';
 			case 'dash_stat_per_session': return 'Per session';
 			case 'dash_exam_type_taxi': return 'TAXI';
 			case 'dash_exam_type_test': return 'TEST';
-			case 'dash_streak_title': return ({required Object n}) => '${n} day streak!';
-			case 'dash_streak_days': return ({required Object n}) => '${n} days';
-			case 'dash_batches_count': return ({required Object n}) => '${n} batches';
-			case 'dash_avg_score_label': return ({required Object score}) => '${score}% avg';
+			case 'dash_streak_title': return '{n} day streak!';
+			case 'dash_streak_days': return '{n} days';
+			case 'dash_batches_count': return '{n} batches';
+			case 'dash_avg_score_label': return '{score}% avg';
 			case 'tut_step1_title': return 'Step 1 of 3 — Translate';
 			case 'tut_step1_body': return 'Tap the language button to open the list, then select English (or any other language).';
 			case 'tut_step1b_title': return 'Step 1 of 3 — Choose a language';
@@ -764,6 +775,19 @@ extension on Translations {
 			case 'tut_complete_body': return 'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
 			case 'tut_complete_subtitle': return 'You\'re ready to prepare for your taxi exam!';
 			case 'tut_start_practicing': return 'Start practicing!';
+			case 'sg_title': return 'Study Goals';
+			case 'sg_section_exam_date': return 'EXAM DATE';
+			case 'sg_section_practice_days': return 'PRACTICE DAYS';
+			case 'sg_practice_days_sub': return 'Pick the days you commit to practising each week.';
+			case 'sg_days_per_week': return '{n} day(s) / week';
+			case 'sg_save': return 'Save Settings';
+			case 'sg_settings_saved': return 'Settings saved!';
+			case 'sg_months': return 'MONTHS';
+			case 'sg_custom_date': return 'Custom date';
+			case 'sg_deadline_passed': return 'Exam date passed';
+			case 'sg_days_remaining': return '{n} days remaining';
+			case 'sg_notif_note': return 'You\'ll get two reminders on each practice day — one in the morning and one in the evening — at randomised times to help you build a habit.';
+			case 'sg_profile_menu_label': return 'Study Goals';
 			default: return null;
 		}
 	}

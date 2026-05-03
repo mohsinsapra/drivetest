@@ -16,6 +16,7 @@ default_platform(:ios)
 platform :ios do
   desc "Build IPA only (no upload)"
   lane :build do
+    ENV['BUILD_VARIANT'] ||= 'testflight'
     update_flutter_version
     get_provisioning_profile(
       app_identifier: "com.mohsinsapra.drivetest",
@@ -49,6 +50,7 @@ platform :ios do
 
   desc "Build + upload to TestFlight"
   lane :beta do
+    ENV['BUILD_VARIANT'] = 'testflight'
     build
     upload
   end
@@ -66,6 +68,7 @@ platform :ios do
 
   desc "Deploy Production"
   lane :production do
+    ENV['BUILD_VARIANT'] = 'production'
     # Update version
     update_flutter_version
 
@@ -206,6 +209,9 @@ platform :ios do
     env_vars = load_root_env
     explicit_defines = ENV["FLUTTER_DART_DEFINES"].to_s.strip
 
+    build_variant = ENV["BUILD_VARIANT"].to_s.strip
+    build_variant = "debug" if build_variant.empty?
+
     define_entries =
       if explicit_defines.empty?
         entries = []
@@ -214,13 +220,16 @@ platform :ios do
 
         entries << "GOOGLE_SERVER_CLIENT_ID=#{google_server_client_id}" unless google_server_client_id.empty?
         entries << "STRIPE_PUBLISHABLE_KEY=#{stripe_publishable_key}" unless stripe_publishable_key.empty?
+        entries << "BUILD_VARIANT=#{build_variant}"
         entries
       else
-        explicit_defines.split(/\s+/).filter_map do |arg|
+        # Inject BUILD_VARIANT unless the caller already specified it
+        all_entries = explicit_defines.split(/\s+/).filter_map do |arg|
           next unless arg.start_with?("--dart-define=")
-
           arg.delete_prefix("--dart-define=")
         end
+        all_entries << "BUILD_VARIANT=#{build_variant}" unless all_entries.any? { |e| e.start_with?("BUILD_VARIANT=") }
+        all_entries
       end
 
     define_entries.map { |entry| Base64.strict_encode64(entry) }.join(",")

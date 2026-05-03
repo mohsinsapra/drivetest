@@ -56,7 +56,7 @@ class BcdProvider extends ChangeNotifier {
       final raw = await _api.fetchBCDTestQuestions(testId);
       final prefs = await SharedPreferences.getInstance();
       final shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
-      final questions = (raw as List).map(_toQuestion).toList();
+      final questions = raw.map(_toQuestion).toList();
       if (shuffleOnDevice) questions.shuffle(Random());
       testQuestions = questions;
     } catch (e) {

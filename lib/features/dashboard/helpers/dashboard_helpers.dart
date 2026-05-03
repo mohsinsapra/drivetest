@@ -115,8 +115,9 @@ class DashboardHelpers {
 
   static ExamDashboardStats computeExamStats(
     SubscribedExam exam,
-    List<TestAttempt> allAttempts,
-  ) {
+    List<TestAttempt> allAttempts, {
+    int weeklyGoal = 5,
+  }) {
     List<CategoryStats>? categoryStats;
     List<BatchStats> allBatchStats;
 
@@ -131,7 +132,7 @@ class DashboardHelpers {
           .toList();
     }
 
-    final streak = computeStreakSummary(allAttempts, exam: exam);
+    final streak = computeStreakSummary(allAttempts, exam: exam, weeklyGoal: weeklyGoal);
     final examAttempts = _examLevelAttemptCount(allAttempts, exam);
 
     return ExamDashboardStats(
@@ -190,6 +191,7 @@ class DashboardHelpers {
   static StreakSummary computeStreakSummary(
     List<TestAttempt> allAttempts, {
     SubscribedExam? exam,
+    int weeklyGoal = 5,
   }) {
     final relevant = allAttempts.where((a) {
       if (exam == null) return true;
@@ -256,7 +258,7 @@ class DashboardHelpers {
       currentStreak: currentStreak,
       bestStreak: bestStreak,
       thisWeekActiveDays: thisWeekActive,
-      weeklyGoal: 5,
+      weeklyGoal: weeklyGoal,
       thisWeekActiveDayCount: thisWeekActive.length,
     );
   }

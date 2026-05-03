@@ -202,7 +202,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_examDeadline != null) {
-        await prefs.setString('exam_deadline', _examDeadline!.toIso8601String());
+        await prefs.setString(
+            'exam_deadline', _examDeadline!.toIso8601String());
       }
       await prefs.setInt('practice_days_per_week', _selectedWeekdays.length);
     } catch (_) {}
@@ -304,6 +305,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       BcdCache.instance.invalidate();
       await BcdCache.instance.ensureLoaded();
 
+      if (!mounted) return;
+
       SubscriptionSuccessResult? result;
       try {
         result = await widget.showSuccessOverlay(context, products);
@@ -327,13 +330,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         }
       }
 
-      navigator.pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
+      navigator
+          .pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
 
       if (targetCategory != null) {
         final hasChildren = targetCategory['has_children'] == true;
         final route = hasChildren
             ? AppPageRoute(
-                builder: (_) => BCDSubCategoryScreen(parentCategory: targetCategory!),
+                builder: (_) =>
+                    BCDSubCategoryScreen(parentCategory: targetCategory!),
               )
             : AppPageRoute(
                 builder: (_) => BCDCategoryHubScreen(category: targetCategory!),
@@ -396,10 +401,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onWeekdayToggle: (day) => setState(() {
                       if (_selectedWeekdays.contains(day)) {
                         if (_selectedWeekdays.length > 1) {
-                          _selectedWeekdays = Set.from(_selectedWeekdays)..remove(day);
+                          _selectedWeekdays = Set.from(_selectedWeekdays)
+                            ..remove(day);
                         }
                       } else {
-                        _selectedWeekdays = Set.from(_selectedWeekdays)..add(day);
+                        _selectedWeekdays = Set.from(_selectedWeekdays)
+                          ..add(day);
                       }
                     }),
                     onBack: _goBack,
@@ -412,9 +419,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPurchaseOne: _purchaseInFlight
                         ? null
                         : (p) => _handlePurchaseTap(only: p),
-                    onPurchaseAll: _selectedProducts.isEmpty || _purchaseInFlight
-                        ? null
-                        : () => _handlePurchaseTap(),
+                    onPurchaseAll:
+                        _selectedProducts.isEmpty || _purchaseInFlight
+                            ? null
+                            : () => _handlePurchaseTap(),
                     onBack: _goBack,
                   ),
                 ],
@@ -467,7 +475,9 @@ class _TopBar extends StatelessWidget {
                 width: 28,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: i <= currentStep ? cs.primary : cs.surfaceContainerHighest,
+                  color: i <= currentStep
+                      ? cs.primary
+                      : cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                 ),
               );
@@ -580,7 +590,8 @@ class _PrimaryButton extends StatelessWidget {
 // ─── Shared back + next button row ────────────────────────────────────────────
 
 class _NavRow extends StatelessWidget {
-  const _NavRow({required this.onBack, required this.onNext, required this.nextLabel});
+  const _NavRow(
+      {required this.onBack, required this.onNext, required this.nextLabel});
 
   final VoidCallback? onBack;
   final VoidCallback? onNext;
@@ -601,7 +612,8 @@ class _NavRow extends StatelessWidget {
                 shape: const CircleBorder(),
                 padding: const EdgeInsets.all(14),
               ),
-              child: Icon(Icons.arrow_back_rounded, color: cs.onSurface, size: 20),
+              child:
+                  Icon(Icons.arrow_back_rounded, color: cs.onSurface, size: 20),
             ),
           ),
           const SizedBox(width: 12),
@@ -640,12 +652,24 @@ class _ExamDatePage extends StatelessWidget {
     final now = DateTime.now();
 
     final dateOptions = [
-      (label: '3', sub: 'MONTHS', opt: _DateOption.threeMonths,
-        date: DateTime(now.year, now.month + 3, now.day)),
-      (label: '6', sub: 'MONTHS', opt: _DateOption.sixMonths,
-        date: DateTime(now.year, now.month + 6, now.day)),
-      (label: '12', sub: 'MONTHS', opt: _DateOption.twelveMonths,
-        date: DateTime(now.year, now.month + 12, now.day)),
+      (
+        label: '3',
+        sub: 'MONTHS',
+        opt: _DateOption.threeMonths,
+        date: DateTime(now.year, now.month + 3, now.day)
+      ),
+      (
+        label: '6',
+        sub: 'MONTHS',
+        opt: _DateOption.sixMonths,
+        date: DateTime(now.year, now.month + 6, now.day)
+      ),
+      (
+        label: '12',
+        sub: 'MONTHS',
+        opt: _DateOption.twelveMonths,
+        date: DateTime(now.year, now.month + 12, now.day)
+      ),
     ];
 
     return SingleChildScrollView(
@@ -659,7 +683,6 @@ class _ExamDatePage extends StatelessWidget {
             headlineItalic: 'exam?',
           ),
           const SizedBox(height: 32),
-
           Row(
             children: [
               Icon(Icons.calendar_today_rounded, color: cs.primary, size: 20),
@@ -718,7 +741,8 @@ class _ExamDatePage extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    selectedDateOption == _DateOption.custom && examDeadline != null
+                    selectedDateOption == _DateOption.custom &&
+                            examDeadline != null
                         ? '${examDeadline!.day}/${examDeadline!.month}/${examDeadline!.year}'
                         : t.onb_custom_date,
                     style: GoogleFonts.plusJakartaSans(
@@ -733,12 +757,10 @@ class _ExamDatePage extends StatelessWidget {
               ),
             ),
           ),
-
           if (examDeadline != null) ...[
             const SizedBox(height: 16),
             _DeadlineBanner(deadline: examDeadline!),
           ],
-
           const SizedBox(height: 32),
           _NavRow(
             onBack: onBack,
@@ -784,7 +806,6 @@ class _WeeklyGoalPage extends StatelessWidget {
             headlineItalic: 'goal.',
           ),
           const SizedBox(height: 32),
-
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
@@ -832,7 +853,6 @@ class _WeeklyGoalPage extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 32),
           _NavRow(
             onBack: onBack,
@@ -1002,7 +1022,10 @@ class _DeadlineBanner extends StatelessWidget {
                 ),
               ),
               Text(
-                Translations.of(context).dash_days_remaining(n: daysLeft),
+                Translations.of(context).dash_days_remaining.replaceAll(
+                      '{n}',
+                      '$daysLeft',
+                    ),
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   color: cs.onSurfaceVariant,
@@ -1304,7 +1327,8 @@ class _PlanPage extends StatelessWidget {
             _BundleRow(total: total, currency: currency),
             const SizedBox(height: 16),
             _PrimaryButton(
-              label: 'Buy bundle — ${(total * 0.8).toStringAsFixed(2)} $currency',
+              label:
+                  'Buy bundle — ${(total * 0.8).toStringAsFixed(2)} $currency',
               onPressed: onPurchaseAll,
             ),
           ],
@@ -1451,7 +1475,8 @@ class _PlanTierCard extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: cs.primary,
                       foregroundColor: cs.onPrimary,
-                      disabledBackgroundColor: cs.primary.withValues(alpha: 0.3),
+                      disabledBackgroundColor:
+                          cs.primary.withValues(alpha: 0.3),
                       shape: const StadiumBorder(),
                       elevation: 0,
                     ),
@@ -1483,7 +1508,8 @@ class _PlanTierCard extends StatelessWidget {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                 decoration: BoxDecoration(
                   color: cs.secondaryContainer,
                   borderRadius: BorderRadius.circular(9999),
@@ -1719,12 +1745,16 @@ class _BundleRow extends StatelessWidget {
 
 IconData _iconForProduct(Map<String, dynamic> product) {
   final name = (product['name']?.toString() ?? '').toLowerCase();
-  if (name.contains('motorcykel') || name.contains(' mc ') || name.startsWith('mc ')) {
+  if (name.contains('motorcykel') ||
+      name.contains(' mc ') ||
+      name.startsWith('mc ')) {
     return Icons.two_wheeler_rounded;
   }
   if (name.contains('buss')) return Icons.directions_bus_rounded;
   if (name.contains('lastbil')) return Icons.local_shipping_rounded;
-  if (name.contains('åkeri') || name.contains('gods')) return Icons.warehouse_rounded;
+  if (name.contains('åkeri') || name.contains('gods')) {
+    return Icons.warehouse_rounded;
+  }
   if (name.contains('b-körkort') || name.contains('personbil')) {
     return Icons.directions_car_rounded;
   }

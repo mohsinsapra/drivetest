@@ -372,5 +372,18 @@
   "tut_complete_title": "You're all set!",
   "tut_complete_body": "Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.",
   "tut_complete_subtitle": "You're ready to prepare for your taxi exam!",
-  "tut_start_practicing": "Start practicing!"
+  "tut_start_practicing": "Start practicing!",
+  "sg_title": "Study Goals",
+  "sg_section_exam_date": "EXAM DATE",
+  "sg_section_practice_days": "PRACTICE DAYS",
+  "sg_practice_days_sub": "Pick the days you commit to practising each week.",
+  "sg_days_per_week": "{n} day(s) / week",
+  "sg_save": "Save Settings",
+  "sg_settings_saved": "Settings saved!",
+  "sg_months": "MONTHS",
+  "sg_custom_date": "Custom date",
+  "sg_deadline_passed": "Exam date passed",
+  "sg_days_remaining": "{n} days remaining",
+  "sg_notif_note": "You'll get two reminders on each practice day — one in the morning and one in the evening — at randomised times to help you build a habit.",
+  "sg_profile_menu_label": "Study Goals"
 }

@@ -7,9 +7,11 @@ class CategoryProgressCard extends StatelessWidget {
     super.key,
     required this.stats,
     this.onTap,
+
     /// When true the widget renders without its own outer card decoration
     /// (used when placed inside a collapsible section container).
     this.nested = false,
+
     /// Shows a rotating chevron to indicate expand/collapse state.
     this.showChevron = false,
     this.isExpanded = false,
@@ -53,7 +55,7 @@ class CategoryProgressCard extends StatelessWidget {
                           .replaceAll('{done}', '${stats.completedBatches}')
                           .replaceAll('{total}', '${stats.totalBatches}'),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.onSurface.withOpacity(0.5),
+                        color: cs.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -92,7 +94,7 @@ class CategoryProgressCard extends StatelessWidget {
                       child: Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 20,
-                        color: cs.onSurface.withOpacity(0.45),
+                        color: cs.onSurface.withValues(alpha: 0.45),
                       ),
                     ),
                   ],
@@ -106,7 +108,7 @@ class CategoryProgressCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 5,
-              backgroundColor: cs.onSurface.withOpacity(0.1),
+              backgroundColor: cs.onSurface.withValues(alpha: 0.1),
               valueColor: AlwaysStoppedAnimation<Color>(
                 progress == 1.0 ? Colors.green : cs.primary,
               ),
@@ -127,7 +129,7 @@ class CategoryProgressCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: cs.onSurface.withOpacity(0.08)),
+          border: Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
         ),
         child: content,
       ),
@@ -171,7 +173,7 @@ class _WeaknessChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

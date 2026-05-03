@@ -14,6 +14,8 @@ const _webShortHash =
 const _webBranch = String.fromEnvironment('GIT_BRANCH', defaultValue: '');
 const _webCommitDate =
     String.fromEnvironment('GIT_COMMIT_DATE', defaultValue: '');
+const _buildVariant =
+    String.fromEnvironment('BUILD_VARIANT', defaultValue: 'debug');
 
 class VersionInfo {
   final String appVersion;
@@ -25,6 +27,7 @@ class VersionInfo {
   final String commitDate;
   final String commitAuthor;
   final bool hasGitInfo;
+  final String variant;
 
   VersionInfo({
     required this.appVersion,
@@ -36,6 +39,7 @@ class VersionInfo {
     required this.commitDate,
     required this.commitAuthor,
     required this.hasGitInfo,
+    required this.variant,
   });
 
   Map<String, dynamic> toJson() => {
@@ -48,6 +52,7 @@ class VersionInfo {
         'commit_date': commitDate,
         'commit_author': commitAuthor,
         'has_git_info': hasGitInfo,
+        'variant': variant,
       };
 }
 
@@ -189,6 +194,7 @@ class VersionService {
       commitDate: commitDate,
       commitAuthor: commitAuthor,
       hasGitInfo: hasGitInfo,
+      variant: _buildVariant,
     );
   }
 

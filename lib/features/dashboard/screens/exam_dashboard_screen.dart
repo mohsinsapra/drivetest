@@ -42,7 +42,6 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-
         actions: [
           if (provider.syncing)
             const Padding(
@@ -54,36 +53,37 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
               ),
             )
           else
-          Consumer<NotificationProvider>(
-            builder: (_, notifProvider, __) => Stack(
-              clipBehavior: Clip.none,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.notifications_none_rounded),
-                  onPressed: () => Navigator.of(context).push(
-                    AppPageRoute(builder: (_) => const NotificationsScreen()),
-                  ),
-                ),
-                if (notifProvider.unreadCount > 0)
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Container(
-                      width: 9,
-                      height: 9,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
+            Consumer<NotificationProvider>(
+              builder: (_, notifProvider, __) => Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_none_rounded),
+                    onPressed: () => Navigator.of(context).push(
+                      AppPageRoute(builder: (_) => const NotificationsScreen()),
                     ),
                   ),
-              ],
+                  if (notifProvider.unreadCount > 0)
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
       body: switch (provider.status) {
-        DashboardStatus.idle || DashboardStatus.loading =>
+        DashboardStatus.idle ||
+        DashboardStatus.loading =>
           const Center(child: CircularProgressIndicator()),
         DashboardStatus.error => _ErrorView(
             message: provider.error ?? t.dash_unknown_error,
@@ -244,8 +244,8 @@ class _ExamCarouselSection extends StatelessWidget {
           child: Text(
             t.dash_my_exams,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+                  fontWeight: FontWeight.w800,
+                ),
           ),
         ),
         if (exams.isEmpty)
@@ -254,8 +254,8 @@ class _ExamCarouselSection extends StatelessWidget {
             child: Text(
               t.dash_no_exams_found,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: cs.onSurface.withValues(alpha: 0.45),
-              ),
+                    color: cs.onSurface.withValues(alpha: 0.45),
+                  ),
             ),
           )
         else
@@ -316,7 +316,8 @@ class _ExamCard extends StatelessWidget {
     final progressValue = (progress / 100.0).clamp(0.0, 1.0);
     final progressLabel = '${progress.toStringAsFixed(0)}%';
     final t = Translations.of(context);
-    final typeLabel = exam.isBcd ? t.dash_exam_type_test : t.dash_exam_type_taxi;
+    final typeLabel =
+        exam.isBcd ? t.dash_exam_type_test : t.dash_exam_type_taxi;
 
     if (isActive) {
       return Container(
@@ -592,7 +593,10 @@ class _PerformanceOverviewSection extends StatelessWidget {
                   iconColor: cs.secondary,
                   label: t.dash_batches_done,
                   value: '${stats.completedBatchCount}',
-                  subtitle: t.dash_stat_of_n(total: stats.totalBatchCount),
+                  subtitle: t.dash_stat_of_n.replaceAll(
+                    '{total}',
+                    '${stats.totalBatchCount}',
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -760,8 +764,6 @@ class _FocusCategoriesSectionState extends State<_FocusCategoriesSection> {
   @override
   Widget build(BuildContext context) {
     final stats = widget.stats;
-    final cs = Theme.of(context).colorScheme;
-
     if (stats.categoryStats != null) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -842,7 +844,10 @@ class _CategoryListItem extends StatelessWidget {
     final t = Translations.of(context);
     final statusText = cat.touchedBatches == 0
         ? t.dash_not_started
-        : t.dash_avg_score_label(score: cat.averageScore.toStringAsFixed(0));
+        : t.dash_avg_score_label.replaceAll(
+            '{score}',
+            cat.averageScore.toStringAsFixed(0),
+          );
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
@@ -893,7 +898,7 @@ class _CategoryListItem extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${t.dash_batches_count(n: cat.totalBatches)} • $statusText',
+                            '${t.dash_batches_count.replaceAll('{n}', '${cat.totalBatches}')} • $statusText',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: cs.onSurface.withValues(alpha: 0.5),
                             ),
@@ -932,7 +937,9 @@ class _CategoryListItem extends StatelessWidget {
                             .entries
                             .map((e) => Padding(
                                   padding: EdgeInsets.only(
-                                    bottom: e.key < cat.batchStats.length - 1 ? 8 : 0,
+                                    bottom: e.key < cat.batchStats.length - 1
+                                        ? 8
+                                        : 0,
                                   ),
                                   child: _BatchRow(
                                     batch: e.value,
@@ -1012,7 +1019,10 @@ class _WeeklyStreakSection extends StatelessWidget {
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          t.dash_streak_title(n: streak.currentStreak),
+                          t.dash_streak_title.replaceAll(
+                            '{n}',
+                            '${streak.currentStreak}',
+                          ),
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: cs.onInverseSurface,
                             fontWeight: FontWeight.w900,
@@ -1027,7 +1037,10 @@ class _WeeklyStreakSection extends StatelessWidget {
                     children: [
                       _StreakStatLabel(
                         label: t.dash_streak_current,
-                        value: t.dash_streak_days(n: streak.currentStreak),
+                        value: t.dash_streak_days.replaceAll(
+                          '{n}',
+                          '${streak.currentStreak}',
+                        ),
                         valueColor: cs.onInverseSurface,
                         labelColor: cs.onInverseSurface,
                       ),
@@ -1039,7 +1052,10 @@ class _WeeklyStreakSection extends StatelessWidget {
                       ),
                       _StreakStatLabel(
                         label: t.dash_streak_best,
-                        value: t.dash_streak_days(n: streak.bestStreak),
+                        value: t.dash_streak_days.replaceAll(
+                          '{n}',
+                          '${streak.bestStreak}',
+                        ),
                         valueColor: cs.onInverseSurface,
                         labelColor: cs.onInverseSurface,
                       ),
@@ -1076,9 +1092,8 @@ class _WeeklyStreakSection extends StatelessWidget {
                           alignment: Alignment.bottomCenter,
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 400),
-                            height: isActive
-                                ? 40
-                                : (isToday && !isFuture ? 18 : 0),
+                            height:
+                                isActive ? 40 : (isToday && !isFuture ? 18 : 0),
                             decoration: BoxDecoration(
                               color: isActive
                                   ? Colors.amber
@@ -1096,9 +1111,8 @@ class _WeeklyStreakSection extends StatelessWidget {
                               ? Colors.amber
                               : cs.onInverseSurface.withValues(alpha: 0.5),
                           fontSize: 9,
-                          fontWeight: isToday
-                              ? FontWeight.w800
-                              : FontWeight.w600,
+                          fontWeight:
+                              isToday ? FontWeight.w800 : FontWeight.w600,
                         ),
                       ),
                     ],
@@ -1300,8 +1314,8 @@ class _BatchRowState extends State<_BatchRow> {
                         exam: widget.exam,
                         batch: batch,
                         onNewTest: widget.onTap,
-                        onResume: (attempt) =>
-                            _resumeAttempt(context, attempt, widget.exam, batch),
+                        onResume: (attempt) => _resumeAttempt(
+                            context, attempt, widget.exam, batch),
                       ),
                     )
                   : const SizedBox.shrink(),
@@ -1390,9 +1404,8 @@ class _BatchAttemptHistory extends StatelessWidget {
                 final isPaused = a.isPaused;
                 final scoreColor = a.hasPassed ? Colors.green : cs.error;
                 final dur = a.durationSeconds ?? 0;
-                final durLabel = dur > 0
-                    ? DashboardHelpers.formatDuration(dur)
-                    : '—';
+                final durLabel =
+                    dur > 0 ? DashboardHelpers.formatDuration(dur) : '—';
 
                 return Column(
                   children: [
@@ -1428,7 +1441,8 @@ class _BatchAttemptHistory extends StatelessWidget {
                                   Text(
                                     durLabel,
                                     style: theme.textTheme.labelSmall?.copyWith(
-                                      color: cs.onSurface.withValues(alpha: 0.5),
+                                      color:
+                                          cs.onSurface.withValues(alpha: 0.5),
                                     ),
                                   ),
                                 ],

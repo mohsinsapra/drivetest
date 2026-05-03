@@ -92,7 +92,7 @@ class _ExamDeadlineCardState extends State<ExamDeadlineCard> {
       statusColor = Colors.orange;
       progress = 1.0;
     } else {
-      statusLabel = t.dash_days_remaining(n: daysLeft);
+      statusLabel = t.dash_days_remaining.replaceAll('{n}', '$daysLeft');
       statusColor = primary;
       // Assume a max planning horizon of 180 days for the progress bar
       const maxDays = 180;
@@ -123,7 +123,8 @@ class _ExamDeadlineCardState extends State<ExamDeadlineCard> {
                         Text(
                           t.dash_exam_deadline,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.5),
                             letterSpacing: 0.4,
                           ),
                         ),
@@ -207,7 +208,8 @@ class _NoDeadlineBanner extends StatelessWidget {
           child: Row(
             children: [
               Icon(Icons.flag_outlined,
-                  color: theme.colorScheme.primary.withValues(alpha: 0.6), size: 20),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.6),
+                  size: 20),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(

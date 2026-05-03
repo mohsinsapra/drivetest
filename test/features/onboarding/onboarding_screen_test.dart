@@ -8,17 +8,16 @@ import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/features/dashboard/models/dashboard_stats.dart';
 import 'package:taxi_exam_app/features/dashboard/models/subscribed_exam.dart';
 import 'package:taxi_exam_app/features/dashboard/providers/dashboard_provider.dart';
-import 'package:taxi_exam_app/features/dashboard/repository/dashboard_repository.dart';
-import 'package:taxi_exam_app/features/dashboard/repository/exam_sync_service.dart';
 import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
-import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 import 'package:toastification/toastification.dart';
 
-class _MockDashboardProvider extends ChangeNotifier implements DashboardProvider {
+class _MockDashboardProvider extends ChangeNotifier
+    implements DashboardProvider {
   @override
   DashboardStatus get status => DashboardStatus.loaded;
   @override
@@ -43,15 +42,17 @@ class _MockDashboardProvider extends ChangeNotifier implements DashboardProvider
   void selectExam(SubscribedExam exam) {}
   @override
   void reset() {}
-  @override
   void clearSelectedExam() {}
-  @override
   Future<void> deleteExam(String examId) async {}
-  @override
   double getProgress(String examId) => 0.0;
+  @override
+  List<TestAttempt> get attempts => [];
+  @override
+  void setWeeklyGoal(int goal) {}
 }
 
-class _MockNotificationProvider extends ChangeNotifier implements NotificationProvider {
+class _MockNotificationProvider extends ChangeNotifier
+    implements NotificationProvider {
   @override
   List<LocalNotification> get notifications => [];
   @override
@@ -59,7 +60,8 @@ class _MockNotificationProvider extends ChangeNotifier implements NotificationPr
   @override
   String get topNotificationType => 'general';
   @override
-  Future<void> add(String title, String body, {String type = 'general'}) async {}
+  Future<void> add(String title, String body,
+      {String type = 'general'}) async {}
   @override
   Future<void> markAllRead() async {}
   @override
@@ -68,30 +70,10 @@ class _MockNotificationProvider extends ChangeNotifier implements NotificationPr
   bool hasType(String type) => false;
   @override
   Future<void> removeByType(String type) async {}
-  @override
   Future<void> markAllAsRead() async {}
-  @override
   Future<void> delete(int index) async {}
   @override
   Future<void> clearAll() async {}
-}
-
-class _MockRepo implements DashboardRepository {
-  @override
-  Future<List<SubscribedExam>> loadSubscribedExams() async => [];
-  @override
-  Future<void> saveSubscribedExam(SubscribedExam exam) async {}
-  @override
-  Future<void> removeSubscribedExam(String examId) async {}
-  @override
-  Future<void> saveAll(List<SubscribedExam> exams) async {}
-}
-
-class _MockSync implements ExamSyncService {
-  @override
-  Future<List<SubscribedExam>> syncFromRemote() async => [];
-  @override
-  Future<List<SubscribedExam>> fetchSubscribedExams() async => [];
 }
 
 void main() {
@@ -100,7 +82,7 @@ void main() {
     await DioClient().init();
   });
 
-  Future<void> _tapSubscribeAndWait(WidgetTester tester) async {
+  Future<void> tapSubscribeAndWait(WidgetTester tester) async {
     await tester.tap(find.widgetWithText(ElevatedButton, 'Subscribe'));
     await tester.pump();
     await tester.runAsync(() async {
@@ -109,7 +91,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> _reachSelectedPlanStep(WidgetTester tester) async {
+  Future<void> reachSelectedPlanStep(WidgetTester tester) async {
     await tester.tap(find.text('30 Days'));
     await tester.pumpAndSettle();
 
@@ -125,7 +107,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<SharedPreferences> _prefs(WidgetTester tester) async {
+  Future<SharedPreferences> prefsFor(WidgetTester tester) async {
     return (await tester.runAsync(SharedPreferences.getInstance))!;
   }
 
@@ -138,8 +120,10 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-            ChangeNotifierProvider<DashboardProvider>(create: (_) => _MockDashboardProvider()),
-            ChangeNotifierProvider<NotificationProvider>(create: (_) => _MockNotificationProvider()),
+            ChangeNotifierProvider<DashboardProvider>(
+                create: (_) => _MockDashboardProvider()),
+            ChangeNotifierProvider<NotificationProvider>(
+                create: (_) => _MockNotificationProvider()),
           ],
           child: TranslationProvider(
             child: MaterialApp(
@@ -189,8 +173,10 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-            ChangeNotifierProvider<DashboardProvider>(create: (_) => _MockDashboardProvider()),
-            ChangeNotifierProvider<NotificationProvider>(create: (_) => _MockNotificationProvider()),
+            ChangeNotifierProvider<DashboardProvider>(
+                create: (_) => _MockDashboardProvider()),
+            ChangeNotifierProvider<NotificationProvider>(
+                create: (_) => _MockNotificationProvider()),
           ],
           child: TranslationProvider(
             child: MaterialApp(
@@ -209,7 +195,6 @@ void main() {
                   authSheetShown = true;
                   return true;
                 },
-           
                 showSuccessOverlay: (_, __) async => null,
               ),
             ),
@@ -218,13 +203,13 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      await _reachSelectedPlanStep(tester);
+      await reachSelectedPlanStep(tester);
 
-      await _tapSubscribeAndWait(tester);
+      await tapSubscribeAndWait(tester);
 
       expect(authSheetShown, isTrue);
       expect(paidProduct, isNotNull);
-      expect(paidProduct?['id'], 7);
+      expect(paidProduct!['id'], 7);
     },
   );
 
@@ -242,8 +227,10 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-            ChangeNotifierProvider<DashboardProvider>(create: (_) => _MockDashboardProvider()),
-            ChangeNotifierProvider<NotificationProvider>(create: (_) => _MockNotificationProvider()),
+            ChangeNotifierProvider<DashboardProvider>(
+                create: (_) => _MockDashboardProvider()),
+            ChangeNotifierProvider<NotificationProvider>(
+                create: (_) => _MockNotificationProvider()),
           ],
           child: TranslationProvider(
             child: MaterialApp(
@@ -276,9 +263,9 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      await _reachSelectedPlanStep(tester);
+      await reachSelectedPlanStep(tester);
 
-      await _tapSubscribeAndWait(tester);
+      await tapSubscribeAndWait(tester);
 
       expect(authSheetShown, isTrue);
       expect(paymentCalls, 0);
@@ -298,8 +285,10 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-            ChangeNotifierProvider<DashboardProvider>(create: (_) => _MockDashboardProvider()),
-            ChangeNotifierProvider<NotificationProvider>(create: (_) => _MockNotificationProvider()),
+            ChangeNotifierProvider<DashboardProvider>(
+                create: (_) => _MockDashboardProvider()),
+            ChangeNotifierProvider<NotificationProvider>(
+                create: (_) => _MockNotificationProvider()),
           ],
           child: ToastificationWrapper(
             child: TranslationProvider(
@@ -327,13 +316,13 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      await _reachSelectedPlanStep(tester);
+      await reachSelectedPlanStep(tester);
 
-      await _tapSubscribeAndWait(tester);
+      await tapSubscribeAndWait(tester);
       await tester.pump(const Duration(seconds: 4));
       await tester.pumpAndSettle();
 
-      final prefs = await _prefs(tester);
+      final prefs = await prefsFor(tester);
       expect(prefs.getBool('onboarding_complete'), isNot(isTrue));
       expect(successOverlayCalls, 0);
     },
@@ -352,8 +341,10 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-            ChangeNotifierProvider<DashboardProvider>(create: (_) => _MockDashboardProvider()),
-            ChangeNotifierProvider<NotificationProvider>(create: (_) => _MockNotificationProvider()),
+            ChangeNotifierProvider<DashboardProvider>(
+                create: (_) => _MockDashboardProvider()),
+            ChangeNotifierProvider<NotificationProvider>(
+                create: (_) => _MockNotificationProvider()),
           ],
           child: TranslationProvider(
             child: MaterialApp(
@@ -380,7 +371,7 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      await _reachSelectedPlanStep(tester);
+      await reachSelectedPlanStep(tester);
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Subscribe'));
       await tester.pump();
@@ -413,8 +404,10 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-            ChangeNotifierProvider<DashboardProvider>(create: (_) => _MockDashboardProvider()),
-            ChangeNotifierProvider<NotificationProvider>(create: (_) => _MockNotificationProvider()),
+            ChangeNotifierProvider<DashboardProvider>(
+                create: (_) => _MockDashboardProvider()),
+            ChangeNotifierProvider<NotificationProvider>(
+                create: (_) => _MockNotificationProvider()),
           ],
           child: ToastificationWrapper(
             child: TranslationProvider(
@@ -445,13 +438,13 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      await _reachSelectedPlanStep(tester);
+      await reachSelectedPlanStep(tester);
 
-      await _tapSubscribeAndWait(tester);
+      await tapSubscribeAndWait(tester);
       await tester.pump(const Duration(seconds: 4));
       await tester.pumpAndSettle();
 
-      final prefs = await _prefs(tester);
+      final prefs = await prefsFor(tester);
       expect(paymentCalls, 1);
       expect(successOverlayCalls, 1);
       expect(prefs.getBool('onboarding_complete'), isTrue);
@@ -471,8 +464,10 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-            ChangeNotifierProvider<DashboardProvider>(create: (_) => _MockDashboardProvider()),
-            ChangeNotifierProvider<NotificationProvider>(create: (_) => _MockNotificationProvider()),
+            ChangeNotifierProvider<DashboardProvider>(
+                create: (_) => _MockDashboardProvider()),
+            ChangeNotifierProvider<NotificationProvider>(
+                create: (_) => _MockNotificationProvider()),
           ],
           child: TranslationProvider(
             child: MaterialApp(
@@ -491,7 +486,6 @@ void main() {
                   authSheetShown = true;
                   return true;
                 },
-              
                 showSuccessOverlay: (_, __) async => null,
               ),
             ),
@@ -514,11 +508,11 @@ void main() {
       await tester.tap(find.widgetWithText(ElevatedButton, 'Continue'));
       await tester.pumpAndSettle();
 
-      await _tapSubscribeAndWait(tester);
+      await tapSubscribeAndWait(tester);
 
       expect(authSheetShown, isFalse);
       expect(paidProduct, isNotNull);
-      expect(paidProduct?['id'], 21);
+      expect(paidProduct!['id'], 21);
     },
   );
 
@@ -531,8 +525,10 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-            ChangeNotifierProvider<DashboardProvider>(create: (_) => _MockDashboardProvider()),
-            ChangeNotifierProvider<NotificationProvider>(create: (_) => _MockNotificationProvider()),
+            ChangeNotifierProvider<DashboardProvider>(
+                create: (_) => _MockDashboardProvider()),
+            ChangeNotifierProvider<NotificationProvider>(
+                create: (_) => _MockNotificationProvider()),
           ],
           child: TranslationProvider(
             child: MaterialApp(

@@ -144,7 +144,8 @@
       "Bash(flutter doctor *)",
       "Bash(xargs ls *)",
       "Bash(nslookup taxiexam.hayatpoetry.com)",
-      "Bash(dig taxiexam.hayatpoetry.com)"
+      "Bash(dig taxiexam.hayatpoetry.com)",
+      "Bash(xxd)"
     ],
     "deny": [],
     "ask": []

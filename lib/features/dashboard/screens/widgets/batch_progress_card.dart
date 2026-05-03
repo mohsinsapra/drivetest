@@ -9,6 +9,7 @@ class BatchProgressCard extends StatelessWidget {
     required this.stats,
     this.categoryName,
     this.onTap,
+
     /// When true, renders as a flat row inside a parent section container
     /// (no individual card border or outer margin).
     this.nested = false,
@@ -44,8 +45,8 @@ class BatchProgressCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: stats.isCompleted
-                      ? Colors.green.withOpacity(0.25)
-                      : cs.onSurface.withOpacity(0.07),
+                      ? Colors.green.withValues(alpha: 0.25)
+                      : cs.onSurface.withValues(alpha: 0.07),
                 ),
               ),
         child: Column(
@@ -77,7 +78,7 @@ class BatchProgressCard extends StatelessWidget {
                         Text(
                           categoryName!,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: cs.onSurface.withOpacity(0.45),
+                            color: cs.onSurface.withValues(alpha: 0.45),
                           ),
                         ),
                     ],
@@ -89,7 +90,7 @@ class BatchProgressCard extends StatelessWidget {
                   Text(
                     Translations.of(context).dash_not_started,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: cs.onSurface.withOpacity(0.4),
+                      color: cs.onSurface.withValues(alpha: 0.4),
                     ),
                   )
                 else
@@ -102,7 +103,6 @@ class BatchProgressCard extends StatelessWidget {
                   ),
               ],
             ),
-
             if (!isUntouched) ...[
               const SizedBox(height: 8),
 
@@ -112,7 +112,7 @@ class BatchProgressCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: progress,
                   minHeight: 4,
-                  backgroundColor: cs.onSurface.withOpacity(0.1),
+                  backgroundColor: cs.onSurface.withValues(alpha: 0.1),
                   valueColor: AlwaysStoppedAnimation<Color>(
                     stats.isCompleted ? Colors.green : cs.primary,
                   ),
@@ -125,25 +125,28 @@ class BatchProgressCard extends StatelessWidget {
                 final t = Translations.of(context);
                 final attemptsLabel = stats.attempts == 1
                     ? t.dash_attempt_one
-                    : t.dash_attempt_many.replaceAll('{n}', '${stats.attempts}');
+                    : t.dash_attempt_many
+                        .replaceAll('{n}', '${stats.attempts}');
                 return Row(
-                children: [
-                  _MiniStat(
-                    icon: Icons.repeat_rounded,
-                    label: attemptsLabel,
-                  ),
-                  const SizedBox(width: 14),
-                  _MiniStat(
-                    icon: Icons.timer_outlined,
-                    label: t.dash_avg_duration.replaceAll(
-                        '{duration}', DashboardHelpers.formatDuration(stats.avgDurationSeconds)),
-                  ),
-                  if (stats.targetDurationSeconds > 0) ...[
+                  children: [
+                    _MiniStat(
+                      icon: Icons.repeat_rounded,
+                      label: attemptsLabel,
+                    ),
                     const SizedBox(width: 14),
-                    _TimeEfficiencyBadge(stats: stats),
+                    _MiniStat(
+                      icon: Icons.timer_outlined,
+                      label: t.dash_avg_duration.replaceAll(
+                          '{duration}',
+                          DashboardHelpers.formatDuration(
+                              stats.avgDurationSeconds)),
+                    ),
+                    if (stats.targetDurationSeconds > 0) ...[
+                      const SizedBox(width: 14),
+                      _TimeEfficiencyBadge(stats: stats),
+                    ],
                   ],
-                ],
-              );
+                );
               }),
             ],
           ],
@@ -152,8 +155,7 @@ class BatchProgressCard extends StatelessWidget {
     );
   }
 
-  Color _statusColor(
-      WeaknessType type, bool isCompleted, ColorScheme cs) {
+  Color _statusColor(WeaknessType type, bool isCompleted, ColorScheme cs) {
     if (isCompleted) return Colors.green;
     switch (type) {
       case WeaknessType.lowScore:
@@ -180,12 +182,12 @@ class _MiniStat extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 12, color: cs.onSurface.withOpacity(0.45)),
+        Icon(icon, size: 12, color: cs.onSurface.withValues(alpha: 0.45)),
         const SizedBox(width: 3),
         Text(
           label,
           style: theme.textTheme.labelSmall
-              ?.copyWith(color: cs.onSurface.withOpacity(0.55)),
+              ?.copyWith(color: cs.onSurface.withValues(alpha: 0.55)),
         ),
       ],
     );
@@ -204,13 +206,14 @@ class _TimeEfficiencyBadge extends StatelessWidget {
     final color = isOver ? Colors.orange : Colors.green;
     final t = Translations.of(context);
     final label = isOver
-        ? t.dash_over_time_pct.replaceAll('{pct}', ((ratio - 1) * 100).toStringAsFixed(0))
+        ? t.dash_over_time_pct
+            .replaceAll('{pct}', ((ratio - 1) * 100).toStringAsFixed(0))
         : t.dash_on_time;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

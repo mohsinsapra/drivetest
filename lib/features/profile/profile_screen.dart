@@ -9,6 +9,7 @@ import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/profile/edit_profile_screen.dart';
 import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
+import 'package:taxi_exam_app/features/streak/streak_settings_screen.dart';
 import 'package:taxi_exam_app/features/support/help_screen.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
 
@@ -186,6 +187,11 @@ class _ProfileScreenState extends State<ProfileScreen>
           return;
         case 2:
           await nav.push(
+            AppPageRoute(builder: (_) => const StreakSettingsScreen()),
+          );
+          return;
+        case 3:
+          await nav.push(
             AppPageRoute(builder: (_) => const SettingsScreen()),
           );
           return;
@@ -217,8 +223,13 @@ class _ProfileScreenState extends State<ProfileScreen>
         title: t.profile_stats
       ),
       (
-        icon: Icons.settings,
+        icon: Icons.local_fire_department_rounded,
         color: const Color(0xFFFFE0B2),
+        title: t.sg_profile_menu_label
+      ),
+      (
+        icon: Icons.settings,
+        color: const Color(0xFFE8F5E9),
         title: t.profile_settings
       ),
     ];
