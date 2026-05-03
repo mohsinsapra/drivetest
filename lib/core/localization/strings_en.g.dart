@@ -410,6 +410,34 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get sg_days_remaining => '{n} days remaining';
 	String get sg_notif_note => 'You\'ll get two reminders on each practice day — one in the morning and one in the evening — at randomised times to help you build a habit.';
 	String get sg_profile_menu_label => 'Study Goals';
+	String get splash_tagline => 'HELLO SWEDEN';
+	String get splash_loading => 'Preparing your success...';
+	String get splash_footer => 'ACADEMIC EXCELLENCE THROUGH KINETIC LEARNING';
+	String get onb_top_bar_title => 'GET STARTED';
+	String get onb_months => 'MONTHS';
+	String get onb_step1_plain => 'What are you studying ';
+	String get onb_step1_italic => 'for?';
+	String get onb_step2_plain => 'When is your ';
+	String get onb_step2_italic => 'exam?';
+	String get onb_step3_plain => 'Set your weekly ';
+	String get onb_step3_italic => 'goal.';
+	String get onb_step4_plain => 'Your Path to ';
+	String get onb_step4_italic => 'Mastery.';
+	String get onb_step4_subtitle => 'Accelerate your learning with personalised study tools.';
+	String get onb_no_plan_selected => 'No plan selected.';
+	String get onb_buy_bundle => 'Buy bundle — {price}';
+	String get onb_restore_purchases => 'RESTORE PURCHASES';
+	String get onb_most_popular => 'MOST POPULAR';
+	String get onb_feature_mock_exams => 'Full mock exam library';
+	String get onb_feature_progress_tracking => 'Smart progress tracking';
+	String get onb_feature_explanations => 'Detailed answer explanations';
+	String get onb_get_best_deal => 'Get Best Deal';
+	String get onb_best_value => 'BEST VALUE';
+	String get onb_choose_plan => 'Choose Plan';
+	String get onb_bundle_discount_title => 'You\'re getting 20% off';
+	String get onb_bundle_saving => 'Saving {amount}';
+	String get onb_price_unavailable => 'Price unavailable';
+	String get onb_free_trial => '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
 }
 
 /// Flat map(s) containing all translations.
@@ -788,6 +816,34 @@ extension on Translations {
 			case 'sg_days_remaining': return '{n} days remaining';
 			case 'sg_notif_note': return 'You\'ll get two reminders on each practice day — one in the morning and one in the evening — at randomised times to help you build a habit.';
 			case 'sg_profile_menu_label': return 'Study Goals';
+			case 'splash_tagline': return 'HELLO SWEDEN';
+			case 'splash_loading': return 'Preparing your success...';
+			case 'splash_footer': return 'ACADEMIC EXCELLENCE THROUGH KINETIC LEARNING';
+			case 'onb_top_bar_title': return 'GET STARTED';
+			case 'onb_months': return 'MONTHS';
+			case 'onb_step1_plain': return 'What are you studying ';
+			case 'onb_step1_italic': return 'for?';
+			case 'onb_step2_plain': return 'When is your ';
+			case 'onb_step2_italic': return 'exam?';
+			case 'onb_step3_plain': return 'Set your weekly ';
+			case 'onb_step3_italic': return 'goal.';
+			case 'onb_step4_plain': return 'Your Path to ';
+			case 'onb_step4_italic': return 'Mastery.';
+			case 'onb_step4_subtitle': return 'Accelerate your learning with personalised study tools.';
+			case 'onb_no_plan_selected': return 'No plan selected.';
+			case 'onb_buy_bundle': return 'Buy bundle — {price}';
+			case 'onb_restore_purchases': return 'RESTORE PURCHASES';
+			case 'onb_most_popular': return 'MOST POPULAR';
+			case 'onb_feature_mock_exams': return 'Full mock exam library';
+			case 'onb_feature_progress_tracking': return 'Smart progress tracking';
+			case 'onb_feature_explanations': return 'Detailed answer explanations';
+			case 'onb_get_best_deal': return 'Get Best Deal';
+			case 'onb_best_value': return 'BEST VALUE';
+			case 'onb_choose_plan': return 'Choose Plan';
+			case 'onb_bundle_discount_title': return 'You\'re getting 20% off';
+			case 'onb_bundle_saving': return 'Saving {amount}';
+			case 'onb_price_unavailable': return 'Price unavailable';
+			case 'onb_free_trial': return '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
 			default: return null;
 		}
 	}

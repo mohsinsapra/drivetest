@@ -407,6 +407,34 @@ class TranslationsSv implements Translations {
 	@override String get sg_days_remaining => '{n} dagar kvar';
 	@override String get sg_notif_note => 'Du får två påminnelser varje övningsdag — en på morgonen och en på kvällen — vid slumpmässiga tider för att hjälpa dig bygga en vana.';
 	@override String get sg_profile_menu_label => 'Studiemål';
+	@override String get splash_tagline => 'HALLÅ SVERIGE';
+	@override String get splash_loading => 'Förbereder din framgång...';
+	@override String get splash_footer => 'AKADEMISK EXCELLENS GENOM KINETISKT LÄRANDE';
+	@override String get onb_top_bar_title => 'KOM IGÅNG';
+	@override String get onb_months => 'MÅNADER';
+	@override String get onb_step1_plain => 'Vad studerar du ';
+	@override String get onb_step1_italic => 'för?';
+	@override String get onb_step2_plain => 'När är ditt ';
+	@override String get onb_step2_italic => 'prov?';
+	@override String get onb_step3_plain => 'Sätt ditt vecko-';
+	@override String get onb_step3_italic => 'mål.';
+	@override String get onb_step4_plain => 'Din väg till ';
+	@override String get onb_step4_italic => 'mästerskap.';
+	@override String get onb_step4_subtitle => 'Accelerera ditt lärande med personliga studieverktyg.';
+	@override String get onb_no_plan_selected => 'Ingen plan vald.';
+	@override String get onb_buy_bundle => 'Köp paket — {price}';
+	@override String get onb_restore_purchases => 'ÅTERSTÄLL KÖP';
+	@override String get onb_most_popular => 'MEST POPULÄR';
+	@override String get onb_feature_mock_exams => 'Fullständigt provbibliotek';
+	@override String get onb_feature_progress_tracking => 'Smart framstegsspårning';
+	@override String get onb_feature_explanations => 'Detaljerade svarsförklaringar';
+	@override String get onb_get_best_deal => 'Bästa erbjudandet';
+	@override String get onb_best_value => 'BÄSTA VÄRDE';
+	@override String get onb_choose_plan => 'Välj plan';
+	@override String get onb_bundle_discount_title => 'Du får 20% rabatt';
+	@override String get onb_bundle_saving => 'Sparar {amount}';
+	@override String get onb_price_unavailable => 'Pris ej tillgängligt';
+	@override String get onb_free_trial => '7 DAGARS GRATIS PROVPERIOD. AVBRYT NÄR SOM HELST.';
 }
 
 /// Flat map(s) containing all translations.
@@ -785,6 +813,34 @@ extension on TranslationsSv {
 			case 'sg_days_remaining': return '{n} dagar kvar';
 			case 'sg_notif_note': return 'Du får två påminnelser varje övningsdag — en på morgonen och en på kvällen — vid slumpmässiga tider för att hjälpa dig bygga en vana.';
 			case 'sg_profile_menu_label': return 'Studiemål';
+			case 'splash_tagline': return 'HALLÅ SVERIGE';
+			case 'splash_loading': return 'Förbereder din framgång...';
+			case 'splash_footer': return 'AKADEMISK EXCELLENS GENOM KINETISKT LÄRANDE';
+			case 'onb_top_bar_title': return 'KOM IGÅNG';
+			case 'onb_months': return 'MÅNADER';
+			case 'onb_step1_plain': return 'Vad studerar du ';
+			case 'onb_step1_italic': return 'för?';
+			case 'onb_step2_plain': return 'När är ditt ';
+			case 'onb_step2_italic': return 'prov?';
+			case 'onb_step3_plain': return 'Sätt ditt vecko-';
+			case 'onb_step3_italic': return 'mål.';
+			case 'onb_step4_plain': return 'Din väg till ';
+			case 'onb_step4_italic': return 'mästerskap.';
+			case 'onb_step4_subtitle': return 'Accelerera ditt lärande med personliga studieverktyg.';
+			case 'onb_no_plan_selected': return 'Ingen plan vald.';
+			case 'onb_buy_bundle': return 'Köp paket — {price}';
+			case 'onb_restore_purchases': return 'ÅTERSTÄLL KÖP';
+			case 'onb_most_popular': return 'MEST POPULÄR';
+			case 'onb_feature_mock_exams': return 'Fullständigt provbibliotek';
+			case 'onb_feature_progress_tracking': return 'Smart framstegsspårning';
+			case 'onb_feature_explanations': return 'Detaljerade svarsförklaringar';
+			case 'onb_get_best_deal': return 'Bästa erbjudandet';
+			case 'onb_best_value': return 'BÄSTA VÄRDE';
+			case 'onb_choose_plan': return 'Välj plan';
+			case 'onb_bundle_discount_title': return 'Du får 20% rabatt';
+			case 'onb_bundle_saving': return 'Sparar {amount}';
+			case 'onb_price_unavailable': return 'Pris ej tillgängligt';
+			case 'onb_free_trial': return '7 DAGARS GRATIS PROVPERIOD. AVBRYT NÄR SOM HELST.';
 			default: return null;
 		}
 	}

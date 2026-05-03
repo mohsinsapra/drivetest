@@ -8,6 +8,7 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
@@ -210,6 +211,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final size = MediaQuery.of(context).size;
     final cs = Theme.of(context).colorScheme;
 
@@ -295,7 +297,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 borderRadius: BorderRadius.circular(9999),
                               ),
                               child: Text(
-                                'HELLO SWEDEN',
+                                t.splash_tagline,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -416,7 +418,7 @@ class _SplashScreenState extends State<SplashScreen>
                     builder: (_, child) =>
                         Opacity(opacity: _fadeAnim.value, child: child),
                     child: Text(
-                      'Preparing your success...',
+                      t.splash_loading,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -455,7 +457,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'ACADEMIC EXCELLENCE THROUGH KINETIC LEARNING',
+                    t.splash_footer,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 9,

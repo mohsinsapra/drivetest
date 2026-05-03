@@ -450,6 +450,7 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
 
     return Padding(
@@ -457,7 +458,7 @@ class _TopBar extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            'GET STARTED',
+            t.onb_top_bar_title,
             style: GoogleFonts.lexend(
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -651,22 +652,23 @@ class _ExamDatePage extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final now = DateTime.now();
 
+    final months = t.onb_months;
     final dateOptions = [
       (
         label: '3',
-        sub: 'MONTHS',
+        sub: months,
         opt: _DateOption.threeMonths,
         date: DateTime(now.year, now.month + 3, now.day)
       ),
       (
         label: '6',
-        sub: 'MONTHS',
+        sub: months,
         opt: _DateOption.sixMonths,
         date: DateTime(now.year, now.month + 6, now.day)
       ),
       (
         label: '12',
-        sub: 'MONTHS',
+        sub: months,
         opt: _DateOption.twelveMonths,
         date: DateTime(now.year, now.month + 12, now.day)
       ),
@@ -677,10 +679,12 @@ class _ExamDatePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _StepHeader(
-            stepLabel: 'Step 2 of 4',
-            headlinePlain: 'When is your ',
-            headlineItalic: 'exam?',
+          _StepHeader(
+            stepLabel: t.onb_step_of
+                .replaceAll('{current}', '2')
+                .replaceAll('{total}', '4'),
+            headlinePlain: t.onb_step2_plain,
+            headlineItalic: t.onb_step2_italic,
           ),
           const SizedBox(height: 32),
           Row(
@@ -800,10 +804,12 @@ class _WeeklyGoalPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _StepHeader(
-            stepLabel: 'Step 3 of 4',
-            headlinePlain: 'Set your weekly ',
-            headlineItalic: 'goal.',
+          _StepHeader(
+            stepLabel: t.onb_step_of
+                .replaceAll('{current}', '3')
+                .replaceAll('{total}', '4'),
+            headlinePlain: t.onb_step3_plain,
+            headlineItalic: t.onb_step3_italic,
           ),
           const SizedBox(height: 32),
           Container(
@@ -1067,10 +1073,12 @@ class _CategoryPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _StepHeader(
-            stepLabel: 'Step 1 of 4',
-            headlinePlain: "What are you studying ",
-            headlineItalic: 'for?',
+          _StepHeader(
+            stepLabel: t.onb_step_of
+                .replaceAll('{current}', '1')
+                .replaceAll('{total}', '4'),
+            headlinePlain: t.onb_step1_plain,
+            headlineItalic: t.onb_step1_italic,
           ),
           const SizedBox(height: 28),
           Expanded(
@@ -1122,10 +1130,11 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
     final title = product['name']?.toString().trim().isNotEmpty == true
         ? product['name'].toString()
-        : 'Subscription';
+        : t.onb_no_plan_selected;
     final icon = _iconForProduct(product);
 
     final bgColor = selected
@@ -1194,7 +1203,7 @@ class _CategoryCard extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        'MOST POPULAR',
+                        t.onb_most_popular,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -1284,14 +1293,16 @@ class _PlanPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _StepHeader(
-            stepLabel: 'Step 4 of 4',
-            headlinePlain: 'Your Path to ',
-            headlineItalic: 'Mastery.',
+          _StepHeader(
+            stepLabel: t.onb_step_of
+                .replaceAll('{current}', '4')
+                .replaceAll('{total}', '4'),
+            headlinePlain: t.onb_step4_plain,
+            headlineItalic: t.onb_step4_italic,
           ),
           const SizedBox(height: 6),
           Text(
-            'Accelerate your learning with personalised study tools.',
+            t.onb_step4_subtitle,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               color: cs.onSurfaceVariant,
@@ -1301,7 +1312,7 @@ class _PlanPage extends StatelessWidget {
           if (products.isEmpty)
             Center(
               child: Text(
-                'No plan selected.',
+                t.onb_no_plan_selected,
                 style: GoogleFonts.plusJakartaSans(fontSize: 14),
               ),
             )
@@ -1327,15 +1338,15 @@ class _PlanPage extends StatelessWidget {
             _BundleRow(total: total, currency: currency),
             const SizedBox(height: 16),
             _PrimaryButton(
-              label:
-                  'Buy bundle — ${(total * 0.8).toStringAsFixed(2)} $currency',
+              label: t.onb_buy_bundle.replaceAll(
+                  '{price}', '${(total * 0.8).toStringAsFixed(2)} $currency'),
               onPressed: onPurchaseAll,
             ),
           ],
           const SizedBox(height: 20),
           Center(
             child: Text(
-              '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.',
+              t.onb_free_trial,
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 9,
@@ -1356,7 +1367,7 @@ class _PlanPage extends StatelessWidget {
             child: TextButton(
               onPressed: () {},
               child: Text(
-                'RESTORE PURCHASES',
+                t.onb_restore_purchases,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -1387,11 +1398,12 @@ class _PlanTierCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
     final title = product['name']?.toString().trim().isNotEmpty == true
         ? product['name'].toString()
-        : 'Subscription';
-    final price = _formatProductPrice(product);
+        : t.onb_no_plan_selected;
+    final price = _formatProductPrice(product, context);
     final duration = _formatProductDuration(product);
 
     if (featured) {
@@ -1450,19 +1462,19 @@ class _PlanTierCard extends StatelessWidget {
                   ),
                 const SizedBox(height: 24),
                 _PlanFeatureRow(
-                  label: 'Full mock exam library',
+                  label: t.onb_feature_mock_exams,
                   color: cs.secondaryContainer,
                   textColor: cs.onInverseSurface.withValues(alpha: 0.9),
                 ),
                 const SizedBox(height: 10),
                 _PlanFeatureRow(
-                  label: 'Smart progress tracking',
+                  label: t.onb_feature_progress_tracking,
                   color: cs.secondaryContainer,
                   textColor: cs.onInverseSurface.withValues(alpha: 0.9),
                 ),
                 const SizedBox(height: 10),
                 _PlanFeatureRow(
-                  label: 'Detailed answer explanations',
+                  label: t.onb_feature_explanations,
                   color: cs.secondaryContainer,
                   textColor: cs.onInverseSurface.withValues(alpha: 0.9),
                 ),
@@ -1490,7 +1502,7 @@ class _PlanTierCard extends StatelessWidget {
                             ),
                           )
                         : Text(
-                            'Get Best Deal',
+                            t.onb_get_best_deal,
                             style: GoogleFonts.lexend(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -1522,7 +1534,7 @@ class _PlanTierCard extends StatelessWidget {
                   ],
                 ),
                 child: Text(
-                  'BEST VALUE',
+                  t.onb_best_value,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
@@ -1580,13 +1592,13 @@ class _PlanTierCard extends StatelessWidget {
             ),
           const SizedBox(height: 20),
           _PlanFeatureRow(
-            label: 'Full mock exam library',
+            label: t.onb_feature_mock_exams,
             color: cs.primary,
             textColor: cs.onSurfaceVariant,
           ),
           const SizedBox(height: 10),
           _PlanFeatureRow(
-            label: 'Smart progress tracking',
+            label: t.onb_feature_progress_tracking,
             color: cs.primary,
             textColor: cs.onSurfaceVariant,
           ),
@@ -1611,7 +1623,7 @@ class _PlanTierCard extends StatelessWidget {
                       ),
                     )
                   : Text(
-                      'Choose Plan',
+                      t.onb_choose_plan,
                       style: GoogleFonts.lexend(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -1662,6 +1674,7 @@ class _BundleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
     final bundlePrice = total * 0.8;
     final savings = total * 0.2;
@@ -1681,7 +1694,7 @@ class _BundleRow extends StatelessWidget {
               Icon(Icons.local_offer_rounded, size: 18, color: cs.secondary),
               const SizedBox(width: 8),
               Text(
-                'You\'re getting 20% off',
+                t.onb_bundle_discount_title,
                 style: GoogleFonts.lexend(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -1710,7 +1723,7 @@ class _BundleRow extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Saving ${savings.toStringAsFixed(2)} $currency · ',
+                '${t.onb_bundle_saving.replaceAll('{amount}', '${savings.toStringAsFixed(2)} $currency')} · ',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   color: cs.onSurfaceVariant,
@@ -1763,10 +1776,12 @@ IconData _iconForProduct(Map<String, dynamic> product) {
   return Icons.workspace_premium_rounded;
 }
 
-String _formatProductPrice(Map<String, dynamic> product) {
+String _formatProductPrice(Map<String, dynamic> product, BuildContext context) {
   final price = product['price']?.toString().trim() ?? '';
   final currency = product['currency']?.toString().trim() ?? '';
-  if (price.isEmpty && currency.isEmpty) return 'Price unavailable';
+  if (price.isEmpty && currency.isEmpty) {
+    return Translations.of(context).onb_price_unavailable;
+  }
   if (price.isEmpty) return currency;
   if (currency.isEmpty) return price;
   return '$price $currency';
