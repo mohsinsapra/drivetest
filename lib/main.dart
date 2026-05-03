@@ -34,6 +34,7 @@ import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/streak_notification_service.dart';
 import 'package:taxi_exam_app/features/streak/streak_settings_provider.dart';
+import 'package:taxi_exam_app/core/config/stripe_config.dart';
 
 void main() async {
   const sentryDsn = String.fromEnvironment(
@@ -204,11 +205,15 @@ Future<void> _initEnvAndStripe() async {
         debugPrint('Failed to load .env: $e');
       }
     }
-    const stripeKey = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
-    Stripe.publishableKey = stripeKey.isNotEmpty
-        ? stripeKey
-        : dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
-    if (kIsWeb) await Stripe.instance.applySettings();
+    await initializeStripe(
+      defineValue: const String.fromEnvironment('STRIPE_PUBLISHABLE_KEY'),
+      dotenvValue: readStripePublishableKeySafely(() => dotenv.env),
+      isReleaseMode: kReleaseMode,
+      assignPublishableKey: (key) => Stripe.publishableKey = key,
+      applySettings: () => Stripe.instance.applySettings(),
+      shouldApplySettings: kIsWeb,
+      log: debugPrint,
+    );
   } catch (e) {
     debugPrint('Env/Stripe init error: $e');
   }

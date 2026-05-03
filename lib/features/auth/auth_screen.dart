@@ -36,6 +36,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
+  bool _isAppleLoading = false;
 
   // Login state
   final _loginUsernameCtrl = TextEditingController();
@@ -126,7 +128,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> _signInWithGoogle() async {
     setState(() {
-      _isLoading = true;
+      _isGoogleLoading = true;
       _loginError = null;
     });
     try {
@@ -135,7 +137,7 @@ class _AuthScreenState extends State<AuthScreen> {
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: user cancelled', category: 'auth'));
-        setState(() => _isLoading = false);
+        setState(() => _isGoogleLoading = false);
         return;
       }
       await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: user obtained, fetching auth tokens', category: 'auth'));
@@ -177,7 +179,7 @@ class _AuthScreenState extends State<AuthScreen> {
             : GoogleSignInHelper.userMessage(e);
       });
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isGoogleLoading = false);
     }
   }
 
@@ -185,7 +187,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> _signInWithApple() async {
     setState(() {
-      _isLoading = true;
+      _isAppleLoading = true;
       _loginError = null;
     });
     try {
@@ -207,14 +209,14 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
       final msg = e.toString();
       if (msg.contains('AuthorizationErrorCode.canceled')) {
-        setState(() => _isLoading = false);
+        setState(() => _isAppleLoading = false);
         return;
       }
       setState(() {
         _loginError = Translations.of(context).auth_generic_error;
       });
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isAppleLoading = false);
     }
   }
 
@@ -377,7 +379,8 @@ class _AuthScreenState extends State<AuthScreen> {
         child: switch (_view) {
           _AuthView.landing => _LandingView(
               key: const ValueKey('landing'),
-              isLoading: _isLoading,
+              isGoogleLoading: _isGoogleLoading,
+              isAppleLoading: _isAppleLoading,
               loginError: _loginError,
               onGoogle: _signInWithGoogle,
               onApple: _signInWithApple,
@@ -845,7 +848,8 @@ class _AnimatedAuthBgState extends State<_AnimatedAuthBg>
 class _LandingView extends StatelessWidget {
   const _LandingView({
     super.key,
-    required this.isLoading,
+    required this.isGoogleLoading,
+    required this.isAppleLoading,
     required this.loginError,
     required this.onGoogle,
     required this.onApple,
@@ -854,7 +858,8 @@ class _LandingView extends StatelessWidget {
     required this.onSetLocale,
   });
 
-  final bool isLoading;
+  final bool isGoogleLoading;
+  final bool isAppleLoading;
   final String? loginError;
   final VoidCallback onGoogle;
   final VoidCallback onApple;
@@ -1026,9 +1031,9 @@ class _LandingView extends StatelessWidget {
                       if (AppleSignInHelper.isAvailable()) ...[
                         _GradientButton(
                           label: Translations.of(context).auth_express_apple,
-                          loading: isLoading,
-                          onPressed: onApple,
-                          icon: isLoading
+                          loading: isAppleLoading,
+                          onPressed: isGoogleLoading ? null : onApple,
+                          icon: isAppleLoading
                               ? null
                               : SizedBox(
                                   width: 22,
@@ -1043,9 +1048,9 @@ class _LandingView extends StatelessWidget {
                       // Google button
                       _GradientButton(
                         label: Translations.of(context).auth_express_google,
-                        loading: isLoading,
-                        onPressed: onGoogle,
-                        icon: isLoading
+                        loading: isGoogleLoading,
+                        onPressed: isAppleLoading ? null : onGoogle,
+                        icon: isGoogleLoading
                             ? null
                             : SizedBox(
                                 width: 22,

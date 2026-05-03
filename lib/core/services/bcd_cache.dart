@@ -24,7 +24,13 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 /// Concurrent [ensureLoaded] callers wait on the same in-flight request.
 class BcdCache {
   BcdCache._();
-  static final BcdCache instance = BcdCache._();
+  static BcdCache? _instance;
+
+  static BcdCache get instance => _instance ??= BcdCache._();
+
+  static void invalidateIfInitialized() {
+    _instance?.invalidate();
+  }
 
   final ApiService _api = ApiService();
 

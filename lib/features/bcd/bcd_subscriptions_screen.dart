@@ -26,7 +26,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
   List<dynamic> _mySubscriptions = [];
   bool _loadingProducts = true;
   bool _loadingMine = true;
-  bool _buying = false;
+  Object? _buyingProductId;
 
   late TabController _tabController;
 
@@ -72,8 +72,9 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
   }
 
   Future<void> _handleBuy(dynamic product) async {
-    if (_buying) return;
-    setState(() => _buying = true);
+    final productId = product['id'];
+    if (_buyingProductId != null) return;
+    setState(() => _buyingProductId = productId);
     try {
       final price = product['price']?.toString() ?? '';
       final currency = product['currency']?.toString() ?? 'SEK';
@@ -127,11 +128,12 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       if (!msg.toLowerCase().contains('cancel')) {
         showAppSnackBar(msg, type: SnackBarType.error);
       }
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[Payment] unexpected error: $e\n$st');
       if (!mounted) return;
       showAppSnackBar(Translations.of(context).bcd_payment_failed, type: SnackBarType.error);
     } finally {
-      if (mounted) setState(() => _buying = false);
+      if (mounted) setState(() => _buyingProductId = null);
     }
   }
 
@@ -204,7 +206,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
             loading: _loadingProducts,
             products: _products,
             mySubscriptions: _mySubscriptions,
-            buying: _buying,
+            buyingProductId: _buyingProductId,
             onBuy: _handleBuy,
           ),
           _MySubscriptionsTab(
@@ -228,14 +230,14 @@ class _PlansTab extends StatelessWidget {
   final bool loading;
   final List<dynamic> products;
   final List<dynamic> mySubscriptions;
-  final bool buying;
+  final Object? buyingProductId;
   final void Function(dynamic product) onBuy;
 
   const _PlansTab({
     required this.loading,
     required this.products,
     required this.mySubscriptions,
-    required this.buying,
+    required this.buyingProductId,
     required this.onBuy,
   });
 
@@ -271,7 +273,8 @@ class _PlansTab extends StatelessWidget {
           return _ProductCard(
             product: p,
             owned: owned,
-            buying: buying,
+            buying: buyingProductId == p['id'],
+            disabled: buyingProductId != null,
             onBuy: () => onBuy(p),
           );
         },
@@ -286,12 +289,14 @@ class _ProductCard extends StatelessWidget {
   final dynamic product;
   final bool owned;
   final bool buying;
+  final bool disabled;
   final VoidCallback onBuy;
 
   const _ProductCard({
     required this.product,
     required this.owned,
     required this.buying,
+    required this.disabled,
     required this.onBuy,
   });
 
@@ -384,7 +389,7 @@ class _ProductCard extends StatelessWidget {
                   ),
                   if (!owned)
                     ElevatedButton(
-                      onPressed: buying ? null : onBuy,
+                      onPressed: disabled ? null : onBuy,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4F46E5),
                         foregroundColor: Colors.white,

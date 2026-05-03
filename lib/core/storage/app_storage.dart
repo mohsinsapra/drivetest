@@ -67,9 +67,9 @@ class AppStorage {
   /// Does NOT touch app-wide preferences (language, theme, font, onboarding).
   static Future<void> clearUserData() async {
     // 1. Hive boxes
-    await _clearBox(kTestAttempts);
-    await _clearBox(kSubscribedExams);
-    await _clearBox(kNotifications);
+    await _clearTestAttemptsBox();
+    await _clearSubscribedExamsBox();
+    await _clearNotificationsBox();
 
     // 2. SharedPreferences — user-specific keys only
     try {
@@ -87,24 +87,47 @@ class AppStorage {
     }
 
     // 3. In-memory service caches
-    BcdCache.instance.invalidate();
+    _invalidateBcdCacheIfAvailable();
     SavedQuestionsService.clearMemoryCache();
     HomeDataCache.invalidate();
   }
 
   // ── Internal helpers ────────────────────────────────────────────────────────
 
-  static Future<void> _clearBox(String name) async {
+  static Future<void> _clearTestAttemptsBox() async {
     try {
-      if (Hive.isBoxOpen(name)) {
-        await Hive.box(name).clear();
-      } else {
-        final box = await Hive.openBox(name);
-        await box.clear();
-        await box.close();
-      }
+      final box = Hive.isBoxOpen(kTestAttempts)
+          ? Hive.box<TestAttempt>(kTestAttempts)
+          : await Hive.openBox<TestAttempt>(kTestAttempts);
+      await box.clear();
     } catch (e) {
-      debugPrint('[AppStorage] failed to clear box "$name": $e');
+      debugPrint('[AppStorage] failed to clear box "$kTestAttempts": $e');
     }
+  }
+
+  static Future<void> _clearSubscribedExamsBox() async {
+    try {
+      final box = Hive.isBoxOpen(kSubscribedExams)
+          ? Hive.box<SubscribedExam>(kSubscribedExams)
+          : await Hive.openBox<SubscribedExam>(kSubscribedExams);
+      await box.clear();
+    } catch (e) {
+      debugPrint('[AppStorage] failed to clear box "$kSubscribedExams": $e');
+    }
+  }
+
+  static Future<void> _clearNotificationsBox() async {
+    try {
+      final box = Hive.isBoxOpen(kNotifications)
+          ? Hive.box<LocalNotification>(kNotifications)
+          : await Hive.openBox<LocalNotification>(kNotifications);
+      await box.clear();
+    } catch (e) {
+      debugPrint('[AppStorage] failed to clear box "$kNotifications": $e');
+    }
+  }
+
+  static void _invalidateBcdCacheIfAvailable() {
+    BcdCache.invalidateIfInitialized();
   }
 }

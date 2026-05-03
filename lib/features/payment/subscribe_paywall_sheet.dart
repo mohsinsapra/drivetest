@@ -40,7 +40,7 @@ class _PaywallSheetState extends State<_PaywallSheet> {
 
   List<dynamic> _products = [];
   bool _loading = true;
-  bool _buying = false;
+  Object? _buyingProductId;
 
   @override
   void initState() {
@@ -73,8 +73,9 @@ class _PaywallSheetState extends State<_PaywallSheet> {
   }
 
   Future<void> _buy(dynamic product) async {
-    if (_buying) return;
-    setState(() => _buying = true);
+    final productId = product['id'];
+    if (_buyingProductId != null) return;
+    setState(() => _buyingProductId = productId);
 
     final price = product['price']?.toString() ?? '';
     final currency = product['currency']?.toString() ?? 'SEK';
@@ -142,14 +143,15 @@ class _PaywallSheetState extends State<_PaywallSheet> {
       if (!msg.toLowerCase().contains('cancel')) {
         showAppSnackBar(msg, type: SnackBarType.error);
       }
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[Payment] unexpected error: $e\n$st');
       if (!mounted) return;
       showAppSnackBar(
         Translations.of(context).bcd_payment_failed,
         type: SnackBarType.error,
       );
     } finally {
-      if (mounted) setState(() => _buying = false);
+      if (mounted) setState(() => _buyingProductId = null);
     }
   }
 
@@ -240,10 +242,12 @@ class _PaywallSheetState extends State<_PaywallSheet> {
             )
           else
             ...List.generate(_products.length, (i) {
+              final p = _products[i];
               return _PlanTile(
-                product: _products[i],
-                buying: _buying,
-                onTap: () => _buy(_products[i]),
+                product: p,
+                buying: _buyingProductId == p['id'],
+                disabled: _buyingProductId != null,
+                onTap: () => _buy(p),
               );
             }),
 
@@ -262,11 +266,13 @@ class _PlanTile extends StatelessWidget {
   const _PlanTile({
     required this.product,
     required this.buying,
+    required this.disabled,
     required this.onTap,
   });
 
   final dynamic product;
   final bool buying;
+  final bool disabled;
   final VoidCallback onTap;
 
   String _formatDuration(int days) {
@@ -300,7 +306,7 @@ class _PlanTile extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          onTap: buying ? null : () { HapticFeedback.selectionClick(); onTap(); },
+          onTap: disabled ? null : () { HapticFeedback.selectionClick(); onTap(); },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

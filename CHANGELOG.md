@@ -10,13 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Shared Stripe configuration helpers plus regression tests for bootstrap key resolution, mobile payment setup, and typed Hive notification-box cleanup
 
 ### Changed
--
+- Centralized Stripe publishable-key resolution into a shared config helper and moved native `applySettings()` to the mobile payment path instead of app bootstrap
 
 ### Fixed
--
+- Separate loading indicators for Google and Apple sign-in buttons so only the tapped button shows a spinner
+- Separate loading indicators per subscription plan card in paywall sheet and subscriptions screen so only the tapped plan shows a spinner
+- iOS startup no longer hits a Stripe initialization error when `.env` is missing or dotenv was never initialized
+- iOS startup no longer risks a white-screen hang from calling Stripe settings application during app bootstrap on native platforms
+- User-session cleanup now clears already-open typed Hive boxes correctly, including the notifications box
+- Logout/cache cleanup no longer instantiates `BcdCache` just to invalidate it
 
 ---
 

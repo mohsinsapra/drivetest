@@ -1,9 +1,11 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:taxi_exam_app/core/config/stripe_config.dart';
 import 'package:taxi_exam_app/features/payment/web_payment_dialog.dart';
 import 'package:taxi_exam_app/features/payment/payment_method_sheet.dart';
 import 'package:vibration/vibration.dart';
@@ -68,6 +70,7 @@ Future<void> _mobilePayment(
   }
 
   final secret = await createIntent();
+  await prepareStripeForMobilePayment();
 
   await stripe.Stripe.instance.initPaymentSheet(
     paymentSheetParameters: stripe.SetupPaymentSheetParameters(
@@ -77,6 +80,22 @@ Future<void> _mobilePayment(
     ),
   );
   await stripe.Stripe.instance.presentPaymentSheet();
+}
+
+Future<bool> prepareStripeForMobilePayment({
+  String defineValue = const String.fromEnvironment('STRIPE_PUBLISHABLE_KEY'),
+  String? dotenvValue,
+  void Function(String key)? assignPublishableKey,
+  Future<void> Function()? applySettings,
+}) {
+  return initializeStripe(
+    defineValue: defineValue,
+    dotenvValue: dotenvValue ?? readStripePublishableKeySafely(() => dotenv.env),
+    isReleaseMode: kReleaseMode,
+    assignPublishableKey:
+        assignPublishableKey ?? (key) => stripe.Stripe.publishableKey = key,
+    applySettings: applySettings ?? stripe.Stripe.instance.applySettings,
+  );
 }
 
 Future<String?> _pickPaymentMethod(BuildContext context) async {
