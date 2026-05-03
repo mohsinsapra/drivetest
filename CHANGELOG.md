@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+157] - 2026-05-03
+
+### Added
 - Shared Stripe configuration helpers plus regression tests for bootstrap key resolution, mobile payment setup, and typed Hive notification-box cleanup
 
 ### Changed
@@ -23,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - User-session cleanup now clears already-open typed Hive boxes correctly, including the notifications box
 - Logout/cache cleanup no longer instantiates `BcdCache` just to invalidate it
 
+---
 ---
 
 ## [1.0.3+154] - 2026-05-03

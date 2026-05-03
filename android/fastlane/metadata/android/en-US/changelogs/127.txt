@@ -1,0 +1,9 @@
+Added
+• Shared Stripe configuration helpers plus regression tests for bootstrap key resolution, mobile payment setup, and typed Hive notification-box cleanup
+
+Changed
+• Centralized Stripe publishable-key resolution into a shared config helper and moved native `applySettings()` to the mobile payment path instead of app bootstrap
+
+Fixed
+• Separate loading indicators for Google and Apple sign-in buttons so only the tapped button shows a spinner
+• Separate loading indicators per subscription plan...
