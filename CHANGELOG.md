@@ -10,6 +10,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+154] - 2026-05-03
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.3+152] - 2026-05-03
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.3+151] - 2026-05-03
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.3+150] - 2026-05-03
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.3+149] - 2026-05-03
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.3+148] - 2026-05-03
+
+### Added
 - **Streak notification reminders** — scheduled local notifications fire on each selected practice day at a random morning (08:00–10:00) and evening (19:00–21:00) time; times are generated once and persisted so they remain stable across restarts
 - `StreakNotificationService` — manages notification scheduling, permission requests, and per-weekday cancel/reschedule via `flutter_local_notifications`
 - `StreakSettingsProvider` — `ChangeNotifier` that persists weekly practice-day selection and exposes it app-wide; weekly goal synced to `DashboardProvider` on startup and on every change
@@ -24,6 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Duplicate `as tz` import alias in `StreakNotificationService` — `timezone/data/latest_all.dart` renamed to `tz_data` to resolve the conflict with `timezone/timezone.dart`
 - Added `mounted` guard in `OnboardingScreen` before showing the subscription success overlay — prevents a `setState` call after widget disposal
 
+---
 ---
 
 ## [1.0.3+124] - 2026-05-02

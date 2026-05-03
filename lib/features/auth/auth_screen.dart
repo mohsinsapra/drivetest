@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/auth/apple_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/auth/google_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
@@ -180,6 +181,43 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  // ── Apple Sign In ────────────────────────────────────────────────────────
+
+  Future<void> _signInWithApple() async {
+    setState(() {
+      _isLoading = true;
+      _loginError = null;
+    });
+    try {
+      await Sentry.addBreadcrumb(Breadcrumb(message: 'Apple Sign-In: started', category: 'auth'));
+      final credential = await AppleSignInHelper.signIn();
+      final identityToken = credential.identityToken;
+      if (identityToken == null) throw Exception('No identity token received');
+      await Sentry.addBreadcrumb(Breadcrumb(message: 'Apple Sign-In: credential obtained', category: 'auth'));
+      final isFirstLogin = await _apiService.appleAuth(
+        identityToken: identityToken,
+        firstName: credential.givenName,
+        lastName: credential.familyName,
+      );
+      await Sentry.addBreadcrumb(Breadcrumb(message: 'Apple Sign-In: backend succeeded, isFirstLogin=$isFirstLogin', category: 'auth'));
+      if (!mounted) return;
+      vibrateLoginLogout();
+      await _navigateToMain(isFirstLogin: isFirstLogin);
+    } catch (e) {
+      if (!mounted) return;
+      final msg = e.toString();
+      if (msg.contains('AuthorizationErrorCode.canceled')) {
+        setState(() => _isLoading = false);
+        return;
+      }
+      setState(() {
+        _loginError = Translations.of(context).auth_generic_error;
+      });
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   // ── Login ─────────────────────────────────────────────────────────────────
 
   Future<void> _login() async {
@@ -342,6 +380,7 @@ class _AuthScreenState extends State<AuthScreen> {
               isLoading: _isLoading,
               loginError: _loginError,
               onGoogle: _signInWithGoogle,
+              onApple: _signInWithApple,
               onLogin: () => _navigate(_AuthView.login),
               onSignup: () => _navigate(_AuthView.signup),
               onSetLocale: _setLocale,
@@ -809,6 +848,7 @@ class _LandingView extends StatelessWidget {
     required this.isLoading,
     required this.loginError,
     required this.onGoogle,
+    required this.onApple,
     required this.onLogin,
     required this.onSignup,
     required this.onSetLocale,
@@ -817,6 +857,7 @@ class _LandingView extends StatelessWidget {
   final bool isLoading;
   final String? loginError;
   final VoidCallback onGoogle;
+  final VoidCallback onApple;
   final VoidCallback onLogin;
   final VoidCallback onSignup;
   final Future<void> Function(AppLocale) onSetLocale;
@@ -981,6 +1022,24 @@ class _LandingView extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      // Apple button (iOS/macOS only — Guideline 4.8)
+                      if (AppleSignInHelper.isAvailable()) ...[
+                        _GradientButton(
+                          label: Translations.of(context).auth_express_apple,
+                          loading: isLoading,
+                          onPressed: onApple,
+                          icon: isLoading
+                              ? null
+                              : SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: FaIcon(FontAwesomeIcons.apple,
+                                      size: 20,
+                                      color: cs.onPrimary),
+                                ),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
                       // Google button
                       _GradientButton(
                         label: Translations.of(context).auth_express_google,

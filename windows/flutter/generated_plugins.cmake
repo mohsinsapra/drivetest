@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_core
   flutter_inappwebview_windows
   flutter_secure_storage_windows
+  flutter_timezone
   flutter_tts
   sentry_flutter
   syncfusion_pdfviewer_windows

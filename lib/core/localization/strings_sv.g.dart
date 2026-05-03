@@ -148,6 +148,8 @@ class TranslationsSv implements Translations {
 	@override String get auth_generic_error => 'Ett fel uppstod. Försök igen.';
 	@override String get auth_express_google => 'Express-inloggning via Google';
 	@override String get auth_google_label => 'Google';
+	@override String get auth_express_apple => 'Logga in med Apple';
+	@override String get auth_apple_label => 'Apple';
 	@override String get auth_tab_login => 'Logga in';
 	@override String get auth_tab_signup => 'Registrera dig';
 	@override String get auth_show_password => 'Visa';
@@ -554,6 +556,8 @@ extension on TranslationsSv {
 			case 'auth_generic_error': return 'Ett fel uppstod. Försök igen.';
 			case 'auth_express_google': return 'Express-inloggning via Google';
 			case 'auth_google_label': return 'Google';
+			case 'auth_express_apple': return 'Logga in med Apple';
+			case 'auth_apple_label': return 'Apple';
 			case 'auth_tab_login': return 'Logga in';
 			case 'auth_tab_signup': return 'Registrera dig';
 			case 'auth_show_password': return 'Visa';

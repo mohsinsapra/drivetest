@@ -145,7 +145,8 @@
       "Bash(xargs ls *)",
       "Bash(nslookup taxiexam.hayatpoetry.com)",
       "Bash(dig taxiexam.hayatpoetry.com)",
-      "Bash(xxd)"
+      "Bash(xxd)",
+      "Bash(pip show *)"
     ],
     "deny": [],
     "ask": []

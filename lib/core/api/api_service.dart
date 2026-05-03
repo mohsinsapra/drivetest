@@ -513,6 +513,26 @@ class ApiService {
     }
   }
 
+  Future<bool> appleAuth({required String identityToken, String? firstName, String? lastName}) async {
+    try {
+      final data = {
+        'identity_token': identityToken,
+        if (firstName != null) 'first_name': firstName,
+        if (lastName != null) 'last_name': lastName,
+      };
+      final response = await _dio.post('api/user/apple-auth/', data: data);
+      await _dioClient.setTokens(
+        access: response.data['access'],
+        refresh: response.data['refresh'],
+      );
+      return response.data['is_first_login'] == true;
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Apple authentication failed: $e');
+    }
+  }
+
   Future<bool> googleAuth({String? idToken, String? accessToken}) async {
     try {
       final data = idToken != null

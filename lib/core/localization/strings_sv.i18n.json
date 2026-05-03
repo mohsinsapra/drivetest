@@ -111,6 +111,8 @@
   "auth_generic_error": "Ett fel uppstod. Försök igen.",
   "auth_express_google": "Express-inloggning via Google",
   "auth_google_label": "Google",
+  "auth_express_apple": "Logga in med Apple",
+  "auth_apple_label": "Apple",
   "auth_tab_login": "Logga in",
   "auth_tab_signup": "Registrera dig",
   "auth_show_password": "Visa",
