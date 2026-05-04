@@ -1,11 +1,9 @@
-import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
-import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
+import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'bcd_category_hub_screen.dart';
@@ -72,66 +70,29 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
   }
 
   Future<void> _handleBuy(dynamic product) async {
-    final productId = product['id'];
     if (_buyingProductId != null) return;
-    setState(() => _buyingProductId = productId);
+    setState(() => _buyingProductId = product['id']);
     try {
-      final price = product['price']?.toString() ?? '';
-      final currency = product['currency']?.toString() ?? 'SEK';
-      final name = product['name']?.toString() ?? 'Subscription';
-
-      await processStripePayment(
+      final result = await PaymentCoordinator.pay(
         context,
-        createIntent: () => _api.createBCDPaymentIntent(product['id'] as int),
-        merchantName: 'Drive Test',
-        subtitle: name,
-        displayAmount: price,
-        currency: currency,
+        products: [product],
+        createStripeIntent: (_) => _api.createBCDPaymentIntent(product['id'] as int),
       );
-
-      if (!mounted) return;
-      // Optimistic update: immediately mark this product as owned.
-      final durationDays = product['duration_days'] as int?;
+      if (result == null || !mounted) return;
+      final days = product['duration_days'] as int?;
       setState(() {
         _mySubscriptions = [
           ..._mySubscriptions,
           {
             'product': product,
             'status': 'paid',
-            'end_date': DateTime.now()
-                .add(Duration(days: durationDays ?? 30))
-                .toIso8601String(),
+            'end_date': DateTime.now().add(Duration(days: days ?? 30)).toIso8601String(),
           },
         ];
         _tabController.animateTo(1);
       });
-      final durationLabel = durationDays != null
-          ? (durationDays >= 365
-              ? '${(durationDays / 365).round()} year'
-              : durationDays >= 30
-                  ? '${(durationDays / 30).round()} months'
-                  : '$durationDays days')
-          : null;
-      await showSubscriptionSuccess(
-        context,
-        productName: name,
-        duration: durationLabel,
-        amount: price,
-        currency: currency,
-      );
-      // Reload after overlay closes to sync webhook-updated status.
       if (!mounted) return;
       await _loadMine();
-    } on stripe.StripeException catch (e) {
-      if (!mounted) return;
-      final msg = e.error.localizedMessage ?? 'Payment cancelled';
-      if (!msg.toLowerCase().contains('cancel')) {
-        showAppSnackBar(msg, type: SnackBarType.error);
-      }
-    } catch (e, st) {
-      debugPrint('[Payment] unexpected error: $e\n$st');
-      if (!mounted) return;
-      showAppSnackBar(Translations.of(context).bcd_payment_failed, type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _buyingProductId = null);
     }
