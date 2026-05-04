@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
@@ -8,9 +7,8 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
-import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
+import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
-import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/auth_bottom_sheet.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
@@ -21,11 +19,7 @@ import 'package:taxi_exam_app/main_screen.dart';
 typedef OnboardingLoadProducts = Future<List<Map<String, dynamic>>> Function();
 typedef OnboardingIsLoggedIn = bool Function();
 typedef OnboardingAuthSheet = Future<bool> Function(BuildContext context);
-typedef OnboardingPayment = Future<void> Function(
-  BuildContext context,
-  List<Map<String, dynamic>> products,
-);
-typedef OnboardingSuccessOverlay = Future<SubscriptionSuccessResult?> Function(
+typedef OnboardingPayment = Future<SubscriptionSuccessResult?> Function(
   BuildContext context,
   List<Map<String, dynamic>> products,
 );
@@ -37,14 +31,12 @@ class OnboardingScreen extends StatefulWidget {
     this.isLoggedIn = _defaultIsLoggedIn,
     this.showAuthSheet = _defaultShowAuthSheet,
     this.processPayment = _defaultProcessPayment,
-    this.showSuccessOverlay = _defaultShowSuccessOverlay,
   });
 
   final OnboardingLoadProducts loadProducts;
   final OnboardingIsLoggedIn isLoggedIn;
   final OnboardingAuthSheet showAuthSheet;
   final OnboardingPayment processPayment;
-  final OnboardingSuccessOverlay showSuccessOverlay;
 
   static Future<List<Map<String, dynamic>>> _defaultLoadProducts() async {
     final raw = await ApiService().fetchBCDSubscriptionProducts();
@@ -58,95 +50,21 @@ class OnboardingScreen extends StatefulWidget {
 
   static bool _defaultIsLoggedIn() => DioClient().accessToken != null;
 
-  static Future<void> _defaultProcessPayment(
+  static Future<SubscriptionSuccessResult?> _defaultProcessPayment(
     BuildContext context,
     List<Map<String, dynamic>> products,
   ) async {
     final api = ApiService();
-    final currency = products.first['currency']?.toString() ?? 'SEK';
-    String? capturedIntentId;
-
-    if (products.length == 1) {
-      final product = products.first;
-      await processStripePayment(
-        context,
-        createIntent: () async {
-          final secret = await api.createBCDPaymentIntent(product['id'] as int);
-          capturedIntentId = secret.split('_secret_').first;
-          return secret;
-        },
-        merchantName: 'Drive Test',
-        subtitle: product['name']?.toString() ?? 'Subscription',
-        displayAmount: product['price']?.toString() ?? '',
-        currency: currency,
-      );
-    } else {
-      final productIds = products.map((p) => p['id'] as int).toList();
-      final total = _sumPrices(products);
-      final names = products
-          .map((p) => p['name']?.toString() ?? '')
-          .where((n) => n.isNotEmpty)
-          .join(' + ');
-      await processStripePayment(
-        context,
-        createIntent: () async {
-          final secret = await api.createBCDBundlePaymentIntent(productIds);
-          capturedIntentId = secret.split('_secret_').first;
-          return secret;
-        },
-        merchantName: 'Drive Test',
-        subtitle: names,
-        displayAmount: total.toStringAsFixed(2),
-        currency: currency,
-      );
-    }
-
-    if (capturedIntentId != null) {
-      try {
-        await api.confirmBCDPayment(capturedIntentId!);
-      } catch (_) {}
-    }
-  }
-
-  static Future<SubscriptionSuccessResult?> _defaultShowSuccessOverlay(
-    BuildContext context,
-    List<Map<String, dynamic>> products,
-  ) async {
-    final currency = products.first['currency']?.toString() ?? 'SEK';
-    final name = products.length == 1
-        ? products.first['name']?.toString() ?? 'Subscription'
-        : products
-            .map((p) => p['name']?.toString() ?? '')
-            .where((n) => n.isNotEmpty)
-            .join(' & ');
-    final totalPrice = products.length == 1
-        ? products.first['price']?.toString() ?? ''
-        : _sumPrices(products).toStringAsFixed(2);
-    final maxDays = products.fold<int>(0, (max, p) {
-      final d = (p['duration_days'] as num?)?.toInt() ?? 0;
-      return d > max ? d : max;
-    });
-    final duration = maxDays <= 0
-        ? null
-        : maxDays >= 365
-            ? '${(maxDays / 365).round()} year'
-            : maxDays >= 30
-                ? '${(maxDays / 30).round()} months'
-                : '$maxDays days';
-    return showSubscriptionSuccess(
+    return PaymentCoordinator.pay(
       context,
-      productName: name,
-      duration: duration,
-      amount: totalPrice,
-      currency: currency,
+      products: products,
+      createStripeIntent: (prods) async {
+        if (prods.length == 1) return api.createBCDPaymentIntent(prods.first['id'] as int);
+        return api.createBCDBundlePaymentIntent(prods.map((p) => p['id'] as int).toList());
+      },
+      onStripePaymentConfirmed: (id) => api.confirmBCDPayment(id),
     );
   }
-
-  static double _sumPrices(List<Map<String, dynamic>> products) =>
-      products.fold(0.0, (sum, p) {
-        final s = p['price']?.toString().replaceAll(',', '.').trim() ?? '';
-        return sum + (double.tryParse(s) ?? 0.0);
-      });
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -280,21 +198,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (!mounted) return;
 
     try {
-      try {
-        await widget.processPayment(context, products);
-      } on stripe.StripeException catch (e) {
-        if (!mounted) return;
-        final msg = e.error.localizedMessage ?? '';
-        if (!msg.toLowerCase().contains('cancel')) {
-          showAppSnackBar(msg, type: SnackBarType.error);
-        }
-        return;
-      } catch (_) {
-        if (!mounted) return;
-        showAppSnackBar(
-          Translations.of(context).bcd_payment_failed,
-          type: SnackBarType.error,
-        );
+      final result = await widget.processPayment(context, products);
+      if (result == null || !mounted) {
+        if (mounted) setState(() => _purchaseInFlight = false);
         return;
       }
 
@@ -304,13 +210,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       await DioClient().clearCache();
       BcdCache.instance.invalidate();
       await BcdCache.instance.ensureLoaded();
-
-      if (!mounted) return;
-
-      SubscriptionSuccessResult? result;
-      try {
-        result = await widget.showSuccessOverlay(context, products);
-      } catch (_) {}
 
       if (!mounted) return;
 

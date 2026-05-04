@@ -1,4 +1,5 @@
-import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
+import 'package:taxi_exam_app/core/api/dio_client.dart';
+import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -6,7 +7,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
-import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
@@ -51,72 +51,30 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
   /* ── Paywall ──────────────────────────────────────────────────────────────── */
 
   Future<void> _showPaywall() async {
-    // Already subscribed — no need to show paywall again
     if (_subscribed) return;
-    // Use the category's own subscription product if available
     final categoryProduct = widget.category['subscription_product'];
     if (categoryProduct != null) {
       _products = [categoryProduct];
     } else if (_products.isEmpty) {
-      try {
-        _products = await _api.fetchBCDSubscriptionProducts();
-      } catch (_) {}
+      try { _products = await _api.fetchBCDSubscriptionProducts(); } catch (_) {}
     }
     if (!mounted) return;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _PaywallSheet(
-        categoryName: _categoryName,
-        products: _products,
-        onBuy: _handleBuy,
-      ),
+
+    final result = await PaymentCoordinator.show(
+      context,
+      products: _products,
+      title: _categoryName,
+      createStripeIntent: (p) => _api.createBCDPaymentIntent(p['id'] as int),
+      onStripePaymentConfirmed: (id) => _api.confirmBCDPayment(id),
     );
-  }
 
-  Future<void> _handleBuy(dynamic product) async {
-    Navigator.pop(context); // close paywall sheet
-    try {
-      final name = product['name']?.toString() ?? 'Subscription';
-      final price = product['price']?.toString() ?? '';
-      final currency = product['currency']?.toString() ?? 'SEK';
-
-      await processStripePayment(
-        context,
-        createIntent: () => _api.createBCDPaymentIntent(product['id'] as int),
-        merchantName: 'TaxiExam',
-        subtitle: name,
-        displayAmount: price,
-        currency: currency,
-      );
-
-      if (!mounted) return;
-      // Optimistic update: remove the banner and unlock tiles immediately.
-      // Also notify the tests list screen (if open) via the shared notifier.
-      setState(() => widget.category['is_subscribed'] = true);
-      _subscribedNotifier.value = true;
-      final durationDays = product['duration_days'] as int?;
-      final durationLabel = durationDays != null
-          ? (durationDays >= 365
-              ? '${(durationDays / 365).round()} year'
-              : durationDays >= 30
-                  ? '${(durationDays / 30).round()} months'
-                  : '$durationDays days')
-          : null;
-      await showSubscriptionSuccess(
-        context,
-        productName: name,
-        duration: durationLabel,
-        amount: price,
-        currency: currency,
-      );
-    } on Exception catch (e) {
-      if (!mounted) return;
-      final msg = e.toString();
-      if (msg.toLowerCase().contains('cancel')) return;
-      showAppSnackBar(Translations.of(context).bcd_payment_failed, type: SnackBarType.error);
-    }
+    if (result == null || !mounted) return;
+    await DioClient().clearCache();
+    BcdCache.instance.invalidate();
+    await BcdCache.instance.ensureLoaded();
+    if (!mounted) return;
+    setState(() => widget.category['is_subscribed'] = true);
+    _subscribedNotifier.value = true;
   }
 
   /* ── Practice (direct launch) ────────────────────────────────────────────── */
@@ -1006,127 +964,3 @@ class _Chip extends StatelessWidget {
   }
 }
 
-/* ── Paywall bottom sheet ─────────────────────────────────────────────────── */
-
-class _PaywallSheet extends StatelessWidget {
-  final String categoryName;
-  final List<dynamic> products;
-  final ValueChanged<dynamic> onBuy;
-
-  const _PaywallSheet({
-    required this.categoryName,
-    required this.products,
-    required this.onBuy,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        builder: (_, scrollController) => Container(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Icon(LucideIcons.lock,
-                      size: 40, color: Color(0xFF4F46E5)),
-                  const SizedBox(height: 12),
-                  Text(Translations.of(context).bcd_subscription_required,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 6),
-                  Text(
-                    Translations.of(context).bcd_subscribe_access.replaceAll('{name}', categoryName),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 20),
-                  if (products.isEmpty)
-                    const CircularProgressIndicator()
-                  else
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: products
-                              .where((p) => p['is_active'] == true)
-                              .map((p) => _ProductTile(
-                                  product: p, onBuy: () => onBuy(p)))
-                              .toList(),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(Translations.of(context).bcd_not_now),
-                  ),
-                ],
-              ),
-            ));
-  }
-}
-
-class _ProductTile extends StatelessWidget {
-  final dynamic product;
-  final VoidCallback onBuy;
-  const _ProductTile({required this.product, required this.onBuy});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border:
-            Border.all(color: const Color(0xFF4F46E5).withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(cleanBcdText(product['name']?.toString() ?? ''),
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
-                Text(
-                  '${product['price']} ${product['currency']} · ${product['duration_days']} days',
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: onBuy,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4F46E5),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            child: Text(Translations.of(context).bcd_buy),
-          ),
-        ],
-      ),
-    );
-  }
-}

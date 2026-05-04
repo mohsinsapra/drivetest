@@ -1,14 +1,10 @@
-import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
+import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/analytics_service.dart';
@@ -17,13 +13,11 @@ import 'package:taxi_exam_app/core/widgets/licence_type_card_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/widgets/test_option_card_widget.dart';
-import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
 import 'package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'package:vibration/vibration.dart';
 
 class LicenceTypesScreen extends StatefulWidget {
   const LicenceTypesScreen({super.key});
@@ -321,101 +315,45 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       licenceId: selectedLicenseType?['licence_id'] ?? '',
       categoryId: selectedCategory?['category_id'] ?? '',
     );
-    try {
-      final licenceName = selectedLicenseType?['name']?.toString() ?? '';
-      final categoryName = selectedCategory?['name']?.toString() ?? '';
-      final subtitle = [licenceName, categoryName]
-          .where((s) => s.isNotEmpty)
-          .join(' — ');
+    final licenceName = selectedLicenseType?['name']?.toString() ?? '';
+    final categoryName = selectedCategory?['name']?.toString() ?? '';
+    final subtitle = [licenceName, categoryName].where((s) => s.isNotEmpty).join(' — ');
 
-      await processStripePayment(
-        context,
-        createIntent: () => _apiService.createPaymentIntent(
-          10000,
-          'card',
-          selectedLicenseType?['licence_id'],
-          selectedCategory?['category_id'],
-        ),
-        merchantName: 'Drive Test',
-        subtitle: subtitle,
-        displayAmount: '100',
-        currency: 'SEK',
-      );
+    final result = await PaymentCoordinator.pay(
+      context,
+      products: [{'name': subtitle, 'price': '100', 'currency': 'SEK', 'duration_days': 365, 'is_active': true}],
+      createStripeIntent: (_) => _apiService.createPaymentIntent(
+        10000, 'card',
+        selectedLicenseType?['licence_id'],
+        selectedCategory?['category_id'],
+      ),
+    );
 
-      // Optimistic update — mark subscribed and show test options immediately.
-      // Do NOT call _loadCategories here: it sets isLoading=true (shows shimmer)
-      // then isShowingCategories=true, which resets the view away from test options.
-      setState(() {
-        if (selectedCategory != null) {
-          selectedCategory!['is_subscribed'] = true;
-          isShowingTestOptions = true;
-        }
-      });
+    if (result == null || !mounted) return;
 
-      // Also bust the local SharedPreferences cache so the next time the user
-      // navigates back to categories it fetches fresh data from the server.
-      final licenceId = selectedLicenseType?['licence_id']?.toString();
-      if (licenceId != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.remove('cache_categories_$licenceId');
-        await prefs.remove('cache_categories_at_$licenceId');
+    setState(() {
+      if (selectedCategory != null) {
+        selectedCategory!['is_subscribed'] = true;
+        isShowingTestOptions = true;
       }
+    });
 
-      await _analyticsService.logPurchaseSuccess(
-        licenceId: selectedLicenseType?['licence_id'] ?? '',
-        licenceName: licenceName,
-        categoryId: selectedCategory?['category_id'] ?? '',
-        categoryName: categoryName,
-        amount: 100.0,
-        currency: 'SEK',
-        transactionId: DateTime.now().millisecondsSinceEpoch.toString(),
-      );
-
-      await _triggerVibration();
-      _confettiControllerLeft.play();
-      _confettiControllerBottom.play();
-      _confettiControllerTop.play();
-      _confettiControllerRight.play();
-
-      if (!mounted) return;
-      await showSubscriptionSuccess(
-        context,
-        productName: categoryName.isNotEmpty ? categoryName : licenceName,
-        amount: '100',
-        currency: 'SEK',
-        duration: '30 days',
-      );
-    } catch (e) {
-      await _analyticsService.logPurchaseFailure(
-        licenceId: selectedLicenseType?['licence_id'] ?? '',
-        categoryId: selectedCategory?['category_id'] ?? '',
-        errorMessage: e.toString(),
-      );
-      if (!mounted) return;
-      if (e is stripe.StripeException) {
-        final msg = e.error.localizedMessage ?? '';
-        if (msg.toLowerCase().contains('cancel')) return;
-        showAppSnackBar(msg.isNotEmpty ? msg : 'Payment failed. Please try again.', type: SnackBarType.error);
-      } else {
-        final msg = e.toString();
-        showAppSnackBar(msg.length > 80 ? msg.substring(0, 80) : msg, type: SnackBarType.error);
-      }
+    final licenceId = selectedLicenseType?['licence_id']?.toString();
+    if (licenceId != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('cache_categories_$licenceId');
+      await prefs.remove('cache_categories_at_$licenceId');
     }
-  }
 
-  Future<void> _triggerVibration() async {
-    if (kIsWeb) return;
-    if (Platform.isIOS) {
-      for (int i = 0; i < 3; i++) {
-        HapticFeedback.mediumImpact();
-        await Future.delayed(const Duration(milliseconds: 100));
-      }
-    } else if (Platform.isAndroid) {
-      bool? hasVibrator = await Vibration.hasVibrator();
-      if (hasVibrator) {
-        Vibration.vibrate(duration: 500);
-      }
-    }
+    await _analyticsService.logPurchaseSuccess(
+      licenceId: selectedLicenseType?['licence_id'] ?? '',
+      licenceName: licenceName,
+      categoryId: selectedCategory?['category_id'] ?? '',
+      categoryName: categoryName,
+      amount: 100.0,
+      currency: 'SEK',
+      transactionId: DateTime.now().millisecondsSinceEpoch.toString(),
+    );
   }
 
 

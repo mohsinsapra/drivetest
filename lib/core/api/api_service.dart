@@ -697,6 +697,17 @@ class ApiService {
     );
   }
 
+  Future<void> verifyAppleIAP({
+    required String receiptData,
+    required String productId,
+  }) async {
+    await _dio.post(
+      'api/payment/iap/apple/verify/',
+      data: {'receipt_data': receiptData, 'product_id': productId},
+    );
+  }
+
+
   Future<String> createCheckoutSession({
     required String licenceId,
     required String categoryId,
