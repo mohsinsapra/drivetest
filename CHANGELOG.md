@@ -10,13 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Unified `PaywallSheet` — single product-selection bottom sheet used across all payment entry points
+- `PaymentCoordinator` service — centrally routes purchases to Apple IAP (iOS) or Stripe (Android/Web) and shows the success overlay automatically
+- Apple In-App Purchase support via `IAPService` — iOS users pay through the App Store for BCD subscriptions with `iap_product_id`
 
 ### Changed
--
+- All four payment entry points (BCD Category Hub, BCD Subscriptions, Licences, Onboarding) now use `PaymentCoordinator` instead of duplicated Stripe/IAP logic
+- iOS purchases automatically route to Apple IAP when the product has an `iap_product_id`; Android and Web always use Stripe
 
 ### Fixed
--
+- Removed ~600 lines of duplicated payment code spread across four screens
 
 ---
 

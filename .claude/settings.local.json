@@ -146,9 +146,23 @@
       "Bash(nslookup taxiexam.hayatpoetry.com)",
       "Bash(dig taxiexam.hayatpoetry.com)",
       "Bash(xxd)",
-      "Bash(pip show *)"
+      "Bash(pip show *)",
+      "Bash(grep -A5 \"name: flutter_inappwebview$\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/pubspec.lock)",
+      "Bash(xcodebuild *)",
+      "Bash(xcrun clang *)",
+      "Bash(grep -E \"\\\\\\\\.dart$\")",
+      "Read(//Users/muhammadmohsin/.config/superpowers/worktrees/taxi_exam_app/payment-consolidation/lib/features/bcd/**)",
+      "Read(//Users/muhammadmohsin/.config/superpowers/worktrees/taxi_exam_app/payment-consolidation/lib/features/tests/**)",
+      "Read(//Users/muhammadmohsin/.config/superpowers/worktrees/taxi_exam_app/payment-consolidation/lib/features/onboarding/**)",
+      "Bash(head -966 ~/.config/superpowers/worktrees/taxi_exam_app/payment-consolidation/lib/features/bcd/bcd_category_hub_screen.dart)",
+      "Bash(mv /tmp/hub_trimmed.dart ~/.config/superpowers/worktrees/taxi_exam_app/payment-consolidation/lib/features/bcd/bcd_category_hub_screen.dart)",
+      "Bash(cp /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/pubspec.yaml '~/.config/superpowers/worktrees/taxi_exam_app/payment-consolidation/pubspec.yaml')",
+      "Bash(cp /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/pubspec.lock '~/.config/superpowers/worktrees/taxi_exam_app/payment-consolidation/pubspec.lock')"
     ],
     "deny": [],
     "ask": []
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true
   }
 }
