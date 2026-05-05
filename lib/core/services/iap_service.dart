@@ -21,8 +21,10 @@ class IAPService {
   StreamSubscription<List<PurchaseDetails>>? _subscription;
 
   // Completer for the currently in-flight purchase.
-  Completer<void>? _pendingCompleter;
+  // Completes with the StoreKit transaction_id (purchaseID) on success.
+  Completer<String?>? _pendingCompleter;
   String? _pendingProductId;
+  int? _pendingInternalProductId;
 
   bool _initialized = false;
 
@@ -53,19 +55,25 @@ class IAPService {
     debugPrint('[IAP] storeAvailable=$available');
     if (!available) throw Exception('App Store not available on this device');
     final response = await _iap.queryProductDetails(productIds);
-    debugPrint('[IAP] loadProducts found=${response.productDetails.length} notFound=${response.notFoundIDs} error=${response.error}');
+    debugPrint(
+        '[IAP] loadProducts found=${response.productDetails.length} notFound=${response.notFoundIDs} error=${response.error}');
     return response.productDetails;
   }
 
   /// Initiate a purchase for [productDetails] and wait for backend validation.
-  /// Throws on cancellation or error.
-  Future<void> buyProduct(ProductDetails productDetails) async {
+  /// Returns the StoreKit transaction ID (`purchaseID`) on success when
+  /// available. [internalProductId] is the backend's integer product ID, sent
+  /// to the verification endpoint so the server can activate the correct
+  /// subscription. Throws on cancellation or error.
+  Future<String?> buyProduct(ProductDetails productDetails,
+      {int? internalProductId}) async {
     if (_pendingCompleter != null) {
       throw StateError('A purchase is already in progress');
     }
 
-    _pendingCompleter = Completer<void>();
+    _pendingCompleter = Completer<String?>();
     _pendingProductId = productDetails.id;
+    _pendingInternalProductId = internalProductId;
 
     final param = PurchaseParam(productDetails: productDetails);
     await _iap.buyNonConsumable(purchaseParam: param);
@@ -75,32 +83,44 @@ class IAPService {
 
   Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
-      debugPrint('[IAP] purchaseUpdate id=${purchase.productID} status=${purchase.status}');
+      debugPrint(
+          '[IAP] purchaseUpdate id=${purchase.productID} status=${purchase.status}');
       if (purchase.status == PurchaseStatus.pending) continue;
 
       if (purchase.status == PurchaseStatus.purchased ||
           purchase.status == PurchaseStatus.restored) {
+        Object? verifyError;
         try {
           debugPrint('[IAP] verifying on backend...');
           await _verifyOnBackend(purchase);
           debugPrint('[IAP] backend verified, completing purchase');
-          await _iap.completePurchase(purchase);
-          if (purchase.productID == _pendingProductId) {
-            _pendingCompleter?.complete();
-            _pendingCompleter = null;
-            _pendingProductId = null;
-          }
         } catch (e) {
           debugPrint('[IAP] backend verify failed: $e');
+          verifyError = e;
+        }
+
+        // Always finish the transaction; completePurchase errors are non-fatal
+        // (local StoreKit testing can return null fields that cause plugin crashes).
+        try {
           await _iap.completePurchase(purchase);
-          if (purchase.productID == _pendingProductId) {
-            _pendingCompleter?.completeError(e);
-            _pendingCompleter = null;
-            _pendingProductId = null;
+        } catch (e) {
+          debugPrint('[IAP] completePurchase error (non-fatal): $e');
+        }
+
+        if (purchase.productID == _pendingProductId) {
+          if (verifyError != null) {
+            _pendingCompleter?.completeError(verifyError);
+          } else {
+            _pendingCompleter?.complete(purchase.purchaseID);
           }
+          _pendingCompleter = null;
+          _pendingProductId = null;
+          _pendingInternalProductId = null;
         }
       } else if (purchase.status == PurchaseStatus.error) {
-        await _iap.completePurchase(purchase);
+        try {
+          await _iap.completePurchase(purchase);
+        } catch (_) {}
         if (purchase.productID == _pendingProductId) {
           _pendingCompleter?.completeError(
             purchase.error ?? Exception('Purchase failed'),
@@ -127,7 +147,8 @@ class IAPService {
     }
     await _api.verifyAppleIAP(
       receiptData: purchase.verificationData.serverVerificationData,
-      productId: purchase.productID,
+      iapProductId: purchase.productID,
+      internalProductId: _pendingInternalProductId,
     );
   }
 }

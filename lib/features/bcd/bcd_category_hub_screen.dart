@@ -56,7 +56,9 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
     if (categoryProduct != null) {
       _products = [categoryProduct];
     } else if (_products.isEmpty) {
-      try { _products = await _api.fetchBCDSubscriptionProducts(); } catch (_) {}
+      try {
+        _products = await _api.fetchBCDSubscriptionProducts();
+      } catch (_) {}
     }
     if (!mounted) return;
 
@@ -66,6 +68,10 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       title: _categoryName,
       createStripeIntent: (p) => _api.createBCDPaymentIntent(p['id'] as int),
       onStripePaymentConfirmed: (id) => _api.confirmBCDPayment(id),
+      onIAPPurchaseConfirmed: (p, transactionId) => _api.confirmBCDIAPPurchase(
+        p['id'] as int,
+        transactionId: transactionId,
+      ),
     );
 
     if (result == null || !mounted) return;
@@ -88,10 +94,10 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       await BcdCache.instance.ensureLoaded();
       final tests = BcdCache.instance.testsOf(_categoryBcdId);
       final free = tests.where((t) => t['is_free'] == true).toList();
-      
+
       // If no free test, but user is subscribed, use the first test available
-      final testToStart = free.isNotEmpty 
-          ? free.first 
+      final testToStart = free.isNotEmpty
+          ? free.first
           : (_subscribed && tests.isNotEmpty ? tests.first : null);
 
       if (!mounted) return;
@@ -117,7 +123,10 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         ),
       );
     } catch (_) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_practice, type: SnackBarType.error);
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_practice,
+            type: SnackBarType.error);
+      }
     } finally {
       if (mounted) setState(() => _practiceLoading = false);
     }
@@ -156,7 +165,10 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         ),
       );
     } catch (_) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_saved, type: SnackBarType.error);
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_saved,
+            type: SnackBarType.error);
+      }
     }
   }
 
@@ -423,7 +435,9 @@ class _HubTile extends StatelessWidget {
     return Material(
       color: locked
           ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04)
-          : (isDark ? Theme.of(context).cardColor : tileColor.withValues(alpha: 0.07)),
+          : (isDark
+              ? Theme.of(context).cardColor
+              : tileColor.withValues(alpha: 0.07)),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -457,7 +471,9 @@ class _HubTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: locked ? Colors.grey.shade500 : Theme.of(context).colorScheme.onSurface,
+                      color: locked
+                          ? Colors.grey.shade500
+                          : Theme.of(context).colorScheme.onSurface,
                       height: 1.2,
                     ),
                   ),
@@ -538,7 +554,8 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
       }
     } catch (e) {
       if (mounted) {
-        showAppSnackBar(Translations.of(context).bcd_failed_tests, type: SnackBarType.error);
+        showAppSnackBar(Translations.of(context).bcd_failed_tests,
+            type: SnackBarType.error);
         setState(() => _loading = false);
       }
     }
@@ -894,7 +911,10 @@ class _TestCard extends StatelessWidget {
                       ? const Color(0xFF059669).withValues(alpha: 0.1)
                       : subscribed
                           ? const Color(0xFF4F46E5).withValues(alpha: 0.1)
-                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
+                          : Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -922,12 +942,18 @@ class _TestCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Row(children: [
-                      _Chip(label: '${test['question_count'] ?? 0} ${Translations.of(context).bcd_questions_label}'),
+                      _Chip(
+                          label:
+                              '${test['question_count'] ?? 0} ${Translations.of(context).bcd_questions_label}'),
                       const SizedBox(width: 6),
-                      _Chip(label: '${Translations.of(context).bcd_pass_label} ${test['pass_score'] ?? 0}%'),
+                      _Chip(
+                          label:
+                              '${Translations.of(context).bcd_pass_label} ${test['pass_score'] ?? 0}%'),
                       if (isFree) ...[
                         const SizedBox(width: 6),
-                        _Chip(label: Translations.of(context).bcd_free_label, color: const Color(0xFF059669)),
+                        _Chip(
+                            label: Translations.of(context).bcd_free_label,
+                            color: const Color(0xFF059669)),
                       ],
                     ]),
                   ],
@@ -963,4 +989,3 @@ class _Chip extends StatelessWidget {
     );
   }
 }
-

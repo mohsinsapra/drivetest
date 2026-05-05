@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
@@ -80,8 +81,9 @@ class ApiService {
         try {
           final prefs = await SharedPreferences.getInstance();
           final existing = prefs.getString(AppStorage.kUserJson);
-          final Map<String, dynamic> merged =
-              existing != null ? Map<String, dynamic>.from(jsonDecode(existing) as Map) : {};
+          final Map<String, dynamic> merged = existing != null
+              ? Map<String, dynamic>.from(jsonDecode(existing) as Map)
+              : {};
           if (data['username'] != null) merged['username'] = data['username'];
           if (data['email'] != null) merged['email'] = data['email'];
           await prefs.setString(AppStorage.kUserJson, jsonEncode(merged));
@@ -501,8 +503,8 @@ class ApiService {
         status: data['status'] as String? ?? 'completed',
         currentQuestionIndex: data['current_question_index'] as int? ?? 0,
         licenceId: data['licence_id'] as String?,
-        categoryId: data['category_id'] as String? ??
-            data['bcd_test_id']?.toString(),
+        categoryId:
+            data['category_id'] as String? ?? data['bcd_test_id']?.toString(),
         durationSeconds: data['duration_seconds'] as int?,
         bcdCategoryId: (data['bcd_category_id'] as num?)?.toInt() ??
             int.tryParse((data['bcd_category_id'] ?? '').toString()),
@@ -513,7 +515,10 @@ class ApiService {
     }
   }
 
-  Future<bool> appleAuth({required String identityToken, String? firstName, String? lastName}) async {
+  Future<bool> appleAuth(
+      {required String identityToken,
+      String? firstName,
+      String? lastName}) async {
     try {
       final data = {
         'identity_token': identityToken,
@@ -586,7 +591,6 @@ class ApiService {
     }
     return [];
   }
-
 
   Future<List<dynamic>> fetchBCDAllCategories() async {
     final response = await _dio.get('api/v2/categories/');
@@ -666,8 +670,15 @@ class ApiService {
     return response.data as List<dynamic>;
   }
 
-  Future<List<dynamic>> fetchBCDSubscriptionProducts() async {
-    final response = await _dio.get('api/v2/subscription-products/');
+  Future<List<dynamic>> fetchBCDSubscriptionProducts({
+    bool forceRefresh = false,
+  }) async {
+    final response = await _dio.get(
+      'api/v2/subscription-products/',
+      options: forceRefresh
+          ? _dioClient.cacheOptions(policy: CachePolicy.refreshForceCache)
+          : null,
+    );
     return _asList(response.data);
   }
 
@@ -697,16 +708,34 @@ class ApiService {
     );
   }
 
-  Future<void> verifyAppleIAP({
-    required String receiptData,
-    required String productId,
-  }) async {
+  /// Called immediately after a successful StoreKit purchase to confirm the
+  /// backend has already verified the matching Apple transaction.
+  Future<void> confirmBCDIAPPurchase(int productId,
+      {String? transactionId}) async {
     await _dio.post(
-      'api/payment/iap/apple/verify/',
-      data: {'receipt_data': receiptData, 'product_id': productId},
+      'api/payment/bcd/confirm-iap/',
+      data: {
+        'product_id': productId,
+        if (transactionId != null && transactionId.isNotEmpty)
+          'transaction_id': transactionId,
+      },
     );
   }
 
+  Future<void> verifyAppleIAP({
+    required String receiptData,
+    required String iapProductId,
+    int? internalProductId,
+  }) async {
+    await _dio.post(
+      'api/payment/iap/apple/verify/',
+      data: {
+        'receipt_data': receiptData,
+        'product_id': iapProductId,
+        if (internalProductId != null) 'internal_product_id': internalProductId,
+      },
+    );
+  }
 
   Future<String> createCheckoutSession({
     required String licenceId,

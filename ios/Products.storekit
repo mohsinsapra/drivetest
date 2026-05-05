@@ -1,0 +1,382 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "583E14F4",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "6766083278",
+      "localizations" : [
+        {
+          "description" : "B korkot",
+          "displayName" : "B korkot",
+          "locale" : "sv"
+        },
+        {
+          "description" : "B korkot licence",
+          "displayName" : "B korkot",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.b_korkot_60days",
+      "referenceName" : "B korkot 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "6766637772",
+      "localizations" : [
+        {
+          "description" : "B korkot English for 60 days",
+          "displayName" : "B korkot English",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.b_korkot_en_60days",
+      "referenceName" : "B korkot En 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "899.0",
+      "familyShareable" : false,
+      "internalID" : "6766640821",
+      "localizations" : [
+        {
+          "description" : "Taxiförarlegitimation for 60 days",
+          "displayName" : "Taxiförarlegitimation",
+          "locale" : "sv"
+        },
+        {
+          "description" : "Taxi licence for 60 days",
+          "displayName" : "Taxi licence",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.taxiforarlegitimation_60days",
+      "referenceName" : "Taxiförarlegitimation 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000001",
+      "localizations" : [
+        {
+          "description" : "Taxilegitimation 60 days",
+          "displayName" : "Taxilegitimation",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.taxilegitimationen_60days",
+      "referenceName" : "Taxilegitimation 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000002",
+      "localizations" : [
+        {
+          "description" : "Taxiakeri 60 days",
+          "displayName" : "Taxiakeri",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.taxiakeri_60days",
+      "referenceName" : "Taxiakeri 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000003",
+      "localizations" : [
+        {
+          "description" : "Sakerhet och beteende 60 days",
+          "displayName" : "Sakerhet och beteende",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.sakerhetochbeteende_60days",
+      "referenceName" : "Sakerhet och beteende 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000004",
+      "localizations" : [
+        {
+          "description" : "Tekniska normer och sakerhet 60 days",
+          "displayName" : "Tekniska normer och sakerhet",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.tekniskanormerochsakerhet_60days",
+      "referenceName" : "Tekniska normer och sakerhet 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000005",
+      "localizations" : [
+        {
+          "description" : "Juridik 60 days",
+          "displayName" : "Juridik",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.juridik_60days",
+      "referenceName" : "Juridik 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000006",
+      "localizations" : [
+        {
+          "description" : "Ekonomi 60 days",
+          "displayName" : "Ekonomi",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.ekonomi_60days",
+      "referenceName" : "Ekonomi 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000007",
+      "localizations" : [
+        {
+          "description" : "Fallstudie 60 days",
+          "displayName" : "Fallstudie",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.fallstudie_60days",
+      "referenceName" : "Fallstudie 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000008",
+      "localizations" : [
+        {
+          "description" : "Lastbil 60 days",
+          "displayName" : "Lastbil",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.lastbil_60days",
+      "referenceName" : "Lastbil 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000009",
+      "localizations" : [
+        {
+          "description" : "Buss 60 days",
+          "displayName" : "Buss",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.buss_60days",
+      "referenceName" : "Buss 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000010",
+      "localizations" : [
+        {
+          "description" : "B korkort arabiska 60 days",
+          "displayName" : "B korkort arabiska",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.bkorkortarabiska_60days",
+      "referenceName" : "B korkort arabiska 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000011",
+      "localizations" : [
+        {
+          "description" : "YKB 60 days",
+          "displayName" : "YKB",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.ykb_60days",
+      "referenceName" : "YKB 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000012",
+      "localizations" : [
+        {
+          "description" : "Lagstifning 60 days",
+          "displayName" : "Lagstifning",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.lagstifning_60days",
+      "referenceName" : "Lagstifning 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000013",
+      "localizations" : [
+        {
+          "description" : "CE 60 days",
+          "displayName" : "CE",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.ce_60days",
+      "referenceName" : "CE 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000014",
+      "localizations" : [
+        {
+          "description" : "Godsakeri 60 days",
+          "displayName" : "Godsakeri",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.godsakeri_60days",
+      "referenceName" : "Godsakeri 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000015",
+      "localizations" : [
+        {
+          "description" : "Godsakeri del 1 60 days",
+          "displayName" : "Godsakeri del 1",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.godsakeridel1_60days",
+      "referenceName" : "Godsakeri del 1 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000016",
+      "localizations" : [
+        {
+          "description" : "Godsakeri del 2 60 days",
+          "displayName" : "Godsakeri del 2",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.godsakeridel2_60days",
+      "referenceName" : "Godsakeri del 2 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000017",
+      "localizations" : [
+        {
+          "description" : "YKB buss 60 days",
+          "displayName" : "YKB buss",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.ykbbuss_60days",
+      "referenceName" : "YKB buss 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000018",
+      "localizations" : [
+        {
+          "description" : "First credit 60 days",
+          "displayName" : "First credit",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.firstcredit_60days",
+      "referenceName" : "First credit 60 Days",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "249.0",
+      "familyShareable" : false,
+      "internalID" : "1000000019",
+      "localizations" : [
+        {
+          "description" : "Motorcykel 60 days",
+          "displayName" : "Motorcykel",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "se.drivetest.motorcykel_60days",
+      "referenceName" : "Motorcykel 60 Days",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6765940954",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "MBWC2B7V68",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 799700907.30252504,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "SWE",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 5,
+    "minor" : 0
+  }
+}

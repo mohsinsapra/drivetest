@@ -46,14 +46,22 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     _loadMine();
   }
 
-  Future<void> _loadProducts() async {
+  Future<void> _loadProducts({bool forceRefresh = false}) async {
     try {
-      final data = await _api.fetchBCDSubscriptionProducts();
-      if (mounted) setState(() { _products = data; _loadingProducts = false; });
+      final data = await _api.fetchBCDSubscriptionProducts(
+        forceRefresh: forceRefresh,
+      );
+      if (mounted) {
+        setState(() {
+          _products = data;
+          _loadingProducts = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _loadingProducts = false);
-        showAppSnackBar(Translations.of(context).bcd_failed_plans, type: SnackBarType.error);
+        showAppSnackBar(Translations.of(context).bcd_failed_plans,
+            type: SnackBarType.error);
       }
     }
   }
@@ -61,7 +69,12 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
   Future<void> _loadMine() async {
     try {
       final data = await _api.fetchMyBCDSubscriptions();
-      if (mounted) setState(() { _mySubscriptions = data; _loadingMine = false; });
+      if (mounted) {
+        setState(() {
+          _mySubscriptions = data;
+          _loadingMine = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _loadingMine = false);
@@ -76,7 +89,13 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       final result = await PaymentCoordinator.pay(
         context,
         products: [product],
-        createStripeIntent: (_) => _api.createBCDPaymentIntent(product['id'] as int),
+        createStripeIntent: (_) =>
+            _api.createBCDPaymentIntent(product['id'] as int),
+        onIAPPurchaseConfirmed: (p, transactionId) =>
+            _api.confirmBCDIAPPurchase(
+          p['id'] as int,
+          transactionId: transactionId,
+        ),
       );
       if (result == null || !mounted) return;
       final days = product['duration_days'] as int?;
@@ -86,7 +105,9 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
           {
             'product': product,
             'status': 'paid',
-            'end_date': DateTime.now().add(Duration(days: days ?? 30)).toIso8601String(),
+            'end_date': DateTime.now()
+                .add(Duration(days: days ?? 30))
+                .toIso8601String(),
           },
         ];
         _tabController.animateTo(1);
@@ -122,9 +143,9 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       if (!mounted) return;
 
       final match = categories.cast<Map<String, dynamic>>().firstWhere(
-        (c) => c['bcd_id'] == bcdId,
-        orElse: () => <String, dynamic>{},
-      );
+            (c) => c['bcd_id'] == bcdId,
+            orElse: () => <String, dynamic>{},
+          );
 
       final Map<String, dynamic> cat;
       if (match.isNotEmpty) {
@@ -136,12 +157,16 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
 
       final hasChildren = cat['has_children'] == true;
       final route = hasChildren
-          ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+          ? AppPageRoute(
+              builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
           : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat));
 
       Navigator.push(context, route);
     } catch (_) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_category, type: SnackBarType.error);
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_category,
+            type: SnackBarType.error);
+      }
     } finally {
       if (mounted) setState(() => _navigating = false);
     }
@@ -169,6 +194,10 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
             mySubscriptions: _mySubscriptions,
             buyingProductId: _buyingProductId,
             onBuy: _handleBuy,
+            onRefresh: () async {
+              setState(() => _loadingProducts = true);
+              await _loadProducts(forceRefresh: true);
+            },
           ),
           _MySubscriptionsTab(
             loading: _loadingMine,
@@ -193,6 +222,7 @@ class _PlansTab extends StatelessWidget {
   final List<dynamic> mySubscriptions;
   final Object? buyingProductId;
   final void Function(dynamic product) onBuy;
+  final Future<void> Function() onRefresh;
 
   const _PlansTab({
     required this.loading,
@@ -200,6 +230,7 @@ class _PlansTab extends StatelessWidget {
     required this.mySubscriptions,
     required this.buyingProductId,
     required this.onBuy,
+    required this.onRefresh,
   });
 
   bool _isOwned(dynamic product) {
@@ -223,7 +254,7 @@ class _PlansTab extends StatelessWidget {
     }
 
     return RefreshIndicator(
-      onRefresh: () async {},
+      onRefresh: onRefresh,
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
         physics: const AlwaysScrollableScrollPhysics(),
@@ -279,9 +310,8 @@ class _ProductCard extends StatelessWidget {
             offset: const Offset(0, 4),
           ),
         ],
-        border: owned
-            ? Border.all(color: const Color(0xFF059669), width: 2)
-            : null,
+        border:
+            owned ? Border.all(color: const Color(0xFF059669), width: 2) : null,
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -322,8 +352,8 @@ class _ProductCard extends StatelessWidget {
                 ),
                 if (owned)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFF059669).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -422,8 +452,7 @@ class _MySubscriptionsTab extends StatelessWidget {
                   style: TextStyle(color: Colors.grey.shade500)),
               const SizedBox(height: 4),
               Text(Translations.of(context).bcd_browse_plans,
-                  style: TextStyle(
-                      fontSize: 12, color: Colors.grey.shade400)),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
             ],
           ),
         ),
@@ -457,7 +486,8 @@ class _SubscriptionTile extends StatelessWidget {
     final status = sub['status']?.toString() ?? '';
     final endDate = sub['end_date']?.toString() ?? '';
     final product = sub['product'];
-    final productName = (product is Map ? product['name']?.toString() : null) ?? 'Plan';
+    final productName =
+        (product is Map ? product['name']?.toString() : null) ?? 'Plan';
 
     final t = Translations.of(context);
     final isActive = status == 'paid';
@@ -514,13 +544,15 @@ class _SubscriptionTile extends StatelessWidget {
                     if (endDate.isNotEmpty)
                       Text(
                         '${t.bcd_expires} ${_formatDate(endDate)}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey.shade500),
                       ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -534,7 +566,8 @@ class _SubscriptionTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(LucideIcons.chevronRight, size: 16, color: Colors.grey.shade400),
+              Icon(LucideIcons.chevronRight,
+                  size: 16, color: Colors.grey.shade400),
             ],
           ),
         ),

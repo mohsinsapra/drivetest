@@ -48,6 +48,14 @@ class DioClient {
   Future<void> clearCache() async {
     await _cacheStore?.clean();
   }
+
+  Options cacheOptions({required CachePolicy policy}) {
+    return CacheOptions(
+      store: _cacheStore!,
+      policy: policy,
+    ).toOptions();
+  }
+
   List<int> get key => _key!;
   CryptoService get cryptoService => _cryptoService!;
 
@@ -72,15 +80,14 @@ class DioClient {
 
     // Fallback to SharedPreferences if not found in secure storage
     if (refreshToken == null || accessToken == null) {
-
-
       // If found in SharedPreferences, migrate to secure storage
       if (refreshToken != null && accessToken != null) {
         try {
           await _secureStorage.write(key: 'refreshToken', value: refreshToken!);
           await _secureStorage.write(key: 'accessToken', value: accessToken!);
         } catch (e) {
-          debugPrint('[DioClient] secure storage migration write failed (non-fatal): $e');
+          debugPrint(
+              '[DioClient] secure storage migration write failed (non-fatal): $e');
         }
       }
     }
@@ -154,9 +161,12 @@ class DioClient {
 
         // Decrypt v2 BCD encrypted+compressed responses  { "data": "<base64>" }
         // Only present in production — dev returns plain JSON directly
-        if (path.contains('api/v2/') && response.data is Map && response.data['data'] is String) {
+        if (path.contains('api/v2/') &&
+            response.data is Map &&
+            response.data['data'] is String) {
           try {
-            final decrypted = cryptoService.decryptCompressed(response.data['data'] as String);
+            final decrypted = cryptoService
+                .decryptCompressed(response.data['data'] as String);
             response.data = jsonDecode(decrypted);
           } catch (e, stack) {
             debugPrint('[Decrypt] ERROR on $path: $e');
@@ -275,9 +285,7 @@ class DioClient {
     }
 
     // Fallback to SharedPreferences if not found in secure storage
-    if (refreshToken == null || accessToken == null) {
-
-    }
+    if (refreshToken == null || accessToken == null) {}
   }
 
   Future<bool> _refreshAccessToken() async {
@@ -301,7 +309,8 @@ class DioClient {
       try {
         await _secureStorage.write(key: 'accessToken', value: accessToken);
       } catch (e) {
-        debugPrint('[DioClient] secure storage write (access) failed (non-fatal): $e');
+        debugPrint(
+            '[DioClient] secure storage write (access) failed (non-fatal): $e');
       }
       _lastFailedRefreshToken = null;
       _lastFailedRefreshAt = null;
@@ -314,7 +323,8 @@ class DioClient {
         try {
           await _secureStorage.write(key: 'refreshToken', value: refreshToken);
         } catch (e) {
-          debugPrint('[DioClient] secure storage write (refresh) failed (non-fatal): $e');
+          debugPrint(
+              '[DioClient] secure storage write (refresh) failed (non-fatal): $e');
         }
       }
 
@@ -392,7 +402,6 @@ class DioClient {
     // recover tokens across sessions. flutter_secure_storage on iOS Safari
     // can lose its AES decryption key between sessions, causing read() to
     // return null and leaving the user logged out on reload.
-
   }
 
   Future<void> logout() async {

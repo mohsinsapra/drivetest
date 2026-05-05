@@ -19,15 +19,19 @@ class PaymentCoordinator {
     required List<dynamic> products,
     required Future<String> Function(dynamic product) createStripeIntent,
     Future<void> Function(String intentId)? onStripePaymentConfirmed,
+    Future<void> Function(dynamic product, String? transactionId)?
+        onIAPPurchaseConfirmed,
     String? title,
     String merchantName = 'Drive Test',
   }) async {
-    final product = await showPaywallSheet(context, products: products, title: title);
+    final product =
+        await showPaywallSheet(context, products: products, title: title);
     if (product == null || !context.mounted) return null;
     return _process(context,
         products: [product],
         createStripeIntent: (prods) => createStripeIntent(prods.first),
         onStripePaymentConfirmed: onStripePaymentConfirmed,
+        onIAPPurchaseConfirmed: onIAPPurchaseConfirmed,
         merchantName: merchantName);
   }
 
@@ -37,12 +41,15 @@ class PaymentCoordinator {
     required List<dynamic> products,
     required Future<String> Function(List<dynamic> products) createStripeIntent,
     Future<void> Function(String intentId)? onStripePaymentConfirmed,
+    Future<void> Function(dynamic product, String? transactionId)?
+        onIAPPurchaseConfirmed,
     String merchantName = 'Drive Test',
   }) =>
       _process(context,
           products: products,
           createStripeIntent: createStripeIntent,
           onStripePaymentConfirmed: onStripePaymentConfirmed,
+          onIAPPurchaseConfirmed: onIAPPurchaseConfirmed,
           merchantName: merchantName);
 
   static Future<SubscriptionSuccessResult?> _process(
@@ -50,11 +57,13 @@ class PaymentCoordinator {
     required List<dynamic> products,
     required Future<String> Function(List<dynamic>) createStripeIntent,
     Future<void> Function(String)? onStripePaymentConfirmed,
+    Future<void> Function(dynamic, String?)? onIAPPurchaseConfirmed,
     required String merchantName,
   }) async {
     final product = products.first;
     final iapId = product['iap_product_id']?.toString();
-    final useIAP = !kIsWeb && Platform.isIOS && iapId != null && iapId.isNotEmpty;
+    final useIAP =
+        !kIsWeb && Platform.isIOS && iapId != null && iapId.isNotEmpty;
 
     final name = _name(products);
     final price = products.length == 1
@@ -68,21 +77,34 @@ class PaymentCoordinator {
         IAPService.instance.init();
         final found = await IAPService.instance.loadProducts({iapId});
         if (found.isEmpty) throw Exception('Product not available in store');
-        await IAPService.instance.buyProduct(found.first);
+        final internalId = (product['id'] as num?)?.toInt();
+        final transactionId = await IAPService.instance.buyProduct(
+          found.first,
+          internalProductId: internalId,
+        );
+        if (onIAPPurchaseConfirmed != null) {
+          try {
+            await onIAPPurchaseConfirmed(product, transactionId);
+            debugPrint('[Payment] IAP backend confirmation succeeded');
+          } catch (e) {
+            debugPrint('[Payment] IAP backend confirmation failed: $e');
+          }
+        }
       } else {
         String? intentId;
-        await processStripePayment(context,
-            createIntent: () async {
-              final secret = await createStripeIntent(products);
-              intentId = secret.split('_secret_').first;
-              return secret;
-            },
+        await processStripePayment(context, createIntent: () async {
+          final secret = await createStripeIntent(products);
+          intentId = secret.split('_secret_').first;
+          return secret;
+        },
             merchantName: merchantName,
             subtitle: name,
             displayAmount: price,
             currency: currency);
         if (intentId != null && onStripePaymentConfirmed != null) {
-          try { await onStripePaymentConfirmed(intentId!); } catch (_) {}
+          try {
+            await onStripePaymentConfirmed(intentId!);
+          } catch (_) {}
         }
       }
 
@@ -97,31 +119,39 @@ class PaymentCoordinator {
       if (isIAPCancellation(e)) return null;
       if (e is stripe.StripeException) {
         final msg = e.error.localizedMessage ?? '';
-        if (!msg.toLowerCase().contains('cancel')) showAppSnackBar(msg, type: SnackBarType.error);
+        if (!msg.toLowerCase().contains('cancel')) {
+          showAppSnackBar(msg, type: SnackBarType.error);
+        }
         return null;
       }
       debugPrint('[Payment] unexpected error: $e\n$st');
-      showAppSnackBar(Translations.of(context).bcd_payment_failed, type: SnackBarType.error);
+      showAppSnackBar(Translations.of(context).bcd_payment_failed,
+          type: SnackBarType.error);
       return null;
     }
   }
 
   static String _name(List<dynamic> p) => p.length == 1
       ? p.first['name']?.toString() ?? 'Subscription'
-      : p.map((x) => x['name']?.toString() ?? '').where((n) => n.isNotEmpty).join(' & ');
+      : p
+          .map((x) => x['name']?.toString() ?? '')
+          .where((n) => n.isNotEmpty)
+          .join(' & ');
 
   static double _sum(List<dynamic> p) => p.fold(0.0, (s, x) {
         final v = x['price']?.toString().replaceAll(',', '.').trim() ?? '';
         return s + (double.tryParse(v) ?? 0.0);
       });
 
-  static int _maxDays(List<dynamic> p) =>
-      p.fold(0, (m, x) { final d = (x['duration_days'] as num?)?.toInt() ?? 0; return d > m ? d : m; });
+  static int _maxDays(List<dynamic> p) => p.fold(0, (m, x) {
+        final d = (x['duration_days'] as num?)?.toInt() ?? 0;
+        return d > m ? d : m;
+      });
 
   static String? _duration(int days) {
     if (days <= 0) return null;
     if (days >= 365) return '${(days / 365).round()} year';
-    if (days >= 30)  return '${(days / 30).round()} months';
+    if (days >= 30) return '${(days / 30).round()} months';
     return '$days days';
   }
 }
