@@ -1238,11 +1238,11 @@ class _LoginView extends StatelessWidget {
                       const SizedBox(height: 16),
                     ],
 
-                    // Username
+                    // Username or Email
                     _AuthField(
                       label: t.auth_username,
                       controller: usernameCtrl,
-                      hint: 'username',
+                      hint: 'username or email',
                       keyboardType: TextInputType.emailAddress,
                       error: fieldErrors['username'],
                     ),

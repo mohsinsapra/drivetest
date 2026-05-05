@@ -110,7 +110,7 @@ class TranslationsSv implements Translations {
 	@override String get auth_or => 'ELLER';
 	@override String get auth_login_title => 'Logga in';
 	@override String get auth_contact_support => 'Kontakta support';
-	@override String get auth_username => 'Användarnamn';
+	@override String get auth_username => 'Användarnamn eller e-post';
 	@override String get auth_email => 'E-post';
 	@override String get auth_password => 'Lösenord';
 	@override String get auth_remember_me => 'Kom ihåg mig';
@@ -134,7 +134,7 @@ class TranslationsSv implements Translations {
 	@override String get auth_feedback_other => 'Övrigt';
 	@override String get auth_create_account => 'Skapa konto';
 	@override String get auth_sign_up_btn => 'Registrera';
-	@override String get auth_val_username_required => 'Vänligen ange ett användarnamn';
+	@override String get auth_val_username_required => 'Vänligen ange ditt användarnamn eller e-post';
 	@override String get auth_val_username_length => 'Användarnamnet måste vara minst 4 tecken';
 	@override String get auth_val_email_required => 'Vänligen ange en e-postadress';
 	@override String get auth_val_email_invalid => 'Vänligen ange en giltig e-postadress';
@@ -518,7 +518,7 @@ extension on TranslationsSv {
 			case 'auth_or': return 'ELLER';
 			case 'auth_login_title': return 'Logga in';
 			case 'auth_contact_support': return 'Kontakta support';
-			case 'auth_username': return 'Användarnamn';
+			case 'auth_username': return 'Användarnamn eller e-post';
 			case 'auth_email': return 'E-post';
 			case 'auth_password': return 'Lösenord';
 			case 'auth_remember_me': return 'Kom ihåg mig';
@@ -542,7 +542,7 @@ extension on TranslationsSv {
 			case 'auth_feedback_other': return 'Övrigt';
 			case 'auth_create_account': return 'Skapa konto';
 			case 'auth_sign_up_btn': return 'Registrera';
-			case 'auth_val_username_required': return 'Vänligen ange ett användarnamn';
+			case 'auth_val_username_required': return 'Vänligen ange ditt användarnamn eller e-post';
 			case 'auth_val_username_length': return 'Användarnamnet måste vara minst 4 tecken';
 			case 'auth_val_email_required': return 'Vänligen ange en e-postadress';
 			case 'auth_val_email_invalid': return 'Vänligen ange en giltig e-postadress';

@@ -113,7 +113,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get auth_or => 'OR';
 	String get auth_login_title => 'Login';
 	String get auth_contact_support => 'Contact support';
-	String get auth_username => 'Username';
+	String get auth_username => 'Username or Email';
 	String get auth_email => 'Email';
 	String get auth_password => 'Password';
 	String get auth_remember_me => 'Remember me';
@@ -137,7 +137,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get auth_feedback_other => 'Other';
 	String get auth_create_account => 'Create Account';
 	String get auth_sign_up_btn => 'Sign Up';
-	String get auth_val_username_required => 'Please enter a username';
+	String get auth_val_username_required => 'Please enter your username or email';
 	String get auth_val_username_length => 'Username must be at least 4 characters';
 	String get auth_val_email_required => 'Please enter an email';
 	String get auth_val_email_invalid => 'Please enter a valid email';
@@ -521,7 +521,7 @@ extension on Translations {
 			case 'auth_or': return 'OR';
 			case 'auth_login_title': return 'Login';
 			case 'auth_contact_support': return 'Contact support';
-			case 'auth_username': return 'Username';
+			case 'auth_username': return 'Username or Email';
 			case 'auth_email': return 'Email';
 			case 'auth_password': return 'Password';
 			case 'auth_remember_me': return 'Remember me';
@@ -545,7 +545,7 @@ extension on Translations {
 			case 'auth_feedback_other': return 'Other';
 			case 'auth_create_account': return 'Create Account';
 			case 'auth_sign_up_btn': return 'Sign Up';
-			case 'auth_val_username_required': return 'Please enter a username';
+			case 'auth_val_username_required': return 'Please enter your username or email';
 			case 'auth_val_username_length': return 'Username must be at least 4 characters';
 			case 'auth_val_email_required': return 'Please enter an email';
 			case 'auth_val_email_invalid': return 'Please enter a valid email';
