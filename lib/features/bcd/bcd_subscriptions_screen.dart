@@ -66,9 +66,9 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     }
   }
 
-  Future<void> _loadMine() async {
+  Future<void> _loadMine({bool forceRefresh = false}) async {
     try {
-      final data = await _api.fetchMyBCDSubscriptions();
+      final data = await _api.fetchMyBCDSubscriptions(forceRefresh: forceRefresh);
       if (mounted) {
         setState(() {
           _mySubscriptions = data;
@@ -204,7 +204,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
             subscriptions: _mySubscriptions,
             onRefresh: () async {
               setState(() => _loadingMine = true);
-              await _loadMine();
+              await _loadMine(forceRefresh: true);
             },
             onTap: _handleSubscriptionTap,
           ),

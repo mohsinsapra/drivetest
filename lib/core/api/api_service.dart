@@ -665,8 +665,15 @@ class ApiService {
     }
   }
 
-  Future<List<dynamic>> fetchMyBCDSubscriptions() async {
-    final response = await _dio.get('api/v2/my-subscriptions/');
+  Future<List<dynamic>> fetchMyBCDSubscriptions({
+    bool forceRefresh = false,
+  }) async {
+    final response = await _dio.get(
+      'api/v2/my-subscriptions/',
+      options: forceRefresh
+          ? _dioClient.cacheOptions(policy: CachePolicy.refreshForceCache)
+          : null,
+    );
     return response.data as List<dynamic>;
   }
 

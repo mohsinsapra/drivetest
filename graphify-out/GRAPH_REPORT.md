@@ -1,11 +1,11 @@
 # Graph Report - taxi_exam_app  (2026-05-05)
 
 ## Corpus Check
-- 143 files · ~125,259 words
+- 143 files · ~125,585 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1437 nodes · 1825 edges · 44 communities detected
+- 1442 nodes · 1831 edges · 43 communities detected
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
@@ -53,7 +53,6 @@
 - [[_COMMUNITY_Community 40|Community 40]]
 - [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 42|Community 42]]
-- [[_COMMUNITY_Community 43|Community 43]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `package:flutter/material.dart` - 79 edges
@@ -87,7 +86,7 @@ Nodes (90): ../../helpers/dashboard_helpers.dart, ../models/dashboard_stats.dart
 
 ### Community 1 - "Community 1"
 Cohesion: 0.02
-Nodes (84): app_lottie_web.dart, dart:io, package:auto_size_text/auto_size_text.dart, package:flutter_dotenv/flutter_dotenv.dart, package:flutter/foundation.dart, package:flutter/services.dart, package:flutter_stripe/flutter_stripe.dart, package:flutter_stripe_web/flutter_stripe_web.dart (+76 more)
+Nodes (87): app_lottie_web.dart, dart:io, package:auto_size_text/auto_size_text.dart, package:flutter_dotenv/flutter_dotenv.dart, package:flutter/foundation.dart, package:flutter/services.dart, package:flutter_stripe/flutter_stripe.dart, package:flutter_stripe_web/flutter_stripe_web.dart (+79 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.03
@@ -98,28 +97,28 @@ Cohesion: 0.03
 Nodes (71): package:flutter_tts/flutter_tts.dart, package:no_screenshot/no_screenshot.dart, package:taxi_exam_app/core/constants/language_options.dart, package:taxi_exam_app/core/models/image_viewer.dart, package:taxi_exam_app/core/widgets/explanation_widget.dart, package:taxi_exam_app/core/widgets/navigation_controls.dart, package:taxi_exam_app/core/widgets/option_tile.dart, package:taxi_exam_app/core/widgets/question_progress_header.dart (+63 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.03
-Nodes (66): ../../features/tests/result_screen.dart, package:taxi_exam_app/core/models/question.dart, package:taxi_exam_app/core/services/saved_questions_service.dart, package:taxi_exam_app/core/utils/app_page_route.dart, package:taxi_exam_app/features/auth/reset_password_screen.dart, package:taxi_exam_app/features/bcd/providers/bcd_provider.dart, package:taxi_exam_app/features/tests/test_screen.dart, TestAttempt (+58 more)
-
-### Community 5 - "Community 5"
 Cohesion: 0.04
 Nodes (57): core/models/test_attempt.dart, dashboard_repository.dart, package:clarity_flutter/clarity_flutter.dart, package:clarity_web/clarity_web.dart, package:firebase_core/firebase_core.dart, package:firebase_messaging/firebase_messaging.dart, package:hive_flutter/hive_flutter.dart, package:sentry_flutter/sentry_flutter.dart (+49 more)
+
+### Community 5 - "Community 5"
+Cohesion: 0.03
+Nodes (59): ../../features/tests/result_screen.dart, package:taxi_exam_app/core/services/saved_questions_service.dart, package:taxi_exam_app/core/utils/app_page_route.dart, package:taxi_exam_app/features/auth/reset_password_screen.dart, package:taxi_exam_app/features/bcd/providers/bcd_provider.dart, package:taxi_exam_app/features/tests/test_screen.dart, showDialog, SizedBox (+51 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.03
 Nodes (60): package:syncfusion_flutter_pdfviewer/pdfviewer.dart, package:taxi_exam_app/core/api/dio_client.dart, package:taxi_exam_app/core/widgets/snackbar.dart, package:taxi_exam_app/features/profile/edit_profile_screen.dart, package:taxi_exam_app/features/profile/providers/profile_provider.dart, package:taxi_exam_app/features/profile/stats_screen.dart, package:taxi_exam_app/features/support/help_screen.dart, package:taxi_exam_app/settings/settings.dart (+52 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.04
-Nodes (51): package:introduction_screen/introduction_screen.dart, package:shared_preferences/shared_preferences.dart, package:taxi_exam_app/core/providers/font_provider.dart, package:taxi_exam_app/core/providers/theme_provider.dart, package:taxi_exam_app/core/services/version_service.dart, package:taxi_exam_app/core/widgets/app_lottie.dart, FontProvider, setMode (+43 more)
+Cohesion: 0.03
+Nodes (56): bcd_document_viewer_screen.dart, bcd_licences_screen.dart, bcd_subscriptions_screen.dart, bcd_test_screen.dart, bcd_traffic_signs_screen.dart, package:lucide_icons/lucide_icons.dart, package:taxi_exam_app/core/services/tts_service.dart, ../tests/saved_questions_preview_screen.dart (+48 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.04
-Nodes (52): bcd_document_viewer_screen.dart, bcd_licences_screen.dart, bcd_subscriptions_screen.dart, bcd_test_screen.dart, bcd_traffic_signs_screen.dart, package:lucide_icons/lucide_icons.dart, package:taxi_exam_app/core/services/tts_service.dart, ../tests/saved_questions_preview_screen.dart (+44 more)
+Nodes (51): package:introduction_screen/introduction_screen.dart, package:shared_preferences/shared_preferences.dart, package:taxi_exam_app/core/providers/font_provider.dart, package:taxi_exam_app/core/providers/theme_provider.dart, package:taxi_exam_app/core/services/version_service.dart, package:taxi_exam_app/core/widgets/app_lottie.dart, FontProvider, setMode (+43 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.04
-Nodes (52): bcd_category_hub_screen.dart, bcd_sub_category_screen.dart, package:shimmer/shimmer.dart, package:taxi_exam_app/core/services/payment_coordinator.dart, package:taxi_exam_app/core/utils/category_sort_utils.dart, BCDLicencesScreen, _BCDLicencesScreenState, build (+44 more)
+Nodes (53): bcd_category_hub_screen.dart, bcd_sub_category_screen.dart, package:shimmer/shimmer.dart, package:taxi_exam_app/core/services/payment_coordinator.dart, package:taxi_exam_app/core/utils/category_sort_utils.dart, BCDLicencesScreen, _BCDLicencesScreenState, build (+45 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.04
@@ -138,20 +137,20 @@ Cohesion: 0.04
 Nodes (44): ../models/exam_node.dart, ../models/subscribed_exam.dart, package:taxi_exam_app/core/services/bcd_cache.dart, ../repository/dashboard_repository.dart, ../repository/exam_sync_service.dart, BatchStats, CategoryStats, computeBatchStats (+36 more)
 
 ### Community 14 - "Community 14"
+Cohesion: 0.05
+Nodes (41): dart:convert, dio_client.dart, package:dio_cache_interceptor/dio_cache_interceptor.dart, package:dio/dio.dart, package:flutter_secure_storage/flutter_secure_storage.dart, package:sentry_dio/sentry_dio.dart, package:taxi_exam_app/core/models/option.dart, package:taxi_exam_app/core/models/test_attempt.dart (+33 more)
+
+### Community 15 - "Community 15"
 Cohesion: 0.04
 Nodes (46): package:collection/collection.dart, package:taxi_exam_app/features/auth/auth_bottom_sheet.dart, package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart, package:taxi_exam_app/features/bcd/bcd_sub_category_screen.dart, AnimatedContainer, build, _BundleRow, _CategoryCard (+38 more)
 
-### Community 15 - "Community 15"
+### Community 16 - "Community 16"
 Cohesion: 0.05
 Nodes (41): package:taxi_exam_app/features/bcd/bcd_test_screen.dart, package:taxi_exam_app/features/notifications/notifications_screen.dart, ../providers/dashboard_provider.dart, AnimatedContainer, _BatchAttemptHistory, _BatchRow, _BatchRowState, build (+33 more)
 
-### Community 16 - "Community 16"
+### Community 17 - "Community 17"
 Cohesion: 0.05
 Nodes (38): dart:math, dart:typed_data, package:archive/archive.dart, package:flutter_local_notifications/flutter_local_notifications.dart, package:flutter_timezone/flutter_timezone.dart, package:pointycastle/export.dart, package:timezone/data/latest_all.dart, package:timezone/timezone.dart (+30 more)
-
-### Community 17 - "Community 17"
-Cohesion: 0.06
-Nodes (35): dart:convert, dio_client.dart, package:dio_cache_interceptor/dio_cache_interceptor.dart, package:dio/dio.dart, package:flutter_secure_storage/flutter_secure_storage.dart, package:sentry_dio/sentry_dio.dart, package:taxi_exam_app/core/models/option.dart, package:taxi_exam_app/core/services/navigation_service.dart (+27 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.05
@@ -163,125 +162,121 @@ Nodes (33): exam_node.dart, package:hive/hive.dart, subscribed_exam.dart, LocalN
 
 ### Community 20 - "Community 20"
 Cohesion: 0.05
-Nodes (36): package:confetti/confetti.dart, package:taxi_exam_app/core/services/analytics_service.dart, package:taxi_exam_app/core/widgets/category_card_widget.dart, package:taxi_exam_app/core/widgets/licence_type_card_widget.dart, package:taxi_exam_app/core/widgets/test_option_card_widget.dart, package:taxi_exam_app/features/tests/custom_test_screen.dart, package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart, package:youtube_player_flutter/youtube_player_flutter.dart (+28 more)
+Nodes (35): package:taxi_exam_app/core/models/question.dart, package:taxi_exam_app/features/bcd/bcd_text_utils.dart, TestAttempt, BcdProvider, mediaUrl, Option, Question, _toQuestion (+27 more)
 
 ### Community 21 - "Community 21"
+Cohesion: 0.05
+Nodes (36): package:confetti/confetti.dart, package:taxi_exam_app/core/services/analytics_service.dart, package:taxi_exam_app/core/widgets/category_card_widget.dart, package:taxi_exam_app/core/widgets/licence_type_card_widget.dart, package:taxi_exam_app/core/widgets/test_option_card_widget.dart, package:taxi_exam_app/features/tests/custom_test_screen.dart, package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart, package:youtube_player_flutter/youtube_player_flutter.dart (+28 more)
+
+### Community 22 - "Community 22"
 Cohesion: 0.06
 Nodes (30): package:flutter/widgets.dart, package:intl/intl.dart, package:slang_flutter/slang_flutter.dart, package:slang/generated.dart, strings.g.dart, strings_sv.g.dart, AppLocale, AppLocaleUtils (+22 more)
 
-### Community 22 - "Community 22"
-Cohesion: 0.08
-Nodes (21): package:taxi_exam_app/core/models/test_attempt.dart, AttemptEntryCard, build, Container, SizedBox, build, Container, ProgressCard (+13 more)
-
 ### Community 23 - "Community 23"
-Cohesion: 0.11
-Nodes (16): package:taxi_exam_app/features/bcd/bcd_text_utils.dart, BcdProvider, mediaUrl, Option, Question, _toQuestion, build, Container (+8 more)
-
-### Community 24 - "Community 24"
 Cohesion: 0.21
 Nodes (5): VersionManager, ExamNode, ExamNodeAdapter, read, write
 
-### Community 25 - "Community 25"
+### Community 24 - "Community 24"
 Cohesion: 0.12
 Nodes (14): package:fl_chart/fl_chart.dart, AttemptCountLineGraph, build, LineTooltipItem, Padding, SideTitleWidget, TouchedSpotIndicatorData, build (+6 more)
 
-### Community 26 - "Community 26"
+### Community 25 - "Community 25"
 Cohesion: 0.14
 Nodes (13): package:photo_view/photo_view.dart, BoxDecoration, build, dispose, Icon, _ImageViewerPage, _ImageViewerPageState, initState (+5 more)
 
-### Community 27 - "Community 27"
+### Community 26 - "Community 26"
 Cohesion: 0.22
 Nodes (7): dart:js_interop, dart:ui_web, package:web/web.dart, webVibrate, webVibratePattern, buildWebLottie, SizedBox
 
-### Community 28 - "Community 28"
+### Community 27 - "Community 27"
 Cohesion: 0.22
 Nodes (8): tts_button.dart, _backgroundColor, _borderColor, _borderWidth, build, Container, Option, SizedBox
 
-### Community 29 - "Community 29"
+### Community 28 - "Community 28"
 Cohesion: 0.36
 Nodes (9): TaxiQuiz App Icon - D Letter Road Motif, Apple Pay Payment Icon, Create Custom Test Action, Category Detail Screen - Säkerhet (Safety), Google Pay Payment Icon, In-App Payment Feature, Säkerhet (Safety) Exam Category, Saved Questions Action (+1 more)
 
-### Community 30 - "Community 30"
+### Community 29 - "Community 29"
 Cohesion: 0.47
 Nodes (9): Brand Color: Dark Grey, Brand Color: Gold/Yellow, Brand D-Letter Logo (Dark Grey and Gold), PWA Web Assets Group, PWA Standard Icon 192x192, PWA Standard Icon 512x512, PWA Maskable Icon 192x192, PWA Maskable Icon 512x512 (+1 more)
 
-### Community 31 - "Community 31"
+### Community 30 - "Community 30"
 Cohesion: 0.33
 Nodes (5): applySettings, defaultStripePublishableKeyForMode, Function, readEnv, resolveStripePublishableKey
 
-### Community 32 - "Community 32"
+### Community 31 - "Community 31"
 Cohesion: 0.4
 Nodes (4): LocalNotification, LocalNotificationAdapter, read, write
 
-### Community 33 - "Community 33"
+### Community 32 - "Community 32"
 Cohesion: 0.4
 Nodes (4): Question, QuestionAdapter, read, write
 
-### Community 34 - "Community 34"
+### Community 33 - "Community 33"
 Cohesion: 0.4
 Nodes (4): read, TestAttempt, TestAttemptAdapter, write
 
-### Community 35 - "Community 35"
+### Community 34 - "Community 34"
 Cohesion: 0.4
 Nodes (4): Option, OptionAdapter, read, write
 
-### Community 36 - "Community 36"
+### Community 35 - "Community 35"
 Cohesion: 0.4
 Nodes (4): read, SubscribedExam, SubscribedExamAdapter, write
 
-### Community 37 - "Community 37"
+### Community 36 - "Community 36"
 Cohesion: 0.5
 Nodes (3): HomeDataCache, invalidate, markSynced
 
-### Community 38 - "Community 38"
+### Community 37 - "Community 37"
 Cohesion: 0.5
 Nodes (3): _flatMapFunction, of, Translations
 
-### Community 39 - "Community 39"
+### Community 38 - "Community 38"
 Cohesion: 0.67
 Nodes (2): dart:html, performRedirect
 
-### Community 40 - "Community 40"
+### Community 39 - "Community 39"
 Cohesion: 0.67
 Nodes (2): redirectToUrl, web_redirect_stub.dart
 
-### Community 41 - "Community 41"
+### Community 40 - "Community 40"
 Cohesion: 0.67
 Nodes (2): package:firebase_analytics/firebase_analytics.dart, AnalyticsService
 
-### Community 42 - "Community 42"
+### Community 41 - "Community 41"
 Cohesion: 0.67
 Nodes (2): webVibrate, webVibratePattern
 
-### Community 43 - "Community 43"
+### Community 42 - "Community 42"
 Cohesion: 1.0
 Nodes (1): performRedirect
 
 ## Knowledge Gaps
-- **1181 isolated node(s):** `main`, `main`, `initializeStripe`, `main`, `main` (+1176 more)
+- **1185 isolated node(s):** `main`, `main`, `initializeStripe`, `main`, `main` (+1180 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 39`** (3 nodes): `dart:html`, `web_redirect_html.dart`, `performRedirect`
+- **Thin community `Community 38`** (3 nodes): `dart:html`, `web_redirect_html.dart`, `performRedirect`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 40`** (3 nodes): `web_redirect.dart`, `redirectToUrl`, `web_redirect_stub.dart`
+- **Thin community `Community 39`** (3 nodes): `web_redirect.dart`, `redirectToUrl`, `web_redirect_stub.dart`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 41`** (3 nodes): `analytics_service.dart`, `package:firebase_analytics/firebase_analytics.dart`, `AnalyticsService`
+- **Thin community `Community 40`** (3 nodes): `analytics_service.dart`, `package:firebase_analytics/firebase_analytics.dart`, `AnalyticsService`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 42`** (3 nodes): `platform_vibrate_native.dart`, `webVibrate`, `webVibratePattern`
+- **Thin community `Community 41`** (3 nodes): `platform_vibrate_native.dart`, `webVibrate`, `webVibratePattern`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 43`** (2 nodes): `web_redirect_stub.dart`, `performRedirect`
+- **Thin community `Community 42`** (2 nodes): `web_redirect_stub.dart`, `performRedirect`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `package:flutter/material.dart` connect `Community 0` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 12`, `Community 14`, `Community 15`, `Community 16`, `Community 17`, `Community 18`, `Community 19`, `Community 20`, `Community 22`, `Community 23`, `Community 25`, `Community 26`, `Community 27`, `Community 28`?**
-  _High betweenness centrality (0.399) - this node is a cross-community bridge._
-- **Why does `package:taxi_exam_app/core/localization/strings.g.dart` connect `Community 0` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 12`, `Community 14`, `Community 15`, `Community 16`, `Community 23`, `Community 26`?**
-  _High betweenness centrality (0.084) - this node is a cross-community bridge._
-- **Why does `package:taxi_exam_app/core/api/api_service.dart` connect `Community 11` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 12`, `Community 13`, `Community 14`, `Community 17`, `Community 18`, `Community 20`, `Community 23`?**
-  _High betweenness centrality (0.067) - this node is a cross-community bridge._
+- **Why does `package:flutter/material.dart` connect `Community 0` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 12`, `Community 14`, `Community 15`, `Community 16`, `Community 17`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 24`, `Community 25`, `Community 26`, `Community 27`?**
+  _High betweenness centrality (0.413) - this node is a cross-community bridge._
+- **Why does `package:taxi_exam_app/core/localization/strings.g.dart` connect `Community 0` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 12`, `Community 15`, `Community 16`, `Community 17`, `Community 20`, `Community 25`?**
+  _High betweenness centrality (0.089) - this node is a cross-community bridge._
+- **Why does `package:taxi_exam_app/core/api/api_service.dart` connect `Community 11` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 18`, `Community 20`, `Community 21`?**
+  _High betweenness centrality (0.056) - this node is a cross-community bridge._
 - **What connects `main`, `main`, `initializeStripe` to the rest of the system?**
-  _1181 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1185 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.02 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**

@@ -160,7 +160,9 @@
       "Bash(cp /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/pubspec.lock '~/.config/superpowers/worktrees/taxi_exam_app/payment-consolidation/pubspec.lock')",
       "Bash(env/bin/python manage.py check)",
       "Bash(env/bin/python manage.py show_urls)",
-      "Bash(env/bin/python -c ' *)"
+      "Bash(env/bin/python -c ' *)",
+      "Bash(make sync-to-namecheap *)",
+      "Bash(docker exec *)"
     ],
     "deny": [],
     "ask": []
