@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.3+161] - 2026-05-05
+
+### Added
 - Unified `PaywallSheet` — single product-selection bottom sheet used across all payment entry points
 - `PaymentCoordinator` service — centrally routes purchases to Apple IAP (iOS) or Stripe (Android/Web) and shows the success overlay automatically
 - Apple In-App Purchase support via `IAPService` — iOS users pay through the App Store for BCD subscriptions with `iap_product_id`
@@ -21,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Removed ~600 lines of duplicated payment code spread across four screens
 
+---
 ---
 
 ## [1.0.3+157] - 2026-05-03
