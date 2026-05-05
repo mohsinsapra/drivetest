@@ -245,7 +245,9 @@
 
   "dash_my_progress": "My Progress",
   "dash_sync_from_server": "Sync from server",
-  "dash_unknown_error": "Unknown error",
+  "dash_unknown_error": "Something went wrong. Please try again.",
+  "dash_network_error": "No internet connection. Check your connection and try again.",
+  "dash_server_error": "Server error. Please try again later.",
   "dash_retry": "Retry",
   "dash_my_exams": "My Exams",
   "dash_tap_to_dive": "Tap an exam to dive in",

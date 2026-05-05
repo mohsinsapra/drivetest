@@ -86,7 +86,7 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
         DashboardStatus.loading =>
           const Center(child: CircularProgressIndicator()),
         DashboardStatus.error => _ErrorView(
-            message: provider.error ?? t.dash_unknown_error,
+            errorKind: provider.errorKind,
             onRetry: () => context.read<DashboardProvider>().init(),
           ),
         DashboardStatus.loaded => RefreshIndicator(
@@ -1583,26 +1583,58 @@ void _handleExamArrowTap(
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
-  final String message;
+  const _ErrorView({required this.errorKind, required this.onRetry});
+  final DashboardErrorKind errorKind;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
+
+    final (icon, message) = switch (errorKind) {
+      DashboardErrorKind.network => (
+          Icons.wifi_off_rounded,
+          t.dash_network_error,
+        ),
+      DashboardErrorKind.server => (
+          Icons.cloud_off_rounded,
+          t.dash_server_error,
+        ),
+      DashboardErrorKind.unknown => (
+          Icons.error_outline_rounded,
+          t.dash_unknown_error,
+        ),
+    };
+
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline_rounded, size: 48, color: cs.error),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            ElevatedButton(
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: cs.errorContainer.withValues(alpha: 0.4),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 40, color: cs.error),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
               onPressed: onRetry,
-              child: Text(Translations.of(context).dash_retry),
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text(t.dash_retry),
             ),
           ],
         ),

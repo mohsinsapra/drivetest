@@ -279,7 +279,9 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get image_viewer_load_error => 'Could not load image';
 	String get dash_my_progress => 'My Progress';
 	String get dash_sync_from_server => 'Sync from server';
-	String get dash_unknown_error => 'Unknown error';
+	String get dash_unknown_error => 'Something went wrong. Please try again.';
+	String get dash_network_error => 'No internet connection. Check your connection and try again.';
+	String get dash_server_error => 'Server error. Please try again later.';
 	String get dash_retry => 'Retry';
 	String get dash_my_exams => 'My Exams';
 	String get dash_tap_to_dive => 'Tap an exam to dive in';
@@ -687,7 +689,9 @@ extension on Translations {
 			case 'image_viewer_load_error': return 'Could not load image';
 			case 'dash_my_progress': return 'My Progress';
 			case 'dash_sync_from_server': return 'Sync from server';
-			case 'dash_unknown_error': return 'Unknown error';
+			case 'dash_unknown_error': return 'Something went wrong. Please try again.';
+			case 'dash_network_error': return 'No internet connection. Check your connection and try again.';
+			case 'dash_server_error': return 'Server error. Please try again later.';
 			case 'dash_retry': return 'Retry';
 			case 'dash_my_exams': return 'My Exams';
 			case 'dash_tap_to_dive': return 'Tap an exam to dive in';

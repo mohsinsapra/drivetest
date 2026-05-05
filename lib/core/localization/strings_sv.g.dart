@@ -276,7 +276,9 @@ class TranslationsSv implements Translations {
 	@override String get image_viewer_load_error => 'Kunde inte ladda bilden';
 	@override String get dash_my_progress => 'Mina framsteg';
 	@override String get dash_sync_from_server => 'Synkronisera från server';
-	@override String get dash_unknown_error => 'Okänt fel';
+	@override String get dash_unknown_error => 'Något gick fel. Försök igen.';
+	@override String get dash_network_error => 'Ingen internetanslutning. Kontrollera din anslutning och försök igen.';
+	@override String get dash_server_error => 'Serverfel. Försök igen senare.';
 	@override String get dash_retry => 'Försök igen';
 	@override String get dash_my_exams => 'Mina prov';
 	@override String get dash_tap_to_dive => 'Tryck på ett prov för att utforska';
@@ -684,7 +686,9 @@ extension on TranslationsSv {
 			case 'image_viewer_load_error': return 'Kunde inte ladda bilden';
 			case 'dash_my_progress': return 'Mina framsteg';
 			case 'dash_sync_from_server': return 'Synkronisera från server';
-			case 'dash_unknown_error': return 'Okänt fel';
+			case 'dash_unknown_error': return 'Något gick fel. Försök igen.';
+			case 'dash_network_error': return 'Ingen internetanslutning. Kontrollera din anslutning och försök igen.';
+			case 'dash_server_error': return 'Serverfel. Försök igen senare.';
 			case 'dash_retry': return 'Försök igen';
 			case 'dash_my_exams': return 'Mina prov';
 			case 'dash_tap_to_dive': return 'Tryck på ett prov för att utforska';

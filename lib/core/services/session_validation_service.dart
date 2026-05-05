@@ -62,7 +62,14 @@ class SessionValidationService {
   }
 
   Future<void> _runValidation() async {
-    await fetchCurrentUser();
+    try {
+      await fetchCurrentUser();
+    } catch (_) {
+      // Network/timeout errors are transient — keep the session alive.
+      // 401s are handled upstream by DioClient (token refresh → logout)
+      // before they reach this point.
+      return;
+    }
     _lastValidationAt = now();
   }
 }

@@ -245,7 +245,9 @@
 
   "dash_my_progress": "Mina framsteg",
   "dash_sync_from_server": "Synkronisera från server",
-  "dash_unknown_error": "Okänt fel",
+  "dash_unknown_error": "Något gick fel. Försök igen.",
+  "dash_network_error": "Ingen internetanslutning. Kontrollera din anslutning och försök igen.",
+  "dash_server_error": "Serverfel. Försök igen senare.",
   "dash_retry": "Försök igen",
   "dash_my_exams": "Mina prov",
   "dash_tap_to_dive": "Tryck på ett prov för att utforska",

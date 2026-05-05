@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -14,6 +15,8 @@ import '../repository/dashboard_repository.dart';
 import '../repository/exam_sync_service.dart';
 
 enum DashboardStatus { idle, loading, loaded, error }
+
+enum DashboardErrorKind { network, server, unknown }
 
 /// ChangeNotifier provider for the exam dashboard.
 ///
@@ -62,6 +65,9 @@ class DashboardProvider extends ChangeNotifier {
 
   String? _error;
   String? get error => _error;
+
+  DashboardErrorKind _errorKind = DashboardErrorKind.unknown;
+  DashboardErrorKind get errorKind => _errorKind;
 
   /// Timestamp of the last successful API sync. Used to avoid redundant calls.
   DateTime? _lastSyncedAt;
@@ -181,6 +187,7 @@ class DashboardProvider extends ChangeNotifier {
     _lastSyncedAt = null;
     _syncing = false;
     _error = null;
+    _errorKind = DashboardErrorKind.unknown;
     _status = DashboardStatus.idle;
     notifyListeners();
   }
@@ -216,6 +223,7 @@ class DashboardProvider extends ChangeNotifier {
       if (_generation == gen && _exams.isEmpty) {
         // Primary load failed with no data to fall back on — show error state.
         _error = e.toString();
+        _errorKind = _classifyError(e);
         _status = DashboardStatus.error;
       }
       // If _exams is already populated (background refresh), keep showing it.
@@ -226,6 +234,27 @@ class DashboardProvider extends ChangeNotifier {
       }
       notifyListeners();
     }
+  }
+
+  DashboardErrorKind _classifyError(Object e) {
+    if (e is DioException) {
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        return DashboardErrorKind.network;
+      }
+      final status = e.response?.statusCode;
+      if (status != null && status >= 500) return DashboardErrorKind.server;
+    }
+    final msg = e.toString().toLowerCase();
+    if (msg.contains('connection refused') ||
+        msg.contains('socketexception') ||
+        msg.contains('network') ||
+        msg.contains('connection error')) {
+      return DashboardErrorKind.network;
+    }
+    return DashboardErrorKind.unknown;
   }
 
   /// Subscribes to the testAttempts Hive box. Any write (test completed or
