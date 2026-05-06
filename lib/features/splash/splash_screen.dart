@@ -9,6 +9,7 @@ import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/features/consent/gdpr_consent_sheet.dart';
 import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
@@ -130,6 +131,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     final remaining = const Duration(milliseconds: 1400) - stopwatch.elapsed;
     if (remaining > Duration.zero) await Future.delayed(remaining);
+
+    if (!mounted) return;
+
+    await showGdprConsentIfNeeded(context);
 
     if (!mounted) return;
 
