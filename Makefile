@@ -1,7 +1,11 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core
+.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version
+
+# Bump type for deploy commands: fix | patch | minor | major (default: patch)
+# Usage: make deploy-all BUMP=minor
+BUMP ?= patch
 
 # Colors for output
 COLOR_RESET = \033[0m
@@ -78,6 +82,13 @@ help:
 	@echo "  make android-deploy   - Deploy Android to alpha, then promote to production"
 	@echo "  make deploy-all       - Deploy web + Android production + iOS TestFlight"
 	@echo "  make ios-beta         - Deploy iOS to TestFlight"
+	@echo ""
+	@echo "$(COLOR_YELLOW)BUMP parameter (applies to all deploy commands):$(COLOR_RESET)"
+	@echo "  BUMP=fix    - Bug fix release:   1.0.3 → 1.0.4  (default)"
+	@echo "  BUMP=patch  - Same as fix:       1.0.3 → 1.0.4"
+	@echo "  BUMP=minor  - New features:      1.0.3 → 1.1.0"
+	@echo "  BUMP=major  - Breaking changes:  1.0.3 → 2.0.0"
+	@echo "  Example: make deploy-all BUMP=minor"
 	@echo ""
 	@echo "$(COLOR_GREEN)Utility Commands:$(COLOR_RESET)"
 	@echo "  make clean            - Clean build artifacts"
@@ -156,13 +167,14 @@ _write-web-version-file:
 		'}' > $(WEB_BUILD_DIR)/version.json
 	@echo "$(COLOR_GREEN)✅ Wrote $(WEB_BUILD_DIR)/version.json$(COLOR_RESET)"
 
-## _web-deploy-core: Bump version, build web, and push to web repo (no git commit)
-_web-deploy-core: version-build web-build
+## _web-deploy-core: Build web and push to web repo (no version bump, no git commit)
+_web-deploy-core: web-build
 	@echo "$(COLOR_BLUE)Deploying web app to repository...$(COLOR_RESET)"
 	@$(MAKE) -s _deploy-to-web-repo
 
-## web-deploy: Deploy web and commit to main repo
+## web-deploy: Bump patch, deploy web and commit to main repo
 web-deploy:
+	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _web-deploy-core
 	@$(MAKE) -s _commit-and-push
 
@@ -182,7 +194,8 @@ _commit-and-push:
 	@git add pubspec.yaml CHANGELOG.md
 	@git add android/fastlane/report.xml 2>/dev/null || true
 	@git add android/fastlane/metadata/ 2>/dev/null || true
-	@git diff --cached --quiet || git commit -m "chore: bump version to $(APP_VERSION)+$(APP_BUILD_NUMBER) [deploy]"
+	@CURRENT_VER=$$(sed -nE 's/^version:[[:space:]]*(.+)$$/\1/p' pubspec.yaml | head -1); \
+	git diff --cached --quiet || git commit -m "chore: bump version to $$CURRENT_VER [deploy]"
 	@git push
 	@echo "$(COLOR_GREEN)✅ Commit pushed!$(COLOR_RESET)"
 
@@ -229,38 +242,49 @@ version-major:
 	@echo "$(COLOR_GREEN)Bumping major version...$(COLOR_RESET)"
 	@cd scripts && ruby update_version.rb major
 
+## _bump-version: Bump version using BUMP= (fix|patch|minor|major). Defaults to patch.
+_bump-version:
+	$(eval BUMP_TYPE := $(if $(filter fix,$(BUMP)),patch,$(BUMP)))
+	@echo "$(COLOR_GREEN)Bumping $(BUMP_TYPE) version...$(COLOR_RESET)"
+	@cd scripts && ruby update_version.rb $(BUMP_TYPE)
+
 web-android-deploy: web-build android-beta
 
-## android-beta: Deploy Android to alpha and commit to main repo
+## android-beta: Bump patch, deploy Android to alpha and commit to main repo
 android-beta:
+	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _android-beta-core
 	@$(MAKE) -s _commit-and-push
 
-## android-deploy: Deploy Android to alpha + production and commit to main repo
+## android-deploy: Bump patch, deploy Android to alpha + production and commit to main repo
 android-deploy:
+	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
 
-## release-all: Deploy web + Android production, single commit at the end
+## release-all: Bump patch, deploy web + Android production, single commit at the end
 release-all:
+	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _web-deploy-core
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
 
-## deploy-all: Deploy web + Android production + iOS TestFlight, single commit at the end
+## deploy-all: Bump patch, deploy web + Android production + iOS TestFlight, single commit at the end
 deploy-all:
+	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _web-deploy-core
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
-## _ios-beta-core: Deploy iOS to TestFlight (no git commit)
+## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)
 _ios-beta-core:
 	@echo "$(COLOR_GREEN)Deploying iOS to TestFlight...$(COLOR_RESET)"
 	@cd ios && bundle exec fastlane beta
 
-## ios-beta: Deploy iOS to TestFlight and commit to main repo
+## ios-beta: Bump patch, deploy iOS to TestFlight and commit to main repo
 ios-beta:
+	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 

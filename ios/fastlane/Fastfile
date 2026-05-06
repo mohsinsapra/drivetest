@@ -17,7 +17,6 @@ platform :ios do
   desc "Build IPA only (no upload)"
   lane :build do
     ENV['BUILD_VARIANT'] ||= 'testflight'
-    update_flutter_version
     get_provisioning_profile(
       app_identifier: "com.mohsinsapra.drivetest",
       team_id: "MBWC2B7V68"
