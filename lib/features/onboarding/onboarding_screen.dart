@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -273,7 +276,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     loading: _loadingProducts,
                     selectedProducts: _selectedProducts,
                     onToggle: (product) => setState(() {
-                      if (_selectedProducts.contains(product)) {
+                      if (!kIsWeb && Platform.isIOS) {
+                        _selectedProducts
+                          ..clear()
+                          ..add(product);
+                      } else if (_selectedProducts.contains(product)) {
                         _selectedProducts.remove(product);
                       } else {
                         _selectedProducts.add(product);
