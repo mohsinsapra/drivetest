@@ -162,7 +162,16 @@
       "Bash(env/bin/python manage.py show_urls)",
       "Bash(env/bin/python -c ' *)",
       "Bash(make sync-to-namecheap *)",
-      "Bash(docker exec *)"
+      "Bash(docker exec *)",
+      "Bash(fastlane --version)",
+      "Read(//Users/muhammadmohsin/**)",
+      "Read(//Users/muhammadmohsin/Downloads/**)",
+      "Bash(pip3 list *)",
+      "Bash(sshpass *)",
+      "Bash(make migrate *)",
+      "Bash(env/bin/python manage.py update_iap_product_ids --dry-run)",
+      "Bash(env/bin/python *)",
+      "Bash(ssh *)"
     ],
     "deny": [],
     "ask": []

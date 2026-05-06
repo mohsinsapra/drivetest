@@ -30,9 +30,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.b_korkot_60days",
-      "referenceName" : "B korkot 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.b_korkot",
+      "referenceName" : "B korkot",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -45,9 +45,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.b_korkot_en_60days",
-      "referenceName" : "B korkot En 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.b_korkot_en",
+      "referenceName" : "B korkot En",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "899.0",
@@ -65,9 +65,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.taxiforarlegitimation_60days",
-      "referenceName" : "Taxiförarlegitimation 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.taxiforarlegitimation",
+      "referenceName" : "Taxiförarlegitimation",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -80,9 +80,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.taxilegitimationen_60days",
-      "referenceName" : "Taxilegitimation 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.taxilegitimationen",
+      "referenceName" : "Taxilegitimation",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -95,9 +95,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.taxiakeri_60days",
-      "referenceName" : "Taxiakeri 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.taxiakeri",
+      "referenceName" : "Taxiakeri",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -110,9 +110,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.sakerhetochbeteende_60days",
-      "referenceName" : "Sakerhet och beteende 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.sakerhetochbeteende",
+      "referenceName" : "Sakerhet och beteende",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -125,9 +125,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.tekniskanormerochsakerhet_60days",
-      "referenceName" : "Tekniska normer och sakerhet 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.tekniskanormerochsakerhet",
+      "referenceName" : "Tekniska normer och sakerhet",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -140,9 +140,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.juridik_60days",
-      "referenceName" : "Juridik 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.juridik",
+      "referenceName" : "Juridik",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -155,9 +155,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.ekonomi_60days",
-      "referenceName" : "Ekonomi 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.ekonomi",
+      "referenceName" : "Ekonomi",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -170,9 +170,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.fallstudie_60days",
-      "referenceName" : "Fallstudie 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.fallstudie",
+      "referenceName" : "Fallstudie",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -185,9 +185,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.lastbil_60days",
-      "referenceName" : "Lastbil 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.lastbil",
+      "referenceName" : "Lastbil",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -200,9 +200,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.buss_60days",
-      "referenceName" : "Buss 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.buss",
+      "referenceName" : "Buss",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -215,9 +215,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.bkorkortarabiska_60days",
-      "referenceName" : "B korkort arabiska 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.bkorkortarabiska",
+      "referenceName" : "B korkort arabiska",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -230,9 +230,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.ykb_60days",
-      "referenceName" : "YKB 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.ykb",
+      "referenceName" : "YKB",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -245,9 +245,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.lagstifning_60days",
-      "referenceName" : "Lagstifning 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.lagstifning",
+      "referenceName" : "Lagstifning",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -260,9 +260,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.ce_60days",
-      "referenceName" : "CE 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.ce",
+      "referenceName" : "CE",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -275,9 +275,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.godsakeri_60days",
-      "referenceName" : "Godsakeri 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.godsakeri",
+      "referenceName" : "Godsakeri",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -290,9 +290,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.godsakeridel1_60days",
-      "referenceName" : "Godsakeri del 1 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.godsakeridel1",
+      "referenceName" : "Godsakeri del 1",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -305,9 +305,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.godsakeridel2_60days",
-      "referenceName" : "Godsakeri del 2 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.godsakeridel2",
+      "referenceName" : "Godsakeri del 2",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -320,9 +320,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.ykbbuss_60days",
-      "referenceName" : "YKB buss 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.ykbbuss",
+      "referenceName" : "YKB buss",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -335,9 +335,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.firstcredit_60days",
-      "referenceName" : "First credit 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.firstcredit",
+      "referenceName" : "First credit",
+      "type" : "Consumable"
     },
     {
       "displayPrice" : "249.0",
@@ -350,9 +350,9 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.motorcykel_60days",
-      "referenceName" : "Motorcykel 60 Days",
-      "type" : "NonConsumable"
+      "productID" : "se.drivetest.motorcykel",
+      "referenceName" : "Motorcykel",
+      "type" : "Consumable"
     }
   ],
   "settings" : {
