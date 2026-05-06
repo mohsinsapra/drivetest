@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +14,7 @@ import 'package:taxi_exam_app/core/providers/font_provider.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/services/version_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,7 +23,8 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen>
+    with WidgetsBindingObserver {
   bool isTimed = false;
   bool isInstantMarking = false;
   bool includeSavedQuestions = false;
@@ -31,6 +36,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isAdmin = false;
   Map<String, dynamic>? _backendInfo;
 
+  // Notifications
+  bool _notificationsEnabled = true;
+  AuthorizationStatus? _notificationPermission;
+
   final ApiService _apiService = ApiService();
   final TextEditingController _numberOfQuestionsController =
       TextEditingController();
@@ -38,9 +47,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadPreferences();
     _loadVersionInfo();
     _loadAdminState();
+    _loadNotificationState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _loadNotificationState();
   }
 
   Future<void> _loadAdminState() async {
@@ -57,6 +79,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } catch (e) {
       debugPrint('Failed to load admin state: $e');
+    }
+  }
+
+  Future<void> _loadNotificationState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      if (mounted) {
+        setState(() {
+          _notificationsEnabled =
+              prefs.getBool('notifications_enabled') ?? true;
+          _notificationPermission = settings.authorizationStatus;
+        });
+      }
+    } catch (_) {
+      // Web or unsupported platform — default to enabled, no OS permission
+      if (mounted) {
+        setState(() {
+          _notificationsEnabled = true;
+          _notificationPermission = AuthorizationStatus.authorized;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    HapticFeedback.lightImpact();
+
+    if (value) {
+      final status = _notificationPermission;
+      if (status == AuthorizationStatus.denied) {
+        // Can't request again — send user to OS settings
+        _openNotificationSettings();
+        return;
+      }
+      if (status == AuthorizationStatus.notDetermined || status == null) {
+        final result =
+            await FirebaseMessaging.instance.requestPermission();
+        if (mounted) {
+          setState(
+              () => _notificationPermission = result.authorizationStatus);
+        }
+        if (result.authorizationStatus != AuthorizationStatus.authorized &&
+            result.authorizationStatus != AuthorizationStatus.provisional) {
+          return; // Permission not granted — don't flip the switch
+        }
+      }
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', value);
+    if (mounted) setState(() => _notificationsEnabled = value);
+  }
+
+  Future<void> _openNotificationSettings() async {
+    if (kIsWeb) return;
+    if (Platform.isIOS) {
+      await launchUrl(Uri.parse('app-settings:'));
+    } else {
+      await launchUrl(
+        Uri.parse('android.settings.APP_NOTIFICATION_SETTINGS'),
+        mode: LaunchMode.externalApplication,
+      );
     }
   }
 
@@ -264,6 +350,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                   ),
+
+                  const SizedBox(height: 8),
+
+                  // ── Notifications ───────────────────────────────────────
+                  _SectionHeader(t.settings_notifications),
+
+                  SwitchListTile(
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.orange.withValues(alpha: 0.2)
+                            : Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        _notificationsEnabled &&
+                                _notificationPermission ==
+                                    AuthorizationStatus.authorized
+                            ? Icons.notifications_rounded
+                            : Icons.notifications_off_rounded,
+                        color: isDark
+                            ? Colors.orange.shade200
+                            : Colors.orange.shade600,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(t.settings_notifications_toggle),
+                    subtitle: Text(
+                      _notificationPermission == AuthorizationStatus.denied
+                          ? t.settings_notifications_denied
+                          : _notificationsEnabled
+                              ? t.settings_notifications_on_sub
+                              : t.settings_notifications_off_sub,
+                    ),
+                    value: _notificationsEnabled &&
+                        _notificationPermission != AuthorizationStatus.denied,
+                    onChanged: (v) => _toggleNotifications(v),
+                  ),
+
+                  if (_notificationPermission == AuthorizationStatus.denied &&
+                      !kIsWeb)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: OutlinedButton.icon(
+                        onPressed: _openNotificationSettings,
+                        icon: const Icon(Icons.settings_rounded, size: 16),
+                        label: Text(t.settings_notifications_open_settings),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          side: BorderSide(
+                              color:
+                                  Theme.of(context).colorScheme.primary),
+                          shape: const StadiumBorder(),
+                        ),
+                      ),
+                    ),
 
                   const SizedBox(height: 8),
 

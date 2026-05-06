@@ -29,12 +29,12 @@ Future<void> markGdprConsentAccepted() async {
 }
 
 bool _isSwedish() {
+  if (kIsWeb) return false;
   try {
-    if (!kIsWeb) {
-      return Platform.localeName.startsWith('sv');
-    }
-  } catch (_) {}
-  return false;
+    return Platform.localeName.startsWith('sv');
+  } catch (_) {
+    return false;
+  }
 }
 
 class _GdprConsentSheet extends StatefulWidget {
