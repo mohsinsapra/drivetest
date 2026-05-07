@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sentry_dio/sentry_dio.dart';
+import 'certificate_pinning_stub.dart'
+    if (dart.library.io) 'certificate_pinning_io.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -139,6 +141,13 @@ class DioClient {
       connectTimeout: const Duration(milliseconds: 5000),
       receiveTimeout: const Duration(milliseconds: 20000),
     ));
+
+    // Certificate pinning — skipped in debug so local dev server still works.
+    // On web this is a no-op; the browser enforces its own cert validation.
+    if (kReleaseMode) {
+      await applyPinning(_dio!);
+    }
+
     _dio!.interceptors.add(DioCacheInterceptor(options: options));
     // Adds automatic HTTP breadcrumbs and performance tracing to every request.
     // Sentry will show the full sequence: which calls succeeded, failed, and timing.

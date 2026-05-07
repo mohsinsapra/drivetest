@@ -171,7 +171,14 @@
       "Bash(make migrate *)",
       "Bash(env/bin/python manage.py update_iap_product_ids --dry-run)",
       "Bash(env/bin/python *)",
-      "Bash(ssh *)"
+      "Bash(ssh *)",
+      "Skill(fullstack-dev-skills:security-reviewer)",
+      "Bash(openssl x509 *)",
+      "Bash(mkdir -p /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/keys)",
+      "Bash(openssl genrsa *)",
+      "Bash(openssl rsa *)",
+      "Bash(awk '/-----BEGIN CERTIFICATE-----/{c++} c==1{print} /-----END CERTIFICATE-----/ && c==1{exit}')",
+      "Bash(awk '/-----BEGIN CERTIFICATE-----/{c++} c==2{print} /-----END CERTIFICATE-----/ && c==2{exit}')"
     ],
     "deny": [],
     "ask": []

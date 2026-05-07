@@ -98,6 +98,9 @@ app.*.map.json
 *.jks
 *.keystore
 
+# Certificate pinning backup private key (public key and hash are safe to commit)
+keys/backup_pinning.key
+
 # iOS specific
 /ios/build/
 /ios/.symlinks/
