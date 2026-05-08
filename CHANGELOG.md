@@ -23,6 +23,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.7+173] - 2026-05-08
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.7+173] - 2026-05-08
+
+### Added
 - **Purchase receipt system:** every successful payment generates a receipt (`RCP-YYYYMMDD-XXXXXX`) stored locally in Hive; shown on the post-purchase success overlay and accessible from Profile → Purchase History
 - **Receipt backend tracing:** confirm API calls (`confirmBCDPayment`, `confirmBCDIAPPurchase`) now pass a `receipt_number` to the backend so each subscription can be looked up for support; backend-returned receipt number takes precedence over the client-side fallback
 - **Purchase History screen:** full list of all past purchases (including expired subscriptions), sorted newest-first, accessible from the profile; receipts survive logout/re-login
