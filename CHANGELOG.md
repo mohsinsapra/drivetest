@@ -22,6 +22,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.8+174] - 2026-05-08
 
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.8+174] - 2026-05-08
+
 ### Changed
 - Receipt number is now **generated server-side** (`RCP-YYYYMMDD-XXXXXX`) in `ConfirmBCDPaymentView` and `ConfirmBCDIAPPurchaseView`; client no longer sends a receipt number — it uses the one returned in the confirm response, falling back to a client-generated value only if the backend does not return one
 - `PaymentCoordinator` confirm callback signatures simplified — `receiptNumber` parameter removed since it is no longer passed to the backend
