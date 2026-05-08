@@ -53,7 +53,10 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       );
       if (mounted) {
         setState(() {
-          _products = data;
+          _products = data
+              .whereType<Map<String, dynamic>>()
+              .where((p) => p['is_active'] != false)
+              .toList();
           _loadingProducts = false;
         });
       }
@@ -82,8 +85,53 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     }
   }
 
+  Future<void> _handleFreeAccess(dynamic product) async {
+    final rawIds = product['category_bcd_ids'];
+    final ids = rawIds is List ? rawIds : <dynamic>[];
+    if (ids.isEmpty) {
+      showAppSnackBar(Translations.of(context).bcd_no_categories_linked);
+      return;
+    }
+    final bcdId = ids.first as int;
+    final productName = product['name']?.toString() ?? 'Subscription';
+    try {
+      final categories = await _api.fetchBCDAllCategories();
+      if (!mounted) return;
+      final match = categories.cast<Map<String, dynamic>>().firstWhere(
+            (c) => c['bcd_id'] == bcdId,
+            orElse: () => <String, dynamic>{},
+          );
+      final Map<String, dynamic> cat;
+      if (match.isNotEmpty) {
+        cat = Map<String, dynamic>.from(match);
+        cat['is_subscribed'] = true;
+      } else {
+        cat = {'bcd_id': bcdId, 'name': productName, 'is_subscribed': true};
+      }
+      final hasChildren = cat['has_children'] == true;
+      final route = hasChildren
+          ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+          : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat));
+      Navigator.push(context, route);
+    } catch (_) {
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_category,
+            type: SnackBarType.error);
+      }
+    }
+  }
+
   Future<void> _handleBuy(dynamic product) async {
     if (_buyingProductId != null) return;
+    final alreadyOwned = _mySubscriptions.any((s) {
+      final p = s['product'];
+      final subProductId = (p is Map) ? p['id'] : p;
+      return subProductId == product['id'] && s['status'] == 'paid';
+    });
+    if (alreadyOwned) {
+      await _handleFreeAccess(product);
+      return;
+    }
     setState(() => _buyingProductId = product['id']);
     try {
       final result = await PaymentCoordinator.pay(
@@ -194,6 +242,8 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
             mySubscriptions: _mySubscriptions,
             buyingProductId: _buyingProductId,
             onBuy: _handleBuy,
+            onFreeAccess: _handleFreeAccess,
+            onStartPractice: _handleFreeAccess,
             onRefresh: () async {
               setState(() => _loadingProducts = true);
               await _loadProducts(forceRefresh: true);
@@ -222,6 +272,8 @@ class _PlansTab extends StatelessWidget {
   final List<dynamic> mySubscriptions;
   final Object? buyingProductId;
   final void Function(dynamic product) onBuy;
+  final void Function(dynamic product) onFreeAccess;
+  final void Function(dynamic product) onStartPractice;
   final Future<void> Function() onRefresh;
 
   const _PlansTab({
@@ -230,10 +282,13 @@ class _PlansTab extends StatelessWidget {
     required this.mySubscriptions,
     required this.buyingProductId,
     required this.onBuy,
+    required this.onFreeAccess,
+    required this.onStartPractice,
     required this.onRefresh,
   });
 
   bool _isOwned(dynamic product) {
+    if (product['is_free'] == true) return true;
     final productId = product['id'];
     return mySubscriptions.any((s) {
       final p = s['product'];
@@ -262,12 +317,16 @@ class _PlansTab extends StatelessWidget {
         itemBuilder: (ctx, i) {
           final p = products[i];
           final owned = _isOwned(p);
+          final isFree = p['is_free'] == true;
           return _ProductCard(
             product: p,
             owned: owned,
+            isFree: isFree,
             buying: buyingProductId == p['id'],
             disabled: buyingProductId != null,
             onBuy: () => onBuy(p),
+            onFreeAccess: () => onFreeAccess(p),
+            onStartPractice: () => onStartPractice(p),
           );
         },
       ),
@@ -280,16 +339,22 @@ class _PlansTab extends StatelessWidget {
 class _ProductCard extends StatelessWidget {
   final dynamic product;
   final bool owned;
+  final bool isFree;
   final bool buying;
   final bool disabled;
   final VoidCallback onBuy;
+  final VoidCallback onFreeAccess;
+  final VoidCallback onStartPractice;
 
   const _ProductCard({
     required this.product,
     required this.owned,
+    required this.isFree,
     required this.buying,
     required this.disabled,
     required this.onBuy,
+    required this.onFreeAccess,
+    required this.onStartPractice,
   });
 
   @override
@@ -350,7 +415,21 @@ class _ProductCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (owned)
+                if (isFree)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF059669).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(Translations.of(context).bcd_free_label,
+                        style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF059669),
+                            fontWeight: FontWeight.w600)),
+                  )
+                else if (owned)
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -366,41 +445,57 @@ class _ProductCard extends StatelessWidget {
                   ),
               ],
             ),
-            if (price.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            if (isFree || owned)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: isFree ? onFreeAccess : onStartPractice,
+                  icon: const Icon(LucideIcons.bookOpenCheck, size: 16),
+                  label: Text(Translations.of(context).bcd_start_practice),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF059669),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              )
+            else
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '$price SEK',
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w700),
-                  ),
-                  if (!owned)
-                    ElevatedButton(
-                      onPressed: disabled ? null : onBuy,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4F46E5),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: buying
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white))
-                          : Text(Translations.of(context).bcd_subscribe_btn),
+                  if (price.isNotEmpty)
+                    Text(
+                      '$price SEK',
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.w700),
                     ),
+                  ElevatedButton(
+                    onPressed: disabled ? null : onBuy,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4F46E5),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: buying
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : Text(Translations.of(context).bcd_subscribe_btn),
+                  ),
                 ],
               ),
-            ],
           ],
         ),
       ),

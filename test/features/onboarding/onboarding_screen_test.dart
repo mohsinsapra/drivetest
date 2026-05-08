@@ -13,6 +13,7 @@ import 'package:taxi_exam_app/features/dashboard/models/dashboard_stats.dart';
 import 'package:taxi_exam_app/features/dashboard/models/subscribed_exam.dart';
 import 'package:taxi_exam_app/features/dashboard/providers/dashboard_provider.dart';
 import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
+import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 import 'package:toastification/toastification.dart';
 
@@ -32,6 +33,8 @@ class _MockDashboardProvider extends ChangeNotifier
   bool get syncing => false;
   @override
   String? get error => null;
+  @override
+  DashboardErrorKind get errorKind => DashboardErrorKind.unknown;
   @override
   Future<void> init() async {}
   @override
@@ -195,7 +198,10 @@ void main() {
                   authSheetShown = true;
                   return true;
                 },
-                showSuccessOverlay: (_, __) async => null,
+                processPayment: (_, products) async {
+                  paidProduct = products.first;
+                  return null;
+                },
               ),
             ),
           ),
@@ -221,7 +227,6 @@ void main() {
 
       var authSheetShown = false;
       var paymentCalls = 0;
-      var successOverlayCalls = 0;
 
       await tester.pumpWidget(
         MultiProvider(
@@ -251,9 +256,6 @@ void main() {
                 },
                 processPayment: (_, __) async {
                   paymentCalls++;
-                },
-                showSuccessOverlay: (_, __) async {
-                  successOverlayCalls++;
                   return null;
                 },
               ),
@@ -269,7 +271,6 @@ void main() {
 
       expect(authSheetShown, isTrue);
       expect(paymentCalls, 0);
-      expect(successOverlayCalls, 0);
     },
   );
 
@@ -278,8 +279,6 @@ void main() {
     (tester) async {
       LocaleSettings.setLocaleSync(AppLocale.en);
       SharedPreferences.setMockInitialValues({});
-
-      var successOverlayCalls = 0;
 
       await tester.pumpWidget(
         MultiProvider(
@@ -307,7 +306,6 @@ void main() {
                   processPayment: (_, __) async {
                     throw Exception('payment failed');
                   },
-                  showSuccessOverlay: (_, __) async => null,
                 ),
               ),
             ),
@@ -324,7 +322,6 @@ void main() {
 
       final prefs = await prefsFor(tester);
       expect(prefs.getBool('onboarding_complete'), isNot(isTrue));
-      expect(successOverlayCalls, 0);
     },
   );
 
@@ -362,8 +359,8 @@ void main() {
                 processPayment: (_, __) async {
                   paymentCalls++;
                   await paymentCompleter.future;
+                  return null;
                 },
-                showSuccessOverlay: (_, __) async => null,
               ),
             ),
           ),
@@ -392,13 +389,12 @@ void main() {
   );
 
   testWidgets(
-    'overlay failure after successful payment still marks onboarding complete',
+    'successful payment marks onboarding complete',
     (tester) async {
       LocaleSettings.setLocaleSync(AppLocale.en);
       SharedPreferences.setMockInitialValues({});
 
       var paymentCalls = 0;
-      var successOverlayCalls = 0;
 
       await tester.pumpWidget(
         MultiProvider(
@@ -425,10 +421,7 @@ void main() {
                   isLoggedIn: () => true,
                   processPayment: (_, __) async {
                     paymentCalls++;
-                  },
-                  showSuccessOverlay: (_, __) async {
-                    successOverlayCalls++;
-                    throw Exception('overlay failed');
+                    return SubscriptionSuccessResult.backHome;
                   },
                 ),
               ),
@@ -446,7 +439,6 @@ void main() {
 
       final prefs = await prefsFor(tester);
       expect(paymentCalls, 1);
-      expect(successOverlayCalls, 1);
       expect(prefs.getBool('onboarding_complete'), isTrue);
     },
   );
@@ -486,7 +478,10 @@ void main() {
                   authSheetShown = true;
                   return true;
                 },
-                showSuccessOverlay: (_, __) async => null,
+                processPayment: (_, products) async {
+                  paidProduct = products.first;
+                  return null;
+                },
               ),
             ),
           ),

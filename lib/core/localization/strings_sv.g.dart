@@ -221,6 +221,7 @@ class TranslationsSv implements Translations {
 	@override String get bcd_no_plans => 'Inga planer tillgängliga';
 	@override String get bcd_active_label => 'Aktiv';
 	@override String get bcd_subscribe_btn => 'Prenumerera';
+	@override String get bcd_start_practice => 'Börja öva';
 	@override String get bcd_no_active_subscriptions => 'Inga aktiva prenumerationer';
 	@override String get bcd_browse_plans => 'Bläddra bland planer för att komma igång';
 	@override String get bcd_expires => 'Upphör';
@@ -442,6 +443,7 @@ class TranslationsSv implements Translations {
 	@override String get onb_no_plan_selected => 'Ingen plan vald.';
 	@override String get onb_buy_bundle => 'Köp paket — {price}';
 	@override String get onb_restore_purchases => 'ÅTERSTÄLL KÖP';
+	@override String get onb_restore_initiated => 'Återställning påbörjad. Tidigare köp tillämpas inom kort.';
 	@override String get onb_most_popular => 'MEST POPULÄR';
 	@override String get onb_feature_mock_exams => 'Fullständigt provbibliotek';
 	@override String get onb_feature_progress_tracking => 'Smart framstegsspårning';
@@ -645,6 +647,7 @@ extension on TranslationsSv {
 			case 'bcd_no_plans': return 'Inga planer tillgängliga';
 			case 'bcd_active_label': return 'Aktiv';
 			case 'bcd_subscribe_btn': return 'Prenumerera';
+			case 'bcd_start_practice': return 'Börja öva';
 			case 'bcd_no_active_subscriptions': return 'Inga aktiva prenumerationer';
 			case 'bcd_browse_plans': return 'Bläddra bland planer för att komma igång';
 			case 'bcd_expires': return 'Upphör';
@@ -866,6 +869,7 @@ extension on TranslationsSv {
 			case 'onb_no_plan_selected': return 'Ingen plan vald.';
 			case 'onb_buy_bundle': return 'Köp paket — {price}';
 			case 'onb_restore_purchases': return 'ÅTERSTÄLL KÖP';
+			case 'onb_restore_initiated': return 'Återställning påbörjad. Tidigare köp tillämpas inom kort.';
 			case 'onb_most_popular': return 'MEST POPULÄR';
 			case 'onb_feature_mock_exams': return 'Fullständigt provbibliotek';
 			case 'onb_feature_progress_tracking': return 'Smart framstegsspårning';

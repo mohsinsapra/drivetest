@@ -38,7 +38,6 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DashboardProvider>();
-    final t = Translations.of(context);
 
     return Scaffold(
       appBar: AppBar(

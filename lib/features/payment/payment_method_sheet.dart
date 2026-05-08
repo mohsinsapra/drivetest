@@ -14,10 +14,11 @@ class PaymentMethodSheet extends StatelessWidget {
       {'id': 'card', 'name': 'Card'},
     ];
 
-    // Add platform-specific payment method (not applicable on web)
-    if (!kIsWeb && Platform.isIOS) {
-      methods.add({'id': 'apple_pay', 'name': 'Apple Pay'});
-    } else if (!kIsWeb && Platform.isAndroid) {
+    // Apple Pay via Stripe must NOT be offered for digital goods on iOS —
+    // digital subscriptions must use StoreKit IAP (Guideline 3.1.1).
+    // Google Pay via Stripe is fine on Android since Google Play Billing
+    // is only required for in-app digital goods sold through Google Play.
+    if (!kIsWeb && Platform.isAndroid) {
       methods.add({'id': 'google_pay', 'name': 'Google Pay'});
     }
 

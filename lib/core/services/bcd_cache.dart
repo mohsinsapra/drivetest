@@ -142,6 +142,9 @@ class BcdCache {
         'has_children': cat['has_children'],
         'sort_order': cat['sort_order'],
         'is_active': cat['is_active'],
+        'subscription_product': cat['subscription_product'],
+        'test_count': cat['test_count'] ?? 0,
+        'attempt_count': cat['attempt_count'] ?? 0,
       });
 
       // Subcategories (and their tests)

@@ -10,6 +10,7 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
+import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/auth/auth_bottom_sheet.dart';
@@ -17,6 +18,7 @@ import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_sub_category_screen.dart';
 import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 typedef OnboardingLoadProducts = Future<List<Map<String, dynamic>>> Function();
@@ -43,7 +45,10 @@ class OnboardingScreen extends StatefulWidget {
 
   static Future<List<Map<String, dynamic>>> _defaultLoadProducts() async {
     final raw = await ApiService().fetchBCDSubscriptionProducts();
-    return raw.whereType<Map<String, dynamic>>().toList();
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .where((p) => p['is_free'] != true && p['is_active'] != false)
+        .toList();
   }
 
   static Future<bool> _defaultShowAuthSheet(BuildContext context) async {
@@ -85,6 +90,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _loadingProducts = true;
   final List<Map<String, dynamic>> _selectedProducts = [];
   bool _purchaseInFlight = false;
+  bool _restoreInFlight = false;
+  List<Map<String, dynamic>> _mySubscriptions = [];
 
   // Step 0 — exam date
   DateTime? _examDeadline;
@@ -97,6 +104,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void initState() {
     super.initState();
     _fetchProductsInBackground();
+    if (widget.isLoggedIn()) _fetchMySubscriptions();
+  }
+
+  Future<void> _fetchMySubscriptions({bool forceRefresh = false}) async {
+    try {
+      final data = await ApiService().fetchMyBCDSubscriptions(forceRefresh: forceRefresh);
+      if (mounted) setState(() => _mySubscriptions = data.cast<Map<String, dynamic>>());
+    } catch (_) {}
+  }
+
+  bool _isOwned(Map<String, dynamic> product) {
+    final productId = product['id'];
+    return _mySubscriptions.any((s) {
+      final p = s['product'];
+      final subProductId = (p is Map) ? p['id'] : p;
+      return subProductId == productId && s['status'] == 'paid';
+    });
   }
 
   @override
@@ -142,8 +166,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await _saveProgressPrefs();
     await _markOnboardingComplete();
     if (!mounted) return;
+    // If already logged in, go straight to the app — not the login screen.
     navigator.pushReplacement(
-      AppPageRoute(builder: (_) => const AuthScreen()),
+      widget.isLoggedIn()
+          ? AppPageRoute(builder: (_) => const MainScreen())
+          : AppPageRoute(builder: (_) => const AuthScreen()),
     );
   }
 
@@ -195,6 +222,46 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         if (mounted) setState(() => _purchaseInFlight = false);
         return;
       }
+    }
+
+    // Force-refresh subscriptions. This also validates the token — if the
+    // Keychain token survived a reinstall but is now expired/invalid, DioClient's
+    // 401 interceptor will call logout() and clear accessToken.
+    await _fetchMySubscriptions(forceRefresh: true);
+
+    // Re-check auth: if the token was cleared by the 401 handler, abort here.
+    // logoutAndRedirect() is already navigating to AuthScreen.
+    if (!mounted || !widget.isLoggedIn()) {
+      if (mounted) setState(() => _purchaseInFlight = false);
+      return;
+    }
+
+    // If all selected products are already owned, skip payment and go straight to practice.
+    if (products.every(_isOwned)) {
+      setState(() => _purchaseInFlight = false);
+      await _markOnboardingComplete();
+      if (!mounted) return;
+      await DioClient().clearCache();
+      BcdCache.instance.invalidate();
+      await BcdCache.instance.ensureLoaded();
+      if (!mounted) return;
+      final navigator = Navigator.of(context);
+      navigator.pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
+      final categoryBcdIds = products.first['category_bcd_ids'] as List<dynamic>?;
+      final targetBcdId = categoryBcdIds?.firstOrNull;
+      if (targetBcdId != null) {
+        final targetBcdIdStr = targetBcdId.toString();
+        final targetCategory = BcdCache.instance.categories.firstWhereOrNull(
+          (c) => c['bcd_id']?.toString() == targetBcdIdStr,
+        );
+        if (targetCategory != null) {
+          final hasChildren = targetCategory['has_children'] == true;
+          navigator.push(hasChildren
+              ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: Map<String, dynamic>.from(targetCategory)..['is_subscribed'] = true))
+              : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: Map<String, dynamic>.from(targetCategory)..['is_subscribed'] = true)));
+        }
+      }
+      return;
     }
 
     await _saveProgressPrefs();
@@ -249,6 +316,55 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
     } finally {
       if (mounted) setState(() => _purchaseInFlight = false);
+    }
+  }
+
+  Future<void> _handleRestore() async {
+    if (_restoreInFlight) return;
+
+    if (!widget.isLoggedIn()) {
+      final authed = await widget.showAuthSheet(context);
+      if (!authed || !mounted) return;
+    }
+
+    setState(() => _restoreInFlight = true);
+
+    try {
+      // Tell StoreKit to re-deliver past transactions so the backend can
+      // record them. Then we query the backend directly — this is more
+      // reliable than listening on the purchase stream, which can miss events
+      // when internalProductId is null during restore.
+      await IAPService.instance.restore();
+
+      // Give StoreKit a few seconds to deliver the restored transactions and
+      // let the backend process them before we query.
+      await Future.delayed(const Duration(seconds: 5));
+      if (!mounted) return;
+
+      final subs = await ApiService().fetchMyBCDSubscriptions(forceRefresh: true);
+      if (!mounted) return;
+
+      final hasActive = subs.any((s) => s['status'] == 'paid');
+      if (hasActive) {
+        await _saveProgressPrefs();
+        await _markOnboardingComplete();
+        if (!mounted) return;
+        await DioClient().clearCache();
+        BcdCache.instance.invalidate();
+        await BcdCache.instance.ensureLoaded();
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          AppPageRoute(builder: (_) => const MainScreen()),
+        );
+      } else {
+        if (mounted) showAppSnackBar(Translations.of(context).onb_restore_initiated);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(Translations.of(context).bcd_payment_failed,
+          type: SnackBarType.error);
+    } finally {
+      if (mounted) setState(() => _restoreInFlight = false);
     }
   }
 
@@ -322,6 +438,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _PlanPage(
                     products: _selectedProducts,
                     purchasing: _purchaseInFlight,
+                    isOwnedFn: _isOwned,
                     onPurchaseOne: _purchaseInFlight
                         ? null
                         : (p) => _handlePurchaseTap(only: p),
@@ -330,6 +447,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ? null
                             : () => _handlePurchaseTap(),
                     onBack: _goBack,
+                    onRestore: _handleRestore,
+                    restoring: _restoreInFlight,
                   ),
                 ],
               ),
@@ -580,105 +699,113 @@ class _ExamDatePage extends StatelessWidget {
       ),
     ];
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _StepHeader(
-            stepLabel: t.onb_step_of
-                .replaceAll('{current}', '2')
-                .replaceAll('{total}', '4'),
-            headlinePlain: t.onb_step2_plain,
-            headlineItalic: t.onb_step2_italic,
-          ),
-          const SizedBox(height: 32),
-          Row(
-            children: [
-              Icon(Icons.calendar_today_rounded, color: cs.primary, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                t.onb_exam_date_title,
-                style: GoogleFonts.lexend(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: cs.onSurface,
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _StepHeader(
+                  stepLabel: t.onb_step_of
+                      .replaceAll('{current}', '2')
+                      .replaceAll('{total}', '4'),
+                  headlinePlain: t.onb_step2_plain,
+                  headlineItalic: t.onb_step2_italic,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              for (final item in dateOptions) ...[
-                Expanded(
-                  child: _DateCard(
-                    number: item.label,
-                    sub: item.sub,
-                    selected: selectedDateOption == item.opt,
-                    onTap: () => onDateSelect(item.opt, item.date),
-                  ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today_rounded, color: cs.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      t.onb_exam_date_title,
+                      style: GoogleFonts.lexend(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
-                if (item != dateOptions.last) const SizedBox(width: 10),
-              ],
-            ],
-          ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            onTap: onCustomDate,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: selectedDateOption == _DateOption.custom
-                    ? cs.primaryContainer.withValues(alpha: 0.3)
-                    : cs.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(14),
-                border: selectedDateOption == _DateOption.custom
-                    ? Border.all(color: cs.primary, width: 2)
-                    : null,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.calendar_month_rounded,
-                    size: 16,
-                    color: selectedDateOption == _DateOption.custom
-                        ? cs.primary
-                        : cs.outline,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    selectedDateOption == _DateOption.custom &&
-                            examDeadline != null
-                        ? '${examDeadline!.day}/${examDeadline!.month}/${examDeadline!.year}'
-                        : t.onb_custom_date,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    for (final item in dateOptions) ...[
+                      Expanded(
+                        child: _DateCard(
+                          number: item.label,
+                          sub: item.sub,
+                          selected: selectedDateOption == item.opt,
+                          onTap: () => onDateSelect(item.opt, item.date),
+                        ),
+                      ),
+                      if (item != dateOptions.last) const SizedBox(width: 10),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: onCustomDate,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
                       color: selectedDateOption == _DateOption.custom
-                          ? cs.primary
-                          : cs.outline,
+                          ? cs.primaryContainer.withValues(alpha: 0.3)
+                          : cs.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(14),
+                      border: selectedDateOption == _DateOption.custom
+                          ? Border.all(color: cs.primary, width: 2)
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.calendar_month_rounded,
+                          size: 16,
+                          color: selectedDateOption == _DateOption.custom
+                              ? cs.primary
+                              : cs.outline,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          selectedDateOption == _DateOption.custom &&
+                                  examDeadline != null
+                              ? '${examDeadline!.day}/${examDeadline!.month}/${examDeadline!.year}'
+                              : t.onb_custom_date,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: selectedDateOption == _DateOption.custom
+                                ? cs.primary
+                                : cs.outline,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                ),
+                if (examDeadline != null) ...[
+                  const SizedBox(height: 16),
+                  _DeadlineBanner(deadline: examDeadline!),
                 ],
-              ),
+              ],
             ),
           ),
-          if (examDeadline != null) ...[
-            const SizedBox(height: 16),
-            _DeadlineBanner(deadline: examDeadline!),
-          ],
-          const SizedBox(height: 32),
-          _NavRow(
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+          child: _NavRow(
             onBack: onBack,
             onNext: onNext,
             nextLabel: t.onb_continue,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -705,74 +832,82 @@ class _WeeklyGoalPage extends StatelessWidget {
 
     const weekdayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _StepHeader(
-            stepLabel: t.onb_step_of
-                .replaceAll('{current}', '3')
-                .replaceAll('{total}', '4'),
-            headlinePlain: t.onb_step3_plain,
-            headlineItalic: t.onb_step3_italic,
-          ),
-          const SizedBox(height: 32),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(24),
-            ),
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.flash_on_rounded, color: cs.secondary, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      t.onb_weekly_goal_title,
-                      style: GoogleFonts.lexend(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: cs.onSurface,
-                      ),
-                    ),
-                  ],
+                _StepHeader(
+                  stepLabel: t.onb_step_of
+                      .replaceAll('{current}', '3')
+                      .replaceAll('{total}', '4'),
+                  headlinePlain: t.onb_step3_plain,
+                  headlineItalic: t.onb_step3_italic,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  t.onb_weekly_goal_sub,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    color: cs.onSurfaceVariant,
+                const SizedBox(height: 32),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate(7, (i) {
-                    final selected = selectedWeekdays.contains(i);
-                    return _WeekdayToggle(
-                      letter: weekdayLetters[i],
-                      selected: selected,
-                      onTap: () => onWeekdayToggle(i),
-                    );
-                  }),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.flash_on_rounded, color: cs.secondary, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            t.onb_weekly_goal_title,
+                            style: GoogleFonts.lexend(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: cs.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        t.onb_weekly_goal_sub,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: List.generate(7, (i) {
+                          final selected = selectedWeekdays.contains(i);
+                          return _WeekdayToggle(
+                            letter: weekdayLetters[i],
+                            selected: selected,
+                            onTap: () => onWeekdayToggle(i),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 32),
-          _NavRow(
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+          child: _NavRow(
             onBack: onBack,
             onNext: onNext,
             nextLabel: t.onb_continue,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -1170,16 +1305,22 @@ class _PlanPage extends StatelessWidget {
   const _PlanPage({
     required this.products,
     required this.purchasing,
+    required this.isOwnedFn,
     required this.onPurchaseOne,
     required this.onPurchaseAll,
     required this.onBack,
+    required this.onRestore,
+    required this.restoring,
   });
 
   final List<Map<String, dynamic>> products;
   final bool purchasing;
+  final bool Function(Map<String, dynamic>) isOwnedFn;
   final void Function(Map<String, dynamic>)? onPurchaseOne;
   final VoidCallback? onPurchaseAll;
   final VoidCallback onBack;
+  final VoidCallback onRestore;
+  final bool restoring;
 
   @override
   Widget build(BuildContext context) {
@@ -1194,97 +1335,115 @@ class _PlanPage extends StatelessWidget {
       return sum + (double.tryParse(s) ?? 0.0);
     });
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _StepHeader(
-            stepLabel: t.onb_step_of
-                .replaceAll('{current}', '4')
-                .replaceAll('{total}', '4'),
-            headlinePlain: t.onb_step4_plain,
-            headlineItalic: t.onb_step4_italic,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            t.onb_step4_subtitle,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              color: cs.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 28),
-          if (products.isEmpty)
-            Center(
-              child: Text(
-                t.onb_no_plan_selected,
-                style: GoogleFonts.plusJakartaSans(fontSize: 14),
-              ),
-            )
-          else
-            Column(
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (int i = 0; i < products.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: _PlanTierCard(
-                      product: products[i],
-                      featured: i == 0,
-                      purchasing: purchasing,
-                      onBuy: onPurchaseOne == null
-                          ? null
-                          : () => onPurchaseOne!(products[i]),
+                _StepHeader(
+                  stepLabel: t.onb_step_of
+                      .replaceAll('{current}', '4')
+                      .replaceAll('{total}', '4'),
+                  headlinePlain: t.onb_step4_plain,
+                  headlineItalic: t.onb_step4_italic,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  t.onb_step4_subtitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                if (products.isEmpty)
+                  Center(
+                    child: Text(
+                      t.onb_no_plan_selected,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                    ),
+                  )
+                else
+                  Column(
+                    children: [
+                      for (int i = 0; i < products.length; i++)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: _PlanTierCard(
+                            product: products[i],
+                            featured: i == 0,
+                            purchasing: purchasing,
+                            owned: isOwnedFn(products[i]),
+                            onBuy: onPurchaseOne == null
+                                ? null
+                                : () => onPurchaseOne!(products[i]),
+                          ),
+                        ),
+                    ],
+                  ),
+                if (isBundle) ...[
+                  const SizedBox(height: 4),
+                  _BundleRow(total: total, currency: currency),
+                  const SizedBox(height: 16),
+                  _PrimaryButton(
+                    label: t.onb_buy_bundle.replaceAll(
+                        '{price}', '${(total * 0.8).toStringAsFixed(2)} $currency'),
+                    onPressed: onPurchaseAll,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Center(
+                  child: Text(
+                    t.onb_free_trial,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2.0,
+                      color: cs.outline,
                     ),
                   ),
+                ),
               ],
             ),
-          if (isBundle) ...[
-            const SizedBox(height: 4),
-            _BundleRow(total: total, currency: currency),
-            const SizedBox(height: 16),
-            _PrimaryButton(
-              label: t.onb_buy_bundle.replaceAll(
-                  '{price}', '${(total * 0.8).toStringAsFixed(2)} $currency'),
-              onPressed: onPurchaseAll,
-            ),
-          ],
-          const SizedBox(height: 20),
-          Center(
-            child: Text(
-              t.onb_free_trial,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2.0,
-                color: cs.outline,
-              ),
-            ),
           ),
-          const SizedBox(height: 20),
-          _NavRow(
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+          child: _NavRow(
             onBack: onBack,
             onNext: null,
             nextLabel: t.onb_continue,
           ),
-          const SizedBox(height: 16),
+        ),
+        if (!kIsWeb && Platform.isIOS)
           Center(
             child: TextButton(
-              onPressed: () {},
-              child: Text(
-                t.onb_restore_purchases,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5,
-                  color: cs.outline,
-                ),
-              ),
+              onPressed: restoring ? null : onRestore,
+              child: restoring
+                  ? SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: cs.outline,
+                      ),
+                    )
+                  : Text(
+                      t.onb_restore_purchases,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: cs.outline,
+                            letterSpacing: 1.5,
+                          ),
+                    ),
             ),
-          ),
-        ],
-      ),
+          )
+        else
+          const SizedBox(height: 32),
+      ],
     );
   }
 }
@@ -1294,12 +1453,14 @@ class _PlanTierCard extends StatelessWidget {
     required this.product,
     required this.featured,
     required this.purchasing,
+    required this.owned,
     required this.onBuy,
   });
 
   final Map<String, dynamic> product;
   final bool featured;
   final bool purchasing;
+  final bool owned;
   final VoidCallback? onBuy;
 
   @override
@@ -1391,7 +1552,7 @@ class _PlanTierCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: purchasing ? null : onBuy,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: cs.primary,
+                      backgroundColor: owned ? const Color(0xFF059669) : cs.primary,
                       foregroundColor: cs.onPrimary,
                       disabledBackgroundColor:
                           cs.primary.withValues(alpha: 0.3),
@@ -1408,7 +1569,7 @@ class _PlanTierCard extends StatelessWidget {
                             ),
                           )
                         : Text(
-                            t.onb_get_best_deal,
+                            owned ? t.bcd_start_practice : t.onb_get_best_deal,
                             style: GoogleFonts.lexend(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -1512,30 +1673,50 @@ class _PlanTierCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             height: 52,
-            child: OutlinedButton(
-              onPressed: purchasing ? null : onBuy,
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: cs.primary, width: 2),
-                shape: const StadiumBorder(),
-                foregroundColor: cs.primary,
-              ),
-              child: purchasing
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: cs.primary,
-                      ),
-                    )
-                  : Text(
-                      t.onb_choose_plan,
-                      style: GoogleFonts.lexend(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
+            child: owned
+                ? ElevatedButton(
+                    onPressed: purchasing ? null : onBuy,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF059669),
+                      foregroundColor: Colors.white,
+                      shape: const StadiumBorder(),
+                      elevation: 0,
                     ),
-            ),
+                    child: purchasing
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : Text(
+                            t.bcd_start_practice,
+                            style: GoogleFonts.lexend(fontSize: 15, fontWeight: FontWeight.w700),
+                          ),
+                  )
+                : OutlinedButton(
+                    onPressed: purchasing ? null : onBuy,
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: cs.primary, width: 2),
+                      shape: const StadiumBorder(),
+                      foregroundColor: cs.primary,
+                    ),
+                    child: purchasing
+                        ? SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: cs.primary,
+                            ),
+                          )
+                        : Text(
+                            t.onb_choose_plan,
+                            style: GoogleFonts.lexend(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                  ),
           ),
         ],
       ),

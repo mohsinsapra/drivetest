@@ -224,6 +224,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get bcd_no_plans => 'No plans available';
 	String get bcd_active_label => 'Active';
 	String get bcd_subscribe_btn => 'Subscribe';
+	String get bcd_start_practice => 'Start Practice';
 	String get bcd_no_active_subscriptions => 'No active subscriptions';
 	String get bcd_browse_plans => 'Browse plans to get started';
 	String get bcd_expires => 'Expires';
@@ -445,6 +446,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get onb_no_plan_selected => 'No plan selected.';
 	String get onb_buy_bundle => 'Buy bundle — {price}';
 	String get onb_restore_purchases => 'RESTORE PURCHASES';
+	String get onb_restore_initiated => 'Restore initiated. Previous purchases will be applied shortly.';
 	String get onb_most_popular => 'MOST POPULAR';
 	String get onb_feature_mock_exams => 'Full mock exam library';
 	String get onb_feature_progress_tracking => 'Smart progress tracking';
@@ -648,6 +650,7 @@ extension on Translations {
 			case 'bcd_no_plans': return 'No plans available';
 			case 'bcd_active_label': return 'Active';
 			case 'bcd_subscribe_btn': return 'Subscribe';
+			case 'bcd_start_practice': return 'Start Practice';
 			case 'bcd_no_active_subscriptions': return 'No active subscriptions';
 			case 'bcd_browse_plans': return 'Browse plans to get started';
 			case 'bcd_expires': return 'Expires';
@@ -869,6 +872,7 @@ extension on Translations {
 			case 'onb_no_plan_selected': return 'No plan selected.';
 			case 'onb_buy_bundle': return 'Buy bundle — {price}';
 			case 'onb_restore_purchases': return 'RESTORE PURCHASES';
+			case 'onb_restore_initiated': return 'Restore initiated. Previous purchases will be applied shortly.';
 			case 'onb_most_popular': return 'MOST POPULAR';
 			case 'onb_feature_mock_exams': return 'Full mock exam library';
 			case 'onb_feature_progress_tracking': return 'Smart progress tracking';

@@ -10,13 +10,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Apple Sign-In in auth bottom sheet (iOS/macOS); shown before Google per Apple Guideline 4.8
+- `IAPService.restore()` + `restoredProductIds` broadcast stream for StoreKit purchase restoration
+- "Restore Purchases" flow in onboarding: triggers StoreKit restore, polls backend, navigates to app if active subscription found
+- Owned-product shortcut in onboarding: if all selected products are already purchased, skip payment and go directly to the app
+- `isCategoryFree` flag propagated from BCD cache through category hub to tests list — unlocks all tests for free categories
+- Numbered test cards in BCD tests list
+- New localization strings: `bcd_start_practice`, `onb_restore_initiated` (EN + SV)
+- Debug-mode auto-fill for login credentials in `AuthScreen`
 
 ### Changed
--
+- **iOS App Store compliance (Guideline 3.1.1):** products without a StoreKit IAP ID are now blocked on iOS instead of falling through to Stripe; Apple Pay via Stripe removed from payment method sheet on iOS
+- Default feature flags flipped: `show_legacy_tests` defaults to `false`, `show_bcd_tests` defaults to `true`
+- Auth bottom sheet redesigned: gradient pill buttons (matching `AuthScreen`), `AnimatedContainer` text fields with border feedback, themed error banner
+- BCD category hub tile colours now use `ColorScheme` tokens instead of hardcoded hex values
+- Subscription banners use `tertiaryContainer`/`tertiary` theme colours instead of hardcoded amber
+- BCD cache stores `subscription_product`, `test_count`, and `attempt_count` per category
+- Onboarding: if the user is already logged in, the "Sign in" CTA navigates to `MainScreen` instead of `AuthScreen`
+- Onboarding product filter excludes free and inactive products
+- Shimmer loading skeleton uses `ColorScheme` surface tokens
 
 ### Fixed
--
+- IAP purchase handler now guards `_pendingCompleter != null` before resolving, preventing a crash when a StoreKit restore event arrives during an active buy flow
 
 ---
 

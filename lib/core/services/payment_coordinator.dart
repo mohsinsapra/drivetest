@@ -65,6 +65,13 @@ class PaymentCoordinator {
     final useIAP =
         !kIsWeb && Platform.isIOS && iapId != null && iapId.isNotEmpty;
 
+    // Apple requires all digital purchases on iOS to go through StoreKit IAP.
+    // If a product has no IAP product ID configured, block the purchase rather
+    // than silently falling through to Stripe (Guideline 3.1.1).
+    if (!kIsWeb && Platform.isIOS && !useIAP) {
+      throw Exception('This product is not available for purchase on iOS.');
+    }
+
     final name = _name(products);
     final price = products.length == 1
         ? product['price']?.toString() ?? ''

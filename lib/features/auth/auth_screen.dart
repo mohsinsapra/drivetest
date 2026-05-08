@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -52,6 +53,15 @@ class _AuthScreenState extends State<AuthScreen> {
   final _signupPasswordCtrl = TextEditingController();
   bool _obscureSignupPw = true;
   Map<String, String?> _signupErrors = {};
+
+  @override
+  void initState() {
+    super.initState();
+    if (kDebugMode) {
+      _loginUsernameCtrl.text = 'abc';
+      _loginPasswordCtrl.text = 'abc';
+    }
+  }
 
   @override
   void dispose() {

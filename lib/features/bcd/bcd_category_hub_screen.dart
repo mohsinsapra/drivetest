@@ -205,6 +205,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
                 categoryBcdId: _categoryBcdId,
                 categoryName: _categoryName,
                 practiceOnly: false,
+                isCategoryFree: widget.category['subscription_product'] == null,
                 subscribedNotifier: _subscribedNotifier,
                 onBuySubscription: _showPaywall,
                 parentCategoryBcdId: _categoryBcdId,
@@ -266,7 +267,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (!_subscribed) ...[
+            if (!_subscribed && widget.category['subscription_product'] != null) ...[
               _SubscriptionBanner(onBuy: _showPaywall),
               const SizedBox(height: 20),
             ],
@@ -283,49 +284,49 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
                   label: t.bcd_hub_practice,
                   locked: false,
                   loading: _practiceLoading,
-                  tileColor: const Color(0xFF10B981),
+                  tileColor: const Color(0xFF059669), // success green — universal start/go
                   onTap: () => _onTileTap('practice'),
                 ),
                 _HubTile(
                   icon: LucideIcons.fileText,
                   label: t.bcd_hub_tests,
-                  locked: !_subscribed,
-                  tileColor: const Color(0xFF4F46E5),
+                  locked: !_subscribed && widget.category['subscription_product'] != null,
+                  tileColor: Theme.of(context).colorScheme.primary,
                   onTap: () => _onTileTap('tests'),
                 ),
                 _HubTile(
                   icon: LucideIcons.bookOpen,
                   label: t.bcd_hub_theory_docs,
                   locked: false,
-                  tileColor: const Color(0xFFF59E0B),
+                  tileColor: Theme.of(context).colorScheme.tertiary,
                   onTap: () => _onTileTap('documents'),
                 ),
                 _HubTile(
                   icon: LucideIcons.alertTriangle,
                   label: t.bcd_hub_traffic_signs,
                   locked: false,
-                  tileColor: const Color(0xFFEF4444),
+                  tileColor: Theme.of(context).colorScheme.error,
                   onTap: () => _onTileTap('traffic_signs'),
                 ),
                 _HubTile(
                   icon: LucideIcons.clipboardCheck,
                   label: t.bcd_hub_checklist,
                   locked: false,
-                  tileColor: const Color(0xFF8B5CF6),
+                  tileColor: Theme.of(context).colorScheme.secondary,
                   onTap: () => _onTileTap('checklists'),
                 ),
                 _HubTile(
                   icon: LucideIcons.barChart2,
                   label: t.bcd_hub_statistics,
-                  locked: !_subscribed,
-                  tileColor: const Color(0xFF0EA5E9),
+                  locked: !_subscribed && widget.category['subscription_product'] != null,
+                  tileColor: Theme.of(context).colorScheme.inversePrimary,
                   onTap: () => _onTileTap('statistics'),
                 ),
                 _HubTile(
                   icon: LucideIcons.bookmark,
                   label: t.bcd_hub_saved_questions,
                   locked: false,
-                  tileColor: const Color(0xFFEC4899),
+                  tileColor: Theme.of(context).colorScheme.onPrimaryContainer,
                   onTap: () => _onTileTap('saved_questions'),
                 ),
               ],
@@ -345,12 +346,12 @@ class _SubscriptionBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFBEB),
-        border:
-            Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
+        color: cs.tertiaryContainer.withValues(alpha: 0.25),
+        border: Border.all(color: cs.tertiary.withValues(alpha: 0.35)),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -359,8 +360,7 @@ class _SubscriptionBanner extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(LucideIcons.alertCircle,
-                  color: Color(0xFFD97706), size: 18),
+              Icon(LucideIcons.alertCircle, color: cs.tertiary, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -368,8 +368,8 @@ class _SubscriptionBanner extends StatelessWidget {
                   children: [
                     Text(
                       Translations.of(context).bcd_no_subscription,
-                      style: const TextStyle(
-                        color: Color(0xFFD97706),
+                      style: TextStyle(
+                        color: cs.tertiary,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -378,7 +378,7 @@ class _SubscriptionBanner extends StatelessWidget {
                     Text(
                       Translations.of(context).bcd_free_content_desc,
                       style: TextStyle(
-                        color: const Color(0xFFD97706).withValues(alpha: 0.85),
+                        color: cs.onTertiaryContainer,
                         fontSize: 12,
                       ),
                     ),
@@ -393,10 +393,9 @@ class _SubscriptionBanner extends StatelessWidget {
             icon: const Icon(LucideIcons.shoppingCart, size: 16),
             label: Text(Translations.of(context).bcd_buy_subscription),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1E3A5F),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+              backgroundColor: cs.primary,
+              foregroundColor: cs.onPrimary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
           ),
@@ -426,7 +425,8 @@ class _HubTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = locked ? Colors.grey.shade400 : tileColor;
+    final cs = Theme.of(context).colorScheme;
+    final color = locked ? cs.outline : tileColor;
     final bgColor = locked
         ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06)
         : tileColor.withValues(alpha: 0.12);
@@ -471,9 +471,7 @@ class _HubTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: locked
-                          ? Colors.grey.shade500
-                          : Theme.of(context).colorScheme.onSurface,
+                      color: locked ? cs.onSurfaceVariant : cs.onSurface,
                       height: 1.2,
                     ),
                   ),
@@ -484,8 +482,7 @@ class _HubTile extends StatelessWidget {
               Positioned(
                 top: 8,
                 right: 8,
-                child: Icon(LucideIcons.lock,
-                    size: 14, color: Colors.grey.shade400),
+                child: Icon(LucideIcons.lock, size: 14, color: cs.outline),
               ),
           ],
         ),
@@ -500,6 +497,7 @@ class _BCDTestsListScreen extends StatefulWidget {
   final int categoryBcdId;
   final String categoryName;
   final bool practiceOnly;
+  final bool isCategoryFree;
   final ValueNotifier<bool> subscribedNotifier;
   final VoidCallback onBuySubscription;
   final int? parentCategoryBcdId;
@@ -508,6 +506,7 @@ class _BCDTestsListScreen extends StatefulWidget {
     required this.categoryBcdId,
     required this.categoryName,
     required this.practiceOnly,
+    this.isCategoryFree = false,
     required this.subscribedNotifier,
     required this.onBuySubscription,
     this.parentCategoryBcdId,
@@ -563,8 +562,8 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
 
   void _onTap(dynamic test) {
     final isFree = test['is_free'] == true;
-    // Block non-free tests if not subscribed
-    if (!_subscribed && !isFree) {
+    // Block non-free tests if not subscribed and category requires subscription
+    if (!_subscribed && !isFree && !widget.isCategoryFree) {
       widget.onBuySubscription();
       return;
     }
@@ -599,20 +598,21 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
                     widget.practiceOnly
                         ? Translations.of(context).bcd_no_free_practice_tests
                         : Translations.of(context).bcd_no_tests,
-                    style: TextStyle(color: Colors.grey.shade500),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 )
               : Column(
                   children: [
-                    if (!_subscribed && !widget.practiceOnly)
+                    if (!_subscribed && !widget.practiceOnly && !widget.isCategoryFree)
                       _TestsSubscriptionBanner(onBuy: widget.onBuySubscription),
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: _tests.length,
                         itemBuilder: (_, i) => _TestCard(
+                          index: i + 1,
                           test: _tests[i],
-                          forceUnsubscribed: !_subscribed,
+                          forceUnsubscribed: !_subscribed && !widget.isCategoryFree,
                           onTap: () => _onTap(_tests[i]),
                         ),
                       ),
@@ -623,18 +623,19 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
   }
 
   Widget _buildShimmer() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
     return Shimmer.fromColors(
-      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
+      baseColor: cs.surfaceContainerHighest,
+      highlightColor: cs.surface,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 6,
         itemBuilder: (_, __) => Container(
           margin: const EdgeInsets.only(bottom: 10),
-          height: 72,
+          height: 78,
           decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(14)),
+              color: cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(14)),
         ),
       ),
     );
@@ -647,20 +648,19 @@ class _TestsSubscriptionBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFBEB),
-        border:
-            Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.4)),
+        color: cs.tertiaryContainer.withValues(alpha: 0.25),
+        border: Border.all(color: cs.tertiary.withValues(alpha: 0.35)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(LucideIcons.alertCircle,
-              color: Color(0xFFD97706), size: 18),
+          Icon(LucideIcons.alertCircle, color: cs.tertiary, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -668,8 +668,8 @@ class _TestsSubscriptionBanner extends StatelessWidget {
               children: [
                 Text(
                   Translations.of(context).bcd_not_subscribed,
-                  style: const TextStyle(
-                    color: Color(0xFFD97706),
+                  style: TextStyle(
+                    color: cs.tertiary,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -677,10 +677,7 @@ class _TestsSubscriptionBanner extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   Translations.of(context).bcd_only_free_tests,
-                  style: TextStyle(
-                    color: const Color(0xFFD97706).withValues(alpha: 0.85),
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: cs.onTertiaryContainer, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
@@ -688,7 +685,7 @@ class _TestsSubscriptionBanner extends StatelessWidget {
                   child: Text(
                     Translations.of(context).bcd_buy_subscription_arrow,
                     style: TextStyle(
-                      color: Color(0xFF1E3A5F),
+                      color: cs.primary,
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),
@@ -744,7 +741,7 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
           : _docs.isEmpty
               ? Center(
                   child: Text(Translations.of(context).bcd_no_documents,
-                      style: TextStyle(color: Colors.grey.shade500)))
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _docs.length,
@@ -773,12 +770,11 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF3B5F8A).withValues(alpha: 0.1),
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(LucideIcons.fileText,
-                              color: Color(0xFF3B5F8A), size: 18),
+                          child: Icon(LucideIcons.fileText,
+                              color: Theme.of(context).colorScheme.primary, size: 18),
                         ),
                         title: Text(
                           cleanBcdText(doc['title']?.toString() ?? ''),
@@ -835,7 +831,7 @@ class _BCDChecklistsScreenState extends State<_BCDChecklistsScreen> {
           : _items.isEmpty
               ? Center(
                   child: Text(Translations.of(context).bcd_no_checklists,
-                      style: TextStyle(color: Colors.grey.shade500)))
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _items.length,
@@ -883,84 +879,117 @@ class _TestCard extends StatelessWidget {
   final dynamic test;
   final VoidCallback onTap;
   final bool forceUnsubscribed;
-  const _TestCard(
-      {required this.test,
-      required this.onTap,
-      this.forceUnsubscribed = false});
+  final int index;
+  const _TestCard({
+    required this.test,
+    required this.onTap,
+    required this.index,
+    this.forceUnsubscribed = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isFree = test['is_free'] == true;
     final subscribed = !forceUnsubscribed || isFree;
-    return Card(
+
+    final cs = Theme.of(context).colorScheme;
+    const Color successGreen = Color(0xFF059669);
+    final Color accent = isFree
+        ? successGreen
+        : subscribed
+            ? cs.primary
+            : cs.outline;
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      elevation: 1,
-      child: InkWell(
-        onTap: onTap,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: cs.shadow.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
           child: Row(
             children: [
+              // Left accent bar
               Container(
-                width: 44,
-                height: 44,
+                width: 4,
+                height: 78,
                 decoration: BoxDecoration(
-                  color: isFree
-                      ? const Color(0xFF059669).withValues(alpha: 0.1)
-                      : subscribed
-                          ? const Color(0xFF4F46E5).withValues(alpha: 0.1)
-                          : Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  isFree
-                      ? LucideIcons.gift
-                      : subscribed
-                          ? LucideIcons.clipboardList
-                          : LucideIcons.lock,
-                  size: 20,
-                  color: isFree
-                      ? const Color(0xFF059669)
-                      : subscribed
-                          ? const Color(0xFF4F46E5)
-                          : Colors.grey.shade500,
+                  color: accent,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(14),
+                    bottomLeft: Radius.circular(14),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
+              // Index number
+              SizedBox(
+                width: 26,
+                child: Text(
+                  index.toString().padLeft(2, '0'),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: accent.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Content
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      cleanBcdText(test['name']?.toString() ?? ''),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(children: [
-                      _Chip(
-                          label:
-                              '${test['question_count'] ?? 0} ${Translations.of(context).bcd_questions_label}'),
-                      const SizedBox(width: 6),
-                      _Chip(
-                          label:
-                              '${Translations.of(context).bcd_pass_label} ${test['pass_score'] ?? 0}%'),
-                      if (isFree) ...[
-                        const SizedBox(width: 6),
-                        _Chip(
-                            label: Translations.of(context).bcd_free_label,
-                            color: const Color(0xFF059669)),
-                      ],
-                    ]),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        cleanBcdText(test['name']?.toString() ?? ''),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: subscribed ? cs.onSurface : cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        children: [
+                          _Chip(label: '${test['question_count'] ?? 0} ${Translations.of(context).bcd_questions_label}'),
+                          _Chip(label: '${Translations.of(context).bcd_pass_label} ${test['pass_score'] ?? 0}%'),
+                          if (isFree)
+                            _Chip(
+                              label: Translations.of(context).bcd_free_label,
+                              color: const Color(0xFF059669),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Icon(LucideIcons.chevronRight,
-                  size: 18, color: subscribed ? null : Colors.grey.shade400),
+              Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: Icon(
+                  subscribed ? LucideIcons.chevronRight : LucideIcons.lock,
+                  size: 17,
+                  color: cs.outline,
+                ),
+              ),
             ],
           ),
         ),
@@ -976,16 +1005,14 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? Colors.grey.shade600;
+    final c = color ?? Theme.of(context).colorScheme.onSurfaceVariant;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: c.withValues(alpha: 0.1),
+        color: c.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(label,
-          style:
-              TextStyle(fontSize: 11, color: c, fontWeight: FontWeight.w500)),
+      child: Text(label, style: TextStyle(fontSize: 11, color: c, fontWeight: FontWeight.w500)),
     );
   }
 }

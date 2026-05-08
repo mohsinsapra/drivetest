@@ -28,6 +28,10 @@ class IAPService {
 
   bool _initialized = false;
 
+  // Broadcast stream that emits each successfully restored product ID.
+  final _restoreController = StreamController<String>.broadcast();
+  Stream<String> get restoredProductIds => _restoreController.stream;
+
   Future<bool> get isAvailable => _iap.isAvailable();
 
   /// Start listening to the purchase stream. Call once at app startup (or
@@ -46,7 +50,14 @@ class IAPService {
 
   void dispose() {
     _subscription?.cancel();
+    _restoreController.close();
     _initialized = false;
+  }
+
+  /// Initialises the service (if not already) and triggers a restore.
+  Future<void> restore() async {
+    init();
+    await _iap.restorePurchases();
   }
 
   /// Load [ProductDetails] for the given IAP product IDs from the store.
@@ -107,7 +118,8 @@ class IAPService {
           debugPrint('[IAP] completePurchase error (non-fatal): $e');
         }
 
-        if (purchase.productID == _pendingProductId) {
+        if (_pendingCompleter != null && purchase.productID == _pendingProductId) {
+          // Active buy flow — resolve the completer.
           if (verifyError != null) {
             _pendingCompleter?.completeError(verifyError);
           } else {
@@ -116,6 +128,9 @@ class IAPService {
           _pendingCompleter = null;
           _pendingProductId = null;
           _pendingInternalProductId = null;
+        } else if (purchase.status == PurchaseStatus.restored && verifyError == null) {
+          // Restore flow — notify listeners.
+          _restoreController.add(purchase.productID);
         }
       } else if (purchase.status == PurchaseStatus.error) {
         try {

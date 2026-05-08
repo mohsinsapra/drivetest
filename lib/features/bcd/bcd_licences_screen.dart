@@ -166,14 +166,17 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
                             controller: _scrollController,
                             padding: const EdgeInsets.all(16),
                             itemCount: _filtered.length,
-                            itemBuilder: (_, i) => _StaggeredItem(
-                              index: i,
-                              animate: _animateList,
-                              child: _CategoryCard(
-                                category: _filtered[i],
-                                onTap: () => _onCategoryTap(_filtered[i]),
-                              ),
-                            ),
+                            itemBuilder: (_, i) {
+                              final cat = _filtered[i];
+                              return _StaggeredItem(
+                                index: i,
+                                animate: _animateList,
+                                child: _CategoryCard(
+                                  category: cat,
+                                  onTap: () => _onCategoryTap(cat),
+                                ),
+                              );
+                            },
                           ),
                   ),
           ),
@@ -192,60 +195,169 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final subscribed = category['is_subscribed'] == true;
+    final isFree = category['subscription_product'] == null;
+    final testCount = (category['test_count'] as num?)?.toInt() ?? 0;
+    final attemptCount = (category['attempt_count'] as num?)?.toInt() ?? 0;
     final product = category['subscription_product'] as Map<String, dynamic>?;
     final price = product?['price']?.toString();
     final currency = product?['currency']?.toString() ?? '';
     final durationDays = product?['duration_days'];
-
+    final name = category['name']?.toString() ?? '';
     final t = Translations.of(context);
-    final String subtitle;
+
+    // Semantic accent — green is universal success/unlock, primary is the app blue
+    const Color successGreen = Color(0xFF059669);
+    final Color accent;
+    final String badgeLabel;
     if (subscribed) {
-      subtitle = t.bcd_subscribed;
-    } else if (price != null && price.isNotEmpty) {
-      subtitle = '$price $currency · $durationDays days';
+      accent = successGreen;
+      badgeLabel = t.bcd_subscribed;
+    } else if (isFree) {
+      accent = cs.primary;
+      badgeLabel = 'Free';
     } else {
-      subtitle = t.bcd_tap_to_subscribe;
+      accent = cs.onSurfaceVariant;
+      badgeLabel = (price != null && price.isNotEmpty) ? '$price $currency' : t.bcd_tap_to_subscribe;
     }
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      elevation: 1,
-      child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: subscribed
-                ? const Color(0xFF059669).withValues(alpha: 0.1)
-                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            subscribed ? LucideIcons.unlock : LucideIcons.lock,
-            color:
-                subscribed ? const Color(0xFF059669) : Colors.grey.shade500,
-            size: 20,
+    final progress = testCount > 0 ? (attemptCount / testCount).clamp(0.0, 1.0) : 0.0;
+    final complete = testCount > 0 && attemptCount >= testCount;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: cs.shadow.withValues(alpha: 0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: Icon(
+                        (subscribed || isFree) ? LucideIcons.bookOpenCheck : LucideIcons.lock,
+                        color: accent,
+                        size: 21,
+                      ),
+                    ),
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: cs.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Row(
+                            children: [
+                              _AccessBadge(label: badgeLabel, color: accent),
+                              if ((subscribed || isFree) && testCount > 0) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  '$attemptCount / $testCount attempted',
+                                  style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                                ),
+                              ],
+                              if (!isFree && !subscribed && durationDays != null) ...[
+                                const SizedBox(width: 6),
+                                Text(
+                                  '· $durationDays days',
+                                  style: TextStyle(fontSize: 11, color: cs.outline),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(LucideIcons.chevronRight, size: 18, color: cs.outline),
+                  ],
+                ),
+                if ((subscribed || isFree) && testCount > 0) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 5,
+                            backgroundColor: cs.surfaceContainerHighest,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              complete ? successGreen : accent,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (complete) ...[
+                        const SizedBox(width: 8),
+                        const Icon(LucideIcons.checkCircle, size: 14, color: successGreen),
+                      ],
+                    ],
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
-        title: Text(category['name']?.toString() ?? '',
-            style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(
-            color: subscribed
-                ? const Color(0xFF059669)
-                : Colors.grey.shade600,
-            fontSize: 12,
-            fontWeight:
-                subscribed ? FontWeight.w500 : FontWeight.normal,
-          ),
-        ),
-        trailing: const Icon(LucideIcons.chevronRight, size: 18),
-        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _AccessBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _AccessBadge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.5),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -256,19 +368,19 @@ class _CategoryCard extends StatelessWidget {
 class _Shimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
     return Shimmer.fromColors(
-      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
+      baseColor: cs.surfaceContainerHighest,
+      highlightColor: cs.surface,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: 8,
+        itemCount: 7,
         itemBuilder: (_, __) => Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          height: 68,
+          margin: const EdgeInsets.only(bottom: 12),
+          height: 96,
           decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14)),
+              color: cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );

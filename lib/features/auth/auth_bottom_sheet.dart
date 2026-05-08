@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/auth/apple_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/auth/google_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
@@ -105,6 +107,38 @@ class _AuthSheetState extends State<_AuthSheet>
     }
   }
 
+  // ── Apple ───────────────────────────────────────────────────────────────────
+
+  Future<void> _appleSignIn() async {
+    setState(() {
+      _loading = true;
+      _loginError = null;
+    });
+    try {
+      final credential = await AppleSignInHelper.signIn();
+      final identityToken = credential.identityToken;
+      if (identityToken == null) throw Exception('No identity token received');
+      await _api.appleAuth(
+        identityToken: identityToken,
+        firstName: credential.givenName,
+        lastName: credential.familyName,
+      );
+      if (!mounted) return;
+      await _onSuccess();
+    } catch (e) {
+      if (!mounted) return;
+      final msg = e.toString();
+      if (msg.contains('AuthorizationErrorCode.canceled')) {
+        setState(() => _loading = false);
+        return;
+      }
+      setState(() {
+        _loginError = Translations.of(context).auth_generic_error;
+        _loading = false;
+      });
+    }
+  }
+
   // ── Login ───────────────────────────────────────────────────────────────────
 
   Future<void> _login() async {
@@ -192,44 +226,57 @@ class _AuthSheetState extends State<_AuthSheet>
     VoidCallback? onToggleObscure,
     void Function(String)? onChanged,
   }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark
-        ? theme.colorScheme.onSurface.withValues(alpha: 0.08)
-        : theme.colorScheme.onSurface.withValues(alpha: 0.06);
-    final errBg = Colors.red.withValues(alpha: 0.06);
+    final cs = Theme.of(context).colorScheme;
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        color: hasError ? errBg : bg,
-        borderRadius: BorderRadius.circular(12),
+        color: hasError
+            ? cs.error.withValues(alpha: 0.06)
+            : cs.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: hasError
+            ? Border.all(color: cs.error.withValues(alpha: 0.3))
+            : Border.all(color: cs.outlineVariant.withValues(alpha: 0.15)),
       ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscure,
-        keyboardType: keyboard,
-        onChanged: onChanged,
-        style: theme.textTheme.bodyMedium,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          inputDecorationTheme: const InputDecorationTheme(
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
           ),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          suffixIcon: onToggleObscure != null
-              ? IconButton(
-                  icon: Icon(
-                    obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    size: 18,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                  ),
-                  onPressed: onToggleObscure,
-                )
-              : null,
+        ),
+        child: TextField(
+          controller: controller,
+          obscureText: obscure,
+          keyboardType: keyboard,
+          onChanged: onChanged,
+          style: GoogleFonts.plusJakartaSans(fontSize: 15, color: cs.onSurface),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              color: cs.outlineVariant,
+            ),
+            border: InputBorder.none,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            suffixIcon: onToggleObscure != null
+                ? TextButton(
+                    onPressed: onToggleObscure,
+                    child: Text(
+                      obscure
+                          ? Translations.of(context).auth_show_password
+                          : Translations.of(context).auth_hide_password,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: cs.outline,
+                      ),
+                    ),
+                  )
+                : null,
+          ),
         ),
       ),
     );
@@ -237,15 +284,18 @@ class _AuthSheetState extends State<_AuthSheet>
 
   Widget _fieldErr(String? err) {
     if (err == null) return const SizedBox.shrink();
+    final cs = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(top: 5, left: 4),
+      padding: const EdgeInsets.only(top: 6, left: 4),
       child: Row(
         children: [
-          Icon(Icons.error_outline, size: 13, color: Colors.red.shade400),
+          Icon(Icons.error_outline, size: 13, color: cs.error),
           const SizedBox(width: 4),
           Expanded(
-            child: Text(err,
-                style: TextStyle(fontSize: 12, color: Colors.red.shade400)),
+            child: Text(
+              err,
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: cs.error),
+            ),
           ),
         ],
       ),
@@ -253,17 +303,10 @@ class _AuthSheetState extends State<_AuthSheet>
   }
 
   Widget _submitButton(String label, VoidCallback onPressed) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ElevatedButton(
-              onPressed: onPressed,
-              child: Text(label,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 15)),
-            ),
+    return _SheetGradientButton(
+      label: label,
+      loading: _loading,
+      onPressed: _loading ? null : onPressed,
     );
   }
 
@@ -304,49 +347,41 @@ class _AuthSheetState extends State<_AuthSheet>
           // Header
           Text(
             t.onb_sign_in_to_subscribe,
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            style: GoogleFonts.lexend(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             t.onb_sign_in_subtitle,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
 
-          // Google button
-          InkWell(
-            onTap: _loading ? null : _googleSignIn,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? theme.colorScheme.onSurface.withValues(alpha: 0.08)
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    t.auth_google_label,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  const Spacer(),
-                  FaIcon(FontAwesomeIcons.google,
-                      size: 18,
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.5)),
-                ],
-              ),
+          // Apple button (iOS/macOS only — must appear before Google per Guideline 4.8)
+          if (AppleSignInHelper.isAvailable()) ...[
+            _SheetGradientButton(
+              label: t.auth_express_apple,
+              loading: _loading,
+              onPressed: _loading ? null : _appleSignIn,
+              icon: FaIcon(FontAwesomeIcons.apple, size: 20, color: theme.colorScheme.onPrimary),
             ),
+            const SizedBox(height: 10),
+          ],
+
+          // Google button
+          _SheetGradientButton(
+            label: t.auth_express_google,
+            loading: _loading,
+            onPressed: _loading ? null : _googleSignIn,
+            icon: FaIcon(FontAwesomeIcons.google, size: 18, color: theme.colorScheme.onPrimary),
           ),
           const SizedBox(height: 14),
 
@@ -407,17 +442,27 @@ class _AuthSheetState extends State<_AuthSheet>
 
           // Login error banner
           if (_loginError != null) ...[
-            Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 16),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    _loginError!,
-                    style: const TextStyle(color: Colors.red, fontSize: 13),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.error.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, color: theme.colorScheme.error, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _loginError!,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 8),
           ],
@@ -475,6 +520,78 @@ class _AuthSheetState extends State<_AuthSheet>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Gradient button matching auth_screen._GradientButton
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SheetGradientButton extends StatelessWidget {
+  const _SheetGradientButton({
+    required this.label,
+    required this.onPressed,
+    this.loading = false,
+    this.icon,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final bool loading;
+  final Widget? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(9999),
+      child: InkWell(
+        onTap: loading ? null : onPressed,
+        borderRadius: BorderRadius.circular(9999),
+        child: Ink(
+          height: 54,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [cs.primary, cs.primaryContainer],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(9999),
+            boxShadow: [
+              BoxShadow(
+                color: cs.primary.withValues(alpha: 0.18),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Center(
+            child: loading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        color: cs.onPrimary, strokeWidth: 2.5),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (icon != null) ...[icon!, const SizedBox(width: 10)],
+                      Text(
+                        label,
+                        style: GoogleFonts.lexend(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: cs.onPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
       ),
     );
   }

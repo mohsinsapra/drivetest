@@ -80,7 +80,7 @@
           "locale" : "en_GB"
         }
       ],
-      "productID" : "se.drivetest.taxilegitimationen",
+      "productID" : "se.drivetest.taxiforarlegitimation",
       "referenceName" : "Taxilegitimation",
       "type" : "Consumable"
     },

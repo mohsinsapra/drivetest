@@ -118,9 +118,9 @@ class MainScreenState extends State<MainScreen> {
 
     final isAdmin = _flag(userData['is_administrator'], false);
     final newShowLegacy =
-        isAdmin ? true : _flag(userData['show_legacy_tests'], true);
+        isAdmin ? true : _flag(userData['show_legacy_tests'], false);
     final newShowBcd =
-        isAdmin ? true : _flag(userData['show_bcd_tests'], false);
+        isAdmin ? true : _flag(userData['show_bcd_tests'], true);
 
     // Nothing changed — skip the rebuild entirely.
     if (newShowLegacy == _showLegacyTests && newShowBcd == _showBcdTests) {
