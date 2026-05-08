@@ -65,12 +65,27 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
   }
 
   void _onCategoryTap(dynamic category) {
+    // Build the category map that the hub screen will use.
+    // If the subcategory has no subscription_product of its own, inherit the
+    // parent's — so the hub's paywall and lock logic work correctly without
+    // requiring any API call inside the hub.
+    final categoryForHub = Map<String, dynamic>.from(category);
+
+    final parentProduct = widget.parentCategory['subscription_product'];
+    if (categoryForHub['subscription_product'] == null && parentProduct != null) {
+      categoryForHub['subscription_product'] = parentProduct;
+    }
+
+    // If the parent is already subscribed, propagate that state so the hub
+    // opens fully unlocked without an extra network round-trip.
+    if (widget.parentCategory['is_subscribed'] == true) {
+      categoryForHub['is_subscribed'] = true;
+    }
+
     Navigator.push(
       context,
       AppPageRoute(
-        builder: (_) => BCDCategoryHubScreen(
-          category: Map<String, dynamic>.from(category),
-        ),
+        builder: (_) => BCDCategoryHubScreen(category: categoryForHub),
       ),
     ).then((_) => _load());
   }

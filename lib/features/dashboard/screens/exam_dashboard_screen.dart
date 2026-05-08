@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
+import 'package:taxi_exam_app/core/services/bcd_cache.dart';
+import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_test_screen.dart';
 import 'package:taxi_exam_app/features/notifications/notifications_screen.dart';
@@ -33,6 +37,30 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DashboardProvider>().init();
     });
+  }
+
+  Future<void> _handleSubscribe() async {
+    List<dynamic> products = [];
+    try {
+      products = await ApiService().fetchBCDSubscriptionProducts();
+    } catch (_) {}
+    if (!mounted || products.isEmpty) return;
+
+    final result = await PaymentCoordinator.show(
+      context,
+      products: products,
+      createStripeIntent: (p) => ApiService().createBCDPaymentIntent(p['id'] as int),
+      onStripePaymentConfirmed: (id) => ApiService().confirmBCDPayment(id),
+      onIAPPurchaseConfirmed: (p, transactionId) => ApiService().confirmBCDIAPPurchase(
+        p['id'] as int,
+        transactionId: transactionId,
+      ),
+    );
+
+    if (result == null || !mounted) return;
+    await DioClient().clearCache();
+    BcdCache.instance.invalidate();
+    if (mounted) context.read<DashboardProvider>().syncNow();
   }
 
   @override
@@ -90,7 +118,7 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
           ),
         DashboardStatus.loaded => RefreshIndicator(
             onRefresh: () => context.read<DashboardProvider>().syncNow(),
-            child: _DashboardBody(provider: provider),
+            child: _DashboardBody(provider: provider, onSubscribe: _handleSubscribe),
           ),
       },
     );
@@ -102,8 +130,9 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _DashboardBody extends StatelessWidget {
-  const _DashboardBody({required this.provider});
+  const _DashboardBody({required this.provider, required this.onSubscribe});
   final DashboardProvider provider;
+  final VoidCallback onSubscribe;
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +147,7 @@ class _DashboardBody extends StatelessWidget {
 
         // ── My Exams carousel ─────────────────────────────────────────────────
         SliverToBoxAdapter(
-          child: _ExamCarouselSection(provider: provider),
+          child: _ExamCarouselSection(provider: provider, onSubscribe: onSubscribe),
         ),
 
         // ── Performance overview ──────────────────────────────────────────────
@@ -226,13 +255,13 @@ class _HeroSection extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ExamCarouselSection extends StatelessWidget {
-  const _ExamCarouselSection({required this.provider});
+  const _ExamCarouselSection({required this.provider, required this.onSubscribe});
   final DashboardProvider provider;
+  final VoidCallback onSubscribe;
 
   @override
   Widget build(BuildContext context) {
     final exams = provider.exams;
-    final cs = Theme.of(context).colorScheme;
     final t = Translations.of(context);
 
     return Column(
@@ -250,12 +279,7 @@ class _ExamCarouselSection extends StatelessWidget {
         if (exams.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              t.dash_no_exams_found,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurface.withValues(alpha: 0.45),
-                  ),
-            ),
+            child: _SubscribeCTACard(onSubscribe: onSubscribe),
           )
         else
           SizedBox(
@@ -292,6 +316,66 @@ class _ExamCarouselSection extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Subscribe CTA — shown when the user has no subscribed exams
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SubscribeCTACard extends StatelessWidget {
+  const _SubscribeCTACard({required this.onSubscribe});
+  final VoidCallback onSubscribe;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = Translations.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [cs.primaryContainer.withValues(alpha: 0.5), cs.secondaryContainer.withValues(alpha: 0.35)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: cs.primary.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t.dash_no_exams_found,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: cs.onSurface,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            t.bcd_free_content_desc,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onSubscribe,
+              icon: const Icon(Icons.shopping_cart_outlined, size: 18),
+              label: Text(t.bcd_buy_subscription),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -20,6 +20,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.6+172] - 2026-05-08
+
+### Added
+- Subscribe CTA card on Exam Dashboard when user has no subscribed exams — fetches available products and opens the paywall directly from the Progress tab
+
+### Changed
+- BCD subcategory screen now injects the parent category's `subscription_product` and `is_subscribed` state into the subcategory map before opening the hub screen, so hub-screen paywall and lock logic work correctly without extra API calls
+- `PaymentCoordinator._process` iOS guard moved inside the `try/catch` block so a missing `iap_product_id` now shows the error snackbar instead of silently swallowing the exception
+
+### Fixed
+- **IAP/Stripe not initialising from BCD category hub:** embedded `subscription_product` in `bcd_dashboard` omits `iap_product_id`; hub screen now always fetches full product data from `api/v2/subscription-products/` (matched by ID, result cached), so IAP launches correctly on iOS
+- **`PaymentCoordinator` silent crash:** iOS "not available for purchase" exception was thrown before the `try` block, escaping the error handler and giving the user no feedback; now caught and shown as a snackbar
+
+---
+
 ## [1.0.5+171] - 2026-05-08
 
 ### Added

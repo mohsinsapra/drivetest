@@ -52,15 +52,28 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
 
   Future<void> _showPaywall() async {
     if (_subscribed) return;
-    final categoryProduct = widget.category['subscription_product'];
-    if (categoryProduct != null) {
-      _products = [categoryProduct];
-    } else if (_products.isEmpty) {
+
+    // The embedded subscription_product from bcd_dashboard is a lightweight
+    // snapshot that omits iap_product_id. Always fetch the full product list
+    // so IAP works on iOS. Match by ID if we know which product to show;
+    // fall back to the embedded data only if the API call fails.
+    if (_products.isEmpty) {
+      final embeddedProduct = widget.category['subscription_product'];
       try {
-        _products = await _api.fetchBCDSubscriptionProducts();
-      } catch (_) {}
+        final all = await _api.fetchBCDSubscriptionProducts();
+        if (embeddedProduct != null) {
+          final productId = embeddedProduct['id'];
+          final matched = all.where((p) => p['id'] == productId).toList();
+          _products = matched.isNotEmpty ? matched : all;
+        } else {
+          _products = all;
+        }
+      } catch (_) {
+        if (embeddedProduct != null) _products = [embeddedProduct];
+      }
     }
-    if (!mounted) return;
+
+    if (!mounted || _products.isEmpty) return;
 
     final result = await PaymentCoordinator.show(
       context,
@@ -350,8 +363,8 @@ class _SubscriptionBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cs.tertiaryContainer.withValues(alpha: 0.25),
-        border: Border.all(color: cs.tertiary.withValues(alpha: 0.35)),
+        color: cs.surfaceContainerLow,
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -360,7 +373,7 @@ class _SubscriptionBanner extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(LucideIcons.alertCircle, color: cs.tertiary, size: 18),
+              Icon(LucideIcons.info, color: cs.primary, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -369,7 +382,7 @@ class _SubscriptionBanner extends StatelessWidget {
                     Text(
                       Translations.of(context).bcd_no_subscription,
                       style: TextStyle(
-                        color: cs.tertiary,
+                        color: cs.onSurface,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -378,7 +391,7 @@ class _SubscriptionBanner extends StatelessWidget {
                     Text(
                       Translations.of(context).bcd_free_content_desc,
                       style: TextStyle(
-                        color: cs.onTertiaryContainer,
+                        color: cs.onSurfaceVariant,
                         fontSize: 12,
                       ),
                     ),
@@ -653,14 +666,14 @@ class _TestsSubscriptionBanner extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: cs.tertiaryContainer.withValues(alpha: 0.25),
-        border: Border.all(color: cs.tertiary.withValues(alpha: 0.35)),
+        color: cs.surfaceContainerLow,
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(LucideIcons.alertCircle, color: cs.tertiary, size: 18),
+          Icon(LucideIcons.info, color: cs.primary, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -669,7 +682,7 @@ class _TestsSubscriptionBanner extends StatelessWidget {
                 Text(
                   Translations.of(context).bcd_not_subscribed,
                   style: TextStyle(
-                    color: cs.tertiary,
+                    color: cs.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -677,7 +690,7 @@ class _TestsSubscriptionBanner extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   Translations.of(context).bcd_only_free_tests,
-                  style: TextStyle(color: cs.onTertiaryContainer, fontSize: 12),
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
