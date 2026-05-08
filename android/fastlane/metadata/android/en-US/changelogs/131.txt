@@ -1,0 +1,6 @@
+Added
+• Apple Sign-In in auth bottom sheet (iOS/macOS); shown before Google per Apple Guideline 4.8
+• `IAPService.restore()` + `restoredProductIds` broadcast stream for StoreKit purchase restoration
+• "Restore Purchases" flow in onboarding: triggers StoreKit restore, polls backend, navigates to app if active subscription found
+• Owned-product shortcut in onboarding: if all selected products are already purchased, skip payment and go directly to the app
+• `isCategoryFree` flag propagated from ...

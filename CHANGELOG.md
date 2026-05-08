@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.5+171] - 2026-05-08
+
+### Added
 - Apple Sign-In in auth bottom sheet (iOS/macOS); shown before Google per Apple Guideline 4.8
 - `IAPService.restore()` + `restoredProductIds` broadcast stream for StoreKit purchase restoration
 - "Restore Purchases" flow in onboarding: triggers StoreKit restore, polls backend, navigates to app if active subscription found
@@ -33,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - IAP purchase handler now guards `_pendingCompleter != null` before resolving, preventing a crash when a StoreKit restore event arrives during an active buy flow
 
+---
 ---
 
 ## [1.0.4+170] - 2026-05-08
