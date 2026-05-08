@@ -80,13 +80,10 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       products: _products,
       title: _categoryName,
       createStripeIntent: (p) => _api.createBCDPaymentIntent(p['id'] as int),
-      onStripePaymentConfirmed: (id, receiptNumber) =>
-          _api.confirmBCDPayment(id, receiptNumber: receiptNumber),
-      onIAPPurchaseConfirmed: (p, transactionId, receiptNumber) =>
-          _api.confirmBCDIAPPurchase(
+      onStripePaymentConfirmed: (id) => _api.confirmBCDPayment(id),
+      onIAPPurchaseConfirmed: (p, transactionId) => _api.confirmBCDIAPPurchase(
         (p['id'] as num).toInt(),
         transactionId: transactionId,
-        receiptNumber: receiptNumber,
       ),
     );
 

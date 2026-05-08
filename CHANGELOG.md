@@ -20,6 +20,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.8+174] - 2026-05-08
+
+### Changed
+- Receipt number is now **generated server-side** (`RCP-YYYYMMDD-XXXXXX`) in `ConfirmBCDPaymentView` and `ConfirmBCDIAPPurchaseView`; client no longer sends a receipt number — it uses the one returned in the confirm response, falling back to a client-generated value only if the backend does not return one
+- `PaymentCoordinator` confirm callback signatures simplified — `receiptNumber` parameter removed since it is no longer passed to the backend
+- `confirmBCDPayment` / `confirmBCDIAPPurchase` in `ApiService` cleaned up — `receiptNumber` param removed from request body
+- `fetchCurrentUser` accepts `forceRefresh: bool` flag using `CachePolicy.refreshForceCache` so call sites can bypass stale Dio cache entries explicitly
+
+### Fixed
+- **Categories screen showing wrong subscription status:** pull-to-refresh was calling `ensureLoaded()` (a no-op on warm cache), returning stale `is_subscribed` values; replaced with `_forceRefresh()` which invalidates BcdCache, clears Dio HTTP cache, and re-fetches `/self` so the list reflects actual subscription state
+- **Exam dashboard pull-to-refresh not triggering:** `CustomScrollView` was missing `AlwaysScrollableScrollPhysics`, so the `RefreshIndicator` ignored pull gestures on short lists
+- **Stale Hive exams surviving refresh:** `syncNow` now clears the `subscribed_exams` Hive box before re-fetching, so expired or removed subscriptions are not carried over
+- **`syncNow` using cached `/self` response:** `fetchCurrentUser` now called with `forceRefresh: true` during `syncNow` to guarantee a network hit
+
+---
+
 ## [1.0.7+173] - 2026-05-08
 
 ### Added

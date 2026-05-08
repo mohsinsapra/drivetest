@@ -66,9 +66,14 @@ class ApiService {
     await UserCacheService.clearAll();
   }
 
-  Future<dynamic> fetchCurrentUser() async {
+  Future<dynamic> fetchCurrentUser({bool forceRefresh = false}) async {
     try {
-      final response = await _dio.get('api/user/self/');
+      final response = await _dio.get(
+        'api/user/self/',
+        options: forceRefresh
+            ? _dioClient.cacheOptions(policy: CachePolicy.refreshForceCache)
+            : null,
+      );
       final data = response.data;
       if (data is Map<String, dynamic>) {
         // Seed BcdCache from the embedded dashboard tree so subsequent
@@ -708,20 +713,11 @@ class ApiService {
   /// Notify the backend that a Stripe PaymentIntent succeeded so it can
   /// immediately mark the matching BCDUserSubscription(s) as PAID — before
   /// the asynchronous Stripe webhook arrives.
-  /// Confirms a Stripe payment with the backend.
-  /// [receiptNumber] is the client-generated receipt ID — the backend should
-  /// store it against the subscription so it can be looked up for support.
-  /// Returns the backend subscription map or null if the backend returns no body.
-  Future<Map<String, dynamic>?> confirmBCDPayment(
-    String paymentIntentId, {
-    String? receiptNumber,
-  }) async {
+  /// Returns the backend response (includes server-generated `receipt_number`).
+  Future<Map<String, dynamic>?> confirmBCDPayment(String paymentIntentId) async {
     final response = await _dio.post(
       'api/payment/bcd/confirm-payment/',
-      data: {
-        'payment_intent_id': paymentIntentId,
-        if (receiptNumber != null) 'receipt_number': receiptNumber,
-      },
+      data: {'payment_intent_id': paymentIntentId},
     );
     if (response.data is Map) return Map<String, dynamic>.from(response.data as Map);
     return null;
@@ -729,13 +725,10 @@ class ApiService {
 
   /// Called immediately after a successful StoreKit purchase to confirm the
   /// backend has already verified the matching Apple transaction.
-  /// [receiptNumber] is the client-generated receipt ID — the backend should
-  /// store it against the subscription so it can be looked up for support.
-  /// Returns the backend subscription map or null if the backend returns no body.
+  /// Returns the backend response (includes server-generated `receipt_number`).
   Future<Map<String, dynamic>?> confirmBCDIAPPurchase(
     int productId, {
     String? transactionId,
-    String? receiptNumber,
   }) async {
     final response = await _dio.post(
       'api/payment/bcd/confirm-iap/',
@@ -743,7 +736,6 @@ class ApiService {
         'product_id': productId,
         if (transactionId != null && transactionId.isNotEmpty)
           'transaction_id': transactionId,
-        if (receiptNumber != null) 'receipt_number': receiptNumber,
       },
     );
     if (response.data is Map) return Map<String, dynamic>.from(response.data as Map);

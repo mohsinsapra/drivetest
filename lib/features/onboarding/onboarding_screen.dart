@@ -70,8 +70,7 @@ class OnboardingScreen extends StatefulWidget {
         if (prods.length == 1) return api.createBCDPaymentIntent(prods.first['id'] as int);
         return api.createBCDBundlePaymentIntent(prods.map((p) => p['id'] as int).toList());
       },
-      onStripePaymentConfirmed: (id, receiptNumber) =>
-          api.confirmBCDPayment(id, receiptNumber: receiptNumber),
+      onStripePaymentConfirmed: (id) => api.confirmBCDPayment(id),
     );
   }
 

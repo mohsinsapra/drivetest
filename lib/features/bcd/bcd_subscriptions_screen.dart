@@ -139,11 +139,10 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
         products: [product],
         createStripeIntent: (_) =>
             _api.createBCDPaymentIntent(product['id'] as int),
-        onIAPPurchaseConfirmed: (p, transactionId, receiptNumber) =>
+        onIAPPurchaseConfirmed: (p, transactionId) =>
             _api.confirmBCDIAPPurchase(
           (p['id'] as num).toInt(),
           transactionId: transactionId,
-          receiptNumber: receiptNumber,
         ),
       );
       if (result == null || !mounted) return;

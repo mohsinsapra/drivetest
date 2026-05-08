@@ -4,6 +4,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/category_sort_utils.dart';
@@ -71,6 +73,23 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
       if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_categories, type: SnackBarType.error);
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// Pull-to-refresh: bust all caches and re-fetch from backend so that
+  /// subscription status changes (new purchase or expiry) are reflected immediately.
+  Future<void> _forceRefresh() async {
+    try {
+      BcdCache.instance.invalidate();
+      await DioClient().clearCache();
+      await ApiService().fetchCurrentUser(forceRefresh: true);
+      if (mounted) {
+        setState(() {
+          _categories = sortSubscribedCategoriesFirst(BcdCache.instance.categories);
+        });
+      }
+    } catch (e) {
+      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_categories, type: SnackBarType.error);
     }
   }
 
@@ -145,7 +164,7 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
             child: _loading
                 ? _Shimmer()
                 : RefreshIndicator(
-                    onRefresh: _loadCategories,
+                    onRefresh: _forceRefresh,
                     child: _filtered.isEmpty
                         ? ListView(
                             children: [

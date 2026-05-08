@@ -164,8 +164,16 @@ class DashboardProvider extends ChangeNotifier {
   Future<void> syncNow() async {
     BcdCache.instance.invalidate();
     await DioClient().clearCache();
+    // Clear Hive so stale entries (e.g. expired subscriptions) don't survive
+    // a refresh that returns an empty or reduced list.
     try {
-      await ApiService().fetchCurrentUser(); // re-seeds BcdCache from fresh /self
+      final box = await AppStorage.subscribedExamsBox();
+      await box.clear();
+    } catch (e) {
+      debugPrint('[DashboardProvider] syncNow: Hive clear failed: $e');
+    }
+    try {
+      await ApiService().fetchCurrentUser(forceRefresh: true); // re-seeds BcdCache from fresh /self
     } catch (e) {
       debugPrint('[DashboardProvider] syncNow: /self re-fetch failed: $e');
       // Continue — _syncFromApi will re-try via ensureLoaded
