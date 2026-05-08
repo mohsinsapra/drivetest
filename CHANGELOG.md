@@ -20,14 +20,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.6+172] - 2026-05-08
+## [1.0.7+173] - 2026-05-08
 
 ### Added
+- **Purchase receipt system:** every successful payment generates a receipt (`RCP-YYYYMMDD-XXXXXX`) stored locally in Hive; shown on the post-purchase success overlay and accessible from Profile → Purchase History
+- **Receipt backend tracing:** confirm API calls (`confirmBCDPayment`, `confirmBCDIAPPurchase`) now pass a `receipt_number` to the backend so each subscription can be looked up for support; backend-returned receipt number takes precedence over the client-side fallback
+- **Purchase History screen:** full list of all past purchases (including expired subscriptions), sorted newest-first, accessible from the profile; receipts survive logout/re-login
 - Subscribe CTA card on Exam Dashboard when user has no subscribed exams — fetches available products and opens the paywall directly from the Progress tab
+- Paper receipt UI (`ReceiptScreen`): gradient header, zigzag tear line, all transaction fields, "Copy receipt number" button
 
 ### Changed
 - BCD subcategory screen now injects the parent category's `subscription_product` and `is_subscribed` state into the subcategory map before opening the hub screen, so hub-screen paywall and lock logic work correctly without extra API calls
 - `PaymentCoordinator._process` iOS guard moved inside the `try/catch` block so a missing `iap_product_id` now shows the error snackbar instead of silently swallowing the exception
+- `PaymentCoordinator` confirm callbacks updated to return `Future<Map<String,dynamic>?>` so the backend response (including `receipt_number`) can be used to build the local receipt
+- Subscriptions screen colors fully migrated to `ColorScheme` tokens — replaced hardcoded `#059669` green and `#4F46E5` indigo with `cs.secondary`, `cs.primary`, `cs.onSurfaceVariant`, and `cs.outlineVariant`
+- Subscription banner colors on BCD hub and licences screens changed from harsh orange (`tertiaryContainer`) to neutral `surfaceContainerLow` / `primary` tokens
+- Receipts are no longer cleared on logout so purchase history persists across sessions
 
 ### Fixed
 - **IAP/Stripe not initialising from BCD category hub:** embedded `subscription_product` in `bcd_dashboard` omits `iap_product_id`; hub screen now always fetches full product data from `api/v2/subscription-products/` (matched by ID, result cached), so IAP launches correctly on iOS

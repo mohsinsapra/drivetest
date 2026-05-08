@@ -50,10 +50,13 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
       context,
       products: products,
       createStripeIntent: (p) => ApiService().createBCDPaymentIntent(p['id'] as int),
-      onStripePaymentConfirmed: (id) => ApiService().confirmBCDPayment(id),
-      onIAPPurchaseConfirmed: (p, transactionId) => ApiService().confirmBCDIAPPurchase(
-        p['id'] as int,
+      onStripePaymentConfirmed: (id, receiptNumber) =>
+          ApiService().confirmBCDPayment(id, receiptNumber: receiptNumber),
+      onIAPPurchaseConfirmed: (p, transactionId, receiptNumber) =>
+          ApiService().confirmBCDIAPPurchase(
+        (p['id'] as num).toInt(),
         transactionId: transactionId,
+        receiptNumber: receiptNumber,
       ),
     );
 

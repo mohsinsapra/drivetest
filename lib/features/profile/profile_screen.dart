@@ -10,6 +10,7 @@ import 'package:taxi_exam_app/features/profile/edit_profile_screen.dart';
 import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
 import 'package:taxi_exam_app/features/streak/streak_settings_screen.dart';
+import 'package:taxi_exam_app/features/payment/receipt_screen.dart';
 import 'package:taxi_exam_app/features/support/help_screen.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
 
@@ -235,6 +236,11 @@ class _ProfileScreenState extends State<ProfileScreen>
     ];
     final secondaryItems = [
       (
+        icon: Icons.receipt_long_outlined,
+        color: const Color(0xFFDCEEFB),
+        title: 'Purchase History'
+      ),
+      (
         icon: Icons.person_add_alt,
         color: const Color(0xFFE0E0E0),
         title: t.profile_invite
@@ -358,12 +364,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                     onTap: e.value.title == 'Send Feedback'
                         ? _showAppFeedbackDialog
                         : e.value.title == 'Help'
-                            ? () => Navigator.push(
-                                  context,
-                                  AppPageRoute(
-                                      builder: (_) => const HelpScreen()),
-                                )
-                            : () {},
+                            ? () => Navigator.push(context,
+                                AppPageRoute(builder: (_) => const HelpScreen()))
+                            : e.value.title == 'Purchase History'
+                                ? () => Navigator.push(context,
+                                    AppPageRoute(builder: (_) => const PurchaseHistoryScreen()))
+                                : () {},
                   ),
                 )),
 

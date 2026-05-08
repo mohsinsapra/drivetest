@@ -28,6 +28,7 @@ class AppStorage {
   static const String kTestAttempts    = 'testAttempts';
   static const String kSubscribedExams = 'subscribed_exams';
   static const String kNotifications   = 'notifications';
+  static const String kReceipts        = 'purchase_receipts';
 
   // ── SharedPreferences keys (user-specific) ──────────────────────────────────
 
@@ -55,6 +56,12 @@ class AppStorage {
   static Box<LocalNotification> notificationsBox() =>
       Hive.box<LocalNotification>(kNotifications);
 
+  /// Returns the purchase receipts box (JSON strings keyed by receipt number).
+  static Future<Box<String>> receiptsBox() async =>
+      Hive.isBoxOpen(kReceipts)
+          ? Hive.box<String>(kReceipts)
+          : await Hive.openBox<String>(kReceipts);
+
   // ── User-data wipe ──────────────────────────────────────────────────────────
 
   /// Clears every user-specific storage layer.
@@ -70,6 +77,8 @@ class AppStorage {
     await _clearTestAttemptsBox();
     await _clearSubscribedExamsBox();
     await _clearNotificationsBox();
+    // Receipts are intentionally NOT cleared on logout so purchase history
+    // remains accessible after re-login and for expired subscriptions.
 
     // 2. SharedPreferences — user-specific keys only
     try {

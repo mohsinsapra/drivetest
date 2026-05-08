@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/models/purchase_receipt.dart';
+import 'package:taxi_exam_app/features/payment/receipt_screen.dart';
 
 /// Result of the success overlay interaction.
 enum SubscriptionSuccessResult { startTests, backHome }
@@ -13,6 +15,7 @@ Future<SubscriptionSuccessResult?> showSubscriptionSuccess(
   String? duration,
   String? amount,
   String? currency,
+  PurchaseReceipt? receipt,
   int autoDismissSeconds = 5,
 }) async {
   final result = await Navigator.of(context).push<SubscriptionSuccessResult>(
@@ -26,6 +29,7 @@ Future<SubscriptionSuccessResult?> showSubscriptionSuccess(
         duration: duration,
         amount: amount,
         currency: currency,
+        receipt: receipt,
       ),
       transitionsBuilder: (_, animation, __, child) => FadeTransition(
         opacity: animation,
@@ -43,12 +47,14 @@ class _PurchaseSuccessScreen extends StatefulWidget {
   final String? duration;
   final String? amount;
   final String? currency;
+  final PurchaseReceipt? receipt;
 
   const _PurchaseSuccessScreen({
     required this.productName,
     this.duration,
     this.amount,
     this.currency,
+    this.receipt,
   });
 
   @override
@@ -221,6 +227,26 @@ class _PurchaseSuccessScreenState extends State<_PurchaseSuccessScreen>
                       ],
 
                       const Spacer(flex: 2),
+
+                      // View receipt
+                      if (widget.receipt != null)
+                        TextButton.icon(
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ReceiptScreen(receipt: widget.receipt!),
+                            ),
+                          ),
+                          icon: const Icon(Icons.receipt_long_outlined, size: 16),
+                          label: Text(
+                            widget.receipt!.receiptNumber,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          style: TextButton.styleFrom(
+                            foregroundColor: cs.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ),
+
+                      const SizedBox(height: 12),
 
                       // Primary action button
                       SizedBox(

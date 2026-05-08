@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/models/purchase_receipt.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/payment/paywall_sheet.dart';
 import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
@@ -18,12 +20,13 @@ class PaymentCoordinator {
     BuildContext context, {
     required List<dynamic> products,
     required Future<String> Function(dynamic product) createStripeIntent,
-    Future<void> Function(String intentId)? onStripePaymentConfirmed,
-    Future<void> Function(dynamic product, String? transactionId)?
+    Future<Map<String, dynamic>?> Function(String intentId, String receiptNumber)? onStripePaymentConfirmed,
+    Future<Map<String, dynamic>?> Function(dynamic product, String? transactionId, String receiptNumber)?
         onIAPPurchaseConfirmed,
     String? title,
     String merchantName = 'Drive Test',
   }) async {
+
     final product =
         await showPaywallSheet(context, products: products, title: title);
     if (product == null || !context.mounted) return null;
@@ -40,8 +43,8 @@ class PaymentCoordinator {
     BuildContext context, {
     required List<dynamic> products,
     required Future<String> Function(List<dynamic> products) createStripeIntent,
-    Future<void> Function(String intentId)? onStripePaymentConfirmed,
-    Future<void> Function(dynamic product, String? transactionId)?
+    Future<Map<String, dynamic>?> Function(String intentId, String receiptNumber)? onStripePaymentConfirmed,
+    Future<Map<String, dynamic>?> Function(dynamic product, String? transactionId, String receiptNumber)?
         onIAPPurchaseConfirmed,
     String merchantName = 'Drive Test',
   }) =>
@@ -56,8 +59,9 @@ class PaymentCoordinator {
     BuildContext context, {
     required List<dynamic> products,
     required Future<String> Function(List<dynamic>) createStripeIntent,
-    Future<void> Function(String)? onStripePaymentConfirmed,
-    Future<void> Function(dynamic, String?)? onIAPPurchaseConfirmed,
+    Future<Map<String, dynamic>?> Function(String intentId, String receiptNumber)? onStripePaymentConfirmed,
+    Future<Map<String, dynamic>?> Function(dynamic product, String? transactionId, String receiptNumber)?
+        onIAPPurchaseConfirmed,
     required String merchantName,
   }) async {
     final product = products.first;
@@ -70,6 +74,8 @@ class PaymentCoordinator {
         ? product['price']?.toString() ?? ''
         : _sum(products).toStringAsFixed(2);
     final currency = product['currency']?.toString() ?? 'SEK';
+    final durationDays = _maxDays(products);
+    final productId = (product['id'] as num?)?.toInt() ?? 0;
 
     try {
       // Apple requires all digital purchases on iOS to go through StoreKit IAP.
@@ -78,19 +84,30 @@ class PaymentCoordinator {
         throw Exception('This product is not available for purchase on iOS.');
       }
 
+      // Client-side fallback receipt number — used only if the backend does not
+      // return one in the confirm response.
+      final fallbackReceiptNumber = PurchaseReceipt.generateReceiptNumber();
+
+      String transactionRef = '';
+      Map<String, dynamic>? backendData;
+
       if (useIAP) {
         debugPrint('[Payment] IAP $iapId');
         IAPService.instance.init();
         final found = await IAPService.instance.loadProducts({iapId});
         if (found.isEmpty) throw Exception('Product not available in store');
         final internalId = (product['id'] as num?)?.toInt();
-        final transactionId = await IAPService.instance.buyProduct(
+        transactionRef = await IAPService.instance.buyProduct(
           found.first,
           internalProductId: internalId,
-        );
+        ) ?? '';
         if (onIAPPurchaseConfirmed != null) {
           try {
-            await onIAPPurchaseConfirmed(product, transactionId);
+            backendData = await onIAPPurchaseConfirmed(
+              product,
+              transactionRef.isNotEmpty ? transactionRef : null,
+              fallbackReceiptNumber,
+            );
             debugPrint('[Payment] IAP backend confirmation succeeded');
           } catch (e) {
             debugPrint('[Payment] IAP backend confirmation failed: $e');
@@ -107,19 +124,45 @@ class PaymentCoordinator {
             subtitle: name,
             displayAmount: price,
             currency: currency);
+        transactionRef = intentId ?? '';
         if (intentId != null && onStripePaymentConfirmed != null) {
           try {
-            await onStripePaymentConfirmed(intentId!);
+            backendData = await onStripePaymentConfirmed(
+              intentId!,
+              fallbackReceiptNumber,
+            );
           } catch (_) {}
         }
       }
 
+      // Backend generates the canonical receipt number; fall back to client-side
+      // if the backend does not return one (e.g. older server version).
+      final receiptNumber = backendData?['receipt_number']?.toString()
+          ?? fallbackReceiptNumber;
+
+      // Build and persist the receipt.
+      final receipt = PurchaseReceipt(
+        receiptNumber: receiptNumber,
+        productName: name,
+        productId: productId,
+        amount: price,
+        currency: currency,
+        durationDays: durationDays,
+        purchasedAt: DateTime.now(),
+        transactionRef: transactionRef,
+        paymentMethod: useIAP ? 'iap' : 'stripe',
+        backendRef: backendData?['receipt_number']?.toString() ??
+            backendData?['subscription_id']?.toString(),
+      );
+      _saveReceipt(receipt);
+
       if (!context.mounted) return null;
       return showSubscriptionSuccess(context,
           productName: name,
-          duration: _duration(_maxDays(products)),
+          duration: _duration(durationDays),
           amount: price,
-          currency: currency);
+          currency: currency,
+          receipt: receipt);
     } catch (e, st) {
       if (!context.mounted) return null;
       if (isIAPCancellation(e)) return null;
@@ -135,6 +178,14 @@ class PaymentCoordinator {
           type: SnackBarType.error);
       return null;
     }
+  }
+
+  static void _saveReceipt(PurchaseReceipt receipt) {
+    AppStorage.receiptsBox().then((box) {
+      box.put(receipt.receiptNumber, receipt.toJsonString());
+    }).catchError((e) {
+      debugPrint('[Payment] failed to save receipt: $e');
+    });
   }
 
   static String _name(List<dynamic> p) => p.length == 1

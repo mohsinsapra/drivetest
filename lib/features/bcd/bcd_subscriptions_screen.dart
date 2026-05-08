@@ -139,10 +139,11 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
         products: [product],
         createStripeIntent: (_) =>
             _api.createBCDPaymentIntent(product['id'] as int),
-        onIAPPurchaseConfirmed: (p, transactionId) =>
+        onIAPPurchaseConfirmed: (p, transactionId, receiptNumber) =>
             _api.confirmBCDIAPPurchase(
-          p['id'] as int,
+          (p['id'] as num).toInt(),
           transactionId: transactionId,
+          receiptNumber: receiptNumber,
         ),
       );
       if (result == null || !mounted) return;
@@ -304,7 +305,8 @@ class _PlansTab extends StatelessWidget {
     if (products.isEmpty) {
       return Center(
         child: Text(Translations.of(context).bcd_no_plans,
-            style: TextStyle(color: Colors.grey.shade500)),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant)),
       );
     }
 
@@ -359,9 +361,14 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final name = product['name']?.toString() ?? 'Plan';
     final price = product['price']?.toString() ?? '';
+    final currency = product['currency']?.toString() ?? 'SEK';
     final durationDays = product['duration_days'] as int? ?? 0;
+
+    // Owned/active uses secondary (green); unowned accent uses primary (brand blue)
+    final accentColor = (owned || isFree) ? cs.secondary : cs.primary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -375,8 +382,9 @@ class _ProductCard extends StatelessWidget {
             offset: const Offset(0, 4),
           ),
         ],
-        border:
-            owned ? Border.all(color: const Color(0xFF059669), width: 2) : null,
+        border: owned
+            ? Border.all(color: cs.secondary.withValues(alpha: 0.6), width: 2)
+            : null,
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -389,12 +397,12 @@ class _ProductCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF059669).withValues(alpha: 0.1),
+                    color: accentColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     owned ? LucideIcons.checkCircle : LucideIcons.creditCard,
-                    color: const Color(0xFF059669),
+                    color: accentColor,
                     size: 22,
                   ),
                 ),
@@ -410,43 +418,33 @@ class _ProductCard extends StatelessWidget {
                         Text(
                           _formatDuration(durationDays),
                           style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade500),
+                              fontSize: 12, color: cs.onSurfaceVariant),
                         ),
                     ],
                   ),
                 ),
-                if (isFree)
+                if (isFree || owned)
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF059669).withValues(alpha: 0.1),
+                      color: cs.secondary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(Translations.of(context).bcd_free_label,
-                        style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF059669),
-                            fontWeight: FontWeight.w600)),
-                  )
-                else if (owned)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF059669).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                    child: Text(
+                      isFree
+                          ? Translations.of(context).bcd_free_label
+                          : Translations.of(context).bcd_active_label,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: cs.secondary,
+                          fontWeight: FontWeight.w600),
                     ),
-                    child: Text(Translations.of(context).bcd_active_label,
-                        style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF059669),
-                            fontWeight: FontWeight.w600)),
                   ),
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(height: 1),
+            Divider(height: 1, color: cs.outlineVariant),
             const SizedBox(height: 16),
             if (isFree || owned)
               SizedBox(
@@ -456,8 +454,8 @@ class _ProductCard extends StatelessWidget {
                   icon: const Icon(LucideIcons.bookOpenCheck, size: 16),
                   label: Text(Translations.of(context).bcd_start_practice),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF059669),
-                    foregroundColor: Colors.white,
+                    backgroundColor: cs.secondary,
+                    foregroundColor: cs.onSecondary,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -471,15 +469,17 @@ class _ProductCard extends StatelessWidget {
                 children: [
                   if (price.isNotEmpty)
                     Text(
-                      '$price SEK',
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.w700),
+                      '$price $currency',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: cs.onSurface),
                     ),
                   ElevatedButton(
                     onPressed: disabled ? null : onBuy,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4F46E5),
-                      foregroundColor: Colors.white,
+                      backgroundColor: cs.primary,
+                      foregroundColor: cs.onPrimary,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -487,11 +487,11 @@ class _ProductCard extends StatelessWidget {
                       ),
                     ),
                     child: buying
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white))
+                                strokeWidth: 2, color: cs.onPrimary))
                         : Text(Translations.of(context).bcd_subscribe_btn),
                   ),
                 ],
@@ -534,6 +534,7 @@ class _MySubscriptionsTab extends StatelessWidget {
     if (loading) return const _Shimmer();
 
     if (subscriptions.isEmpty) {
+      final cs = Theme.of(context).colorScheme;
       return RefreshIndicator(
         onRefresh: onRefresh,
         child: Center(
@@ -541,13 +542,16 @@ class _MySubscriptionsTab extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(LucideIcons.packageOpen,
-                  size: 48, color: Colors.grey.shade300),
+                  size: 48,
+                  color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
               const SizedBox(height: 12),
               Text(Translations.of(context).bcd_no_active_subscriptions,
-                  style: TextStyle(color: Colors.grey.shade500)),
+                  style: TextStyle(color: cs.onSurfaceVariant)),
               const SizedBox(height: 4),
               Text(Translations.of(context).bcd_browse_plans,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.6))),
             ],
           ),
         ),
@@ -584,9 +588,10 @@ class _SubscriptionTile extends StatelessWidget {
     final productName =
         (product is Map ? product['name']?.toString() : null) ?? 'Plan';
 
+    final cs = Theme.of(context).colorScheme;
     final t = Translations.of(context);
     final isActive = status == 'paid';
-    final statusColor = isActive ? const Color(0xFF059669) : Colors.grey;
+    final statusColor = isActive ? cs.secondary : cs.onSurfaceVariant;
     final statusLabel = isActive ? t.bcd_active_label : _capitalize(status);
 
     return Material(
@@ -602,8 +607,8 @@ class _SubscriptionTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isActive
-                  ? const Color(0xFF059669).withValues(alpha: 0.3)
-                  : Theme.of(context).dividerColor,
+                  ? cs.secondary.withValues(alpha: 0.3)
+                  : cs.outlineVariant,
             ),
             boxShadow: [
               BoxShadow(
@@ -640,7 +645,7 @@ class _SubscriptionTile extends StatelessWidget {
                       Text(
                         '${t.bcd_expires} ${_formatDate(endDate)}',
                         style: TextStyle(
-                            fontSize: 12, color: Colors.grey.shade500),
+                            fontSize: 12, color: cs.onSurfaceVariant),
                       ),
                   ],
                 ),
@@ -662,7 +667,7 @@ class _SubscriptionTile extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Icon(LucideIcons.chevronRight,
-                  size: 16, color: Colors.grey.shade400),
+                  size: 16, color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
             ],
           ),
         ),

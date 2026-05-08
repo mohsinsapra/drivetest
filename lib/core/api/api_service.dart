@@ -708,25 +708,46 @@ class ApiService {
   /// Notify the backend that a Stripe PaymentIntent succeeded so it can
   /// immediately mark the matching BCDUserSubscription(s) as PAID — before
   /// the asynchronous Stripe webhook arrives.
-  Future<void> confirmBCDPayment(String paymentIntentId) async {
-    await _dio.post(
+  /// Confirms a Stripe payment with the backend.
+  /// [receiptNumber] is the client-generated receipt ID — the backend should
+  /// store it against the subscription so it can be looked up for support.
+  /// Returns the backend subscription map or null if the backend returns no body.
+  Future<Map<String, dynamic>?> confirmBCDPayment(
+    String paymentIntentId, {
+    String? receiptNumber,
+  }) async {
+    final response = await _dio.post(
       'api/payment/bcd/confirm-payment/',
-      data: {'payment_intent_id': paymentIntentId},
+      data: {
+        'payment_intent_id': paymentIntentId,
+        if (receiptNumber != null) 'receipt_number': receiptNumber,
+      },
     );
+    if (response.data is Map) return Map<String, dynamic>.from(response.data as Map);
+    return null;
   }
 
   /// Called immediately after a successful StoreKit purchase to confirm the
   /// backend has already verified the matching Apple transaction.
-  Future<void> confirmBCDIAPPurchase(int productId,
-      {String? transactionId}) async {
-    await _dio.post(
+  /// [receiptNumber] is the client-generated receipt ID — the backend should
+  /// store it against the subscription so it can be looked up for support.
+  /// Returns the backend subscription map or null if the backend returns no body.
+  Future<Map<String, dynamic>?> confirmBCDIAPPurchase(
+    int productId, {
+    String? transactionId,
+    String? receiptNumber,
+  }) async {
+    final response = await _dio.post(
       'api/payment/bcd/confirm-iap/',
       data: {
         'product_id': productId,
         if (transactionId != null && transactionId.isNotEmpty)
           'transaction_id': transactionId,
+        if (receiptNumber != null) 'receipt_number': receiptNumber,
       },
     );
+    if (response.data is Map) return Map<String, dynamic>.from(response.data as Map);
+    return null;
   }
 
   Future<void> verifyAppleIAP({
