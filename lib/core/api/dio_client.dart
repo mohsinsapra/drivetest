@@ -41,6 +41,7 @@ class DioClient {
   String? _last401Fingerprint;
   int _same401Count = 0;
   bool _logoutTriggeredFrom401 = false;
+  bool _logoutInProgress = false;
 
   Dio get dio => _dio!;
 
@@ -260,23 +261,29 @@ class DioClient {
   }
 
   Future<void> logoutAndRedirect() async {
-    await logout();
-    await UserCacheService.clearAll();
-    final context = NavigationService.navigatorKey.currentContext;
-    if (context != null && context.mounted) {
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pushAndRemoveUntil(
-        AppPageRoute(
-          builder: (context) => const AuthScreen(),
-        ),
-        (Route<dynamic> route) => false,
-      );
-      Future.delayed(const Duration(milliseconds: 500), () {
-        showAppSnackBar(
-          'You have been logged out because your account was used on another device.',
-          type: SnackBarType.error,
+    if (_logoutInProgress) return;
+    _logoutInProgress = true;
+    try {
+      await logout();
+      await UserCacheService.clearAll();
+      final context = NavigationService.navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        // ignore: use_build_context_synchronously
+        Navigator.of(context).pushAndRemoveUntil(
+          AppPageRoute(
+            builder: (context) => const AuthScreen(),
+          ),
+          (Route<dynamic> route) => false,
         );
-      });
+        Future.delayed(const Duration(milliseconds: 500), () {
+          showAppSnackBar(
+            'You have been logged out because your account was used on another device.',
+            type: SnackBarType.error,
+          );
+        });
+      }
+    } finally {
+      _logoutInProgress = false;
     }
   }
 

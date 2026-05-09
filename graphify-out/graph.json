@@ -11632,6 +11632,24 @@
       "norm_label": "dispose"
     },
     {
+      "label": "DioClient",
+      "file_type": "code",
+      "source_file": "lib/features/bcd/bcd_licences_screen.dart",
+      "source_location": null,
+      "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_licences_screen_dart_dioclient",
+      "community": 7,
+      "norm_label": "dioclient"
+    },
+    {
+      "label": "ApiService",
+      "file_type": "code",
+      "source_file": "lib/features/bcd/bcd_licences_screen.dart",
+      "source_location": null,
+      "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_licences_screen_dart_apiservice",
+      "community": 7,
+      "norm_label": "apiservice"
+    },
+    {
       "label": "_onCategoryTap",
       "file_type": "code",
       "source_file": "lib/features/bcd/bcd_licences_screen.dart",
@@ -17424,6 +17442,18 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
+      "source_file": "lib/features/bcd/bcd_licences_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "lib_features_bcd_bcd_licences_screen_dart",
+      "_tgt": "package_taxi_exam_app_core_api_dio_client_dart",
+      "source": "package_taxi_exam_app_core_api_dio_client_dart",
+      "target": "lib_features_bcd_bcd_licences_screen_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "lib/features/bcd/bcd_category_hub_screen.dart",
       "source_location": null,
       "weight": 1.0,
@@ -18547,6 +18577,18 @@
       "_tgt": "package_taxi_exam_app_core_api_api_service_dart",
       "source": "package_taxi_exam_app_core_api_api_service_dart",
       "target": "lib_features_bcd_bcd_subscriptions_screen_dart"
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/bcd/bcd_licences_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "lib_features_bcd_bcd_licences_screen_dart",
+      "_tgt": "package_taxi_exam_app_core_api_api_service_dart",
+      "source": "package_taxi_exam_app_core_api_api_service_dart",
+      "target": "lib_features_bcd_bcd_licences_screen_dart"
     },
     {
       "relation": "imports",
@@ -34147,6 +34189,30 @@
       "_tgt": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_licences_screen_dart_dispose",
       "source": "lib_features_bcd_bcd_licences_screen_dart",
       "target": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_licences_screen_dart_dispose"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/bcd/bcd_licences_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "lib_features_bcd_bcd_licences_screen_dart",
+      "_tgt": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_licences_screen_dart_dioclient",
+      "source": "lib_features_bcd_bcd_licences_screen_dart",
+      "target": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_licences_screen_dart_dioclient"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/bcd/bcd_licences_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "lib_features_bcd_bcd_licences_screen_dart",
+      "_tgt": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_licences_screen_dart_apiservice",
+      "source": "lib_features_bcd_bcd_licences_screen_dart",
+      "target": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_licences_screen_dart_apiservice"
     },
     {
       "relation": "defines",

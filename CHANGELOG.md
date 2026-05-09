@@ -10,13 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Custom iOS-style stacked notification system: notifications stack behind each other with a peek effect, slide in from the top, and can be dismissed by tap or swipe up
+- Auto-dismiss after 4 seconds per notification
 
 ### Changed
--
+- Replaced `toastification` package with a custom `OverlayEntry`-based notification stack — removed `ToastificationWrapper` from `main.dart`
+- Notification cards now use theme colors throughout (`cardColor`, `colorScheme.onSurface`, `colorScheme.error`, `colorScheme.primary`, `colorScheme.shadow`) with no hardcoded static colors
+- Card background is always `theme.cardColor` (white in light mode, dark in dark mode); only the icon changes color per notification type
 
 ### Fixed
--
+- Duplicate notifications no longer appear: same message already on screen is silently dropped at the `showAppSnackBar` level
+- Multiple simultaneous logout triggers (e.g. several API requests all returning 401 at once) no longer show repeated "logged out" notifications — `logoutAndRedirect` is now guarded by a `_logoutInProgress` flag
 
 ---
 

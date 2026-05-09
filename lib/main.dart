@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:toastification/toastification.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -447,9 +446,7 @@ class _MyAppState extends State<MyApp> {
     final locale = InheritedLocaleData.of<AppLocale, Translations>(context)
         .locale
         .flutterLocale;
-    return ToastificationWrapper(
-      config: const ToastificationConfig(itemWidth: 320),
-      child: MaterialApp(
+    return MaterialApp(
         navigatorKey: NavigationService.navigatorKey,
         locale: locale,
         theme: buildLightTheme(fontProvider.fontFamily),
@@ -461,7 +458,6 @@ class _MyAppState extends State<MyApp> {
           showLater: true,
           child: const SplashScreen(),
         ),
-      ),
     );
   }
 }

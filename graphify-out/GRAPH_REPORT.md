@@ -1,11 +1,11 @@
 # Graph Report - taxi_exam_app  (2026-05-08)
 
 ## Corpus Check
-- 148 files · ~132,379 words
+- 148 files · ~132,591 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1503 nodes · 1929 edges · 42 communities detected
+- 1505 nodes · 1933 edges · 42 communities detected
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
@@ -58,7 +58,7 @@
 2. `package:taxi_exam_app/core/localization/strings.g.dart` - 35 edges
 3. `package:flutter/foundation.dart` - 31 edges
 4. `package:shared_preferences/shared_preferences.dart` - 26 edges
-5. `package:taxi_exam_app/core/api/api_service.dart` - 23 edges
+5. `package:taxi_exam_app/core/api/api_service.dart` - 24 edges
 6. `package:taxi_exam_app/core/utils/app_page_route.dart` - 23 edges
 7. `package:taxi_exam_app/core/widgets/snackbar.dart` - 22 edges
 8. `package:lucide_icons/lucide_icons.dart` - 15 edges
@@ -109,7 +109,7 @@ Nodes (63): dart:convert, dart:math, dart:typed_data, package:archive/archive.da
 
 ### Community 7 - "Community 7"
 Cohesion: 0.03
-Nodes (61): bcd_category_hub_screen.dart, bcd_sub_category_screen.dart, package:lucide_icons/lucide_icons.dart, package:shimmer/shimmer.dart, package:taxi_exam_app/core/services/payment_coordinator.dart, package:taxi_exam_app/core/utils/category_sort_utils.dart, build, CategoryCard (+53 more)
+Nodes (63): bcd_category_hub_screen.dart, bcd_sub_category_screen.dart, package:lucide_icons/lucide_icons.dart, package:shimmer/shimmer.dart, package:taxi_exam_app/core/services/payment_coordinator.dart, package:taxi_exam_app/core/utils/category_sort_utils.dart, build, CategoryCard (+55 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.03
@@ -248,7 +248,7 @@ Cohesion: 1.0
 Nodes (1): performRedirect
 
 ## Knowledge Gaps
-- **1235 isolated node(s):** `main`, `main`, `initializeStripe`, `main`, `main` (+1230 more)
+- **1237 isolated node(s):** `main`, `main`, `initializeStripe`, `main`, `main` (+1232 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 37`** (3 nodes): `dart:html`, `web_redirect_html.dart`, `performRedirect`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -267,11 +267,11 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `package:flutter/material.dart` connect `Community 2` to `Community 0`, `Community 1`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 17`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 22`, `Community 23`, `Community 25`, `Community 26`?**
   _High betweenness centrality (0.427) - this node is a cross-community bridge._
 - **Why does `package:taxi_exam_app/core/localization/strings.g.dart` connect `Community 1` to `Community 0`, `Community 3`, `Community 4`, `Community 5`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 12`, `Community 13`, `Community 15`, `Community 16`, `Community 19`, `Community 21`, `Community 23`?**
-  _High betweenness centrality (0.092) - this node is a cross-community bridge._
+  _High betweenness centrality (0.095) - this node is a cross-community bridge._
 - **Why does `package:flutter/foundation.dart` connect `Community 0` to `Community 2`, `Community 3`, `Community 6`, `Community 8`, `Community 10`, `Community 12`, `Community 13`, `Community 15`, `Community 17`, `Community 19`, `Community 20`?**
-  _High betweenness centrality (0.061) - this node is a cross-community bridge._
+  _High betweenness centrality (0.059) - this node is a cross-community bridge._
 - **What connects `main`, `main`, `initializeStripe` to the rest of the system?**
-  _1235 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1237 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.02 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
