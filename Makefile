@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version
+.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -167,10 +167,30 @@ _write-web-version-file:
 		'}' > $(WEB_BUILD_DIR)/version.json
 	@echo "$(COLOR_GREEN)✅ Wrote $(WEB_BUILD_DIR)/version.json$(COLOR_RESET)"
 
+## _cloudflare-purge: Purge Cloudflare CDN cache so users get fresh files immediately
+_cloudflare-purge:
+	@if [ -n "$(CLOUDFLARE_ZONE_ID)" ] && [ -n "$(CLOUDFLARE_API_TOKEN)" ]; then \
+		echo "$(COLOR_BLUE)Purging Cloudflare cache...$(COLOR_RESET)"; \
+		HTTP_STATUS=$$(curl -s -o /tmp/cf_purge_response.json -w "%{http_code}" -X POST \
+			"https://api.cloudflare.com/client/v4/zones/$(CLOUDFLARE_ZONE_ID)/purge_cache" \
+			-H "Authorization: Bearer $(CLOUDFLARE_API_TOKEN)" \
+			-H "Content-Type: application/json" \
+			--data '{"purge_everything":true}'); \
+		if [ "$$HTTP_STATUS" = "200" ]; then \
+			echo "$(COLOR_GREEN)✅ Cloudflare cache purged — users will get fresh build$(COLOR_RESET)"; \
+		else \
+			echo "$(COLOR_YELLOW)⚠️  Cloudflare purge returned HTTP $$HTTP_STATUS$(COLOR_RESET)"; \
+			cat /tmp/cf_purge_response.json; \
+		fi; \
+	else \
+		echo "$(COLOR_YELLOW)⚠️  Skipping Cloudflare purge — CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN not set$(COLOR_RESET)"; \
+	fi
+
 ## _web-deploy-core: Build web and push to web repo (no version bump, no git commit)
 _web-deploy-core: web-build
 	@echo "$(COLOR_BLUE)Deploying web app to repository...$(COLOR_RESET)"
 	@$(MAKE) -s _deploy-to-web-repo
+	@$(MAKE) -s _cloudflare-purge
 
 ## web-deploy: Bump patch, deploy web and commit to main repo
 web-deploy:
