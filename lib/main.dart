@@ -61,6 +61,10 @@ void main() async {
       options.beforeSend = (event, hint) {
         final msg = event.throwable?.toString() ?? '';
         if (msg.contains('_handledContextLostEvent')) return null;
+        // Session-validation timeouts are caught and swallowed by _runValidation;
+        // sentry_dio captures them at the Dio layer before the catch block runs.
+        if (msg.contains('Failed to fetch current user') &&
+            msg.contains('receive timeout')) return null;
         return event;
       };
     },
