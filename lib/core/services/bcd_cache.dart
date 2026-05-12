@@ -39,6 +39,8 @@ class BcdCache {
   List<Map<String, dynamic>>? _categories;
   final Map<int, List<Map<String, dynamic>>> _subcategories = {};
   final Map<int, List<Map<String, dynamic>>> _tests = {};
+  // bcd_id → end_date ISO string for active subscriptions
+  final Map<int, String> _endDateByBcdId = {};
 
   Completer<void>? _loadCompleter;
 
@@ -80,12 +82,16 @@ class BcdCache {
   /// Tests for a category or subcategory [bcdId].
   List<Map<String, dynamic>> testsOf(int bcdId) => _tests[bcdId] ?? [];
 
+  /// end_date ISO string for a subscribed category by its bcd_id, or null.
+  String? endDateFor(int bcdId) => _endDateByBcdId[bcdId];
+
   /// Wipe the cache so the next [ensureLoaded] re-fetches.
   /// Call after subscription purchase or on logout.
   void invalidate() {
     _categories = null;
     _subcategories.clear();
     _tests.clear();
+    _endDateByBcdId.clear();
     _loadCompleter = null;
   }
 
@@ -98,6 +104,22 @@ class BcdCache {
     if (_categories != null || _loadCompleter != null) return;
     _applyDashboard(bcdDashboard);
     debugPrint('[BcdCache] seeded from /self: ${_categories!.length} categories');
+  }
+
+  /// Store end dates from the `bcd_subscriptions` list in the `/self` response.
+  /// Called independently of [seedFromSelfResponse] so it works on re-seeding too.
+  void seedSubscriptionEndDates(List<dynamic> bcdSubscriptions) {
+    _endDateByBcdId.clear();
+    for (final raw in bcdSubscriptions) {
+      if (raw is! Map) continue;
+      final endDate = raw['end_date']?.toString() ?? '';
+      if (endDate.isEmpty) continue;
+      final ids = raw['subscribed_category_bcd_ids'];
+      if (ids is! List) continue;
+      for (final id in ids) {
+        if (id is int) _endDateByBcdId[id] = endDate;
+      }
+    }
   }
 
   // ── Private ────────────────────────────────────────────────────────────────

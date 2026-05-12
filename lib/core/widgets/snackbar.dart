@@ -269,6 +269,7 @@ class _NotifCard extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 height: 1.3,
                 color: cs.onSurface,
+                decoration: TextDecoration.none,
               ),
               textAlign: TextAlign.center,
               softWrap: true,

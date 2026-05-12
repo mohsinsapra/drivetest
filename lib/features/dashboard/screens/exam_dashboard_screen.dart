@@ -295,6 +295,11 @@ class _ExamCarouselSection extends StatelessWidget {
                 final isSelected = exam.id == provider.selectedExam?.id;
                 final progress = provider.overviewProgress[exam.id] ?? 0.0;
 
+                final bcdId = int.tryParse(exam.id);
+                final endDate = bcdId != null
+                    ? BcdCache.instance.endDateFor(bcdId)
+                    : null;
+
                 return Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: GestureDetector(
@@ -306,6 +311,7 @@ class _ExamCarouselSection extends StatelessWidget {
                       exam: exam,
                       progress: progress,
                       isActive: isSelected,
+                      endDate: endDate,
                       onArrowTap: () => _handleExamArrowTap(
                         context,
                         exam,
@@ -338,11 +344,7 @@ class _SubscribeCTACard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [cs.primaryContainer.withValues(alpha: 0.5), cs.secondaryContainer.withValues(alpha: 0.35)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: cs.primaryContainer.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: cs.primary.withValues(alpha: 0.15)),
       ),
@@ -387,12 +389,37 @@ class _ExamCard extends StatelessWidget {
     required this.exam,
     required this.progress,
     required this.isActive,
+    this.endDate,
     this.onArrowTap,
   });
   final SubscribedExam exam;
   final double progress; // 0–100
   final bool isActive;
+  final String? endDate;
   final VoidCallback? onArrowTap;
+
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  String? _expiryLabel() {
+    final iso = endDate;
+    if (iso == null || iso.isEmpty) return null;
+    try {
+      final dt = DateTime.parse(iso).toLocal();
+      final now = DateTime.now();
+      final diff = dt.difference(now);
+      final dateStr = '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
+      if (diff.inDays < 0) return 'Expired $dateStr';
+      if (diff.inDays == 0) return 'Expires today';
+      if (diff.inDays == 1) return 'Expires tomorrow';
+      if (diff.inDays <= 14) return 'Expires in ${diff.inDays} days';
+      return 'Expires $dateStr';
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -471,6 +498,18 @@ class _ExamCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (_expiryLabel() != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      _expiryLabel()!,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

@@ -544,7 +544,7 @@ class _MySubscriptionsTab extends StatelessWidget {
                   size: 48,
                   color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
               const SizedBox(height: 12),
-              Text(Translations.of(context).bcd_no_active_subscriptions,
+              Text(Translations.of(context).bcd_no_plans,
                   style: TextStyle(color: cs.onSurfaceVariant)),
               const SizedBox(height: 4),
               Text(Translations.of(context).bcd_browse_plans,
@@ -579,6 +579,11 @@ class _SubscriptionTile extends StatelessWidget {
   final VoidCallback onTap;
   const _SubscriptionTile({required this.sub, required this.onTap});
 
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final status = sub['status']?.toString() ?? '';
@@ -590,84 +595,113 @@ class _SubscriptionTile extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final t = Translations.of(context);
     final isActive = status == 'paid';
-    final statusColor = isActive ? cs.secondary : cs.onSurfaceVariant;
-    final statusLabel = isActive ? t.bcd_active_label : _capitalize(status);
+    final isExpired = status == 'expired' || _isDateExpired(endDate);
+
+    final statusColor = isActive
+        ? cs.secondary
+        : isExpired
+            ? cs.error.withValues(alpha: 0.8)
+            : cs.onSurfaceVariant;
+    final statusLabel = isActive
+        ? t.bcd_active_label
+        : isExpired
+            ? 'Expired'
+            : _capitalize(status);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: isActive ? onTap : null,
         borderRadius: BorderRadius.circular(14),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isActive
-                  ? cs.secondary.withValues(alpha: 0.3)
-                  : cs.outlineVariant,
+        child: Opacity(
+          opacity: isExpired ? 0.65 : 1.0,
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isActive
+                    ? cs.secondary.withValues(alpha: 0.3)
+                    : isExpired
+                        ? cs.error.withValues(alpha: 0.2)
+                        : cs.outlineVariant,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    isActive
+                        ? LucideIcons.shieldCheck
+                        : LucideIcons.shieldOff,
+                    color: statusColor,
+                    size: 20,
+                  ),
                 ),
-                child: Icon(
-                  isActive ? LucideIcons.shieldCheck : LucideIcons.shieldOff,
-                  color: statusColor,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(productName,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
-                    if (endDate.isNotEmpty)
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        '${t.bcd_expires} ${_formatDate(endDate)}',
+                        productName,
                         style: TextStyle(
-                            fontSize: 12, color: cs.onSurfaceVariant),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: isExpired ? cs.onSurfaceVariant : cs.onSurface,
+                        ),
                       ),
-                  ],
+                      if (endDate.isNotEmpty)
+                        Text(
+                          _expiryLabel(endDate, isActive),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isActive && _isDueSoon(endDate)
+                                ? cs.error
+                                : cs.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: statusColor,
+                        fontWeight: FontWeight.w600),
+                  ),
                 ),
-                child: Text(
-                  statusLabel,
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: statusColor,
-                      fontWeight: FontWeight.w600),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(LucideIcons.chevronRight,
-                  size: 16, color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
-            ],
+                if (isActive) ...[
+                  const SizedBox(width: 4),
+                  Icon(LucideIcons.chevronRight,
+                      size: 16,
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
+                ],
+              ],
+            ),
           ),
         ),
       ),
@@ -677,10 +711,39 @@ class _SubscriptionTile extends StatelessWidget {
   String _capitalize(String s) =>
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-  String _formatDate(String iso) {
+  bool _isDateExpired(String iso) {
+    try {
+      return DateTime.parse(iso).toLocal().isBefore(DateTime.now());
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _isDueSoon(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
-      return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+      final diff = dt.difference(DateTime.now()).inDays;
+      return diff >= 0 && diff <= 14;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  String _expiryLabel(String iso, bool isActive) {
+    try {
+      final dt = DateTime.parse(iso).toLocal();
+      final now = DateTime.now();
+      final diff = dt.difference(now);
+      final dateStr =
+          '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
+
+      if (!isActive) return 'Expired $dateStr';
+
+      if (diff.inDays < 0) return 'Expired $dateStr';
+      if (diff.inDays == 0) return 'Expires today';
+      if (diff.inDays == 1) return 'Expires tomorrow';
+      if (diff.inDays <= 14) return 'Expires in ${diff.inDays} days · $dateStr';
+      return 'Expires $dateStr';
     } catch (_) {
       return iso;
     }

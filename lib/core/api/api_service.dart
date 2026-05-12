@@ -82,6 +82,10 @@ class ApiService {
         if (dashboard is List) {
           BcdCache.instance.seedFromSelfResponse(dashboard);
         }
+        final subs = data['bcd_subscriptions'];
+        if (subs is List) {
+          BcdCache.instance.seedSubscriptionEndDates(subs);
+        }
         // Persist user fields so the profile screen can read them immediately.
         try {
           final prefs = await SharedPreferences.getInstance();
