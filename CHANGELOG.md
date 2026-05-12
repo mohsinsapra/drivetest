@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.13+179] - 2026-05-12
+
+### Added
 - Payment receipts: Apple IAP purchases now generate and return a `receipt_number` stored on the subscription record
 - Exam subscription expiry dates: subscription `end_date` is now derived from the Apple transaction's `expires_date_ms` (or `duration_days` fallback) and persisted correctly so the app displays accurate expiry info
 - Deferred IAP receipt verification: Apple JWS token is saved locally when no auth token is present, allowing the user to complete payment before account creation — receipt is sent to backend after login
@@ -22,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Missing `onIAPPurchaseConfirmed` callback in onboarding payment flow — backend confirm endpoint is now called for iOS purchases from the onboarding screen (Apple guideline 2.1(b))
 
+---
 ---
 
 ## [1.0.12+178] - 2026-05-12
