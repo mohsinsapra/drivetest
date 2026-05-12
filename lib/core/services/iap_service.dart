@@ -198,24 +198,34 @@ class IAPService {
 
   /// Called after login to verify any receipt that was saved during a
   /// purchase or restore that occurred while the user was not logged in.
-  /// Returns true if a deferred receipt was found and verified successfully.
-  Future<bool> verifyDeferredReceipt() async {
+  /// Returns the backend response map (includes receipt_number) on success,
+  /// or null if no deferred receipt exists or verification fails.
+  Future<Map<String, dynamic>?> verifyDeferredReceipt() async {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString(_kDeferredKey);
-    if (stored == null) return false;
+    if (stored == null) return null;
+
+    Map<String, dynamic>? data;
     try {
-      final data = jsonDecode(stored) as Map<String, dynamic>;
-      await _api.verifyAppleIAP(
+      data = jsonDecode(stored) as Map<String, dynamic>;
+    } catch (_) {
+      await prefs.remove(_kDeferredKey);
+      debugPrint('[IAP] deferred receipt was malformed JSON, purged');
+      return null;
+    }
+
+    try {
+      final result = await _api.verifyAppleIAP(
         receiptData: data['receipt_data'] as String,
         iapProductId: data['product_id'] as String,
         internalProductId: data['internal_product_id'] as int?,
       );
       await prefs.remove(_kDeferredKey);
       debugPrint('[IAP] deferred receipt verified and cleared');
-      return true;
+      return result;
     } catch (e) {
       debugPrint('[IAP] deferred verify failed: $e');
-      return false;
+      return null;
     }
   }
 

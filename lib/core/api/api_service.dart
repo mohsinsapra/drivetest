@@ -746,12 +746,12 @@ class ApiService {
     return null;
   }
 
-  Future<void> verifyAppleIAP({
+  Future<Map<String, dynamic>?> verifyAppleIAP({
     required String receiptData,
     required String iapProductId,
     int? internalProductId,
   }) async {
-    await _dio.post(
+    final response = await _dio.post(
       'api/payment/iap/apple/verify/',
       data: {
         'receipt_data': receiptData,
@@ -759,6 +759,8 @@ class ApiService {
         if (internalProductId != null) 'internal_product_id': internalProductId,
       },
     );
+    if (response.data is Map) return Map<String, dynamic>.from(response.data as Map);
+    return null;
   }
 
   Future<String> createCheckoutSession({
