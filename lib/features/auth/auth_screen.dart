@@ -14,7 +14,6 @@ import 'package:taxi_exam_app/core/auth/apple_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/auth/google_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
-import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/forgot_password_screen.dart';
@@ -39,6 +38,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLoading = false;
   bool _isGoogleLoading = false;
   bool _isAppleLoading = false;
+  String _googleLoadingStep = '';
 
   // Login state
   final _loginUsernameCtrl = TextEditingController();
@@ -90,28 +90,17 @@ class _AuthScreenState extends State<AuthScreen> {
 
   // ── Navigation after auth ─────────────────────────────────────────────────
 
-  Future<void> _navigateToMain({required bool isFirstLogin}) async {
-    dynamic user;
-    try {
-      user = await _apiService.fetchCurrentUser();
-    } catch (e) {
-      // Transient network failure (e.g. DNS hiccup right after Google OAuth
-      // returns from Safari on iOS). Navigation must not be blocked — the
-      // MainScreen will re-fetch user data on its own.
-      debugPrint('_navigateToMain: fetchCurrentUser failed (non-fatal): $e');
-      await Sentry.addBreadcrumb(Breadcrumb(
-        message: 'fetchCurrentUser failed after login (non-fatal): $e',
-        category: 'auth',
-        level: SentryLevel.warning,
-      ));
+  Future<void> _navigateToMain({
+    required bool isFirstLogin,
+    String? displayName,
+  }) async {
+    // Welcome message uses the name from Google/Apple — no extra self/ call needed.
+    // MainScreen._loadTabFlags() will fetch self/ for feature flags on its own.
+    if (displayName != null || isFirstLogin) {
+      _showWelcomeMessage({'first_name': displayName ?? ''}, isFirstLogin: isFirstLogin);
     }
-    if (user != null) {
-      _showWelcomeMessage(Map<String, dynamic>.from(user as Map),
-          isFirstLogin: isFirstLogin);
-    }
-    // Fire-and-forget: FCM init calls getToken() which can block indefinitely.
-    // Navigate immediately and let token registration complete in the background.
-    NotificationService.init(ApiService()).ignore();
+    // NotificationService.init is called in MainScreen.initState — skip here
+    // to avoid a duplicate register-token/ call.
     if (!mounted) return;
     final navigator = Navigator.of(context);
     final afterAuth = widget.onAfterAuth;
@@ -139,6 +128,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() {
       _isGoogleLoading = true;
+      _googleLoadingStep = 'Connecting to Google...';
       _loginError = null;
     });
     try {
@@ -147,9 +137,10 @@ class _AuthScreenState extends State<AuthScreen> {
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: user cancelled', category: 'auth'));
-        setState(() => _isGoogleLoading = false);
+        setState(() { _isGoogleLoading = false; _googleLoadingStep = ''; });
         return;
       }
+      if (mounted) setState(() => _googleLoadingStep = 'Verifying account...');
       await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: user obtained, fetching auth tokens', category: 'auth'));
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
@@ -157,14 +148,16 @@ class _AuthScreenState extends State<AuthScreen> {
       if (idToken == null && accessToken == null) {
         throw Exception('No authentication token received');
       }
+      if (mounted) setState(() => _googleLoadingStep = 'Signing you in...');
       await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: tokens received, calling backend googleAuth', category: 'auth'));
       final isFirstLogin = await _apiService.googleAuth(
           idToken: idToken, accessToken: accessToken);
       await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: backend googleAuth succeeded, isFirstLogin=$isFirstLogin', category: 'auth'));
+      if (mounted) setState(() => _googleLoadingStep = isFirstLogin ? 'Creating your account...' : 'Loading your profile...');
       if (!mounted) return;
       vibrateLoginLogout();
       try {
-        await _navigateToMain(isFirstLogin: isFirstLogin);
+        await _navigateToMain(isFirstLogin: isFirstLogin, displayName: googleUser.displayName);
       } catch (navError) {
         debugPrint(
             'AuthScreen: navigation error after Google login — $navError');
@@ -189,7 +182,7 @@ class _AuthScreenState extends State<AuthScreen> {
             : GoogleSignInHelper.userMessage(e);
       });
     } finally {
-      if (mounted) setState(() => _isGoogleLoading = false);
+      if (mounted) setState(() { _isGoogleLoading = false; _googleLoadingStep = ''; });
     }
   }
 
@@ -390,6 +383,7 @@ class _AuthScreenState extends State<AuthScreen> {
           _AuthView.landing => _LandingView(
               key: const ValueKey('landing'),
               isGoogleLoading: _isGoogleLoading,
+              googleLoadingStep: _googleLoadingStep,
               isAppleLoading: _isAppleLoading,
               loginError: _loginError,
               onGoogle: _signInWithGoogle,
@@ -859,6 +853,7 @@ class _LandingView extends StatelessWidget {
   const _LandingView({
     super.key,
     required this.isGoogleLoading,
+    required this.googleLoadingStep,
     required this.isAppleLoading,
     required this.loginError,
     required this.onGoogle,
@@ -869,6 +864,7 @@ class _LandingView extends StatelessWidget {
   });
 
   final bool isGoogleLoading;
+  final String googleLoadingStep;
   final bool isAppleLoading;
   final String? loginError;
   final VoidCallback onGoogle;
@@ -1070,6 +1066,18 @@ class _LandingView extends StatelessWidget {
                                     color: cs.onPrimary),
                               ),
                       ),
+                      if (isGoogleLoading && googleLoadingStep.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            googleLoadingStep,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: cs.onSurfaceVariant,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       const SizedBox(height: 14),
                       // Login button
                       SizedBox(

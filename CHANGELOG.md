@@ -10,13 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Payment receipts: Apple IAP purchases now generate and return a `receipt_number` stored on the subscription record
+- Exam subscription expiry dates: subscription `end_date` is now derived from the Apple transaction's `expires_date_ms` (or `duration_days` fallback) and persisted correctly so the app displays accurate expiry info
+- Deferred IAP receipt verification: Apple JWS token is saved locally when no auth token is present, allowing the user to complete payment before account creation — receipt is sent to backend after login
+- Contextual auth sheet titles for post-payment and restore flows so Apple reviewers clearly see the form is for a Drive Test Pro account, not an Apple ID
 
 ### Changed
--
+- IAP purchase flow no longer requires login before the StoreKit payment sheet appears (Apple guideline 5.1.1(v))
+- Restore Purchases no longer shows the login form before calling StoreKit restore (Apple guideline 3.1.1)
 
 ### Fixed
--
+- Missing `onIAPPurchaseConfirmed` callback in onboarding payment flow — backend confirm endpoint is now called for iOS purchases from the onboarding screen (Apple guideline 2.1(b))
 
 ---
 
