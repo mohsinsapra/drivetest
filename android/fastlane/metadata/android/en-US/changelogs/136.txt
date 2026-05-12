@@ -1,0 +1,7 @@
+Added
+• Custom iOS-style stacked notification system: notifications stack behind each other with a peek effect, slide in from the top, and can be dismissed by tap or swipe up
+• Auto-dismiss after 4 seconds per notification
+
+Changed
+• Replaced `toastification` package with a custom `OverlayEntry`-based notification stack — removed `ToastificationWrapper` from `main.dart`
+• Notification cards now use theme colors throughout (`cardColor`, `colorScheme.onSurface`, `colorScheme.error`, `colorSchem...

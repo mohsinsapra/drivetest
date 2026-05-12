@@ -69,7 +69,9 @@ class _GdprConsentSheetState extends State<_GdprConsentSheet> {
           24,
           20,
           24,
-          MediaQuery.of(context).viewInsets.bottom + 32,
+          MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom +
+              32,
         ),
         child: SingleChildScrollView(
           child: Column(

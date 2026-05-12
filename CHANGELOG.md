@@ -10,6 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.10+176] - 2026-05-12
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
+## [1.0.9+175] - 2026-05-12
+
+### Added
 - Custom iOS-style stacked notification system: notifications stack behind each other with a peek effect, slide in from the top, and can be dismissed by tap or swipe up
 - Auto-dismiss after 4 seconds per notification
 
@@ -22,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Duplicate notifications no longer appear: same message already on screen is silently dropped at the `showAppSnackBar` level
 - Multiple simultaneous logout triggers (e.g. several API requests all returning 401 at once) no longer show repeated "logged out" notifications — `logoutAndRedirect` is now guarded by a `_logoutInProgress` flag
 
+---
 ---
 
 ## [1.0.8+174] - 2026-05-08
