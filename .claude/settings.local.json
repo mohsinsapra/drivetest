@@ -178,7 +178,14 @@
       "Bash(openssl genrsa *)",
       "Bash(openssl rsa *)",
       "Bash(awk '/-----BEGIN CERTIFICATE-----/{c++} c==1{print} /-----END CERTIFICATE-----/ && c==1{exit}')",
-      "Bash(awk '/-----BEGIN CERTIFICATE-----/{c++} c==2{print} /-----END CERTIFICATE-----/ && c==2{exit}')"
+      "Bash(awk '/-----BEGIN CERTIFICATE-----/{c++} c==2{print} /-----END CERTIFICATE-----/ && c==2{exit}')",
+      "Bash(curl -s -I \"https://app.drivetest.se/version.json\")",
+      "Bash(curl -s \"https://app.drivetest.se/flutter_service_worker.js\")",
+      "Bash(curl -s -I \"https://app.drivetest.se/main.dart.js\")",
+      "Bash(curl -s -I \"https://app.drivetest.se/index.html\")",
+      "Bash(curl -s -I \"https://app.drivetest.se/flutter_service_worker.js\")",
+      "Bash(curl -s -I \"https://app.drivetest.se/\")",
+      "Bash(curl -s -I \"https://app.drivetest.se/assets/AssetManifest.bin\")"
     ],
     "deny": [],
     "ask": []
