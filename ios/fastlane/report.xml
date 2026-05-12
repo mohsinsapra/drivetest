@@ -5,57 +5,39 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="00: default_platform" time="0.000212">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000226">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="01: Switch to ios build lane" time="8.8e-05">
+      <testcase classname="fastlane.lanes" name="1: Switch to ios build lane" time="7.3e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="02: get_provisioning_profile" time="4.056458">
+      <testcase classname="fastlane.lanes" name="2: get_provisioning_profile" time="4.710581">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="03: Switch to ios build_ios_archive lane" time="0.000148">
+      <testcase classname="fastlane.lanes" name="3: Switch to ios build_ios_archive lane" time="0.000142">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="04: Switch to ios resolve_xcode_dart_defines lane" time="9.9e-05">
+      <testcase classname="fastlane.lanes" name="4: Switch to ios resolve_xcode_dart_defines lane" time="5.8e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="05: Switch to ios load_root_env lane" time="9.1e-05">
+      <testcase classname="fastlane.lanes" name="5: Switch to ios load_root_env lane" time="5.6e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="06: build_app" time="186.237544">
+      <testcase classname="fastlane.lanes" name="6: build_app" time="118.228604">
         
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="07: Switch to ios tag_release lane" time="0.000117">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="08: git tag v1.0.8-174" time="0.018405">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="09: Switch to ios upload lane" time="7.7e-05">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="10: xcrun altool --upload-app -f '/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/ios/Runner.ipa' -t ios -u mohsin.sapra@gmail.com -p 'oknc-vmhh-amvb-vust' --asc-provider 128337297 --output-format normal" time="85.324228">
+          <failure message="/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/actions/actions_helper.rb:67:in `execute_action'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:255:in `block in execute_action'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:229:in `chdir'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:229:in `execute_action'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:157:in `trigger_action_by_name'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/fast_file.rb:159:in `method_missing'&#10;Fastfile:185:in `block (2 levels) in parsing_binding'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/lane.rb:41:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:204:in `try_switch_to_lane'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:146:in `trigger_action_by_name'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/fast_file.rb:159:in `method_missing'&#10;Fastfile:24:in `block (2 levels) in parsing_binding'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/lane.rb:41:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:204:in `try_switch_to_lane'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:146:in `trigger_action_by_name'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/fast_file.rb:159:in `method_missing'&#10;Fastfile:53:in `block (2 levels) in parsing_binding'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/lane.rb:41:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:49:in `block in execute'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:45:in `chdir'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/runner.rb:45:in `execute'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/lane_manager.rb:46:in `cruise_lane'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/command_line_handler.rb:34:in `handle'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/commands_generator.rb:110:in `block (2 levels) in run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/command.rb:187:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/command.rb:157:in `run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/runner.rb:444:in `run_active_command'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane_core/lib/fastlane_core/ui/fastlane_runner.rb:124:in `run!'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/delegates.rb:18:in `run!'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/commands_generator.rb:363:in `run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/commands_generator.rb:43:in `start'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/fastlane/lib/fastlane/cli_tools_distributor.rb:132:in `take_off'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.233.1/bin/fastlane:23:in `&lt;top (required)&gt;'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/fastlane:23:in `load'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/fastlane:23:in `&lt;main&gt;'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/ruby_executable_hooks:22:in `eval'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/ruby_executable_hooks:22:in `&lt;main&gt;'&#10;&#10;Error building the application - see the log above" />
         
       </testcase>
     
