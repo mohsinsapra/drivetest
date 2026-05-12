@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/api/dio_client.dart';
 
 /// Wraps [InAppPurchase] and wires purchases through backend validation.
 ///
@@ -27,6 +30,8 @@ class IAPService {
   int? _pendingInternalProductId;
 
   bool _initialized = false;
+
+  static const _kDeferredKey = 'iap_deferred_receipt';
 
   // Broadcast stream that emits each successfully restored product ID.
   final _restoreController = StreamController<String>.broadcast();
@@ -100,6 +105,28 @@ class IAPService {
 
       if (purchase.status == PurchaseStatus.purchased ||
           purchase.status == PurchaseStatus.restored) {
+        // If the user is not logged in yet, save the receipt and skip backend verify.
+        if (DioClient().accessToken == null) {
+          await _saveReceiptForLater(purchase);
+          debugPrint('[IAP] no auth token, saving receipt for deferred verify');
+          try {
+            await _iap.completePurchase(purchase);
+          } catch (e) {
+            debugPrint('[IAP] completePurchase error (non-fatal): $e');
+          }
+          // For a buy flow: resolve the completer with success so the UI can prompt login.
+          if (_pendingCompleter != null &&
+              purchase.productID == _pendingProductId) {
+            _pendingCompleter?.complete(purchase.purchaseID);
+            _pendingCompleter = null;
+            _pendingProductId = null;
+            _pendingInternalProductId = null;
+          }
+          // For restore flow with no auth: do NOT emit to _restoreController.
+          // Caller should detect no-auth state and call verifyDeferredReceipt() after login.
+          continue;
+        }
+
         Object? verifyError;
         try {
           debugPrint('[IAP] verifying on backend...');
@@ -153,11 +180,55 @@ class IAPService {
     }
   }
 
+  Future<void> _saveReceiptForLater(PurchaseDetails purchase) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+          _kDeferredKey,
+          jsonEncode({
+            'receipt_data': purchase.verificationData.serverVerificationData,
+            'product_id': purchase.productID,
+            'internal_product_id': _pendingInternalProductId,
+          }));
+      debugPrint('[IAP] receipt saved for deferred verify');
+    } catch (e) {
+      debugPrint('[IAP] failed to save deferred receipt: $e');
+    }
+  }
+
+  /// Called after login to verify any receipt that was saved during a
+  /// purchase or restore that occurred while the user was not logged in.
+  /// Returns true if a deferred receipt was found and verified successfully.
+  Future<bool> verifyDeferredReceipt() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(_kDeferredKey);
+    if (stored == null) return false;
+    try {
+      final data = jsonDecode(stored) as Map<String, dynamic>;
+      await _api.verifyAppleIAP(
+        receiptData: data['receipt_data'] as String,
+        iapProductId: data['product_id'] as String,
+        internalProductId: data['internal_product_id'] as int?,
+      );
+      await prefs.remove(_kDeferredKey);
+      debugPrint('[IAP] deferred receipt verified and cleared');
+      return true;
+    } catch (e) {
+      debugPrint('[IAP] deferred verify failed: $e');
+      return false;
+    }
+  }
+
   Future<void> _verifyOnBackend(PurchaseDetails purchase) async {
     if (kIsWeb || !Platform.isIOS) return;
     // Local StoreKit testing produces JWS tokens that Apple's servers can't verify.
     if (kDebugMode) {
       debugPrint('[IAP] skipping backend verify in debug mode');
+      return;
+    }
+    if (DioClient().accessToken == null) {
+      // Shouldn't reach here normally (caught in _onPurchaseUpdate), but guard anyway.
+      debugPrint('[IAP] no auth token in _verifyOnBackend (should not happen)');
       return;
     }
     await _api.verifyAppleIAP(

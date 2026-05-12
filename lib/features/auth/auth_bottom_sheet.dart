@@ -12,12 +12,18 @@ import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
 /// Shows a modal bottom sheet with login / sign-up tabs.
 /// Returns `true` when the user successfully authenticates, `false`/null if dismissed.
-Future<bool> showAuthBottomSheet(BuildContext context) async {
+///
+/// Optional [title] and [subtitle] override the default localized header text.
+Future<bool> showAuthBottomSheet(
+  BuildContext context, {
+  String? title,
+  String? subtitle,
+}) async {
   final result = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => const _AuthSheet(),
+    builder: (_) => _AuthSheet(title: title, subtitle: subtitle),
   );
   return result == true;
 }
@@ -25,7 +31,10 @@ Future<bool> showAuthBottomSheet(BuildContext context) async {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _AuthSheet extends StatefulWidget {
-  const _AuthSheet();
+  const _AuthSheet({this.title, this.subtitle});
+
+  final String? title;
+  final String? subtitle;
 
   @override
   State<_AuthSheet> createState() => _AuthSheetState();
@@ -346,7 +355,7 @@ class _AuthSheetState extends State<_AuthSheet>
 
           // Header
           Text(
-            t.onb_sign_in_to_subscribe,
+            widget.title ?? t.onb_sign_in_to_subscribe,
             style: GoogleFonts.lexend(
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -356,7 +365,7 @@ class _AuthSheetState extends State<_AuthSheet>
           ),
           const SizedBox(height: 4),
           Text(
-            t.onb_sign_in_subtitle,
+            widget.subtitle ?? t.onb_sign_in_subtitle,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               color: theme.colorScheme.onSurfaceVariant,

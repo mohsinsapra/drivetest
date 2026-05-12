@@ -23,7 +23,11 @@ import 'package:taxi_exam_app/main_screen.dart';
 
 typedef OnboardingLoadProducts = Future<List<Map<String, dynamic>>> Function();
 typedef OnboardingIsLoggedIn = bool Function();
-typedef OnboardingAuthSheet = Future<bool> Function(BuildContext context);
+typedef OnboardingAuthSheet = Future<bool> Function(
+  BuildContext context, {
+  String? title,
+  String? subtitle,
+});
 typedef OnboardingPayment = Future<SubscriptionSuccessResult?> Function(
   BuildContext context,
   List<Map<String, dynamic>> products,
@@ -51,9 +55,13 @@ class OnboardingScreen extends StatefulWidget {
         .toList();
   }
 
-  static Future<bool> _defaultShowAuthSheet(BuildContext context) async {
+  static Future<bool> _defaultShowAuthSheet(
+    BuildContext context, {
+    String? title,
+    String? subtitle,
+  }) async {
     if (DioClient().accessToken != null) return true;
-    return showAuthBottomSheet(context);
+    return showAuthBottomSheet(context, title: title, subtitle: subtitle);
   }
 
   static bool _defaultIsLoggedIn() => DioClient().accessToken != null;
@@ -71,6 +79,11 @@ class OnboardingScreen extends StatefulWidget {
         return api.createBCDBundlePaymentIntent(prods.map((p) => p['id'] as int).toList());
       },
       onStripePaymentConfirmed: (id) => api.confirmBCDPayment(id),
+      onIAPPurchaseConfirmed: (product, transactionId) =>
+          api.confirmBCDIAPPurchase(
+        (product['id'] as num).toInt(),
+        transactionId: transactionId,
+      ),
     );
   }
 
@@ -216,53 +229,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     setState(() => _purchaseInFlight = true);
 
-    if (!widget.isLoggedIn()) {
-      final authed = await widget.showAuthSheet(context);
-      if (!authed || !mounted) {
+    // Force-refresh subscriptions only if logged in (validates token too).
+    if (widget.isLoggedIn()) {
+      await _fetchMySubscriptions(forceRefresh: true);
+
+      // Re-check auth: if the token was cleared by the 401 handler, abort here.
+      // logoutAndRedirect() is already navigating to AuthScreen.
+      if (!mounted || !widget.isLoggedIn()) {
         if (mounted) setState(() => _purchaseInFlight = false);
         return;
       }
-    }
 
-    // Force-refresh subscriptions. This also validates the token — if the
-    // Keychain token survived a reinstall but is now expired/invalid, DioClient's
-    // 401 interceptor will call logout() and clear accessToken.
-    await _fetchMySubscriptions(forceRefresh: true);
-
-    // Re-check auth: if the token was cleared by the 401 handler, abort here.
-    // logoutAndRedirect() is already navigating to AuthScreen.
-    if (!mounted || !widget.isLoggedIn()) {
-      if (mounted) setState(() => _purchaseInFlight = false);
-      return;
-    }
-
-    // If all selected products are already owned, skip payment and go straight to practice.
-    if (products.every(_isOwned)) {
-      setState(() => _purchaseInFlight = false);
-      await _markOnboardingComplete();
-      if (!mounted) return;
-      await DioClient().clearCache();
-      BcdCache.instance.invalidate();
-      await BcdCache.instance.ensureLoaded();
-      if (!mounted) return;
-      final navigator = Navigator.of(context);
-      navigator.pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
-      final categoryBcdIds = products.first['category_bcd_ids'] as List<dynamic>?;
-      final targetBcdId = categoryBcdIds?.firstOrNull;
-      if (targetBcdId != null) {
-        final targetBcdIdStr = targetBcdId.toString();
-        final targetCategory = BcdCache.instance.categories.firstWhereOrNull(
-          (c) => c['bcd_id']?.toString() == targetBcdIdStr,
-        );
-        if (targetCategory != null) {
-          final hasChildren = targetCategory['has_children'] == true;
-          navigator.push(hasChildren
-              ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: Map<String, dynamic>.from(targetCategory)..['is_subscribed'] = true))
-              : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: Map<String, dynamic>.from(targetCategory)..['is_subscribed'] = true)));
+      // If all selected products are already owned, skip payment and go straight to practice.
+      if (products.every(_isOwned)) {
+        setState(() => _purchaseInFlight = false);
+        await _markOnboardingComplete();
+        if (!mounted) return;
+        await DioClient().clearCache();
+        BcdCache.instance.invalidate();
+        await BcdCache.instance.ensureLoaded();
+        if (!mounted) return;
+        final navigator = Navigator.of(context);
+        navigator.pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
+        final categoryBcdIds = products.first['category_bcd_ids'] as List<dynamic>?;
+        final targetBcdId = categoryBcdIds?.firstOrNull;
+        if (targetBcdId != null) {
+          final targetBcdIdStr = targetBcdId.toString();
+          final targetCategory = BcdCache.instance.categories.firstWhereOrNull(
+            (c) => c['bcd_id']?.toString() == targetBcdIdStr,
+          );
+          if (targetCategory != null) {
+            final hasChildren = targetCategory['has_children'] == true;
+            navigator.push(hasChildren
+                ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: Map<String, dynamic>.from(targetCategory)..['is_subscribed'] = true))
+                : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: Map<String, dynamic>.from(targetCategory)..['is_subscribed'] = true)));
+          }
         }
+        return;
       }
-      return;
-    }
+    } // end if (widget.isLoggedIn())
 
     await _saveProgressPrefs();
     if (!mounted) return;
@@ -272,6 +277,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (result == null || !mounted) {
         if (mounted) setState(() => _purchaseInFlight = false);
         return;
+      }
+
+      // Payment succeeded. If not logged in, prompt account creation now.
+      if (!widget.isLoggedIn()) {
+        final authed = await widget.showAuthSheet(
+          context,
+          title: 'Create Your Drive Test Pro Account',
+          subtitle: 'A free account links your subscription to your profile so you can access it on any device.',
+        );
+        if (!authed || !mounted) {
+          if (mounted) setState(() => _purchaseInFlight = false);
+          return;
+        }
+        // Verify the deferred receipt now that we have auth
+        await IAPService.instance.verifyDeferredReceipt();
+        if (!mounted) return;
       }
 
       await _markOnboardingComplete();
@@ -321,12 +342,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _handleRestore() async {
     if (_restoreInFlight) return;
-
-    if (!widget.isLoggedIn()) {
-      final authed = await widget.showAuthSheet(context);
-      if (!authed || !mounted) return;
-    }
-
     setState(() => _restoreInFlight = true);
 
     try {
@@ -340,6 +355,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // let the backend process them before we query.
       await Future.delayed(const Duration(seconds: 5));
       if (!mounted) return;
+
+      // If not logged in yet, prompt sign-in to activate restored subscription
+      if (!widget.isLoggedIn()) {
+        if (!mounted) return;
+        final authed = await widget.showAuthSheet(
+          context,
+          title: 'Sign In to Restore',
+          subtitle: 'Sign in to your Drive Test Pro account — not your Apple ID — to activate your restored subscription.',
+        );
+        if (!authed || !mounted) {
+          setState(() => _restoreInFlight = false);
+          return;
+        }
+        // Verify the saved receipt now that we have auth
+        await IAPService.instance.verifyDeferredReceipt();
+        if (!mounted) return;
+      }
 
       final subs = await ApiService().fetchMyBCDSubscriptions(forceRefresh: true);
       if (!mounted) return;
