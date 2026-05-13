@@ -62,7 +62,11 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
 
     _profile.addListener(_onProfileChanged);
-    _profile.loadUserFromPrefs();
+    _profile.loadUserFromPrefs().then((_) {
+      if (_profile.username == null && mounted) {
+        _profile.loadProfile().catchError((_) {});
+      }
+    });
     _ctrl.forward();
   }
 

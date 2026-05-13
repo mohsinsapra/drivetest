@@ -1,0 +1,4 @@
+Added
+• Payment receipts: Apple IAP purchases now generate and return a `receipt_number` stored on the subscription record
+• Exam subscription expiry dates: subscription `end_date` is now derived from the Apple transaction's `expires_date_ms` (or `duration_days` fallback) and persisted correctly so the app displays accurate expiry info
+• Deferred IAP receipt verification: Apple JWS token is saved locally when no auth token is present, allowing the user to complete payment before account creat...

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -16,6 +17,10 @@ import 'dio_client.dart';
 class ApiService {
   final Dio _dio = DioClient().dio;
   final DioClient _dioClient = DioClient();
+
+  // Deduplicates simultaneous fetchCurrentUser calls — all callers share
+  // one in-flight request and receive the same result.
+  static Future<dynamic>? _inFlightSelf;
 
   Future<bool> authenticate(String username, String password) async {
     try {
@@ -66,7 +71,18 @@ class ApiService {
     await UserCacheService.clearAll();
   }
 
-  Future<dynamic> fetchCurrentUser({bool forceRefresh = false}) async {
+  Future<dynamic> fetchCurrentUser({bool forceRefresh = false}) {
+    // forceRefresh bypasses deduplication — used for explicit pull-to-refresh.
+    if (!forceRefresh && _inFlightSelf != null) return _inFlightSelf!;
+    final future = _fetchCurrentUserImpl(forceRefresh: forceRefresh);
+    if (!forceRefresh) {
+      _inFlightSelf = future;
+      future.whenComplete(() => _inFlightSelf = null);
+    }
+    return future;
+  }
+
+  Future<dynamic> _fetchCurrentUserImpl({bool forceRefresh = false}) async {
     try {
       final response = await _dio.get(
         'api/user/self/',

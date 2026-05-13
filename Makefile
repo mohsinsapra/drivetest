@@ -95,11 +95,13 @@ help:
 	@echo "  make help             - Show this help message"
 	@echo ""
 
+WEB_PORT ?= 5005
+
 ## web-run: Run web app in development mode
 web-run:
-	@echo "$(COLOR_GREEN)Starting web app in development mode...$(COLOR_RESET)"
+	@echo "$(COLOR_GREEN)Starting web app in development mode on port $(WEB_PORT)...$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)Web version: v$(APP_VERSION) ($(APP_BUILD_NUMBER))$(COLOR_RESET)"
-	@flutter run -d chrome \
+	@flutter run -d chrome --web-port=$(WEB_PORT) \
 		--dart-define=FIREBASE_API_KEY="$(FIREBASE_API_KEY)" \
 		--dart-define=FIREBASE_AUTH_DOMAIN="$(FIREBASE_AUTH_DOMAIN)" \
 		--dart-define=FIREBASE_PROJECT_ID="$(FIREBASE_PROJECT_ID)" \
