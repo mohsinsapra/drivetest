@@ -1,0 +1,5 @@
+Added
+• Guest account flow: users can now continue as a guest from the onboarding pricing screen without registering; guest session is created via `POST /api/user/guest/`
+• Guest account conversion: guests can upgrade to a full account in-place via `POST /api/user/guest/convert/` — all progress and session history is preserved
+• Guest banner on profile screen prompting guests to create a full account
+• `_FreeBCDHubCard` and `_FreeVagmarkesCard` on the dashboard for users without an active sub...

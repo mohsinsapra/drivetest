@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.16+182] - 2026-05-15
+
+### Added
 - Guest account flow: users can now continue as a guest from the onboarding pricing screen without registering; guest session is created via `POST /api/user/guest/`
 - Guest account conversion: guests can upgrade to a full account in-place via `POST /api/user/guest/convert/` — all progress and session history is preserved
 - Guest banner on profile screen prompting guests to create a full account
@@ -38,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.catchError((_) => null)` replaced with `.ignore()` for fire-and-forget deferred receipt calls
 - Errors cleared when switching between login/signup/landing views in auth screen
 
+---
 ---
 
 ## [1.0.15+181] - 2026-05-13
