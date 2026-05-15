@@ -162,3 +162,4 @@ graphify-out/cache/
 # END OF .gitignore
 # ====================================================================
 .gstack/
+Runner.app.dSYM.zip
