@@ -374,7 +374,7 @@ class _ProductCard extends StatelessWidget {
     final durationLabel =
         durationDays > 0 ? _formatDuration(durationDays) : null;
 
-    final accentColor = (owned || isFree) ? cs.secondary : categoryColor(name);
+    final accentColor = (owned || isFree) ? cs.primary : categoryColor(name);
     final iconData = owned ? LucideIcons.checkCircle : categoryIcon(name);
 
     return Container(
@@ -384,7 +384,7 @@ class _ProductCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: owned
-              ? cs.secondary.withValues(alpha: 0.5)
+              ? cs.primary.withValues(alpha: 0.35)
               : cs.outlineVariant.withValues(alpha: 0.4),
           width: owned ? 1.5 : 1,
         ),
@@ -419,7 +419,7 @@ class _ProductCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: cs.secondary.withValues(alpha: 0.10),
+                      color: cs.primary.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -429,7 +429,7 @@ class _ProductCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: cs.secondary,
+                        color: cs.primary,
                         letterSpacing: 0.3,
                       ),
                     ),
@@ -473,8 +473,8 @@ class _ProductCard extends StatelessWidget {
                   icon: const Icon(LucideIcons.bookOpenCheck, size: 16),
                   label: Text(Translations.of(context).bcd_start_practice),
                   style: FilledButton.styleFrom(
-                    backgroundColor: cs.secondary.withValues(alpha: 0.85),
-                    foregroundColor: cs.onSecondary,
+                    backgroundColor: cs.primary.withValues(alpha: 0.9),
+                    foregroundColor: cs.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -631,7 +631,7 @@ class _SubscriptionTile extends StatelessWidget {
     final isExpired = status == 'expired' || _isDateExpired(endDate);
 
     final statusColor = isActive
-        ? cs.secondary
+        ? cs.primary
         : isExpired
             ? cs.error.withValues(alpha: 0.8)
             : cs.onSurfaceVariant;
@@ -656,7 +656,7 @@ class _SubscriptionTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isActive
-                    ? cs.secondary.withValues(alpha: 0.3)
+                    ? cs.primary.withValues(alpha: 0.25)
                     : isExpired
                         ? cs.error.withValues(alpha: 0.2)
                         : cs.outlineVariant,
