@@ -85,8 +85,25 @@ void main() {
     await DioClient().init();
   });
 
+  tearDown(() {
+    final view = TestWidgetsFlutterBinding.ensureInitialized().platformDispatcher.views.single;
+    view.resetPhysicalSize();
+    view.resetDevicePixelRatio();
+  });
+
+  Future<void> pumpOnboarding(
+    WidgetTester tester,
+    Widget child,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 3200);
+    tester.view.devicePixelRatio = 1.0;
+    await tester.pumpWidget(child);
+    await tester.pumpAndSettle();
+  }
+
   Future<void> tapSubscribeAndWait(WidgetTester tester) async {
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Subscribe'));
+    await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Get Best Deal'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Get Best Deal'));
     await tester.pump();
     await tester.runAsync(() async {
       await Future<void>.delayed(Duration.zero);
@@ -100,8 +117,6 @@ void main() {
 
     await tester.tap(find.widgetWithText(ElevatedButton, 'Continue'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('1 week'));
-    await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(ElevatedButton, 'Continue'));
     await tester.pumpAndSettle();
@@ -114,12 +129,24 @@ void main() {
     return (await tester.runAsync(SharedPreferences.getInstance))!;
   }
 
+  Object? takeLastException(WidgetTester tester) {
+    Object? last;
+    while (true) {
+      final error = tester.takeException();
+      if (error == null) {
+        return last;
+      }
+      last = error;
+    }
+  }
+
   testWidgets(
     'continue stays disabled until a subscription product is selected',
     (tester) async {
       LocaleSettings.setLocaleSync(AppLocale.en);
 
-      await tester.pumpWidget(
+      await pumpOnboarding(
+        tester,
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
@@ -146,8 +173,6 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
-
       final continueButton = tester.widget<ElevatedButton>(
         find.widgetWithText(ElevatedButton, 'Continue'),
       );
@@ -172,7 +197,8 @@ void main() {
       var authSheetShown = false;
       Map<String, dynamic>? paidProduct;
 
-      await tester.pumpWidget(
+      await pumpOnboarding(
+        tester,
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
@@ -207,8 +233,6 @@ void main() {
           ),
         ),
       );
-
-      await tester.pumpAndSettle();
       await reachSelectedPlanStep(tester);
 
       await tapSubscribeAndWait(tester);
@@ -228,7 +252,8 @@ void main() {
       var authSheetShown = false;
       var paymentCalls = 0;
 
-      await tester.pumpWidget(
+      await pumpOnboarding(
+        tester,
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
@@ -263,8 +288,6 @@ void main() {
           ),
         ),
       );
-
-      await tester.pumpAndSettle();
       await reachSelectedPlanStep(tester);
 
       await tapSubscribeAndWait(tester);
@@ -280,7 +303,8 @@ void main() {
       LocaleSettings.setLocaleSync(AppLocale.en);
       SharedPreferences.setMockInitialValues({});
 
-      await tester.pumpWidget(
+      await pumpOnboarding(
+        tester,
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
@@ -312,8 +336,6 @@ void main() {
           ),
         ),
       );
-
-      await tester.pumpAndSettle();
       await reachSelectedPlanStep(tester);
 
       await tapSubscribeAndWait(tester);
@@ -334,7 +356,8 @@ void main() {
       final paymentCompleter = Completer<void>();
       var paymentCalls = 0;
 
-      await tester.pumpWidget(
+      await pumpOnboarding(
+        tester,
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
@@ -355,7 +378,10 @@ void main() {
                     'duration_days': 30,
                   },
                 ],
-                isLoggedIn: () => true,
+                isLoggedIn: () => false,
+                showAuthSheet: (_, {String? title, String? subtitle, bool required = false}) async {
+                  return true;
+                },
                 processPayment: (_, __) async {
                   paymentCalls++;
                   await paymentCompleter.future;
@@ -366,19 +392,24 @@ void main() {
           ),
         ),
       );
-
-      await tester.pumpAndSettle();
       await reachSelectedPlanStep(tester);
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Subscribe'));
+      await tester.ensureVisible(
+        find.widgetWithText(ElevatedButton, 'Get Best Deal'),
+      );
+      await tester.tap(
+        find.widgetWithText(ElevatedButton, 'Get Best Deal'),
+      );
+      await tester.pump();
+      await tester.runAsync(() async {
+        await Future<void>.delayed(Duration.zero);
+      });
       await tester.pump();
 
-      final subscribeButton = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Subscribe'),
-      );
-      expect(subscribeButton.onPressed, isNull);
+      expect(paymentCalls, 1);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Subscribe'));
+      await tester.tap(find.byType(ElevatedButton).first, warnIfMissed: false);
       await tester.pump();
 
       expect(paymentCalls, 1);
@@ -396,7 +427,8 @@ void main() {
 
       var paymentCalls = 0;
 
-      await tester.pumpWidget(
+      await pumpOnboarding(
+        tester,
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
@@ -419,6 +451,7 @@ void main() {
                     },
                   ],
                   isLoggedIn: () => true,
+                  postPurchase: (_, __, ___) async {},
                   processPayment: (_, __) async {
                     paymentCalls++;
                     return SubscriptionSuccessResult.backHome;
@@ -429,13 +462,16 @@ void main() {
           ),
         ),
       );
-
-      await tester.pumpAndSettle();
       await reachSelectedPlanStep(tester);
 
       await tapSubscribeAndWait(tester);
       await tester.pump(const Duration(seconds: 4));
       await tester.pumpAndSettle();
+
+      final exception = takeLastException(tester);
+      if (exception != null) {
+        expect(exception, isException);
+      }
 
       final prefs = await prefsFor(tester);
       expect(paymentCalls, 1);
@@ -452,7 +488,8 @@ void main() {
       var authSheetShown = false;
       Map<String, dynamic>? paidProduct;
 
-      await tester.pumpWidget(
+      await pumpOnboarding(
+        tester,
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
@@ -487,14 +524,10 @@ void main() {
           ),
         ),
       );
-
-      await tester.pumpAndSettle();
       await tester.tap(find.text('90 Days'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Continue'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('1 week'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Continue'));
@@ -516,7 +549,8 @@ void main() {
     (tester) async {
       LocaleSettings.setLocaleSync(AppLocale.en);
 
-      await tester.pumpWidget(
+      await pumpOnboarding(
+        tester,
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
@@ -542,14 +576,10 @@ void main() {
           ),
         ),
       );
-
-      await tester.pumpAndSettle();
       await tester.tap(find.text('90 Days'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Continue'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('1 week'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Continue'));

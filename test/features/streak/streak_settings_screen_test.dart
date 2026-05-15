@@ -25,6 +25,7 @@ Widget _buildTestApp(StreakSettingsProvider provider) {
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    LocaleSettings.setLocaleSync(AppLocale.en);
   });
 
   group('StreakSettingsScreen', () {
@@ -68,9 +69,11 @@ void main() {
       await tester.pumpWidget(_buildTestApp(provider));
       await tester.pumpAndSettle();
 
-      // The weekday picker has 7 circles (M T W T F S S)
-      // We verify by checking the weekly count label
-      expect(find.textContaining('days / week'), findsOneWidget);
+      expect(find.text('M'), findsNWidgets(2));
+      expect(find.text('T'), findsNWidgets(4));
+      expect(find.text('W'), findsNWidgets(2));
+      expect(find.text('F'), findsNWidgets(2));
+      expect(find.text('S'), findsNWidgets(4));
     });
 
     testWidgets('weekly goal label updates when weekday toggled', (tester) async {
@@ -79,7 +82,7 @@ void main() {
       await tester.pumpWidget(_buildTestApp(provider));
       await tester.pumpAndSettle();
 
-      expect(find.text('5 days / week'), findsOneWidget);
+      expect(find.text('5 day(s) / week'), findsOneWidget);
     });
 
     testWidgets('shows notification note at bottom', (tester) async {
@@ -87,7 +90,8 @@ void main() {
       await tester.pumpWidget(_buildTestApp(provider));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('7 PM'), findsOneWidget);
+      expect(find.textContaining('morning and one in the evening'),
+          findsOneWidget);
     });
 
     testWidgets('screen title is Study Goals', (tester) async {
@@ -107,7 +111,7 @@ void main() {
       await tester.pumpWidget(_buildTestApp(provider));
       await tester.pumpAndSettle();
 
-      expect(find.text('3 days / week'), findsOneWidget);
+      expect(find.text('3 day(s) / week'), findsOneWidget);
     });
   });
 }

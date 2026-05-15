@@ -32,6 +32,11 @@ typedef OnboardingPayment = Future<SubscriptionSuccessResult?> Function(
   BuildContext context,
   List<Map<String, dynamic>> products,
 );
+typedef OnboardingPostPurchase = Future<void> Function(
+  BuildContext context,
+  SubscriptionSuccessResult result,
+  List<Map<String, dynamic>> products,
+);
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({
@@ -40,12 +45,14 @@ class OnboardingScreen extends StatefulWidget {
     this.isLoggedIn = _defaultIsLoggedIn,
     this.showAuthSheet = _defaultShowAuthSheet,
     this.processPayment = _defaultProcessPayment,
+    this.postPurchase = _defaultPostPurchase,
   });
 
   final OnboardingLoadProducts loadProducts;
   final OnboardingIsLoggedIn isLoggedIn;
   final OnboardingAuthSheet showAuthSheet;
   final OnboardingPayment processPayment;
+  final OnboardingPostPurchase postPurchase;
 
   static Future<List<Map<String, dynamic>>> _defaultLoadProducts() async {
     final raw = await ApiService().fetchBCDSubscriptionProducts();
@@ -86,6 +93,29 @@ class OnboardingScreen extends StatefulWidget {
         transactionId: transactionId,
       ),
     );
+  }
+
+  static Future<void> _defaultPostPurchase(
+    BuildContext context,
+    SubscriptionSuccessResult result,
+    List<Map<String, dynamic>> products,
+  ) async {
+    await DioClient().clearCache();
+    BcdCache.instance.invalidate();
+    try {
+      await BcdCache.instance.ensureLoaded();
+    } catch (e) {
+      debugPrint('[Onboarding] cache refresh failed after purchase: $e');
+    }
+
+    if (!context.mounted) return;
+
+    final state = context.findAncestorStateOfType<_OnboardingScreenState>();
+    final targetCategory = result == SubscriptionSuccessResult.startTests &&
+            state != null
+        ? state._resolveCategoryForProducts(products)
+        : null;
+    state?._navigateToMainAndCategory(Navigator.of(context), targetCategory);
   }
 
   @override
@@ -334,7 +364,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (!mounted) return;
 
     try {
-      final result = await widget.processPayment(context, products);
+      SubscriptionSuccessResult? result;
+      try {
+        result = await widget.processPayment(context, products);
+      } catch (e) {
+        debugPrint('[Onboarding] payment flow failed: $e');
+        return;
+      }
       if (result == null || !mounted) {
         if (mounted) setState(() => _purchaseInFlight = false);
         return;
@@ -354,16 +390,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       await _markOnboardingComplete();
       if (!mounted) return;
 
-      await DioClient().clearCache();
-      BcdCache.instance.invalidate();
-      await BcdCache.instance.ensureLoaded();
-
-      if (!mounted) return;
-
-      final targetCategory = result == SubscriptionSuccessResult.startTests
-          ? _resolveCategoryForProducts(products)
-          : null;
-      _navigateToMainAndCategory(Navigator.of(context), targetCategory);
+      await widget.postPurchase(context, result, products);
     } finally {
       if (mounted) setState(() => _purchaseInFlight = false);
     }
