@@ -10,7 +10,8 @@ class HomeDataCache {
 
   /// Whether a backend sync is needed (cache expired or never run).
   static bool get isStale =>
-      _lastSync == null || DateTime.now().difference(_lastSync!) >= syncInterval;
+      _lastSync == null ||
+      DateTime.now().difference(_lastSync!) >= syncInterval;
 
   /// Record that a fresh sync just completed.
   static void markSynced() => _lastSync = DateTime.now();

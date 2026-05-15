@@ -29,14 +29,15 @@ class AttemptGroupCard extends StatelessWidget {
             children: [
               Text(
                 licence,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               Chip(
-                label: Text(status,
-                    style: const TextStyle(color: Colors.green)),
+                label:
+                    Text(status, style: const TextStyle(color: Colors.green)),
                 backgroundColor: Colors.green.withValues(alpha: 0.12),
-                avatar: const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                avatar: const Icon(Icons.check_circle,
+                    color: Colors.green, size: 18),
               )
             ],
           ),

@@ -44,8 +44,9 @@ class SubscribedExam extends HiveObject {
 
   /// Root-level nodes.
   /// 3-layer → categories; 2-layer → batches directly.
-  List<ExamNode> get rootNodes => (nodes.where((n) => n.parentId == null).toList()
-    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)));
+  List<ExamNode> get rootNodes =>
+      (nodes.where((n) => n.parentId == null).toList()
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)));
 
   /// Batch children of a given category node.
   List<ExamNode> childrenOf(String parentId) =>
@@ -53,12 +54,10 @@ class SubscribedExam extends HiveObject {
         ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)));
 
   /// Every batch node in this exam (leaf nodes where tests are taken).
-  List<ExamNode> get allBatches =>
-      nodes.where((n) => n.isBatch).toList()
-        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  List<ExamNode> get allBatches => nodes.where((n) => n.isBatch).toList()
+    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
   /// Every category node in this exam.
-  List<ExamNode> get allCategories =>
-      nodes.where((n) => n.isCategory).toList()
-        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  List<ExamNode> get allCategories => nodes.where((n) => n.isCategory).toList()
+    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 }

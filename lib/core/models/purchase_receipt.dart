@@ -9,9 +9,10 @@ class PurchaseReceipt {
   final String currency;
   final int durationDays;
   final DateTime purchasedAt;
-  final String transactionRef; // Stripe paymentIntentId or StoreKit transactionId
-  final String paymentMethod;  // 'stripe' | 'iap'
-  final String? backendRef;    // subscription ID returned by backend, if available
+  final String
+      transactionRef; // Stripe paymentIntentId or StoreKit transactionId
+  final String paymentMethod; // 'stripe' | 'iap'
+  final String? backendRef; // subscription ID returned by backend, if available
 
   const PurchaseReceipt({
     required this.receiptNumber,

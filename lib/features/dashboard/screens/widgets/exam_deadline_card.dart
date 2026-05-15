@@ -101,7 +101,7 @@ class _ExamDeadlineCardState extends State<ExamDeadlineCard> {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-      child: Container(
+      child: DecoratedBox(
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),

@@ -43,14 +43,15 @@ class _BCDDocumentViewerScreenState extends State<BCDDocumentViewerScreen> {
   void initState() {
     super.initState();
     _pdfBytesFuture = _loadPdfBytes();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeLaunchExternally());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _maybeLaunchExternally());
   }
 
   Future<Uint8List> _loadPdfBytes() async {
     final response = await DioClient().dio.get<List<int>>(
-      normalizeDocumentUrl(widget.url),
-      options: Options(responseType: ResponseType.bytes),
-    );
+          normalizeDocumentUrl(widget.url),
+          options: Options(responseType: ResponseType.bytes),
+        );
     final data = response.data;
     if (data == null || data.isEmpty) {
       throw Exception('Document response was empty');

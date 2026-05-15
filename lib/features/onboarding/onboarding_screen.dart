@@ -69,7 +69,8 @@ class OnboardingScreen extends StatefulWidget {
     bool required = false,
   }) async {
     if (DioClient().accessToken != null) return true;
-    return showAuthBottomSheet(context, title: title, subtitle: subtitle, required: required, allowDemo: false);
+    return showAuthBottomSheet(context,
+        title: title, subtitle: subtitle, required: required, allowDemo: false);
   }
 
   static bool _defaultIsLoggedIn() => DioClient().accessToken != null;
@@ -83,10 +84,13 @@ class OnboardingScreen extends StatefulWidget {
       context,
       products: products,
       createStripeIntent: (prods) async {
-        if (prods.length == 1) return api.createBCDPaymentIntent(prods.first['id'] as int);
-        return api.createBCDBundlePaymentIntent(prods.map((p) => p['id'] as int).toList());
+        if (prods.length == 1) {
+          return api.createBCDPaymentIntent(prods.first['id'] as int);
+        }
+        return api.createBCDBundlePaymentIntent(
+            prods.map((p) => p['id'] as int).toList());
       },
-      onStripePaymentConfirmed: (id) => api.confirmBCDPayment(id),
+      onStripePaymentConfirmed: api.confirmBCDPayment,
       onIAPPurchaseConfirmed: (product, transactionId) =>
           api.confirmBCDIAPPurchase(
         (product['id'] as num).toInt(),
@@ -111,10 +115,10 @@ class OnboardingScreen extends StatefulWidget {
     if (!context.mounted) return;
 
     final state = context.findAncestorStateOfType<_OnboardingScreenState>();
-    final targetCategory = result == SubscriptionSuccessResult.startTests &&
-            state != null
-        ? state._resolveCategoryForProducts(products)
-        : null;
+    final targetCategory =
+        result == SubscriptionSuccessResult.startTests && state != null
+            ? state._resolveCategoryForProducts(products)
+            : null;
     state?._navigateToMainAndCategory(Navigator.of(context), targetCategory);
   }
 
@@ -154,8 +158,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _fetchMySubscriptions({bool forceRefresh = false}) async {
     try {
-      final data = await ApiService().fetchMyBCDSubscriptions(forceRefresh: forceRefresh);
-      if (mounted) setState(() => _mySubscriptions = data.cast<Map<String, dynamic>>());
+      final data = await ApiService()
+          .fetchMyBCDSubscriptions(forceRefresh: forceRefresh);
+      if (mounted) {
+        setState(() => _mySubscriptions = data.cast<Map<String, dynamic>>());
+      }
     } catch (_) {}
   }
 
@@ -254,7 +261,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   /// Returns the first BCD category from [BcdCache] that matches the
   /// `category_bcd_ids` of any product in [products], or null if none match.
-  Map<String, dynamic>? _resolveCategoryForProducts(List<Map<String, dynamic>> products) {
+  Map<String, dynamic>? _resolveCategoryForProducts(
+      List<Map<String, dynamic>> products) {
     for (final p in products) {
       final ids = p['category_bcd_ids'] as List<dynamic>?;
       final id = ids?.firstOrNull;
@@ -279,7 +287,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final hasChildren = cat['has_children'] == true;
     navigator.push(
       hasChildren
-          ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+          ? AppPageRoute(
+              builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
           : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat)),
     );
   }
@@ -473,7 +482,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPurchaseAll:
                         _selectedProducts.isEmpty || _purchaseInFlight
                             ? null
-                            : () => _handlePurchaseTap(),
+                            : _handlePurchaseTap,
                     onBack: _goBack,
                     onStartFree: _purchaseInFlight ? null : _handleStartFree,
                   ),
@@ -744,7 +753,8 @@ class _ExamDatePage extends StatelessWidget {
                 const SizedBox(height: 32),
                 Row(
                   children: [
-                    Icon(Icons.calendar_today_rounded, color: cs.primary, size: 20),
+                    Icon(Icons.calendar_today_rounded,
+                        color: cs.primary, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       t.onb_exam_date_title,
@@ -887,7 +897,8 @@ class _WeeklyGoalPage extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.flash_on_rounded, color: cs.secondary, size: 20),
+                          Icon(Icons.flash_on_rounded,
+                              color: cs.secondary, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             t.onb_weekly_goal_title,
@@ -1414,8 +1425,8 @@ class _PlanPage extends StatelessWidget {
                   _BundleRow(total: total, currency: currency),
                   const SizedBox(height: 16),
                   _PrimaryButton(
-                    label: t.onb_buy_bundle.replaceAll(
-                        '{price}', '${(total * 0.8).toStringAsFixed(2)} $currency'),
+                    label: t.onb_buy_bundle.replaceAll('{price}',
+                        '${(total * 0.8).toStringAsFixed(2)} $currency'),
                     onPressed: onPurchaseAll,
                   ),
                 ],
@@ -1589,7 +1600,8 @@ class _PlanTierCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: purchasing ? null : onBuy,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: owned ? const Color(0xFF059669) : cs.primary,
+                      backgroundColor:
+                          owned ? const Color(0xFF059669) : cs.primary,
                       foregroundColor: cs.onPrimary,
                       disabledBackgroundColor:
                           cs.primary.withValues(alpha: 0.3),
@@ -1723,11 +1735,13 @@ class _PlanTierCard extends StatelessWidget {
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : Text(
                             t.bcd_start_practice,
-                            style: GoogleFonts.lexend(fontSize: 15, fontWeight: FontWeight.w700),
+                            style: GoogleFonts.lexend(
+                                fontSize: 15, fontWeight: FontWeight.w700),
                           ),
                   )
                 : OutlinedButton(

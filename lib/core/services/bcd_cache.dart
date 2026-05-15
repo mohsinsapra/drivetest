@@ -106,7 +106,8 @@ class BcdCache {
   void seedFromSelfResponse(List<dynamic> bcdDashboard) {
     if (_categories != null || _loadCompleter != null) return;
     _applyDashboard(bcdDashboard);
-    debugPrint('[BcdCache] seeded from /self: ${_categories!.length} categories');
+    debugPrint(
+        '[BcdCache] seeded from /self: ${_categories!.length} categories');
   }
 
   /// Store end dates from the `bcd_subscriptions` list in the `/self` response.

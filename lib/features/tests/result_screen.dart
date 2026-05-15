@@ -41,9 +41,8 @@ class _ResultScreenState extends State<ResultScreen>
       if (sel != null && sel == widget.questions[i].correctAnswer) c++;
     }
     _correct = c;
-    _scorePercent = widget.questions.isEmpty
-        ? 0
-        : (c / widget.questions.length) * 100;
+    _scorePercent =
+        widget.questions.isEmpty ? 0 : (c / widget.questions.length) * 100;
 
     _ctrl = AnimationController(
       vsync: this,
@@ -66,8 +65,7 @@ class _ResultScreenState extends State<ResultScreen>
     final isPassed = widget.hasPassed;
     final primaryColor =
         isPassed ? const Color(0xFF16A34A) : const Color(0xFFDC2626);
-    final unanswered =
-        widget.questions.length - widget.userSelections.length;
+    final unanswered = widget.questions.length - widget.userSelections.length;
     final wrong = widget.questions.length - _correct - unanswered;
 
     return Scaffold(
@@ -245,13 +243,11 @@ class _ScoreHeader extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.4)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
             ),
             child: Text(
               isPassed ? 'PASSED' : 'FAILED',
@@ -440,7 +436,9 @@ class _StatsCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  gap >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                  gap >= 0
+                      ? Icons.trending_up_rounded
+                      : Icons.trending_down_rounded,
                   color: gapColor,
                   size: 16,
                 ),
@@ -519,7 +517,8 @@ class _ScoreBarRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.6)),
+                style: TextStyle(
+                    fontSize: 12, color: cs.onSurface.withValues(alpha: 0.6)),
               ),
             ),
             Text(
@@ -610,10 +609,8 @@ class _QuestionReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isCorrect ? Colors.green.shade500 : Colors.red.shade400;
-    final bgColor =
-        isCorrect ? Colors.green.shade50 : Colors.red.shade50;
+    final color = isCorrect ? Colors.green.shade500 : Colors.red.shade400;
+    final bgColor = isCorrect ? Colors.green.shade50 : Colors.red.shade50;
 
     return GestureDetector(
       onTap: onTap,
@@ -638,12 +635,9 @@ class _QuestionReviewCard extends StatelessWidget {
             Container(
               width: 32,
               height: 32,
-              decoration:
-                  BoxDecoration(color: bgColor, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
               child: Icon(
-                isCorrect
-                    ? Icons.check_rounded
-                    : Icons.close_rounded,
+                isCorrect ? Icons.check_rounded : Icons.close_rounded,
                 color: color,
                 size: 16,
               ),
@@ -664,14 +658,12 @@ class _QuestionReviewCard extends StatelessWidget {
                   userAnswer != null
                       ? Text(
                           'Your answer: $userAnswer',
-                          style:
-                              TextStyle(fontSize: 12, color: color),
+                          style: TextStyle(fontSize: 12, color: color),
                         )
                       : Text(
                           'Not answered',
                           style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade500),
+                              fontSize: 12, color: Colors.grey.shade500),
                         ),
                 ],
               ),

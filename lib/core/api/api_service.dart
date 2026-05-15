@@ -758,12 +758,15 @@ class ApiService {
   /// immediately mark the matching BCDUserSubscription(s) as PAID — before
   /// the asynchronous Stripe webhook arrives.
   /// Returns the backend response (includes server-generated `receipt_number`).
-  Future<Map<String, dynamic>?> confirmBCDPayment(String paymentIntentId) async {
+  Future<Map<String, dynamic>?> confirmBCDPayment(
+      String paymentIntentId) async {
     final response = await _dio.post(
       'api/payment/bcd/confirm-payment/',
       data: {'payment_intent_id': paymentIntentId},
     );
-    if (response.data is Map) return Map<String, dynamic>.from(response.data as Map);
+    if (response.data is Map) {
+      return Map<String, dynamic>.from(response.data as Map);
+    }
     return null;
   }
 
@@ -782,7 +785,9 @@ class ApiService {
           'transaction_id': transactionId,
       },
     );
-    if (response.data is Map) return Map<String, dynamic>.from(response.data as Map);
+    if (response.data is Map) {
+      return Map<String, dynamic>.from(response.data as Map);
+    }
     return null;
   }
 
@@ -799,7 +804,9 @@ class ApiService {
         if (internalProductId != null) 'internal_product_id': internalProductId,
       },
     );
-    if (response.data is Map) return Map<String, dynamic>.from(response.data as Map);
+    if (response.data is Map) {
+      return Map<String, dynamic>.from(response.data as Map);
+    }
     return null;
   }
 

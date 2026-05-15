@@ -44,8 +44,7 @@ Future<bool> initializeStripe({
   final key = resolveStripePublishableKey(
     defineValue: defineValue,
     dotenvValue: dotenvValue,
-    fallbackValue:
-        fallbackValue ??
+    fallbackValue: fallbackValue ??
         defaultStripePublishableKeyForMode(isReleaseMode: isReleaseMode),
   );
 

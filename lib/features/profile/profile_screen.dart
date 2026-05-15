@@ -112,8 +112,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                   DropdownMenuItem(
                       value: 'feature_request',
                       child: Text(t.auth_feedback_feature_request)),
-                  DropdownMenuItem(
-                      value: 'payment_issue', child: const Text('Payment issue')),
+                  const DropdownMenuItem(
+                      value: 'payment_issue', child: Text('Payment issue')),
                   DropdownMenuItem(
                       value: 'other', child: Text(t.auth_feedback_other)),
                 ],
@@ -234,8 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               if (error != null) ...[
                 const SizedBox(height: 8),
-                Text(error!,
-                    style: TextStyle(color: cs.error, fontSize: 13)),
+                Text(error!, style: TextStyle(color: cs.error, fontSize: 13)),
               ],
               const SizedBox(height: 20),
               SizedBox(
@@ -260,7 +259,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                           } catch (e) {
                             setSheetState(() {
                               loading = false;
-                              error = e.toString().replaceAll('Exception: ', '');
+                              error =
+                                  e.toString().replaceAll('Exception: ', '');
                             });
                           }
                         },
@@ -446,12 +446,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                           horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: _profile.isGuest
-                            ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08)
+                            ? Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.08)
                             : Colors.pinkAccent.shade100,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        _profile.isGuest ? t.guest_banner_cta : t.profile_student,
+                        _profile.isGuest
+                            ? t.guest_banner_cta
+                            : t.profile_student,
                         style: TextStyle(
                           color: _profile.isGuest
                               ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -484,11 +489,14 @@ class _ProfileScreenState extends State<ProfileScreen>
             if (_profile.isGuest)
               _ProfileTile(
                 index: 0,
-                child: _GuestBanner(onConvert: () => _showGuestConvertSheet(context)),
+                child: _GuestBanner(
+                    onConvert: () => _showGuestConvertSheet(context)),
               ),
 
             // ── Staggered menu tiles ───────────────────────────────────
-            ...menuItems.asMap().entries
+            ...menuItems
+                .asMap()
+                .entries
                 .where((e) => !_profile.isGuest || e.key != 0)
                 .map((e) => _ProfileTile(
                       index: e.key,
@@ -515,24 +523,36 @@ class _ProfileScreenState extends State<ProfileScreen>
                     title: e.value.title,
                     onTap: e.value.title == 'Manage Subscription'
                         ? () => launchUrl(
-                              Uri.parse('https://apps.apple.com/account/subscriptions'),
+                              Uri.parse(
+                                  'https://apps.apple.com/account/subscriptions'),
                               mode: LaunchMode.externalApplication,
                             )
                         : e.value.title == 'Send Feedback'
                             ? _showAppFeedbackDialog
                             : e.value.title == 'Help'
-                                ? () => Navigator.push(context,
-                                    AppPageRoute(builder: (_) => const HelpScreen()))
+                                ? () => Navigator.push(
+                                    context,
+                                    AppPageRoute(
+                                        builder: (_) => const HelpScreen()))
                                 : e.value.title == 'Purchase History'
-                                    ? () => Navigator.push(context,
-                                        AppPageRoute(builder: (_) => const PurchaseHistoryScreen()))
+                                    ? () => Navigator.push(
+                                        context,
+                                        AppPageRoute(
+                                            builder: (_) =>
+                                                const PurchaseHistoryScreen()))
                                     : e.value.title == 'Revisit Setup'
                                         ? () async {
-                                            final prefs = await SharedPreferences.getInstance();
-                                            await prefs.remove('onboarding_complete');
+                                            final prefs =
+                                                await SharedPreferences
+                                                    .getInstance();
+                                            await prefs
+                                                .remove('onboarding_complete');
                                             if (!context.mounted) return;
-                                            Navigator.of(context).pushAndRemoveUntil(
-                                              AppPageRoute(builder: (_) => const OnboardingScreen()),
+                                            Navigator.of(context)
+                                                .pushAndRemoveUntil(
+                                              AppPageRoute(
+                                                  builder: (_) =>
+                                                      const OnboardingScreen()),
                                               (_) => false,
                                             );
                                           }
@@ -550,7 +570,8 @@ class _ProfileScreenState extends State<ProfileScreen>
               _ProfileTile(
                 index: menuItems.length + secondaryItems.length + 2,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: ElevatedButton(
                     onPressed: () {
                       throw StateError('This is test exception');
@@ -562,7 +583,8 @@ class _ProfileScreenState extends State<ProfileScreen>
               _ProfileTile(
                 index: menuItems.length + secondaryItems.length + 3,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: ElevatedButton(
                     onPressed: () async {
                       final prefs = await SharedPreferences.getInstance();
@@ -573,7 +595,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                         (_) => false,
                       );
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange),
                     child: const Text('Reset Onboarding'),
                   ),
                 ),
@@ -709,8 +732,7 @@ class _LogoutSheetState extends State<_LogoutSheet> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed:
-                        _isLoading ? null : () => Navigator.pop(context),
+                    onPressed: _isLoading ? null : () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Theme.of(context).colorScheme.onSurface,
                       side: BorderSide(

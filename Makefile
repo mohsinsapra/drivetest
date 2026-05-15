@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge
+.PHONY: help fmt lint check web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -91,9 +91,28 @@ help:
 	@echo "  Example: make deploy-all BUMP=minor"
 	@echo ""
 	@echo "$(COLOR_GREEN)Utility Commands:$(COLOR_RESET)"
+	@echo "  make fmt              - Format all Dart files"
+	@echo "  make lint             - Run flutter analyze"
+	@echo "  make check            - Format then lint before deploy"
 	@echo "  make clean            - Clean build artifacts"
 	@echo "  make help             - Show this help message"
 	@echo ""
+
+## fmt: Format all Dart files
+fmt:
+	@echo "$(COLOR_BLUE)Formatting Dart files...$(COLOR_RESET)"
+	@dart format .
+	@echo "$(COLOR_GREEN)✅ Formatting complete!$(COLOR_RESET)"
+
+## lint: Run flutter analyze
+lint:
+	@echo "$(COLOR_BLUE)Running flutter analyze...$(COLOR_RESET)"
+	@flutter analyze
+	@echo "$(COLOR_GREEN)✅ Linting passed!$(COLOR_RESET)"
+
+## check: Format and lint before deploy
+check: fmt lint
+	@echo "$(COLOR_GREEN)✅ Project checks passed!$(COLOR_RESET)"
 
 WEB_PORT ?= 5005
 
@@ -121,7 +140,7 @@ web-run:
 		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)"
 
 ## web-build: Build web app for production
-web-build:
+web-build: check
 	@echo "$(COLOR_GREEN)Building web app for production...$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)Base URL: $(WEB_BASE_HREF)$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)Web version: v$(APP_VERSION) ($(APP_BUILD_NUMBER))$(COLOR_RESET)"
@@ -195,7 +214,7 @@ _web-deploy-core: web-build
 	@$(MAKE) -s _cloudflare-purge
 
 ## web-deploy: Bump patch, deploy web and commit to main repo
-web-deploy:
+web-deploy: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _web-deploy-core
 	@$(MAKE) -s _commit-and-push
@@ -270,29 +289,29 @@ _bump-version:
 	@echo "$(COLOR_GREEN)Bumping $(BUMP_TYPE) version...$(COLOR_RESET)"
 	@cd scripts && ruby update_version.rb $(BUMP_TYPE)
 
-web-android-deploy: web-build android-beta
+web-android-deploy: check web-build android-beta
 
 ## android-beta: Bump patch, deploy Android to alpha and commit to main repo
-android-beta:
+android-beta: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _android-beta-core
 	@$(MAKE) -s _commit-and-push
 
 ## android-deploy: Bump patch, deploy Android to alpha + production and commit to main repo
-android-deploy:
+android-deploy: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
 
 ## release-all: Bump patch, deploy web + Android production, single commit at the end
-release-all:
+release-all: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _web-deploy-core
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
 
 ## deploy-all: Bump patch, deploy web + Android production + iOS TestFlight, single commit at the end
-deploy-all:
+deploy-all: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _web-deploy-core
 	@$(MAKE) -s _android-deploy-core
@@ -305,7 +324,7 @@ _ios-beta-core:
 	@cd ios && bundle exec fastlane beta
 
 ## ios-beta: Bump patch, deploy iOS to TestFlight and commit to main repo
-ios-beta:
+ios-beta: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _ios-beta-core
 	@$(MAKE) -s _commit-and-push

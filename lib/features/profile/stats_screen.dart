@@ -41,7 +41,12 @@ class _StatsScreenState extends State<StatsScreen> {
         return true;
       }).toList();
       all.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-      if (mounted) setState(() { _attempts = all; _isLoading = false; });
+      if (mounted) {
+        setState(() {
+          _attempts = all;
+          _isLoading = false;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -59,12 +64,26 @@ class _StatsScreenState extends State<StatsScreen> {
     if (seconds <= 0) return '0m';
     final m = seconds ~/ 60;
     if (m < 60) return '${m}m';
-    final h = m ~/ 60; final rem = m % 60;
+    final h = m ~/ 60;
+    final rem = m % 60;
     return rem > 0 ? '${h}h ${rem}m' : '${h}h';
   }
 
   String _fmtDate(DateTime dt) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     final h = dt.hour.toString().padLeft(2, '0');
     final m = dt.minute.toString().padLeft(2, '0');
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}, $h:$m';
@@ -72,13 +91,16 @@ class _StatsScreenState extends State<StatsScreen> {
 
   // ── Computed stats ────────────────────────────────────────────────────────
   int get _completedCount => _attempts.length;
-  double get _passRate => _completedCount == 0 ? 0 :
-      _attempts.where((a) => a.hasPassed).length / _completedCount * 100;
-  double get _bestScore => _completedCount == 0 ? 0 :
-      _attempts.map((a) => a.score).reduce(max);
-  double get _avgScore => _completedCount == 0 ? 0 :
-      _attempts.map((a) => a.score).reduce((a, b) => a + b) / _completedCount;
-  int get _totalSeconds => _attempts.fold(0, (s, a) => s + (a.durationSeconds ?? 0));
+  double get _passRate => _completedCount == 0
+      ? 0
+      : _attempts.where((a) => a.hasPassed).length / _completedCount * 100;
+  double get _bestScore =>
+      _completedCount == 0 ? 0 : _attempts.map((a) => a.score).reduce(max);
+  double get _avgScore => _completedCount == 0
+      ? 0
+      : _attempts.map((a) => a.score).reduce((a, b) => a + b) / _completedCount;
+  int get _totalSeconds =>
+      _attempts.fold(0, (s, a) => s + (a.durationSeconds ?? 0));
   double get _latestScore => _attempts.isEmpty ? 0 : _attempts.first.score;
 
   // ── Per-test breakdown grouping ───────────────────────────────────────────
@@ -112,13 +134,19 @@ class _StatsScreenState extends State<StatsScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+                color: iconBg, borderRadius: BorderRadius.circular(12)),
             child: Icon(icon, color: iconColor, size: 22),
           ),
           const SizedBox(width: 12),
@@ -126,9 +154,12 @@ class _StatsScreenState extends State<StatsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 2),
-                Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                Text(label,
+                    style: const TextStyle(fontSize: 13, color: Colors.grey)),
               ],
             ),
           ),
@@ -140,12 +171,14 @@ class _StatsScreenState extends State<StatsScreen> {
   Widget _buildBreakdownCard(String key, List<TestAttempt> group) {
     final isExpanded = _expandedGroups.contains(key);
     final label = _groupLabel(key, group);
-    final avgScore = group.map((a) => a.score).reduce((a, b) => a + b) / group.length;
+    final avgScore =
+        group.map((a) => a.score).reduce((a, b) => a + b) / group.length;
     final bestScore = group.map((a) => a.score).reduce(max);
-    final avgSeconds = group.fold(0, (s, a) => s + (a.durationSeconds ?? 0)) ~/ group.length;
+    final avgSeconds =
+        group.fold(0, (s, a) => s + (a.durationSeconds ?? 0)) ~/ group.length;
     final latestPassed = group.first.hasPassed;
 
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -157,8 +190,11 @@ class _StatsScreenState extends State<StatsScreen> {
           InkWell(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             onTap: () => setState(() {
-              if (isExpanded) { _expandedGroups.remove(key); }
-              else { _expandedGroups.add(key); }
+              if (isExpanded) {
+                _expandedGroups.remove(key);
+              } else {
+                _expandedGroups.add(key);
+              }
             }),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -168,28 +204,40 @@ class _StatsScreenState extends State<StatsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        Text(label,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 3),
                         Text(
                           '${group.length} ${group.length == 1 ? 'attempt' : 'attempts'} • Avg: ${avgScore.round()}%',
-                          style: const TextStyle(fontSize: 13, color: Colors.grey),
+                          style:
+                              const TextStyle(fontSize: 13, color: Colors.grey),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: latestPassed ? const Color(0xFF4CAF50) : const Color(0xFFE53935),
+                      color: latestPassed
+                          ? const Color(0xFF4CAF50)
+                          : const Color(0xFFE53935),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       latestPassed ? 'Passed' : 'Failed',
-                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                  Icon(
+                      isExpanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
                       color: Colors.grey),
                 ],
               ),
@@ -207,16 +255,19 @@ class _StatsScreenState extends State<StatsScreen> {
                   // Best / Average / Avg time
                   Row(
                     children: [
-                      Expanded(child: _miniStat(
+                      Expanded(
+                          child: _miniStat(
                         value: '${bestScore.round()}%',
                         label: 'Best',
                         valueColor: const Color(0xFF4CAF50),
                       )),
-                      Expanded(child: _miniStat(
+                      Expanded(
+                          child: _miniStat(
                         value: '${avgScore.round()}%',
                         label: 'Average',
                       )),
-                      Expanded(child: _miniStat(
+                      Expanded(
+                          child: _miniStat(
                         value: _fmtDuration(avgSeconds),
                         label: 'Avg time',
                       )),
@@ -224,10 +275,13 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   const SizedBox(height: 16),
                   const Text('ATTEMPT HISTORY',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                          color: Colors.grey, letterSpacing: 0.8)),
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                          letterSpacing: 0.8)),
                   const SizedBox(height: 10),
-                  ...group.map((a) => _attemptHistoryRow(a)),
+                  ...group.map(_attemptHistoryRow),
                 ],
               ),
             ),
@@ -237,11 +291,15 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _miniStat({required String value, required String label, Color? valueColor}) {
+  Widget _miniStat(
+      {required String value, required String label, Color? valueColor}) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
-            color: valueColor ?? Theme.of(context).colorScheme.onSurface)),
+        Text(value,
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: valueColor ?? Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 2),
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
@@ -257,7 +315,8 @@ class _StatsScreenState extends State<StatsScreen> {
         children: [
           Icon(
             a.hasPassed ? Icons.check_circle_outline : Icons.cancel_outlined,
-            color: a.hasPassed ? const Color(0xFF4CAF50) : const Color(0xFFE53935),
+            color:
+                a.hasPassed ? const Color(0xFF4CAF50) : const Color(0xFFE53935),
             size: 26,
           ),
           const SizedBox(width: 12),
@@ -266,7 +325,8 @@ class _StatsScreenState extends State<StatsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('$correct/$total (${a.score.round()}%)',
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
                 Text(_fmtDate(a.dateTime),
                     style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
@@ -298,7 +358,8 @@ class _StatsScreenState extends State<StatsScreen> {
         children: [
           Icon(
             a.hasPassed ? Icons.check_circle_outline : Icons.cancel_outlined,
-            color: a.hasPassed ? const Color(0xFF4CAF50) : const Color(0xFFE53935),
+            color:
+                a.hasPassed ? const Color(0xFF4CAF50) : const Color(0xFFE53935),
             size: 26,
           ),
           const SizedBox(width: 12),
@@ -307,7 +368,8 @@ class _StatsScreenState extends State<StatsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(testName,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600)),
                 Text(_fmtDate(a.dateTime),
                     style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
@@ -317,7 +379,8 @@ class _StatsScreenState extends State<StatsScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text('$correct/$total',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.bold)),
               Text('${a.score.round()}%',
                   style: const TextStyle(fontSize: 12, color: Colors.grey)),
             ],
@@ -339,10 +402,13 @@ class _StatsScreenState extends State<StatsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Statistics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text('Statistics',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             if (widget.subtitle != null)
               Text(widget.subtitle!,
-                  style: const TextStyle(fontSize: 13, color: Colors.grey,
+                  style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey,
                       fontWeight: FontWeight.normal)),
           ],
         ),
@@ -428,19 +494,24 @@ class _StatsScreenState extends State<StatsScreen> {
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 10, offset: const Offset(0, 2))],
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2))
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('Per-test breakdown',
-                                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                                style: TextStyle(
+                                    fontSize: 17, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 14),
                             ..._grouped.entries.map((e) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _buildBreakdownCard(e.key, e.value),
-                            )),
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _buildBreakdownCard(e.key, e.value),
+                                )),
                           ],
                         ),
                       ),
@@ -453,14 +524,19 @@ class _StatsScreenState extends State<StatsScreen> {
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 10, offset: const Offset(0, 2))],
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2))
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('All attempts',
-                                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                                style: TextStyle(
+                                    fontSize: 17, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 14),
                             ..._attempts.map(_allAttemptRow),
                           ],

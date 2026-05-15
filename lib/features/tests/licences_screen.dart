@@ -148,7 +148,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
         setState(() =>
             licenseTypes = (jsonDecode(cachedJson) as List).cast<dynamic>());
       } else {
-        showAppSnackBar('Error fetching license types. Please try again.', type: SnackBarType.error);
+        showAppSnackBar('Error fetching license types. Please try again.',
+            type: SnackBarType.error);
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -195,7 +196,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           isShowingCategories = true;
         });
       } else {
-        showAppSnackBar('Error fetching categories. Please try again.', type: SnackBarType.error);
+        showAppSnackBar('Error fetching categories. Please try again.',
+            type: SnackBarType.error);
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -317,13 +319,23 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     );
     final licenceName = selectedLicenseType?['name']?.toString() ?? '';
     final categoryName = selectedCategory?['name']?.toString() ?? '';
-    final subtitle = [licenceName, categoryName].where((s) => s.isNotEmpty).join(' — ');
+    final subtitle =
+        [licenceName, categoryName].where((s) => s.isNotEmpty).join(' — ');
 
     final result = await PaymentCoordinator.pay(
       context,
-      products: [{'name': subtitle, 'price': '100', 'currency': 'SEK', 'duration_days': 365, 'is_active': true}],
+      products: [
+        {
+          'name': subtitle,
+          'price': '100',
+          'currency': 'SEK',
+          'duration_days': 365,
+          'is_active': true
+        }
+      ],
       createStripeIntent: (_) => _apiService.createPaymentIntent(
-        10000, 'card',
+        10000,
+        'card',
         selectedLicenseType?['licence_id'],
         selectedCategory?['category_id'],
       ),
@@ -355,7 +367,6 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       transactionId: DateTime.now().millisecondsSinceEpoch.toString(),
     );
   }
-
 
   /* -------------------------------------------------------------------------- */
   /*                                 UI BUILD                                  */
@@ -524,7 +535,10 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           ),
         );
       } catch (_) {
-        if (mounted) showAppSnackBar('Failed to load saved questions.', type: SnackBarType.error);
+        if (mounted) {
+          showAppSnackBar('Failed to load saved questions.',
+              type: SnackBarType.error);
+        }
       } finally {
         if (mounted) setState(() => isLoading = false);
       }

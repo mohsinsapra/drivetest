@@ -39,10 +39,11 @@ class _HelpScreenState extends State<HelpScreen> {
         setState(() {
           _userMap = userMap;
           _userId = (userMap['id'] ??
-                     userMap['user_id'] ??
-                     userMap['pk'] ??
-                     userMap['userId'] ??
-                     'Not available').toString();
+                  userMap['user_id'] ??
+                  userMap['pk'] ??
+                  userMap['userId'] ??
+                  'Not available')
+              .toString();
           _username = userMap['username']?.toString() ?? 'Not available';
           _userEmail = userMap['email']?.toString() ?? 'Not available';
         });
@@ -61,7 +62,8 @@ class _HelpScreenState extends State<HelpScreen> {
 
     try {
       final String email = 'mohsin.sapra@gmail.com';
-      final String subject = Uri.encodeComponent('Taxi Exam App - ${_subjectController.text.trim()}');
+      final String subject = Uri.encodeComponent(
+          'Taxi Exam App - ${_subjectController.text.trim()}');
       final String body = Uri.encodeComponent(
         'Hello Support Team,\n\n'
         'I am writing to request assistance with the following issue:\n\n'
@@ -85,7 +87,8 @@ class _HelpScreenState extends State<HelpScreen> {
         'This email was generated from the Taxi Exam App',
       );
 
-      final Uri emailUri = Uri.parse('mailto:$email?subject=$subject&body=$body');
+      final Uri emailUri =
+          Uri.parse('mailto:$email?subject=$subject&body=$body');
 
       if (await canLaunchUrl(emailUri)) {
         await launchUrl(emailUri);
@@ -137,7 +140,8 @@ class _HelpScreenState extends State<HelpScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.help_outline, color: Colors.blue, size: 32),
+                        const Icon(Icons.help_outline,
+                            color: Colors.blue, size: 32),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -155,7 +159,10 @@ class _HelpScreenState extends State<HelpScreen> {
                                 t.help_subtitle,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.6),
                                 ),
                               ),
                             ],
@@ -172,7 +179,10 @@ class _HelpScreenState extends State<HelpScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -183,7 +193,10 @@ class _HelpScreenState extends State<HelpScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.5),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -199,19 +212,26 @@ class _HelpScreenState extends State<HelpScreen> {
                   // Subject
                   Text(
                     t.help_subject,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _subjectController,
                     decoration: InputDecoration(
                       hintText: t.help_subject_hint,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       filled: true,
-                      fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+                      fillColor: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.04),
                     ),
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) return t.help_subject_required;
+                      if (value == null || value.trim().isEmpty) {
+                        return t.help_subject_required;
+                      }
                       return null;
                     },
                   ),
@@ -221,7 +241,8 @@ class _HelpScreenState extends State<HelpScreen> {
                   // Description
                   Text(
                     t.help_description,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   TextFormField(
@@ -229,13 +250,21 @@ class _HelpScreenState extends State<HelpScreen> {
                     maxLines: 8,
                     decoration: InputDecoration(
                       hintText: t.help_description_hint,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       filled: true,
-                      fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+                      fillColor: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.04),
                     ),
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) return t.help_description_required;
-                      if (value.trim().length < 10) return t.help_description_too_short;
+                      if (value == null || value.trim().isEmpty) {
+                        return t.help_description_required;
+                      }
+                      if (value.trim().length < 10) {
+                        return t.help_description_too_short;
+                      }
                       return null;
                     },
                   ),
@@ -249,7 +278,8 @@ class _HelpScreenState extends State<HelpScreen> {
                       onPressed: _isSubmitting ? null : _submitReport,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       child: _isSubmitting
                           ? const SizedBox(
@@ -257,12 +287,14 @@ class _HelpScreenState extends State<HelpScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : Text(
                               t.help_submit,
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                     ),
                   ),
@@ -274,7 +306,10 @@ class _HelpScreenState extends State<HelpScreen> {
                       t.help_or_email,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.5),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -299,7 +334,10 @@ class _HelpScreenState extends State<HelpScreen> {
               '$label:',
               style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.5),
               ),
             ),
           ),

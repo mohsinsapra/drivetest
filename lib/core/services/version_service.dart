@@ -3,8 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-const _webAppVersion =
-    String.fromEnvironment('APP_VERSION', defaultValue: '');
+const _webAppVersion = String.fromEnvironment('APP_VERSION', defaultValue: '');
 const _webBuildNumber =
     String.fromEnvironment('BUILD_NUMBER', defaultValue: '');
 const _webCommitHash =
@@ -64,9 +63,9 @@ class VersionService {
 
     final normalized = value.contains(' ')
         ? value.replaceFirst(' ', 'T').replaceFirstMapped(
-            RegExp(r'([+-]\d{2})(\d{2})$'),
-            (match) => '${match.group(1)}:${match.group(2)}',
-          )
+              RegExp(r'([+-]\d{2})(\d{2})$'),
+              (match) => '${match.group(1)}:${match.group(2)}',
+            )
         : value;
     final parsed = DateTime.tryParse(normalized);
 

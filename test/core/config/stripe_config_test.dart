@@ -70,7 +70,8 @@ void main() {
       expect(applyCalls, 1);
     });
 
-    test('can skip applying settings during bootstrap on native platforms', () async {
+    test('can skip applying settings during bootstrap on native platforms',
+        () async {
       String? assignedKey;
       var applyCalls = 0;
 
@@ -90,7 +91,8 @@ void main() {
       expect(applyCalls, 0);
     });
 
-    test('uses mode-based test fallback when no key source is available', () async {
+    test('uses mode-based test fallback when no key source is available',
+        () async {
       String? assignedKey;
 
       await initializeStripe(

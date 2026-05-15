@@ -69,7 +69,7 @@ class CryptoService {
     );
 
     final compressed = Uint8List.fromList(cipher.process(encryptedBytes));
-    final decompressed = ZLibDecoder().decodeBytes(compressed);
+    final decompressed = const ZLibDecoder().decodeBytes(compressed);
     return utf8.decode(decompressed);
   }
 

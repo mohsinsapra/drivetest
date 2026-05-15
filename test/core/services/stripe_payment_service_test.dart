@@ -3,7 +3,8 @@ import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 
 void main() {
   group('prepareStripeForMobilePayment', () {
-    test('configures Stripe before mobile payment even without dotenv', () async {
+    test('configures Stripe before mobile payment even without dotenv',
+        () async {
       String? assignedKey;
       var applyCalls = 0;
 

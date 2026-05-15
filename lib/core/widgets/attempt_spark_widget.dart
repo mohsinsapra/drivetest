@@ -21,8 +21,7 @@ class AttemptCountLineGraph extends StatelessWidget {
     final spots = List.generate(
         values.length, (i) => FlSpot(i.toDouble(), values[i].toDouble()));
 
-    final maxVal =
-        values.isEmpty ? 5 : values.reduce((a, b) => a > b ? a : b);
+    final maxVal = values.isEmpty ? 5 : values.reduce((a, b) => a > b ? a : b);
     final maxY = (maxVal + 1).toDouble().clamp(3.0, double.infinity);
 
     return Padding(
@@ -71,20 +70,18 @@ class AttemptCountLineGraph extends StatelessWidget {
               // Tooltip bubble shown above the touched point
               touchTooltipData: LineTouchTooltipData(
                 getTooltipColor: (_) => lineColor.withValues(alpha: 0.9),
-                tooltipPadding: const EdgeInsets.symmetric(
-                    horizontal: 9, vertical: 5),
+                tooltipPadding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 tooltipMargin: 10,
                 fitInsideHorizontally: true,
                 fitInsideVertically: true,
-                getTooltipItems: (touchedSpots) =>
-                    touchedSpots.map((spot) {
+                getTooltipItems: (touchedSpots) => touchedSpots.map((spot) {
                   final idx = spot.x.toInt();
-                  final label =
-                      idx >= 0 && idx < keys.length ? keys[idx] : '';
+                  final label = idx >= 0 && idx < keys.length ? keys[idx] : '';
                   final count = spot.y.toInt();
                   return LineTooltipItem(
                     '$count\n',
-                    TextStyle(
+                    const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -109,8 +106,7 @@ class AttemptCountLineGraph extends StatelessWidget {
             gridData: FlGridData(
               show: true,
               drawVerticalLine: false,
-              horizontalInterval:
-                  maxY > 4 ? (maxY / 3).ceilToDouble() : 1,
+              horizontalInterval: maxY > 4 ? (maxY / 3).ceilToDouble() : 1,
               getDrawingHorizontalLine: (_) => FlLine(
                 color: Colors.grey.withValues(alpha: 0.15),
                 strokeWidth: 1,
@@ -141,12 +137,12 @@ class AttemptCountLineGraph extends StatelessWidget {
                   },
                 ),
               ),
-              leftTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false)),
-              topTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false)),
-              rightTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false)),
+              leftTitles:
+                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles:
+                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles:
+                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             ),
 
             borderData: FlBorderData(show: false),
@@ -160,7 +156,7 @@ class AttemptCountLineGraph extends StatelessWidget {
                 color: lineColor,
                 barWidth: 2.5,
                 // No static dots — they appear only when touching
-                dotData: FlDotData(show: false),
+                dotData: const FlDotData(show: false),
                 belowBarData: BarAreaData(
                   show: true,
                   gradient: LinearGradient(

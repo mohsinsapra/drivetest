@@ -24,8 +24,8 @@ Future<void> showWebPaymentDialogImpl(
     ),
   );
   if (result != true) {
-    throw stripe.StripeException(
-      error: const stripe.LocalizedErrorMessage(
+    throw const stripe.StripeException(
+      error: stripe.LocalizedErrorMessage(
         localizedMessage: 'cancelled',
         code: stripe.FailureCode.Canceled,
       ),
@@ -74,7 +74,8 @@ class _WebPaymentPageState extends State<_WebPaymentPage> {
     } on stripe.StripeException catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.error.localizedMessage ?? 'Payment failed. Please try again.';
+          _error =
+              e.error.localizedMessage ?? 'Payment failed. Please try again.';
           _processing = false;
         });
       }
@@ -121,8 +122,8 @@ class _WebPaymentPageState extends State<_WebPaymentPage> {
                 ),
                 const SizedBox(height: 20),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.07),
                     borderRadius: BorderRadius.circular(10),
@@ -139,8 +140,8 @@ class _WebPaymentPageState extends State<_WebPaymentPage> {
                             child: Text(
                               widget.subtitle,
                               textAlign: TextAlign.end,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600),
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                           ),
                         ],
@@ -154,8 +155,8 @@ class _WebPaymentPageState extends State<_WebPaymentPage> {
                                   ?.copyWith(color: Colors.grey.shade600)),
                           Text(
                             '${widget.amount} ${widget.currency.toUpperCase()}',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700),
+                            style: theme.textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),

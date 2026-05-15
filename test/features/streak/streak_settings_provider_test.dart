@@ -57,7 +57,8 @@ void main() {
     test('update persists exam_deadline to SharedPreferences', () async {
       final provider = StreakSettingsProvider();
       final deadline = DateTime(2027, 3, 20);
-      await provider.update(examDeadline: deadline, practiceWeekdays: {0, 2, 4});
+      await provider
+          .update(examDeadline: deadline, practiceWeekdays: {0, 2, 4});
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('exam_deadline'), deadline.toIso8601String());
     });
@@ -94,7 +95,8 @@ void main() {
 
     test('weeklyGoal reflects practiceWeekdays length', () async {
       final provider = StreakSettingsProvider();
-      await provider.update(examDeadline: null, practiceWeekdays: {0, 1, 2, 3, 4, 5, 6});
+      await provider
+          .update(examDeadline: null, practiceWeekdays: {0, 1, 2, 3, 4, 5, 6});
       expect(provider.weeklyGoal, equals(7));
     });
   });

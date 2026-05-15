@@ -20,8 +20,10 @@ class PaymentCoordinator {
     BuildContext context, {
     required List<dynamic> products,
     required Future<String> Function(dynamic product) createStripeIntent,
-    Future<Map<String, dynamic>?> Function(String intentId)? onStripePaymentConfirmed,
-    Future<Map<String, dynamic>?> Function(dynamic product, String? transactionId)?
+    Future<Map<String, dynamic>?> Function(String intentId)?
+        onStripePaymentConfirmed,
+    Future<Map<String, dynamic>?> Function(
+            dynamic product, String? transactionId)?
         onIAPPurchaseConfirmed,
     String? title,
     String merchantName = 'Drive Test',
@@ -42,8 +44,10 @@ class PaymentCoordinator {
     BuildContext context, {
     required List<dynamic> products,
     required Future<String> Function(List<dynamic> products) createStripeIntent,
-    Future<Map<String, dynamic>?> Function(String intentId)? onStripePaymentConfirmed,
-    Future<Map<String, dynamic>?> Function(dynamic product, String? transactionId)?
+    Future<Map<String, dynamic>?> Function(String intentId)?
+        onStripePaymentConfirmed,
+    Future<Map<String, dynamic>?> Function(
+            dynamic product, String? transactionId)?
         onIAPPurchaseConfirmed,
     String merchantName = 'Drive Test',
   }) =>
@@ -58,8 +62,10 @@ class PaymentCoordinator {
     BuildContext context, {
     required List<dynamic> products,
     required Future<String> Function(List<dynamic>) createStripeIntent,
-    Future<Map<String, dynamic>?> Function(String intentId)? onStripePaymentConfirmed,
-    Future<Map<String, dynamic>?> Function(dynamic product, String? transactionId)?
+    Future<Map<String, dynamic>?> Function(String intentId)?
+        onStripePaymentConfirmed,
+    Future<Map<String, dynamic>?> Function(
+            dynamic product, String? transactionId)?
         onIAPPurchaseConfirmed,
     required String merchantName,
   }) async {
@@ -97,9 +103,10 @@ class PaymentCoordinator {
         if (found.isEmpty) throw Exception('Product not available in store');
         final internalId = (product['id'] as num?)?.toInt();
         transactionRef = await IAPService.instance.buyProduct(
-          found.first,
-          internalProductId: internalId,
-        ) ?? '';
+              found.first,
+              internalProductId: internalId,
+            ) ??
+            '';
         if (onIAPPurchaseConfirmed != null) {
           try {
             backendData = await onIAPPurchaseConfirmed(
@@ -132,8 +139,8 @@ class PaymentCoordinator {
 
       // Backend generates the canonical receipt number; fall back to client-side
       // if the backend does not return one (e.g. older server version).
-      final receiptNumber = backendData?['receipt_number']?.toString()
-          ?? fallbackReceiptNumber;
+      final receiptNumber =
+          backendData?['receipt_number']?.toString() ?? fallbackReceiptNumber;
 
       // Build and persist the receipt.
       final receipt = PurchaseReceipt(

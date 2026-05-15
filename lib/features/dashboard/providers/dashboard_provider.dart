@@ -87,7 +87,8 @@ class DashboardProvider extends ChangeNotifier {
     _weeklyGoal = goal;
     if (_selectedExam != null && _attempts.isNotEmpty) {
       _selectedStats = DashboardHelpers.computeExamStats(
-          _selectedExam!, _attempts, weeklyGoal: _weeklyGoal);
+          _selectedExam!, _attempts,
+          weeklyGoal: _weeklyGoal);
       notifyListeners();
     }
   }
@@ -110,8 +111,8 @@ class DashboardProvider extends ChangeNotifier {
 
     // Full clean-slate before loading — guarantees no stale data from a
     // previous session is ever shown, regardless of whether reset() was called.
-    _generation++;                 // kills any in-flight _syncFromApi
-    _attemptsSub?.cancel();        // drop the old box subscription
+    _generation++; // kills any in-flight _syncFromApi
+    _attemptsSub?.cancel(); // drop the old box subscription
     _attemptsSub = null;
     _exams = [];
     _attempts = [];
@@ -147,7 +148,8 @@ class DashboardProvider extends ChangeNotifier {
       _buildOverviewProgress(attempts);
       if (_selectedExam != null) {
         _selectedStats = DashboardHelpers.computeExamStats(
-            _selectedExam!, attempts, weeklyGoal: _weeklyGoal);
+            _selectedExam!, attempts,
+            weeklyGoal: _weeklyGoal);
       }
       notifyListeners();
     });
@@ -173,7 +175,8 @@ class DashboardProvider extends ChangeNotifier {
       debugPrint('[DashboardProvider] syncNow: Hive clear failed: $e');
     }
     try {
-      await ApiService().fetchCurrentUser(forceRefresh: true); // re-seeds BcdCache from fresh /self
+      await ApiService().fetchCurrentUser(
+          forceRefresh: true); // re-seeds BcdCache from fresh /self
     } catch (e) {
       debugPrint('[DashboardProvider] syncNow: /self re-fetch failed: $e');
       // Continue — _syncFromApi will re-try via ensureLoaded
@@ -184,7 +187,7 @@ class DashboardProvider extends ChangeNotifier {
   /// Wipe all in-memory state so a freshly logged-in user starts clean.
   /// Call this on logout before the next user's session begins.
   void reset() {
-    _generation++;          // invalidates any in-flight _syncFromApi write-back
+    _generation++; // invalidates any in-flight _syncFromApi write-back
     _attemptsSub?.cancel();
     _attemptsSub = null;
     _exams = [];
@@ -293,8 +296,8 @@ class DashboardProvider extends ChangeNotifier {
 
     // Preserve selection if the same exam still exists; otherwise pick first
     final prevId = _selectedExam?.id;
-    final target = exams.where((e) => e.id == prevId).firstOrNull
-        ?? (exams.isNotEmpty ? exams.first : null);
+    final target = exams.where((e) => e.id == prevId).firstOrNull ??
+        (exams.isNotEmpty ? exams.first : null);
 
     if (target != null) _selectExam(target, attempts);
   }

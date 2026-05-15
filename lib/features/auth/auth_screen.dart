@@ -104,7 +104,8 @@ class _AuthScreenState extends State<AuthScreen> {
     // Welcome message uses the name from Google/Apple — no extra self/ call needed.
     // MainScreen._loadTabFlags() will fetch self/ for feature flags on its own.
     if (displayName != null || isFirstLogin) {
-      _showWelcomeMessage({'first_name': displayName ?? ''}, isFirstLogin: isFirstLogin);
+      _showWelcomeMessage({'first_name': displayName ?? ''},
+          isFirstLogin: isFirstLogin);
     }
     // NotificationService.init is called in MainScreen.initState — skip here
     // to avoid a duplicate register-token/ call.
@@ -116,8 +117,7 @@ class _AuthScreenState extends State<AuthScreen> {
       (route) => false,
     );
     if (afterAuth != null) {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => afterAuth(navigator));
+      WidgetsBinding.instance.addPostFrameCallback((_) => afterAuth(navigator));
     }
   }
 
@@ -139,16 +139,23 @@ class _AuthScreenState extends State<AuthScreen> {
       _loginError = null;
     });
     try {
-      await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: started', category: 'auth'));
+      await Sentry.addBreadcrumb(
+          Breadcrumb(message: 'Google Sign-In: started', category: 'auth'));
       final googleSignIn = GoogleSignInHelper.create();
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
-        await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: user cancelled', category: 'auth'));
-        setState(() { _isGoogleLoading = false; _googleLoadingStep = ''; });
+        await Sentry.addBreadcrumb(Breadcrumb(
+            message: 'Google Sign-In: user cancelled', category: 'auth'));
+        setState(() {
+          _isGoogleLoading = false;
+          _googleLoadingStep = '';
+        });
         return;
       }
       if (mounted) setState(() => _googleLoadingStep = 'Verifying account...');
-      await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: user obtained, fetching auth tokens', category: 'auth'));
+      await Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Google Sign-In: user obtained, fetching auth tokens',
+          category: 'auth'));
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
       final accessToken = googleAuth.accessToken;
@@ -156,15 +163,26 @@ class _AuthScreenState extends State<AuthScreen> {
         throw Exception('No authentication token received');
       }
       if (mounted) setState(() => _googleLoadingStep = 'Signing you in...');
-      await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: tokens received, calling backend googleAuth', category: 'auth'));
+      await Sentry.addBreadcrumb(Breadcrumb(
+          message:
+              'Google Sign-In: tokens received, calling backend googleAuth',
+          category: 'auth'));
       final isFirstLogin = await _apiService.googleAuth(
           idToken: idToken, accessToken: accessToken);
-      await Sentry.addBreadcrumb(Breadcrumb(message: 'Google Sign-In: backend googleAuth succeeded, isFirstLogin=$isFirstLogin', category: 'auth'));
-      if (mounted) setState(() => _googleLoadingStep = isFirstLogin ? 'Creating your account...' : 'Loading your profile...');
+      await Sentry.addBreadcrumb(Breadcrumb(
+          message:
+              'Google Sign-In: backend googleAuth succeeded, isFirstLogin=$isFirstLogin',
+          category: 'auth'));
+      if (mounted) {
+        setState(() => _googleLoadingStep = isFirstLogin
+            ? 'Creating your account...'
+            : 'Loading your profile...');
+      }
       if (!mounted) return;
       vibrateLoginLogout();
       try {
-        await _navigateToMain(isFirstLogin: isFirstLogin, displayName: googleUser.displayName);
+        await _navigateToMain(
+            isFirstLogin: isFirstLogin, displayName: googleUser.displayName);
       } catch (navError) {
         debugPrint(
             'AuthScreen: navigation error after Google login — $navError');
@@ -189,7 +207,12 @@ class _AuthScreenState extends State<AuthScreen> {
             : GoogleSignInHelper.userMessage(e);
       });
     } finally {
-      if (mounted) setState(() { _isGoogleLoading = false; _googleLoadingStep = ''; });
+      if (mounted) {
+        setState(() {
+          _isGoogleLoading = false;
+          _googleLoadingStep = '';
+        });
+      }
     }
   }
 
@@ -201,17 +224,22 @@ class _AuthScreenState extends State<AuthScreen> {
       _loginError = null;
     });
     try {
-      await Sentry.addBreadcrumb(Breadcrumb(message: 'Apple Sign-In: started', category: 'auth'));
+      await Sentry.addBreadcrumb(
+          Breadcrumb(message: 'Apple Sign-In: started', category: 'auth'));
       final credential = await AppleSignInHelper.signIn();
       final identityToken = credential.identityToken;
       if (identityToken == null) throw Exception('No identity token received');
-      await Sentry.addBreadcrumb(Breadcrumb(message: 'Apple Sign-In: credential obtained', category: 'auth'));
+      await Sentry.addBreadcrumb(Breadcrumb(
+          message: 'Apple Sign-In: credential obtained', category: 'auth'));
       final isFirstLogin = await _apiService.appleAuth(
         identityToken: identityToken,
         firstName: credential.givenName,
         lastName: credential.familyName,
       );
-      await Sentry.addBreadcrumb(Breadcrumb(message: 'Apple Sign-In: backend succeeded, isFirstLogin=$isFirstLogin', category: 'auth'));
+      await Sentry.addBreadcrumb(Breadcrumb(
+          message:
+              'Apple Sign-In: backend succeeded, isFirstLogin=$isFirstLogin',
+          category: 'auth'));
       if (!mounted) return;
       vibrateLoginLogout();
       await _navigateToMain(isFirstLogin: isFirstLogin);
@@ -333,8 +361,7 @@ class _AuthScreenState extends State<AuthScreen> {
         showAppSnackBar(t.auth_signup_success, type: SnackBarType.success);
         _navigate(_AuthView.login);
       } else {
-        final errorData =
-            json.decode(response.body) as Map<String, dynamic>;
+        final errorData = json.decode(response.body) as Map<String, dynamic>;
         final serverErrors = <String, String?>{};
         errorData.forEach((key, value) {
           if (value is List && value.isNotEmpty) {
@@ -577,8 +604,7 @@ class _AuthField extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: hasError
                 ? Border.all(color: cs.error.withValues(alpha: 0.3))
-                : Border.all(
-                    color: cs.outlineVariant.withValues(alpha: 0.15)),
+                : Border.all(color: cs.outlineVariant.withValues(alpha: 0.15)),
           ),
           child: Theme(
             data: Theme.of(context).copyWith(
@@ -603,8 +629,8 @@ class _AuthField extends StatelessWidget {
                   color: cs.outlineVariant,
                 ),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18, vertical: 18),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
                 suffixIcon: suffixIcon,
               ),
             ),
@@ -615,8 +641,7 @@ class _AuthField extends StatelessWidget {
             padding: const EdgeInsets.only(top: 6, left: 4),
             child: Row(
               children: [
-                Icon(Icons.error_outline,
-                    color: cs.error, size: 13),
+                Icon(Icons.error_outline, color: cs.error, size: 13),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -694,43 +719,234 @@ class _AmbientItem {
     required this.opacity,
   });
   final IconData icon;
-  final double startX;   // normalized entry position (can be < 0 or > 1 = off-screen)
+  final double
+      startX; // normalized entry position (can be < 0 or > 1 = off-screen)
   final double startY;
-  final double velX;     // total x travel over one cycle (screen fractions)
-  final double velY;     // total y travel over one cycle
-  final double rotSpeed; // full rotations per cycle (negative = counter-clockwise)
-  final double phase;    // 0–1 stagger offset so items enter at different times
+  final double velX; // total x travel over one cycle (screen fractions)
+  final double velY; // total y travel over one cycle
+  final double
+      rotSpeed; // full rotations per cycle (negative = counter-clockwise)
+  final double phase; // 0–1 stagger offset so items enter at different times
   final double iconSize;
   final double opacity;
 }
 
 const _kAmbientItems = [
   // ── vehicles ──
-  _AmbientItem(icon: Icons.directions_car_rounded,  startX: -0.18, startY: 0.12, velX:  1.40, velY:  0.08, rotSpeed:  0.50, phase: 0.00, iconSize: 18, opacity: 0.08),
-  _AmbientItem(icon: Icons.local_taxi,              startX: -0.18, startY: 0.45, velX:  1.35, velY: -0.06, rotSpeed:  0.40, phase: 0.22, iconSize: 17, opacity: 0.08),
-  _AmbientItem(icon: Icons.pedal_bike,              startX: -0.18, startY: 0.72, velX:  1.30, velY:  0.10, rotSpeed:  0.70, phase: 0.55, iconSize: 16, opacity: 0.07),
-  _AmbientItem(icon: Icons.two_wheeler,             startX:  1.18, startY: 0.28, velX: -1.38, velY:  0.05, rotSpeed: -0.45, phase: 0.12, iconSize: 15, opacity: 0.07),
-  _AmbientItem(icon: Icons.airport_shuttle_rounded, startX:  1.18, startY: 0.60, velX: -1.32, velY: -0.08, rotSpeed: -0.35, phase: 0.68, iconSize: 16, opacity: 0.06),
-  _AmbientItem(icon: Icons.electric_scooter,        startX:  1.18, startY: 0.85, velX: -1.28, velY:  0.04, rotSpeed: -0.60, phase: 0.38, iconSize: 14, opacity: 0.06),
-  _AmbientItem(icon: Icons.directions_bus_rounded,  startX:  0.20, startY: -0.18, velX:  0.06, velY:  1.40, rotSpeed:  0.30, phase: 0.05, iconSize: 20, opacity: 0.06),
-  _AmbientItem(icon: Icons.local_shipping_rounded,  startX:  0.65, startY: -0.18, velX: -0.04, velY:  1.35, rotSpeed: -0.25, phase: 0.48, iconSize: 17, opacity: 0.06),
-  _AmbientItem(icon: Icons.directions_railway,      startX:  0.40, startY:  1.18, velX:  0.08, velY: -1.40, rotSpeed:  0.20, phase: 0.30, iconSize: 18, opacity: 0.06),
-  _AmbientItem(icon: Icons.traffic,                 startX:  0.80, startY:  1.18, velX: -0.05, velY: -1.32, rotSpeed: -0.15, phase: 0.75, iconSize: 15, opacity: 0.05),
+  _AmbientItem(
+      icon: Icons.directions_car_rounded,
+      startX: -0.18,
+      startY: 0.12,
+      velX: 1.40,
+      velY: 0.08,
+      rotSpeed: 0.50,
+      phase: 0.00,
+      iconSize: 18,
+      opacity: 0.08),
+  _AmbientItem(
+      icon: Icons.local_taxi,
+      startX: -0.18,
+      startY: 0.45,
+      velX: 1.35,
+      velY: -0.06,
+      rotSpeed: 0.40,
+      phase: 0.22,
+      iconSize: 17,
+      opacity: 0.08),
+  _AmbientItem(
+      icon: Icons.pedal_bike,
+      startX: -0.18,
+      startY: 0.72,
+      velX: 1.30,
+      velY: 0.10,
+      rotSpeed: 0.70,
+      phase: 0.55,
+      iconSize: 16,
+      opacity: 0.07),
+  _AmbientItem(
+      icon: Icons.two_wheeler,
+      startX: 1.18,
+      startY: 0.28,
+      velX: -1.38,
+      velY: 0.05,
+      rotSpeed: -0.45,
+      phase: 0.12,
+      iconSize: 15,
+      opacity: 0.07),
+  _AmbientItem(
+      icon: Icons.airport_shuttle_rounded,
+      startX: 1.18,
+      startY: 0.60,
+      velX: -1.32,
+      velY: -0.08,
+      rotSpeed: -0.35,
+      phase: 0.68,
+      iconSize: 16,
+      opacity: 0.06),
+  _AmbientItem(
+      icon: Icons.electric_scooter,
+      startX: 1.18,
+      startY: 0.85,
+      velX: -1.28,
+      velY: 0.04,
+      rotSpeed: -0.60,
+      phase: 0.38,
+      iconSize: 14,
+      opacity: 0.06),
+  _AmbientItem(
+      icon: Icons.directions_bus_rounded,
+      startX: 0.20,
+      startY: -0.18,
+      velX: 0.06,
+      velY: 1.40,
+      rotSpeed: 0.30,
+      phase: 0.05,
+      iconSize: 20,
+      opacity: 0.06),
+  _AmbientItem(
+      icon: Icons.local_shipping_rounded,
+      startX: 0.65,
+      startY: -0.18,
+      velX: -0.04,
+      velY: 1.35,
+      rotSpeed: -0.25,
+      phase: 0.48,
+      iconSize: 17,
+      opacity: 0.06),
+  _AmbientItem(
+      icon: Icons.directions_railway,
+      startX: 0.40,
+      startY: 1.18,
+      velX: 0.08,
+      velY: -1.40,
+      rotSpeed: 0.20,
+      phase: 0.30,
+      iconSize: 18,
+      opacity: 0.06),
+  _AmbientItem(
+      icon: Icons.traffic,
+      startX: 0.80,
+      startY: 1.18,
+      velX: -0.05,
+      velY: -1.32,
+      rotSpeed: -0.15,
+      phase: 0.75,
+      iconSize: 15,
+      opacity: 0.05),
 
   // ── energy & environment (cloud, flash, thunder) ──
-  _AmbientItem(icon: Icons.bolt_rounded,            startX: -0.25, startY: 0.30, velX:  1.50, velY:  0.15, rotSpeed:  2.00, phase: 0.10, iconSize: 22, opacity: 0.12),
-  _AmbientItem(icon: Icons.cloud_rounded,           startX:  1.25, startY: 0.15, velX: -1.50, velY:  0.05, rotSpeed:  0.15, phase: 0.45, iconSize: 26, opacity: 0.10),
-  _AmbientItem(icon: Icons.electric_bolt_rounded,   startX:  0.30, startY: -0.25, velX:  0.08, velY:  1.50, rotSpeed: -1.50, phase: 0.70, iconSize: 20, opacity: 0.12),
-  _AmbientItem(icon: Icons.flash_on_rounded,        startX:  0.70, startY:  1.25, velX: -0.08, velY: -1.50, rotSpeed:  1.20, phase: 0.25, iconSize: 20, opacity: 0.10),
-  _AmbientItem(icon: Icons.auto_awesome_rounded,    startX: -0.20, startY:  0.80, velX:  1.40, velY: -0.15, rotSpeed:  3.00, phase: 0.88, iconSize: 18, opacity: 0.15),
-  _AmbientItem(icon: Icons.thunderstorm_rounded,    startX:  1.20, startY:  0.60, velX: -1.40, velY: -0.08, rotSpeed:  0.30, phase: 0.35, iconSize: 22, opacity: 0.08),
-  _AmbientItem(icon: Icons.cyclone,                 startX:  0.50, startY:  1.20, velX: -0.15, velY: -1.40, rotSpeed:  4.00, phase: 0.58, iconSize: 18, opacity: 0.07),
-  _AmbientItem(icon: Icons.wb_sunny_rounded,        startX: -0.20, startY:  0.05, velX:  1.40, velY:  0.02, rotSpeed:  0.05, phase: 0.82, iconSize: 24, opacity: 0.08),
+  _AmbientItem(
+      icon: Icons.bolt_rounded,
+      startX: -0.25,
+      startY: 0.30,
+      velX: 1.50,
+      velY: 0.15,
+      rotSpeed: 2.00,
+      phase: 0.10,
+      iconSize: 22,
+      opacity: 0.12),
+  _AmbientItem(
+      icon: Icons.cloud_rounded,
+      startX: 1.25,
+      startY: 0.15,
+      velX: -1.50,
+      velY: 0.05,
+      rotSpeed: 0.15,
+      phase: 0.45,
+      iconSize: 26,
+      opacity: 0.10),
+  _AmbientItem(
+      icon: Icons.electric_bolt_rounded,
+      startX: 0.30,
+      startY: -0.25,
+      velX: 0.08,
+      velY: 1.50,
+      rotSpeed: -1.50,
+      phase: 0.70,
+      iconSize: 20,
+      opacity: 0.12),
+  _AmbientItem(
+      icon: Icons.flash_on_rounded,
+      startX: 0.70,
+      startY: 1.25,
+      velX: -0.08,
+      velY: -1.50,
+      rotSpeed: 1.20,
+      phase: 0.25,
+      iconSize: 20,
+      opacity: 0.10),
+  _AmbientItem(
+      icon: Icons.auto_awesome_rounded,
+      startX: -0.20,
+      startY: 0.80,
+      velX: 1.40,
+      velY: -0.15,
+      rotSpeed: 3.00,
+      phase: 0.88,
+      iconSize: 18,
+      opacity: 0.15),
+  _AmbientItem(
+      icon: Icons.thunderstorm_rounded,
+      startX: 1.20,
+      startY: 0.60,
+      velX: -1.40,
+      velY: -0.08,
+      rotSpeed: 0.30,
+      phase: 0.35,
+      iconSize: 22,
+      opacity: 0.08),
+  _AmbientItem(
+      icon: Icons.cyclone,
+      startX: 0.50,
+      startY: 1.20,
+      velX: -0.15,
+      velY: -1.40,
+      rotSpeed: 4.00,
+      phase: 0.58,
+      iconSize: 18,
+      opacity: 0.07),
+  _AmbientItem(
+      icon: Icons.wb_sunny_rounded,
+      startX: -0.20,
+      startY: 0.05,
+      velX: 1.40,
+      velY: 0.02,
+      rotSpeed: 0.05,
+      phase: 0.82,
+      iconSize: 24,
+      opacity: 0.08),
 
   // ── diagonals ──
-  _AmbientItem(icon: Icons.local_taxi,              startX: -0.18, startY: -0.12, velX:  1.30, velY:  1.25, rotSpeed:  0.55, phase: 0.18, iconSize: 16, opacity: 0.07),
-  _AmbientItem(icon: Icons.directions_car_rounded,  startX: -0.15, startY:  0.35, velX:  1.25, velY:  0.90, rotSpeed:  0.45, phase: 0.62, iconSize: 15, opacity: 0.06),
-  _AmbientItem(icon: Icons.two_wheeler,             startX:  1.15, startY: -0.10, velX: -1.28, velY:  1.20, rotSpeed: -0.50, phase: 0.42, iconSize: 14, opacity: 0.06),
+  _AmbientItem(
+      icon: Icons.local_taxi,
+      startX: -0.18,
+      startY: -0.12,
+      velX: 1.30,
+      velY: 1.25,
+      rotSpeed: 0.55,
+      phase: 0.18,
+      iconSize: 16,
+      opacity: 0.07),
+  _AmbientItem(
+      icon: Icons.directions_car_rounded,
+      startX: -0.15,
+      startY: 0.35,
+      velX: 1.25,
+      velY: 0.90,
+      rotSpeed: 0.45,
+      phase: 0.62,
+      iconSize: 15,
+      opacity: 0.06),
+  _AmbientItem(
+      icon: Icons.two_wheeler,
+      startX: 1.15,
+      startY: -0.10,
+      velX: -1.28,
+      velY: 1.20,
+      rotSpeed: -0.50,
+      phase: 0.42,
+      iconSize: 14,
+      opacity: 0.06),
 ];
 
 class _AnimatedAuthBg extends StatefulWidget {
@@ -912,7 +1128,6 @@ class _LandingView extends StatelessWidget {
     return Stack(
       children: [
         const _AnimatedAuthBg(),
-
         SafeArea(
           child: Column(
             children: [
@@ -921,7 +1136,7 @@ class _LandingView extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 8, right: 16),
-                  child: Container(
+                  child: DecoratedBox(
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerLowest,
                       borderRadius: BorderRadius.circular(9999),
@@ -963,8 +1178,7 @@ class _LandingView extends StatelessWidget {
                           color: cs.outlineVariant.withValues(alpha: 0.4),
                         ),
                         IconButton(
-                          padding:
-                              const EdgeInsets.fromLTRB(10, 6, 16, 6),
+                          padding: const EdgeInsets.fromLTRB(10, 6, 16, 6),
                           constraints: const BoxConstraints(),
                           icon: Icon(
                             isDark
@@ -1072,8 +1286,7 @@ class _LandingView extends StatelessWidget {
                             width: 22,
                             height: 22,
                             child: FaIcon(FontAwesomeIcons.apple,
-                                size: 20,
-                                color: cs.onPrimary),
+                                size: 20, color: cs.onPrimary),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -1082,14 +1295,15 @@ class _LandingView extends StatelessWidget {
                       _GradientButton(
                         label: Translations.of(context).auth_express_google,
                         loading: isGoogleLoading,
-                        loadingLabel: googleLoadingStep.isNotEmpty ? googleLoadingStep : null,
+                        loadingLabel: googleLoadingStep.isNotEmpty
+                            ? googleLoadingStep
+                            : null,
                         onPressed: isAppleLoading ? null : onGoogle,
                         icon: SizedBox(
                           width: 22,
                           height: 22,
                           child: FaIcon(FontAwesomeIcons.google,
-                              size: 18,
-                              color: cs.onPrimary),
+                              size: 18, color: cs.onPrimary),
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -1213,8 +1427,8 @@ class _LoginView extends StatelessWidget {
                             height: 80,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: cs.secondaryContainer
-                                  .withValues(alpha: 0.2),
+                              color:
+                                  cs.secondaryContainer.withValues(alpha: 0.2),
                             ),
                           ),
                         ),
@@ -1439,8 +1653,8 @@ class _SignupView extends StatelessWidget {
                             height: 80,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: cs.secondaryContainer
-                                  .withValues(alpha: 0.22),
+                              color:
+                                  cs.secondaryContainer.withValues(alpha: 0.22),
                             ),
                           ),
                         ),

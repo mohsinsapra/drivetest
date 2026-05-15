@@ -52,9 +52,10 @@ class QuestionProgressHeader extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: visibleProgress,
                       minHeight: 6,
-                      backgroundColor: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white.withValues(alpha: 0.2)
-                          : Colors.grey[300],
+                      backgroundColor:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withValues(alpha: 0.2)
+                              : Colors.grey[300],
                       color: Theme.of(context).primaryColor,
                     ),
                   ),

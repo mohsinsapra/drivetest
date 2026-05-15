@@ -100,8 +100,8 @@ class _GdprConsentSheetState extends State<_GdprConsentSheet> {
                       color: cs.primaryContainer.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(Icons.shield_rounded,
-                        color: cs.primary, size: 24),
+                    child:
+                        Icon(Icons.shield_rounded, color: cs.primary, size: 24),
                   ),
                   const SizedBox(width: 14),
                   Expanded(

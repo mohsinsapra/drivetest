@@ -156,7 +156,8 @@ class _TestscreenState extends State<Testscreen> {
     Hive.openBox<TestAttempt>('testAttempts');
 
     if (!widget.isReviewMode) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndShowTutorial());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _checkAndShowTutorial());
     }
   }
 
@@ -174,10 +175,11 @@ class _TestscreenState extends State<Testscreen> {
 
   TutorialCoachMark? _phase1Coach;
   // Fine-grained tutorial state for phases 2 and 3.
-  bool _tutorialPhase2Active = false;   // "press & hold" card visible
-  bool _tutorialPhase2bActive = false;  // user is holding — "now release" card visible
-  bool _tutorialPhase3aActive = false;  // "swipe left" card visible
-  bool _tutorialPhase3bActive = false;  // "now swipe right" card visible
+  bool _tutorialPhase2Active = false; // "press & hold" card visible
+  bool _tutorialPhase2bActive =
+      false; // user is holding — "now release" card visible
+  bool _tutorialPhase3aActive = false; // "swipe left" card visible
+  bool _tutorialPhase3bActive = false; // "now swipe right" card visible
 
   void _showTutorialPhase1() {
     setState(() => _tutorialPhase1Active = true);
@@ -276,12 +278,17 @@ class _TestscreenState extends State<Testscreen> {
   // Phase 2a — "Press & hold to peek original".
   void _showTutorialPhase2() {
     if (!mounted) return;
-    setState(() { _tutorialPhase2Active = true; _tutorialPhase2bActive = false; });
+    setState(() {
+      _tutorialPhase2Active = true;
+      _tutorialPhase2bActive = false;
+    });
     final t = Translations.of(context);
     final primary = Theme.of(context).colorScheme.primary;
     _replaceOverlay(OverlayEntry(
       builder: (_) => Positioned(
-        left: 16, right: 16, bottom: 120,
+        left: 16,
+        right: 16,
+        bottom: 120,
         child: Material(
           color: Colors.transparent,
           child: IgnorePointer(
@@ -300,12 +307,16 @@ class _TestscreenState extends State<Testscreen> {
   // Phase 2b — shown while user is holding: "Now release to go back".
   void _showReleaseHint() {
     if (!mounted) return;
-    setState(() { _tutorialPhase2bActive = true; });
+    setState(() {
+      _tutorialPhase2bActive = true;
+    });
     final t = Translations.of(context);
     final primary = Theme.of(context).colorScheme.primary;
     _replaceOverlay(OverlayEntry(
       builder: (_) => Positioned(
-        left: 16, right: 16, bottom: 120,
+        left: 16,
+        right: 16,
+        bottom: 120,
         child: Material(
           color: Colors.transparent,
           child: IgnorePointer(
@@ -324,12 +335,18 @@ class _TestscreenState extends State<Testscreen> {
   // Phase 3a — "Swipe left to go to the next question".
   void _showTutorialPhase3a() {
     if (!mounted) return;
-    setState(() { _tutorialPhase3aActive = true; _tutorialPhase2Active = false; _tutorialPhase2bActive = false; });
+    setState(() {
+      _tutorialPhase3aActive = true;
+      _tutorialPhase2Active = false;
+      _tutorialPhase2bActive = false;
+    });
     final t = Translations.of(context);
     final primary = Theme.of(context).colorScheme.primary;
     _replaceOverlay(OverlayEntry(
       builder: (_) => Positioned(
-        left: 16, right: 16, bottom: 120,
+        left: 16,
+        right: 16,
+        bottom: 120,
         child: Material(
           color: Colors.transparent,
           child: IgnorePointer(
@@ -348,12 +365,17 @@ class _TestscreenState extends State<Testscreen> {
   // Phase 3b — "Now swipe right to come back".
   void _showTutorialPhase3b() {
     if (!mounted) return;
-    setState(() { _tutorialPhase3aActive = false; _tutorialPhase3bActive = true; });
+    setState(() {
+      _tutorialPhase3aActive = false;
+      _tutorialPhase3bActive = true;
+    });
     final t = Translations.of(context);
     final primary = Theme.of(context).colorScheme.primary;
     _replaceOverlay(OverlayEntry(
       builder: (_) => Positioned(
-        left: 16, right: 16, bottom: 120,
+        left: 16,
+        right: 16,
+        bottom: 120,
         child: Material(
           color: Colors.transparent,
           child: IgnorePointer(
@@ -429,7 +451,11 @@ class _TestscreenState extends State<Testscreen> {
     showAppSnackBar('Time is up! Submitting your test.');
     _saveTestAttempt();
     final passed = _calculateResult();
-    if (passed) { vibratePass(); } else { vibrateFail(); }
+    if (passed) {
+      vibratePass();
+    } else {
+      vibrateFail();
+    }
     showResultDialog(
       context: context,
       hasPassed: passed,
@@ -449,7 +475,7 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   Widget _buildImageTile(BuildContext context, double s, String url) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
@@ -486,7 +512,8 @@ class _TestscreenState extends State<Testscreen> {
           mainAxisSpacing: 8 * s,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          children: urls.map((url) => _buildImageTile(context, s, url)).toList(),
+          children:
+              urls.map((url) => _buildImageTile(context, s, url)).toList(),
         ),
         SizedBox(height: 12 * s),
       ];
@@ -539,7 +566,9 @@ class _TestscreenState extends State<Testscreen> {
 
   void _onPageChanged(int index) {
     final prevIndex = currentQuestionIndex;
-    setState(() { currentQuestionIndex = index; });
+    setState(() {
+      currentQuestionIndex = index;
+    });
     ttsService.flutterTts.stop();
     ttsService.ttsState = TtsState.stopped;
     if (_tutorialPhase3aActive && index > prevIndex) {
@@ -560,8 +589,7 @@ class _TestscreenState extends State<Testscreen> {
     if (_instantMarking && userSelections[index] != null) {
       return;
     }
-    if (_instantMarking &&
-        optionId != widget.questions[index].correctAnswer) {
+    if (_instantMarking && optionId != widget.questions[index].correctAnswer) {
       vibrateWrongAnswer();
     } else {
       playNavigationFeedback();
@@ -586,7 +614,11 @@ class _TestscreenState extends State<Testscreen> {
         onConfirm: () {
           _saveTestAttempt();
           final passed = _calculateResult();
-          if (passed) { vibratePass(); } else { vibrateFail(); }
+          if (passed) {
+            vibratePass();
+          } else {
+            vibrateFail();
+          }
           showResultDialog(
             context: context,
             hasPassed: passed,
@@ -1061,7 +1093,8 @@ class _TestscreenState extends State<Testscreen> {
         appBar: AppBar(
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
+            icon: Icon(Icons.arrow_back,
+                color: Theme.of(context).colorScheme.onSurface),
             onPressed: () {
               if (widget.isReviewMode) {
                 Navigator.of(context).pop();
@@ -1085,23 +1118,32 @@ class _TestscreenState extends State<Testscreen> {
                   child: GestureDetector(
                     onTap: () => setState(() => _timerVisible = !_timerVisible),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: _remainingSeconds <= 60 && _timerVisible
                             ? Colors.red.withValues(alpha: 0.12)
-                            : Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                            : Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: _remainingSeconds <= 60 && _timerVisible
                               ? Colors.red
-                              : Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.4),
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            _timerVisible ? Icons.timer : Icons.timer_off_outlined,
+                            _timerVisible
+                                ? Icons.timer
+                                : Icons.timer_off_outlined,
                             size: 14,
                             color: _remainingSeconds <= 60 && _timerVisible
                                 ? Colors.red
@@ -1143,10 +1185,16 @@ class _TestscreenState extends State<Testscreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.4),
                         width: 1,
                       ),
                     ),
@@ -1169,7 +1217,8 @@ class _TestscreenState extends State<Testscreen> {
                 ),
               ),
             PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
+              icon: Icon(Icons.more_vert,
+                  color: Theme.of(context).colorScheme.onSurface),
               onSelected: (value) {
                 if (value == 'lang_en') {
                   _onLanguageSelected('EN');
@@ -1223,14 +1272,19 @@ class _TestscreenState extends State<Testscreen> {
                     enabled: false,
                     height: 1,
                     padding: EdgeInsets.zero,
-                    child: Divider(color: Theme.of(context).dividerColor, height: 1),
+                    child: Divider(
+                        color: Theme.of(context).dividerColor, height: 1),
                   ),
                 if (!widget.isReviewMode)
                   PopupMenuItem<String>(
                     value: 'toggle_timer',
                     child: Row(
                       children: [
-                        Icon(_isTimed ? Icons.timer_off_outlined : Icons.timer_outlined, size: 18),
+                        Icon(
+                            _isTimed
+                                ? Icons.timer_off_outlined
+                                : Icons.timer_outlined,
+                            size: 18),
                         const SizedBox(width: 8),
                         Text(_isTimed ? 'Turn off timer' : 'Turn on timer'),
                         const Spacer(),
@@ -1243,9 +1297,15 @@ class _TestscreenState extends State<Testscreen> {
                     value: 'toggle_instant',
                     child: Row(
                       children: [
-                        Icon(_instantMarking ? Icons.rule_outlined : Icons.rule_outlined, size: 18),
+                        Icon(
+                            _instantMarking
+                                ? Icons.rule_outlined
+                                : Icons.rule_outlined,
+                            size: 18),
                         const SizedBox(width: 8),
-                        Text(_instantMarking ? 'Turn off instant marking' : 'Turn on instant marking'),
+                        Text(_instantMarking
+                            ? 'Turn off instant marking'
+                            : 'Turn on instant marking'),
                         const Spacer(),
                         if (_instantMarking) const Icon(Icons.check, size: 16),
                       ],
@@ -1256,7 +1316,8 @@ class _TestscreenState extends State<Testscreen> {
                     enabled: false,
                     height: 1,
                     padding: EdgeInsets.zero,
-                    child: Divider(color: Theme.of(context).dividerColor, height: 1),
+                    child: Divider(
+                        color: Theme.of(context).dividerColor, height: 1),
                   ),
                 const PopupMenuItem<String>(
                   value: 'feedback',
@@ -1318,184 +1379,189 @@ class _TestscreenState extends State<Testscreen> {
                 }
               },
               child: Padding(
-              padding: EdgeInsets.all(20.0 * s),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Question text
-                    RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          fontSize: 22 * s,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                          height: 1.3,
-                        ),
-                        children: [
-                          TextSpan(text: questionText),
-                          WidgetSpan(
-                            alignment: PlaceholderAlignment.middle,
-                            child: TtsButton(
-                              textToSpeak: questionText,
-                              languageCode: currentLanguageCode,
-                              iconSize: 22 * s,
-                              tooltip: 'Read aloud',
-                            ),
+                padding: EdgeInsets.all(20.0 * s),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Question text
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 22 * s,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            height: 1.3,
                           ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 14 * s),
-
-                    // Question images — use multi-image list if available,
-                    // fall back to legacy imageUrl for backward compatibility.
-                    ..._buildQuestionImages(
-                      context,
-                      s,
-                      mq,
-                      question.images.isNotEmpty
-                          ? question.images
-                          : (question.imageUrl.isNotEmpty ? [questionUrl] : []),
-                    ),
-
-                    SizedBox(height: 12 * s),
-
-                    // Options
-                    ...question.options.asMap().entries.map((entry) {
-                      int optIndex = entry.key;
-                      var option = entry.value;
-                      String optionText = optionTexts[optIndex];
-                      bool isSelected =
-                          userSelections[index] == option.optionLabel;
-
-                      return Option(
-                        text: optionText,
-                        optionLabel: option.optionLabel,
-                        imageUrl: option.imageUrl,
-                        isSelected: isSelected,
-                        showInstantMarking: _instantMarking &&
-                            userSelections[index] != null,
-                        isCorrectAnswer:
-                            option.optionLabel == question.correctAnswer,
-                        onTap: () => _selectOption(option.optionLabel, index),
-                        languageCode: currentLanguageCode,
-                        scale: s,
-                      );
-                    }),
-
-                    // Peek-area anchor — only on the first question so the
-                    // tutorial key is stable and in the widget tree.
-                    if (index == 0)
-                      SizedBox(key: _peekAreaKey, height: 12 * s)
-                    else
-                      SizedBox(height: 12 * s),
-
-                    // Bookmark button
-                    if (!widget.isReviewMode &&
-                        widget.questions[index].questionId.isNotEmpty)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () async {
-                            HapticFeedback.lightImpact();
-                            final qId = widget.questions[index].questionId;
-                            final isSaved =
-                                await SavedQuestionsService.toggleSavedScoped(
-                              qId,
-                              questionText: widget.questions[index].text,
-                              licenceId: widget.licenceId,
-                              categoryId: widget.categoryId,
-                              bcdCategoryId: widget.bcdCategoryId,
-                            );
-                            final ids =
-                                await SavedQuestionsService.getSavedIdsScoped(
-                              licenceId: widget.licenceId,
-                              categoryId: widget.categoryId,
-                              bcdCategoryId: widget.bcdCategoryId,
-                            );
-                            if (mounted) {
-                              setState(() => _savedQuestionIds = ids);
-                              showAppSnackBar(isSaved
-                                  ? 'Question saved'
-                                  : 'Question removed from saved');
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _savedQuestionIds.contains(
-                                          widget.questions[index].questionId)
-                                      ? Icons.bookmark
-                                      : Icons.bookmark_border,
-                                  color: _savedQuestionIds.contains(
-                                          widget.questions[index].questionId)
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.grey[600],
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _savedQuestionIds.contains(
-                                          widget.questions[index].questionId)
-                                      ? 'Saved'
-                                      : 'Save question',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: _savedQuestionIds.contains(
-                                            widget.questions[index].questionId)
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    SizedBox(height: 8 * s),
-
-                    // Explanation (scrollable)
-                    if (_instantMarking &&
-                        userSelections[index] != null &&
-                        question.answerExplanation.isNotEmpty)
-                      Container(
-                        margin: EdgeInsets.only(bottom: 16 * s),
-                        padding: EdgeInsets.all(16 * s),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(12),
-                          border:
-                              Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 1),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              constraints: const BoxConstraints(),
-                              child: ExplanationWidget(
-                                question: question,
-                                licenceId: widget.licenceId,
-                                categoryId: widget.categoryId,
-                                apiService: _apiService,
+                            TextSpan(text: questionText),
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: TtsButton(
+                                textToSpeak: questionText,
+                                languageCode: currentLanguageCode,
+                                iconSize: 22 * s,
+                                tooltip: 'Read aloud',
                               ),
                             ),
                           ],
                         ),
                       ),
-                  ],
+                      SizedBox(height: 14 * s),
+
+                      // Question images — use multi-image list if available,
+                      // fall back to legacy imageUrl for backward compatibility.
+                      ..._buildQuestionImages(
+                        context,
+                        s,
+                        mq,
+                        question.images.isNotEmpty
+                            ? question.images
+                            : (question.imageUrl.isNotEmpty
+                                ? [questionUrl]
+                                : []),
+                      ),
+
+                      SizedBox(height: 12 * s),
+
+                      // Options
+                      ...question.options.asMap().entries.map((entry) {
+                        int optIndex = entry.key;
+                        var option = entry.value;
+                        String optionText = optionTexts[optIndex];
+                        bool isSelected =
+                            userSelections[index] == option.optionLabel;
+
+                        return Option(
+                          text: optionText,
+                          optionLabel: option.optionLabel,
+                          imageUrl: option.imageUrl,
+                          isSelected: isSelected,
+                          showInstantMarking:
+                              _instantMarking && userSelections[index] != null,
+                          isCorrectAnswer:
+                              option.optionLabel == question.correctAnswer,
+                          onTap: () => _selectOption(option.optionLabel, index),
+                          languageCode: currentLanguageCode,
+                          scale: s,
+                        );
+                      }),
+
+                      // Peek-area anchor — only on the first question so the
+                      // tutorial key is stable and in the widget tree.
+                      if (index == 0)
+                        SizedBox(key: _peekAreaKey, height: 12 * s)
+                      else
+                        SizedBox(height: 12 * s),
+
+                      // Bookmark button
+                      if (!widget.isReviewMode &&
+                          widget.questions[index].questionId.isNotEmpty)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () async {
+                              HapticFeedback.lightImpact();
+                              final qId = widget.questions[index].questionId;
+                              final isSaved =
+                                  await SavedQuestionsService.toggleSavedScoped(
+                                qId,
+                                questionText: widget.questions[index].text,
+                                licenceId: widget.licenceId,
+                                categoryId: widget.categoryId,
+                                bcdCategoryId: widget.bcdCategoryId,
+                              );
+                              final ids =
+                                  await SavedQuestionsService.getSavedIdsScoped(
+                                licenceId: widget.licenceId,
+                                categoryId: widget.categoryId,
+                                bcdCategoryId: widget.bcdCategoryId,
+                              );
+                              if (mounted) {
+                                setState(() => _savedQuestionIds = ids);
+                                showAppSnackBar(isSaved
+                                    ? 'Question saved'
+                                    : 'Question removed from saved');
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _savedQuestionIds.contains(
+                                            widget.questions[index].questionId)
+                                        ? Icons.bookmark
+                                        : Icons.bookmark_border,
+                                    color: _savedQuestionIds.contains(
+                                            widget.questions[index].questionId)
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.grey[600],
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _savedQuestionIds.contains(
+                                            widget.questions[index].questionId)
+                                        ? 'Saved'
+                                        : 'Save question',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: _savedQuestionIds.contains(widget
+                                              .questions[index].questionId)
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                          : Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      SizedBox(height: 8 * s),
+
+                      // Explanation (scrollable)
+                      if (_instantMarking &&
+                          userSelections[index] != null &&
+                          question.answerExplanation.isNotEmpty)
+                        Container(
+                          margin: EdgeInsets.only(bottom: 16 * s),
+                          padding: EdgeInsets.all(16 * s),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: Colors.blue.withValues(alpha: 0.3),
+                                width: 1),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                constraints: const BoxConstraints(),
+                                child: ExplanationWidget(
+                                  question: question,
+                                  licenceId: widget.licenceId,
+                                  categoryId: widget.categoryId,
+                                  apiService: _apiService,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
             );
           },
-        ),  // PageView
+        ), // PageView
         bottomNavigationBar: NavigationControls(
           atFirst: currentQuestionIndex == 0,
           atLast: currentQuestionIndex == widget.questions.length - 1,
@@ -1515,7 +1581,11 @@ class _TestscreenState extends State<Testscreen> {
               onConfirm: () {
                 _saveTestAttempt(); // store Hive record
                 final passed = _calculateResult();
-                if (passed) { vibratePass(); } else { vibrateFail(); }
+                if (passed) {
+                  vibratePass();
+                } else {
+                  vibrateFail();
+                }
                 showResultDialog(
                   context: context,
                   hasPassed: passed,
@@ -1612,9 +1682,13 @@ class _TestscreenState extends State<Testscreen> {
                             decoration: BoxDecoration(
                               color: isCurrent
                                   ? Theme.of(context)
-                                      .colorScheme.primary
+                                      .colorScheme
+                                      .primary
                                       .withValues(alpha: 0.1)
-                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.04),
                               border: Border.all(
                                 color: isCurrent
                                     ? Theme.of(context).colorScheme.primary
@@ -1631,8 +1705,13 @@ class _TestscreenState extends State<Testscreen> {
                                     color: isAnswered
                                         ? Colors.green
                                         : isCurrent
-                                            ? Theme.of(context).colorScheme.primary
-                                            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Center(
@@ -1665,8 +1744,12 @@ class _TestscreenState extends State<Testscreen> {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w600,
                                           color: isCurrent
-                                              ? Theme.of(context).colorScheme.primary
-                                              : Theme.of(context).colorScheme.onSurface,
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -1796,7 +1879,8 @@ class _TutorialCompleteOverlay extends StatefulWidget {
   const _TutorialCompleteOverlay({required this.onDone});
 
   @override
-  State<_TutorialCompleteOverlay> createState() => _TutorialCompleteOverlayState();
+  State<_TutorialCompleteOverlay> createState() =>
+      _TutorialCompleteOverlayState();
 }
 
 class _TutorialCompleteOverlayState extends State<_TutorialCompleteOverlay>
@@ -1826,32 +1910,44 @@ class _TutorialCompleteOverlayState extends State<_TutorialCompleteOverlay>
     );
 
     Animation<double> curved(double begin, double end, Curve curve) =>
-        CurvedAnimation(parent: _ctrl, curve: Interval(begin, end, curve: curve));
+        CurvedAnimation(
+            parent: _ctrl, curve: Interval(begin, end, curve: curve));
 
     const upStart = Offset(0, 0.18);
 
     _sheetSlide = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0, 0.28, curve: Curves.easeOutCubic)));
+        .animate(CurvedAnimation(
+            parent: _ctrl,
+            curve: const Interval(0, 0.28, curve: Curves.easeOutCubic)));
 
-    _iconFade  = curved(0.22, 0.40, Curves.easeOut);
-    _iconScale = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.22, 0.45, curve: Curves.elasticOut)));
+    _iconFade = curved(0.22, 0.40, Curves.easeOut);
+    _iconScale = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.22, 0.45, curve: Curves.elasticOut)));
 
-    _titleFade  = curved(0.40, 0.55, Curves.easeOut);
-    _titleSlide = Tween<Offset>(begin: upStart, end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.40, 0.55, curve: Curves.easeOutCubic)));
+    _titleFade = curved(0.40, 0.55, Curves.easeOut);
+    _titleSlide = Tween<Offset>(begin: upStart, end: Offset.zero).animate(
+        CurvedAnimation(
+            parent: _ctrl,
+            curve: const Interval(0.40, 0.55, curve: Curves.easeOutCubic)));
 
-    _bodyFade  = curved(0.52, 0.67, Curves.easeOut);
-    _bodySlide = Tween<Offset>(begin: upStart, end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.52, 0.67, curve: Curves.easeOutCubic)));
+    _bodyFade = curved(0.52, 0.67, Curves.easeOut);
+    _bodySlide = Tween<Offset>(begin: upStart, end: Offset.zero).animate(
+        CurvedAnimation(
+            parent: _ctrl,
+            curve: const Interval(0.52, 0.67, curve: Curves.easeOutCubic)));
 
-    _subtitleFade  = curved(0.63, 0.78, Curves.easeOut);
-    _subtitleSlide = Tween<Offset>(begin: upStart, end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.63, 0.78, curve: Curves.easeOutCubic)));
+    _subtitleFade = curved(0.63, 0.78, Curves.easeOut);
+    _subtitleSlide = Tween<Offset>(begin: upStart, end: Offset.zero).animate(
+        CurvedAnimation(
+            parent: _ctrl,
+            curve: const Interval(0.63, 0.78, curve: Curves.easeOutCubic)));
 
-    _buttonFade  = curved(0.78, 1.0, Curves.easeOut);
-    _buttonSlide = Tween<Offset>(begin: upStart, end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0.78, 1.0, curve: Curves.easeOutCubic)));
+    _buttonFade = curved(0.78, 1.0, Curves.easeOut);
+    _buttonSlide = Tween<Offset>(begin: upStart, end: Offset.zero).animate(
+        CurvedAnimation(
+            parent: _ctrl,
+            curve: const Interval(0.78, 1.0, curve: Curves.easeOutCubic)));
 
     _ctrl.forward();
   }

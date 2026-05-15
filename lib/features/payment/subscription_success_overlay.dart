@@ -129,7 +129,7 @@ class _PurchaseSuccessScreenState extends State<_PurchaseSuccessScreen>
       backgroundColor: Colors.transparent,
       body: FadeTransition(
         opacity: _fadeIn,
-        child: Container(
+        child: DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -233,16 +233,19 @@ class _PurchaseSuccessScreenState extends State<_PurchaseSuccessScreen>
                         TextButton.icon(
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => ReceiptScreen(receipt: widget.receipt!),
+                              builder: (_) =>
+                                  ReceiptScreen(receipt: widget.receipt!),
                             ),
                           ),
-                          icon: const Icon(Icons.receipt_long_outlined, size: 16),
+                          icon:
+                              const Icon(Icons.receipt_long_outlined, size: 16),
                           label: Text(
                             widget.receipt!.receiptNumber,
                             style: const TextStyle(fontSize: 13),
                           ),
                           style: TextButton.styleFrom(
-                            foregroundColor: cs.onSurface.withValues(alpha: 0.5),
+                            foregroundColor:
+                                cs.onSurface.withValues(alpha: 0.5),
                           ),
                         ),
 
@@ -345,7 +348,7 @@ class _DecorativeDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(
+    return const SizedBox.expand(
       child: CustomPaint(
         painter: _DecorationPainter(),
       ),
@@ -382,12 +385,12 @@ class _DecorationPainter extends CustomPainter {
   }
 
   void _dot(Canvas c, Size s, double fx, double fy, Color color, double r) {
-    c.drawCircle(Offset(s.width * fx, s.height * fy), r,
-        Paint()..color = color);
+    c.drawCircle(
+        Offset(s.width * fx, s.height * fy), r, Paint()..color = color);
   }
 
-  void _ring(Canvas c, Size s, double fx, double fy, Color color, double r,
-      double w) {
+  void _ring(
+      Canvas c, Size s, double fx, double fy, Color color, double r, double w) {
     c.drawCircle(
       Offset(s.width * fx, s.height * fy),
       r,
@@ -413,9 +416,12 @@ class _DecorationPainter extends CustomPainter {
     final path = Path()
       ..moveTo(cx, cy)
       ..cubicTo(
-        cx + 8, cy - 12 * yDir,
-        cx + 18, cy + 12 * yDir,
-        cx + 26, cy,
+        cx + 8,
+        cy - 12 * yDir,
+        cx + 18,
+        cy + 12 * yDir,
+        cx + 26,
+        cy,
       );
 
     c.save();

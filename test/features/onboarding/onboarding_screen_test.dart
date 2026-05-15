@@ -86,7 +86,10 @@ void main() {
   });
 
   tearDown(() {
-    final view = TestWidgetsFlutterBinding.ensureInitialized().platformDispatcher.views.single;
+    final view = TestWidgetsFlutterBinding.ensureInitialized()
+        .platformDispatcher
+        .views
+        .single;
     view.resetPhysicalSize();
     view.resetDevicePixelRatio();
   });
@@ -102,7 +105,8 @@ void main() {
   }
 
   Future<void> tapSubscribeAndWait(WidgetTester tester) async {
-    await tester.ensureVisible(find.widgetWithText(ElevatedButton, 'Get Best Deal'));
+    await tester
+        .ensureVisible(find.widgetWithText(ElevatedButton, 'Get Best Deal'));
     await tester.tap(find.widgetWithText(ElevatedButton, 'Get Best Deal'));
     await tester.pump();
     await tester.runAsync(() async {
@@ -220,7 +224,10 @@ void main() {
                   },
                 ],
                 isLoggedIn: () => false,
-                showAuthSheet: (_, {String? title, String? subtitle, bool required = false}) async {
+                showAuthSheet: (_,
+                    {String? title,
+                    String? subtitle,
+                    bool required = false}) async {
                   authSheetShown = true;
                   return true;
                 },
@@ -275,7 +282,10 @@ void main() {
                   },
                 ],
                 isLoggedIn: () => false,
-                showAuthSheet: (_, {String? title, String? subtitle, bool required = false}) async {
+                showAuthSheet: (_,
+                    {String? title,
+                    String? subtitle,
+                    bool required = false}) async {
                   authSheetShown = true;
                   return false;
                 },
@@ -379,7 +389,10 @@ void main() {
                   },
                 ],
                 isLoggedIn: () => false,
-                showAuthSheet: (_, {String? title, String? subtitle, bool required = false}) async {
+                showAuthSheet: (_,
+                    {String? title,
+                    String? subtitle,
+                    bool required = false}) async {
                   return true;
                 },
                 processPayment: (_, __) async {
@@ -511,7 +524,10 @@ void main() {
                   },
                 ],
                 isLoggedIn: () => true,
-                showAuthSheet: (_, {String? title, String? subtitle, bool required = false}) async {
+                showAuthSheet: (_,
+                    {String? title,
+                    String? subtitle,
+                    bool required = false}) async {
                   authSheetShown = true;
                   return true;
                 },

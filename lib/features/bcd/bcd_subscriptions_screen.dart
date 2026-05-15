@@ -72,7 +72,8 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
 
   Future<void> _loadMine({bool forceRefresh = false}) async {
     try {
-      final data = await _api.fetchMyBCDSubscriptions(forceRefresh: forceRefresh);
+      final data =
+          await _api.fetchMyBCDSubscriptions(forceRefresh: forceRefresh);
       if (mounted) {
         setState(() {
           _mySubscriptions = data;
@@ -111,7 +112,8 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       }
       final hasChildren = cat['has_children'] == true;
       final route = hasChildren
-          ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+          ? AppPageRoute(
+              builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
           : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat));
       Navigator.push(context, route);
     } catch (_) {
@@ -367,7 +369,8 @@ class _ProductCard extends StatelessWidget {
     final price = product['price']?.toString() ?? '';
     final currency = product['currency']?.toString() ?? 'SEK';
     final durationDays = product['duration_days'] as int? ?? 0;
-    final durationLabel = durationDays > 0 ? _formatDuration(durationDays) : null;
+    final durationLabel =
+        durationDays > 0 ? _formatDuration(durationDays) : null;
 
     final accentColor = (owned || isFree) ? cs.secondary : categoryColor(name);
     final iconData = owned ? LucideIcons.checkCircle : categoryIcon(name);
@@ -411,7 +414,8 @@ class _ProductCard extends StatelessWidget {
                 const Spacer(),
                 if (isFree || owned)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: cs.secondary.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(20),
@@ -430,7 +434,8 @@ class _ProductCard extends StatelessWidget {
                   )
                 else if (durationLabel != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: cs.onSurface.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(20),
@@ -446,7 +451,6 @@ class _ProductCard extends StatelessWidget {
                   ),
               ],
             ),
-
             const SizedBox(height: 16),
             Text(
               name,
@@ -456,11 +460,9 @@ class _ProductCard extends StatelessWidget {
                 height: 1.2,
               ),
             ),
-
             const SizedBox(height: 16),
             Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
-
             if (isFree || owned)
               SizedBox(
                 width: double.infinity,
@@ -561,8 +563,7 @@ class _MySubscriptionsTab extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(LucideIcons.packageOpen,
-                  size: 48,
-                  color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
+                  size: 48, color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
               const SizedBox(height: 12),
               Text(Translations.of(context).bcd_no_plans,
                   style: TextStyle(color: cs.onSurfaceVariant)),
@@ -600,8 +601,18 @@ class _SubscriptionTile extends StatelessWidget {
   const _SubscriptionTile({required this.sub, required this.onTap});
 
   static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   @override
@@ -666,9 +677,7 @@ class _SubscriptionTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
-                    isActive
-                        ? LucideIcons.shieldCheck
-                        : LucideIcons.shieldOff,
+                    isActive ? LucideIcons.shieldCheck : LucideIcons.shieldOff,
                     color: statusColor,
                     size: 20,
                   ),
@@ -754,8 +763,7 @@ class _SubscriptionTile extends StatelessWidget {
       final dt = DateTime.parse(iso).toLocal();
       final now = DateTime.now();
       final diff = dt.difference(now);
-      final dateStr =
-          '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
+      final dateStr = '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
 
       if (!isActive) return 'Expired $dateStr';
 

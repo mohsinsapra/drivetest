@@ -81,7 +81,8 @@ IconData categoryIcon(String name) {
   if (_has(s, ['alkohol', 'drog', 'drug', 'berus', 'narkotika'])) {
     return Icons.no_drinks_rounded;
   }
-  if (_has(s, ['dokument', 'document', 'handling', 'körkort', 'licens', 'licence'])) {
+  if (_has(s,
+      ['dokument', 'document', 'handling', 'körkort', 'licens', 'licence'])) {
     return Icons.badge_rounded;
   }
   if (_has(s, ['olycka', 'accident', 'krock', 'crash', 'skada'])) {
@@ -105,7 +106,8 @@ IconData categoryIcon(String name) {
   if (_has(s, ['transport', 'åkeri'])) {
     return Icons.local_shipping_rounded;
   }
-  if (_has(s, ['natt', 'night', 'mörker', 'dimma', 'fog', 'väder', 'weather'])) {
+  if (_has(
+      s, ['natt', 'night', 'mörker', 'dimma', 'fog', 'väder', 'weather'])) {
     return Icons.nights_stay_rounded;
   }
 

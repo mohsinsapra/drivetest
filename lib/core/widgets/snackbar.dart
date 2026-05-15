@@ -237,9 +237,12 @@ class _NotifCard extends StatelessWidget {
     final cardColor = Theme.of(context).cardColor;
 
     final (IconData resolvedIcon, Color iconColor) = switch (item.type) {
-      SnackBarType.success => (Icons.check_circle_rounded, Colors.green.shade600),
-      SnackBarType.error   => (Icons.error_rounded, cs.error),
-      SnackBarType.info    => (Icons.info_rounded, cs.primary),
+      SnackBarType.success => (
+          Icons.check_circle_rounded,
+          Colors.green.shade600
+        ),
+      SnackBarType.error => (Icons.error_rounded, cs.error),
+      SnackBarType.info => (Icons.info_rounded, cs.primary),
     };
 
     return Container(

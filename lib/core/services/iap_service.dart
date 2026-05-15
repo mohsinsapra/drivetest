@@ -116,7 +116,8 @@ class IAPService {
           debugPrint('[IAP] completePurchase error (non-fatal): $e');
         }
 
-        if (_pendingCompleter != null && purchase.productID == _pendingProductId) {
+        if (_pendingCompleter != null &&
+            purchase.productID == _pendingProductId) {
           // Active buy flow — always resolve as success so the user does not see
           // a payment error. If backend verify failed, the receipt is saved for
           // deferred processing.
@@ -190,7 +191,8 @@ class IAPService {
     // Local StoreKit testing produces JWS tokens that Apple's servers can't
     // verify. Use the confirm endpoint directly (no real receipt needed).
     if (kDebugMode) {
-      debugPrint('[IAP] debug mode: skipping Apple receipt verify for deferred receipt');
+      debugPrint(
+          '[IAP] debug mode: skipping Apple receipt verify for deferred receipt');
       try {
         final internalId = data['internal_product_id'] as int?;
         if (internalId != null) {
@@ -228,10 +230,12 @@ class IAPService {
     // already has the subscription from the original purchase.
     if (kDebugMode) {
       if (_pendingInternalProductId != null) {
-        debugPrint('[IAP] debug mode: confirming purchase on backend (no Apple verify)');
+        debugPrint(
+            '[IAP] debug mode: confirming purchase on backend (no Apple verify)');
         await _api.confirmBCDIAPPurchase(_pendingInternalProductId!);
       } else {
-        debugPrint('[IAP] debug mode: skipping backend verify for restore (no internalProductId)');
+        debugPrint(
+            '[IAP] debug mode: skipping backend verify for restore (no internalProductId)');
       }
       return;
     }

@@ -5,7 +5,8 @@ import 'package:taxi_exam_app/core/services/session_validation_service.dart';
 
 void main() {
   group('SessionValidationService', () {
-    test('validates on resume when authenticated and interval elapsed', () async {
+    test('validates on resume when authenticated and interval elapsed',
+        () async {
       var now = DateTime(2026, 4, 29, 12, 0, 0);
       var calls = 0;
       final service = SessionValidationService(

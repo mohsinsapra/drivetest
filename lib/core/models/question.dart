@@ -45,7 +45,9 @@ class Question extends HiveObject {
     );
   }
 
-    Question copyWith({String? text, List<Option>? options, String? answerExplanation}) => Question(
+  Question copyWith(
+          {String? text, List<Option>? options, String? answerExplanation}) =>
+      Question(
         text: text ?? this.text,
         options: options ?? this.options,
         imageUrl: imageUrl,

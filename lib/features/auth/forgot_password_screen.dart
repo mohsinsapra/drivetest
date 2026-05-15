@@ -33,8 +33,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (!mounted) return;
 
       setState(() {
-        _successMessage =
-            Translations.of(context).auth_forgot_success;
+        _successMessage = Translations.of(context).auth_forgot_success;
       });
 
       await Future.delayed(const Duration(seconds: 2));
@@ -183,7 +182,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ],
 
               // Email field — same card style as auth screen
-              Container(
+              DecoratedBox(
                 decoration: BoxDecoration(
                   color: fieldBg,
                   borderRadius: BorderRadius.circular(12),

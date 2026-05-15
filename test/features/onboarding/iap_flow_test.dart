@@ -40,9 +40,7 @@ Future<bool> _hasDeferredReceipt() async {
 }
 
 void main() {
-  setUpAll(() {
-    TestWidgetsFlutterBinding.ensureInitialized();
-  });
+  setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -56,17 +54,22 @@ void main() {
     });
 
     test('returns true when end_date is in the future', () async {
-      final future = DateTime.now().add(const Duration(days: 30)).toIso8601String();
+      final future =
+          DateTime.now().add(const Duration(days: 30)).toIso8601String();
       SharedPreferences.setMockInitialValues({
-        _kLocalEntitlementKey: '{"end_date":"$future","product_id":"com.taxi.sub.30days"}',
+        _kLocalEntitlementKey:
+            '{"end_date":"$future","product_id":"com.taxi.sub.30days"}',
       });
       expect(await _hasLocalEntitlement(), isTrue);
     });
 
-    test('returns false when end_date is in the past (subscription expired)', () async {
-      final past = DateTime.now().subtract(const Duration(days: 1)).toIso8601String();
+    test('returns false when end_date is in the past (subscription expired)',
+        () async {
+      final past =
+          DateTime.now().subtract(const Duration(days: 1)).toIso8601String();
       SharedPreferences.setMockInitialValues({
-        _kLocalEntitlementKey: '{"end_date":"$past","product_id":"com.taxi.sub.30days"}',
+        _kLocalEntitlementKey:
+            '{"end_date":"$past","product_id":"com.taxi.sub.30days"}',
       });
       expect(await _hasLocalEntitlement(), isFalse);
     });
@@ -90,7 +93,8 @@ void main() {
 
   group('clearLocalEntitlement', () {
     test('removes stored entitlement', () async {
-      final future = DateTime.now().add(const Duration(days: 30)).toIso8601String();
+      final future =
+          DateTime.now().add(const Duration(days: 30)).toIso8601String();
       SharedPreferences.setMockInitialValues({
         _kLocalEntitlementKey: '{"end_date":"$future","product_id":"x"}',
       });
@@ -116,7 +120,8 @@ void main() {
 
     test('returns true when a receipt is stored', () async {
       SharedPreferences.setMockInitialValues({
-        _kDeferredKey: '{"receipt_data":"abc","product_id":"x","internal_product_id":7}',
+        _kDeferredKey:
+            '{"receipt_data":"abc","product_id":"x","internal_product_id":7}',
       });
       expect(await _hasDeferredReceipt(), isTrue);
     });
@@ -184,7 +189,8 @@ void main() {
       expect(received, ['com.taxi.sub.30days', 'com.taxi.sub.90days']);
     });
 
-    test('timeout closes stream; count stays 0 when nothing is restored', () async {
+    test('timeout closes stream; count stays 0 when nothing is restored',
+        () async {
       final controller = StreamController<String>.broadcast();
       int count = 0;
 
@@ -197,10 +203,12 @@ void main() {
         }
       } catch (_) {}
 
-      expect(count, 0, reason: 'Nothing emitted = no prior purchases for this Apple ID');
+      expect(count, 0,
+          reason: 'Nothing emitted = no prior purchases for this Apple ID');
     });
 
-    test('counts correctly when items arrive within the timeout window', () async {
+    test('counts correctly when items arrive within the timeout window',
+        () async {
       final controller = StreamController<String>.broadcast();
       int count = 0;
 
@@ -236,27 +244,35 @@ void main() {
       // skipped entirely and the login sheet is always shown.
       final storeKitFound = false; // ignore: prefer_const_declarations
       expect(storeKitFound, isFalse,
-          reason: 'StoreKit found nothing — cannot skip login without local entitlement');
+          reason:
+              'StoreKit found nothing — cannot skip login without local entitlement');
     });
 
-    test('storeKitFound=true + not logged in + local entitlement active → skip login', () async {
-      final future = DateTime.now().add(const Duration(days: 30)).toIso8601String();
+    test(
+        'storeKitFound=true + not logged in + local entitlement active → skip login',
+        () async {
+      final future =
+          DateTime.now().add(const Duration(days: 30)).toIso8601String();
       SharedPreferences.setMockInitialValues({
         _kLocalEntitlementKey: '{"end_date":"$future","product_id":"x"}',
       });
       // Local entitlement present after anonymous verify → no login required.
       expect(await _hasLocalEntitlement(), isTrue,
-          reason: 'Anonymous verify succeeded; user can be granted access without login');
+          reason:
+              'Anonymous verify succeeded; user can be granted access without login');
     });
 
-    test('storeKitFound=true + not logged in + no local entitlement → must show login', () async {
+    test(
+        'storeKitFound=true + not logged in + no local entitlement → must show login',
+        () async {
       SharedPreferences.setMockInitialValues({});
       // Anonymous verify failed or timed out → fall through to login sheet.
       expect(await _hasLocalEntitlement(), isFalse,
           reason: 'No local entitlement → login required to check backend');
     });
 
-    test('storeKitFound=true + logged in → proceed to backend check directly', () {
+    test('storeKitFound=true + logged in → proceed to backend check directly',
+        () {
       const storeKitFound = true;
       const isLoggedIn = true;
       // Logged-in users skip the local-entitlement path entirely.
@@ -270,12 +286,15 @@ void main() {
   // ── Post-purchase skip (Apple 5.1.1v) ────────────────────────────────────
 
   group('Post-purchase skip — local entitlement (5.1.1v)', () {
-    test('active local entitlement grants access after skipping account creation', () async {
-      final future = DateTime.now().add(const Duration(days: 30)).toIso8601String();
+    test(
+        'active local entitlement grants access after skipping account creation',
+        () async {
+      final future =
+          DateTime.now().add(const Duration(days: 30)).toIso8601String();
       SharedPreferences.setMockInitialValues({
         _kLocalEntitlementKey:
             '{"end_date":"$future","product_id":"com.taxi.sub.30days",'
-            '"transaction_id":"txn_123","device_token":"abc"}',
+                '"transaction_id":"txn_123","device_token":"abc"}',
       });
 
       expect(await _hasLocalEntitlement(), isTrue,
@@ -283,9 +302,11 @@ void main() {
     });
 
     test('expired local entitlement does not grant access', () async {
-      final past = DateTime.now().subtract(const Duration(hours: 1)).toIso8601String();
+      final past =
+          DateTime.now().subtract(const Duration(hours: 1)).toIso8601String();
       SharedPreferences.setMockInitialValues({
-        _kLocalEntitlementKey: '{"end_date":"$past","product_id":"com.taxi.sub.30days"}',
+        _kLocalEntitlementKey:
+            '{"end_date":"$past","product_id":"com.taxi.sub.30days"}',
       });
 
       expect(await _hasLocalEntitlement(), isFalse);
@@ -295,14 +316,17 @@ void main() {
   // ── App restart with pending purchase ─────────────────────────────────────
 
   group('App restart — pending receipt detection', () {
-    test('deferred receipt stored → resumePendingPurchase must show auth sheet', () async {
+    test('deferred receipt stored → resumePendingPurchase must show auth sheet',
+        () async {
       SharedPreferences.setMockInitialValues({
-        _kDeferredKey: '{"receipt_data":"abc","product_id":"com.taxi.sub.30days",'
-            '"internal_product_id":7}',
+        _kDeferredKey:
+            '{"receipt_data":"abc","product_id":"com.taxi.sub.30days",'
+                '"internal_product_id":7}',
       });
 
       expect(await _hasDeferredReceipt(), isTrue,
-          reason: 'initState must detect this and show auth sheet with showPaymentSuccess=true');
+          reason:
+              'initState must detect this and show auth sheet with showPaymentSuccess=true');
     });
 
     test('no deferred receipt → no auth sheet on startup', () async {
@@ -311,7 +335,8 @@ void main() {
     });
 
     test('both deferred receipt and local entitlement can coexist', () async {
-      final future = DateTime.now().add(const Duration(days: 30)).toIso8601String();
+      final future =
+          DateTime.now().add(const Duration(days: 30)).toIso8601String();
       SharedPreferences.setMockInitialValues({
         _kDeferredKey: '{"receipt_data":"abc","product_id":"x"}',
         _kLocalEntitlementKey: '{"end_date":"$future","product_id":"x"}',

@@ -267,8 +267,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 labelText: 'Confirm Password',
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  onPressed: () => setState(() =>
-                      _obscureConfirmPassword = !_obscureConfirmPassword),
+                  onPressed: () => setState(
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword),
                   icon: Icon(_obscureConfirmPassword
                       ? Icons.visibility
                       : Icons.visibility_off),

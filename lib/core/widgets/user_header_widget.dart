@@ -49,8 +49,7 @@ class UserHeaderWidget extends StatelessWidget {
                         const SizedBox(width: 8),
                         const Text(
                           "Overall Score",
-                          style:
-                              TextStyle(color: Colors.white70, fontSize: 12),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                       ],
                     ),

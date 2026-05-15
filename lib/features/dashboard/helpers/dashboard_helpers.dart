@@ -39,11 +39,14 @@ class DashboardHelpers {
         return a.categoryName != null && a.categoryName == batchNode.name;
       }).toList();
     } else {
-      return all.where((a) =>
-        a.isCompleted &&
-        a.licenceId == exam.id &&
-        a.categoryId == batchNode.id,
-      ).toList();
+      return all
+          .where(
+            (a) =>
+                a.isCompleted &&
+                a.licenceId == exam.id &&
+                a.categoryId == batchNode.id,
+          )
+          .toList();
     }
   }
 
@@ -105,9 +108,8 @@ class DashboardHelpers {
     List<TestAttempt> allAttempts,
   ) {
     final batches = exam.childrenOf(categoryNode.id);
-    final batchStats = batches
-        .map((b) => computeBatchStats(b, allAttempts, exam))
-        .toList();
+    final batchStats =
+        batches.map((b) => computeBatchStats(b, allAttempts, exam)).toList();
     return CategoryStats(node: categoryNode, batchStats: batchStats);
   }
 
@@ -132,7 +134,8 @@ class DashboardHelpers {
           .toList();
     }
 
-    final streak = computeStreakSummary(allAttempts, exam: exam, weeklyGoal: weeklyGoal);
+    final streak =
+        computeStreakSummary(allAttempts, exam: exam, weeklyGoal: weeklyGoal);
     final examAttempts = _examLevelAttemptCount(allAttempts, exam);
 
     return ExamDashboardStats(
@@ -252,7 +255,7 @@ class DashboardHelpers {
     // This week Mon–Sun
     final monday = todayMid.subtract(Duration(days: todayMid.weekday - 1));
     final thisWeek = List.generate(7, (i) => monday.add(Duration(days: i)));
-    final thisWeekActive = thisWeek.where((d) => activeDates.contains(d)).toList();
+    final thisWeekActive = thisWeek.where(activeDates.contains).toList();
 
     return StreakSummary(
       currentStreak: currentStreak,
@@ -279,7 +282,9 @@ class DashboardHelpers {
     final paused = all.where((a) {
       if (!a.isPaused) return false;
       if (exam.isBcd) {
-        if (a.isBcd) return validParentIds.contains(a.bcdCategoryId?.toString());
+        if (a.isBcd) {
+          return validParentIds.contains(a.bcdCategoryId?.toString());
+        }
         return a.categoryName != null && batchNames.contains(a.categoryName);
       }
       return a.licenceId == exam.id;

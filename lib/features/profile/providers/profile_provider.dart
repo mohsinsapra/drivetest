@@ -58,8 +58,7 @@ class ProfileProvider extends ChangeNotifier {
       final map = Map<String, dynamic>.from(user as Map);
       username = (map['username'] ?? '').toString();
       email = (map['email'] ?? '').toString();
-      hasPassword =
-          (map['has_password'] ?? map['has_usable_password']) == true;
+      hasPassword = (map['has_password'] ?? map['has_usable_password']) == true;
       isGoogleAccount = map['is_google_account'] == true;
       isDemo = map['is_demo'] == true;
       isGuest = map['is_guest'] == true;

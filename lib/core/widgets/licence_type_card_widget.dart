@@ -14,8 +14,11 @@ class LicenseTypeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () { HapticFeedback.selectionClick(); onTap(); },
-      child: Container(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: DecoratedBox(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),

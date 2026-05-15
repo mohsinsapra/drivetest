@@ -25,10 +25,10 @@ class AppStorage {
 
   // ── Hive box names ──────────────────────────────────────────────────────────
 
-  static const String kTestAttempts    = 'testAttempts';
+  static const String kTestAttempts = 'testAttempts';
   static const String kSubscribedExams = 'subscribed_exams';
-  static const String kNotifications   = 'notifications';
-  static const String kReceipts        = 'purchase_receipts';
+  static const String kNotifications = 'notifications';
+  static const String kReceipts = 'purchase_receipts';
 
   // ── SharedPreferences keys (user-specific) ──────────────────────────────────
 
@@ -57,10 +57,9 @@ class AppStorage {
       Hive.box<LocalNotification>(kNotifications);
 
   /// Returns the purchase receipts box (JSON strings keyed by receipt number).
-  static Future<Box<String>> receiptsBox() async =>
-      Hive.isBoxOpen(kReceipts)
-          ? Hive.box<String>(kReceipts)
-          : await Hive.openBox<String>(kReceipts);
+  static Future<Box<String>> receiptsBox() async => Hive.isBoxOpen(kReceipts)
+      ? Hive.box<String>(kReceipts)
+      : await Hive.openBox<String>(kReceipts);
 
   // ── User-data wipe ──────────────────────────────────────────────────────────
 

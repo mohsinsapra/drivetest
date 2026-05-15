@@ -164,8 +164,12 @@ class _ReceiptCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Row(label: 'Receipt no.', value: receipt.receiptNumber,
-                    mono: true, highlight: true, cs: cs),
+                _Row(
+                    label: 'Receipt no.',
+                    value: receipt.receiptNumber,
+                    mono: true,
+                    highlight: true,
+                    cs: cs),
                 _divider(),
                 _Row(label: 'Product', value: receipt.productName, cs: cs),
                 _Row(

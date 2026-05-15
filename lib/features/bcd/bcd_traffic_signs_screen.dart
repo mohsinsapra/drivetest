@@ -43,8 +43,8 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
     super.initState();
     _provider.addListener(_onProviderChange);
     _load();
-    _refreshTimer =
-        Timer.periodic(_autoRefreshInterval, (_) => _provider.refreshTrafficSignsSilently());
+    _refreshTimer = Timer.periodic(
+        _autoRefreshInterval, (_) => _provider.refreshTrafficSignsSilently());
   }
 
   @override
@@ -106,8 +106,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
                           height: 300,
                           child: Center(
                             child: Text(Translations.of(context).bcd_no_signs,
-                                style:
-                                    TextStyle(color: Colors.grey.shade500)),
+                                style: TextStyle(color: Colors.grey.shade500)),
                           ),
                         ),
                       ])
@@ -115,8 +114,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
                         onRefresh: _provider.loadTrafficSigns,
                         child: ListView.builder(
                           controller: _scrollController,
-                          padding:
-                              const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                           itemCount: _filtered.length,
                           itemBuilder: (ctx, i) => _SignGroupCard(
                             sign: _filtered[i],
@@ -196,7 +194,8 @@ class _SignGroupCardState extends State<_SignGroupCard> {
           children: [
             Icon(LucideIcons.imageOff, size: 36, color: Colors.grey.shade300),
             const SizedBox(height: 8),
-            Text(Translations.of(context).bcd_no_image, style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
+            Text(Translations.of(context).bcd_no_image,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
           ],
         ),
       );
@@ -263,23 +262,33 @@ class _SignGroupCardState extends State<_SignGroupCard> {
                   if (content.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      content.length > 110 ? '${content.substring(0, 110)}…' : content,
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.45),
+                      content.length > 110
+                          ? '${content.substring(0, 110)}…'
+                          : content,
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                          height: 1.45),
                     ),
                   ],
                   if (signCount > 0) ...[
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Icon(LucideIcons.alertTriangle, size: 13, color: Colors.grey.shade400),
+                        Icon(LucideIcons.alertTriangle,
+                            size: 13, color: Colors.grey.shade400),
                         const SizedBox(width: 5),
                         Text(
                           '$signCount ${Translations.of(context).bcd_signs_count_label}',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w500),
                         ),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF0F4FF),
                             borderRadius: BorderRadius.circular(20),
@@ -287,9 +296,14 @@ class _SignGroupCardState extends State<_SignGroupCard> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(Translations.of(context).bcd_view, style: const TextStyle(fontSize: 12, color: Color(0xFF3B5BDB), fontWeight: FontWeight.w600)),
+                              Text(Translations.of(context).bcd_view,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF3B5BDB),
+                                      fontWeight: FontWeight.w600)),
                               const SizedBox(width: 3),
-                              const Icon(LucideIcons.chevronRight, size: 13, color: Color(0xFF3B5BDB)),
+                              const Icon(LucideIcons.chevronRight,
+                                  size: 13, color: Color(0xFF3B5BDB)),
                             ],
                           ),
                         ),
@@ -329,24 +343,22 @@ class _ImageSlider extends StatelessWidget {
           color: const Color(0xFFF8F8FA),
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
           child: ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-            }),
-            child: PageView.builder(
-            controller: controller,
-            itemCount: urls.length,
-            onPageChanged: onPageChanged,
-            physics: const BouncingScrollPhysics(),
-            itemBuilder: (_, i) => Image.network(
-              urls[i],
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(
-                  LucideIcons.image,
-                  size: 48,
-                  color: Colors.grey.shade300),
-            ),
-          )),
+              behavior: ScrollConfiguration.of(context).copyWith(dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+              }),
+              child: PageView.builder(
+                controller: controller,
+                itemCount: urls.length,
+                onPageChanged: onPageChanged,
+                physics: const BouncingScrollPhysics(),
+                itemBuilder: (_, i) => Image.network(
+                  urls[i],
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Icon(LucideIcons.image,
+                      size: 48, color: Colors.grey.shade300),
+                ),
+              )),
         ),
         Container(
           color: const Color(0xFFF8F8FA),
@@ -362,9 +374,8 @@ class _ImageSlider extends StatelessWidget {
                 width: active ? 18 : 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: active
-                      ? const Color(0xFF3B5BDB)
-                      : Colors.grey.shade300,
+                  color:
+                      active ? const Color(0xFF3B5BDB) : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(3),
                 ),
               );
@@ -375,7 +386,6 @@ class _ImageSlider extends StatelessWidget {
     );
   }
 }
-
 
 // ── Detail screen ──────────────────────────────────────────────────────────────
 
@@ -411,8 +421,7 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final groupTitle =
-        cleanBcdText(widget.group['title']?.toString() ?? '');
+    final groupTitle = cleanBcdText(widget.group['title']?.toString() ?? '');
     final title = cleanBcdText(_current['title']?.toString() ?? '');
     final content = cleanBcdText(_current['content']?.toString() ?? '');
     final images = (_current['images'] as List<dynamic>? ?? []);
@@ -468,7 +477,8 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Theme.of(context).dividerColor),
+                          border:
+                              Border.all(color: Theme.of(context).dividerColor),
                         ),
                         child: Text(title,
                             style: const TextStyle(
@@ -483,7 +493,8 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Theme.of(context).dividerColor),
+                        border:
+                            Border.all(color: Theme.of(context).dividerColor),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -498,8 +509,7 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                               height: 230,
                               child: images.isEmpty
                                   ? Center(
-                                      child: Icon(
-                                          LucideIcons.alertTriangle,
+                                      child: Icon(LucideIcons.alertTriangle,
                                           size: 64,
                                           color: Colors.grey.shade300))
                                   : _SignImageViewer(images: images),
@@ -522,7 +532,8 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Theme.of(context).dividerColor),
+                          border:
+                              Border.all(color: Theme.of(context).dividerColor),
                         ),
                         child: Text(content,
                             style: TextStyle(
@@ -582,9 +593,7 @@ class _NavArrow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
         child: Icon(icon,
             size: 22,
-            color: enabled
-                ? Colors.grey.shade600
-                : Colors.grey.shade200),
+            color: enabled ? Colors.grey.shade600 : Colors.grey.shade200),
       ),
     );
   }
@@ -611,10 +620,11 @@ class _BottomNavButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 13),
         decoration: BoxDecoration(
-          color: enabled ? Theme.of(context).cardColor : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+          color: enabled
+              ? Theme.of(context).cardColor
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-              color: Theme.of(context).dividerColor),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -662,21 +672,21 @@ class _SignImageViewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (images.length == 1) {
-      final url = ApiService()
-          .bcdMediaUrl(images[0]['file_name']?.toString() ?? '');
+      final url =
+          ApiService().bcdMediaUrl(images[0]['file_name']?.toString() ?? '');
       return Padding(
         padding: const EdgeInsets.all(24),
         child: Image.network(url,
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => Icon(LucideIcons.image,
-                size: 48, color: Colors.grey.shade300)),
+            errorBuilder: (_, __, ___) =>
+                Icon(LucideIcons.image, size: 48, color: Colors.grey.shade300)),
       );
     }
     return PageView.builder(
       itemCount: images.length,
       itemBuilder: (_, i) {
-        final url = ApiService()
-            .bcdMediaUrl(images[i]['file_name']?.toString() ?? '');
+        final url =
+            ApiService().bcdMediaUrl(images[i]['file_name']?.toString() ?? '');
         return Padding(
           padding: const EdgeInsets.all(24),
           child: Image.network(url,

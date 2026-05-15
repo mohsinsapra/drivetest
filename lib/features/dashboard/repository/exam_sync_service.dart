@@ -98,8 +98,7 @@ class ExamSyncService {
   // ── Field helpers ─────────────────────────────────────────────────────────
 
   /// BCD tests use the `bcd_id` field as their identifier.
-  String _testBcdId(Map<String, dynamic> t) =>
-      (t['bcd_id'])?.toString() ?? '';
+  String _testBcdId(Map<String, dynamic> t) => (t['bcd_id'])?.toString() ?? '';
 
   int _timeLimit(Map<String, dynamic> t) {
     final v = t['time_limit'];

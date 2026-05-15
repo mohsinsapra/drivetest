@@ -27,8 +27,10 @@ void main() {
     }
   });
 
-  test('clearUserData clears an already-open typed notifications box', () async {
-    final box = await Hive.openBox<LocalNotification>(AppStorage.kNotifications);
+  test('clearUserData clears an already-open typed notifications box',
+      () async {
+    final box =
+        await Hive.openBox<LocalNotification>(AppStorage.kNotifications);
     await box.add(
       LocalNotification(
         title: 't',

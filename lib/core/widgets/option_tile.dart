@@ -44,7 +44,10 @@ class Option extends StatelessWidget {
     if (!showInstantMarking) {
       if (isSelected) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        return Theme.of(ctx).colorScheme.primary.withValues(alpha: isDark ? 0.25 : 0.1);
+        return Theme.of(ctx)
+            .colorScheme
+            .primary
+            .withValues(alpha: isDark ? 0.25 : 0.1);
       }
       return Theme.of(ctx).cardColor;
     }
@@ -61,9 +64,8 @@ class Option extends StatelessWidget {
 
   Color _borderColor(BuildContext ctx) {
     final isDark = Theme.of(ctx).brightness == Brightness.dark;
-    final defaultBorder = isDark
-        ? Colors.white.withValues(alpha: 0.15)
-        : Colors.grey[300]!;
+    final defaultBorder =
+        isDark ? Colors.white.withValues(alpha: 0.15) : Colors.grey[300]!;
     if (!showInstantMarking) {
       return isSelected ? Theme.of(ctx).colorScheme.primary : defaultBorder;
     }
@@ -81,11 +83,12 @@ class Option extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = scale;
-    
+
     // Determine the icon and color for the bullet/indicator
     Widget? indicatorIcon;
     Color indicatorColor = Colors.transparent;
-    Color indicatorBorderColor = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35);
+    Color indicatorBorderColor =
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35);
 
     if (showInstantMarking) {
       if (isCorrectAnswer) {
@@ -166,13 +169,18 @@ class Option extends StatelessWidget {
                               softWrap: true,
                               style: TextStyle(
                                 fontSize: 15 * s,
-                                fontWeight: (isSelected || (showInstantMarking && isCorrectAnswer))
+                                fontWeight: (isSelected ||
+                                        (showInstantMarking && isCorrectAnswer))
                                     ? FontWeight.w600
                                     : FontWeight.normal,
                                 color: showInstantMarking
                                     ? (isCorrectAnswer
                                         ? Colors.green[700]
-                                        : (isSelected ? Colors.red[700] : Theme.of(context).colorScheme.onSurface))
+                                        : (isSelected
+                                            ? Colors.red[700]
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface))
                                     : Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
@@ -235,11 +243,19 @@ class Option extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.image_not_supported,
-                                  size: 24, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
+                                  size: 24,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.4)),
                               const SizedBox(height: 4),
                               Text('Image not available',
                                   style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 12)),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.6),
+                                      fontSize: 12)),
                             ],
                           ),
                         ),

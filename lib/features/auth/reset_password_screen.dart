@@ -20,7 +20,8 @@ class ResetPasswordScreen extends StatefulWidget {
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final ApiService _apiService = ApiService();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -96,7 +97,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Invalid or expired reset code. Please try requesting a new reset link.';
+        _errorMessage =
+            'Invalid or expired reset code. Please try requesting a new reset link.';
       });
     } finally {
       if (mounted) {
@@ -185,7 +187,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
@@ -206,7 +210,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {

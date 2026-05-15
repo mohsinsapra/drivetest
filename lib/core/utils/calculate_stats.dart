@@ -18,9 +18,8 @@ Map<String, dynamic> calculateStats(List<TestAttempt> attempts) {
     final licence = (a.licenceName?.isNotEmpty == true)
         ? a.licenceName!
         : (a.isBcd ? 'Category' : 'Unknown');
-    final category = (a.categoryName?.isNotEmpty == true)
-        ? a.categoryName!
-        : 'Unknown';
+    final category =
+        (a.categoryName?.isNotEmpty == true) ? a.categoryName! : 'Unknown';
 
     // Count licenses
     licenceCounts[licence] = (licenceCounts[licence] ?? 0) + 1;

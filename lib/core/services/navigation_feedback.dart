@@ -18,8 +18,7 @@ Future<void> playNavigationFeedback() {
 Future<void> vibrateWrongAnswer() => _vibrate(durationMs: 150);
 
 /// Celebration — test passed.
-Future<void> vibratePass() =>
-    _vibrate(pattern: [0, 100, 60, 180, 60, 260]);
+Future<void> vibratePass() => _vibrate(pattern: [0, 100, 60, 180, 60, 260]);
 
 /// Failure — test failed.
 Future<void> vibrateFail() => _vibrate(durationMs: 400);
@@ -137,7 +136,7 @@ class VibrationNavigationFeedbackDriver implements NavigationFeedbackDriver {
 
   @override
   Future<bool> hasVibrationSupport() async {
-    return await Vibration.hasVibrator();
+    return Vibration.hasVibrator();
   }
 
   @override

@@ -10,8 +10,7 @@ Widget buildWebLottie({
   BoxFit fit = BoxFit.contain,
 }) {
   // Stable view-type id derived from the asset path
-  final viewType =
-      'lottie__${asset.replaceAll('/', '_').replaceAll('.', '_')}';
+  final viewType = 'lottie__${asset.replaceAll('/', '_').replaceAll('.', '_')}';
 
   if (!_registered.contains(viewType)) {
     _registered.add(viewType);

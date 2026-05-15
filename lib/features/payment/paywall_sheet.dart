@@ -126,8 +126,8 @@ class _PlanTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        border: Border.all(
-            color: const Color(0xFF4F46E5).withValues(alpha: 0.3)),
+        border:
+            Border.all(color: const Color(0xFF4F46E5).withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Material(
@@ -149,8 +149,7 @@ class _PlanTile extends StatelessWidget {
                     children: [
                       Text(
                         cleanBcdText(name),
-                        style:
-                            const TextStyle(fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       if (days > 0)
                         Text(

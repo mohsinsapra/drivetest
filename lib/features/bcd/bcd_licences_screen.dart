@@ -49,7 +49,8 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
     _loadCategories();
     _searchController.addListener(
         () => setState(() => _searchQuery = _searchController.text));
-    _refreshTimer = Timer.periodic(_autoRefreshInterval, (_) => _silentRefresh());
+    _refreshTimer =
+        Timer.periodic(_autoRefreshInterval, (_) => _silentRefresh());
   }
 
   @override
@@ -66,12 +67,16 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
       await BcdCache.instance.ensureLoaded();
       if (mounted) {
         setState(() {
-          _categories = sortSubscribedCategoriesFirst(BcdCache.instance.categories);
+          _categories =
+              sortSubscribedCategoriesFirst(BcdCache.instance.categories);
           _animateList = false;
         });
       }
     } catch (e) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_categories, type: SnackBarType.error);
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_categories,
+            type: SnackBarType.error);
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -86,11 +91,15 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
       await ApiService().fetchCurrentUser(forceRefresh: true);
       if (mounted) {
         setState(() {
-          _categories = sortSubscribedCategoriesFirst(BcdCache.instance.categories);
+          _categories =
+              sortSubscribedCategoriesFirst(BcdCache.instance.categories);
         });
       }
     } catch (e) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_categories, type: SnackBarType.error);
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_categories,
+            type: SnackBarType.error);
+      }
     }
   }
 
@@ -101,7 +110,8 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
       await BcdCache.instance.ensureLoaded();
       if (mounted) {
         setState(() {
-          _categories = sortSubscribedCategoriesFirst(BcdCache.instance.categories);
+          _categories =
+              sortSubscribedCategoriesFirst(BcdCache.instance.categories);
         });
       }
     } catch (_) {
@@ -117,14 +127,16 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
     final cat = Map<String, dynamic>.from(category);
 
     final route = hasChildren
-        ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+        ? AppPageRoute(
+            builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
         : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat));
 
     Navigator.push(context, route).then((_) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
           _scrollController.jumpTo(
-            _savedScrollOffset.clamp(0, _scrollController.position.maxScrollExtent),
+            _savedScrollOffset.clamp(
+                0, _scrollController.position.maxScrollExtent),
           );
         }
       });
@@ -147,7 +159,7 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () => _searchController.clear(),
+                        onPressed: _searchController.clear,
                       )
                     : null,
                 isDense: true,
@@ -174,9 +186,12 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
                                 child: Center(
                                   child: Text(
                                     _searchQuery.isNotEmpty
-                                        ? Translations.of(context).bcd_no_match_search
-                                        : Translations.of(context).bcd_no_categories,
-                                    style: TextStyle(color: Colors.grey.shade500),
+                                        ? Translations.of(context)
+                                            .bcd_no_match_search
+                                        : Translations.of(context)
+                                            .bcd_no_categories,
+                                    style:
+                                        TextStyle(color: Colors.grey.shade500),
                                   ),
                                 ),
                               ),
@@ -242,10 +257,13 @@ class _CategoryCard extends StatelessWidget {
       badgeLabel = 'Free';
     } else {
       accent = cs.onSurfaceVariant;
-      badgeLabel = (price != null && price.isNotEmpty) ? '$price $currency' : t.bcd_tap_to_subscribe;
+      badgeLabel = (price != null && price.isNotEmpty)
+          ? '$price $currency'
+          : t.bcd_tap_to_subscribe;
     }
 
-    final progress = testCount > 0 ? (attemptCount / testCount).clamp(0.0, 1.0) : 0.0;
+    final progress =
+        testCount > 0 ? (attemptCount / testCount).clamp(0.0, 1.0) : 0.0;
     final complete = testCount > 0 && attemptCount >= testCount;
 
     return Container(
@@ -333,14 +351,18 @@ class _CategoryCard extends StatelessWidget {
                                 const SizedBox(width: 8),
                                 Text(
                                   '$attemptCount / $testCount attempted',
-                                  style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                                  style: TextStyle(
+                                      fontSize: 11, color: cs.onSurfaceVariant),
                                 ),
                               ],
-                              if (!isFree && !subscribed && durationDays != null) ...[
+                              if (!isFree &&
+                                  !subscribed &&
+                                  durationDays != null) ...[
                                 const SizedBox(width: 6),
                                 Text(
                                   '· $durationDays days',
-                                  style: TextStyle(fontSize: 11, color: cs.outline),
+                                  style: TextStyle(
+                                      fontSize: 11, color: cs.outline),
                                 ),
                               ],
                             ],
@@ -370,7 +392,8 @@ class _CategoryCard extends StatelessWidget {
                       ),
                       if (complete) ...[
                         const SizedBox(width: 8),
-                        const Icon(LucideIcons.checkCircle, size: 14, color: successGreen),
+                        const Icon(LucideIcons.checkCircle,
+                            size: 14, color: successGreen),
                       ],
                     ],
                   ),
@@ -400,7 +423,8 @@ class _AccessBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+        style:
+            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -434,7 +458,8 @@ class _StaggeredItem extends StatefulWidget {
   final int index;
   final Widget child;
   final bool animate;
-  const _StaggeredItem({required this.index, required this.child, this.animate = true});
+  const _StaggeredItem(
+      {required this.index, required this.child, this.animate = true});
 
   @override
   State<_StaggeredItem> createState() => _StaggeredItemState();
@@ -452,12 +477,12 @@ class _StaggeredItemState extends State<_StaggeredItem>
     _ctrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 260));
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _slide = Tween<Offset>(
-            begin: const Offset(0, 0.05), end: Offset.zero)
+    _slide = Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
     if (widget.animate) {
-      Future.delayed(Duration(milliseconds: widget.index * 35),
-          () { if (mounted) _ctrl.forward(); });
+      Future.delayed(Duration(milliseconds: widget.index * 35), () {
+        if (mounted) _ctrl.forward();
+      });
     } else {
       _ctrl.value = 1.0;
     }

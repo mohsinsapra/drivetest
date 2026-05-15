@@ -72,8 +72,7 @@ Future<void> showResultDialog({
     context: context,
     barrierDismissible: false,
     builder: (ctx) => Dialog(
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       clipBehavior: Clip.antiAlias,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -122,13 +121,13 @@ Future<void> showResultDialog({
                 ),
                 const SizedBox(height: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.4)),
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.4)),
                   ),
                   child: Text(
                     hasPassed ? 'PASSED' : 'FAILED',

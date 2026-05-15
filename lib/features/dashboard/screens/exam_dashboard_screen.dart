@@ -57,7 +57,8 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
     final result = await PaymentCoordinator.show(
       context,
       products: products,
-      createStripeIntent: (p) => ApiService().createBCDPaymentIntent(p['id'] as int),
+      createStripeIntent: (p) =>
+          ApiService().createBCDPaymentIntent(p['id'] as int),
       onStripePaymentConfirmed: (id) => ApiService().confirmBCDPayment(id),
       onIAPPurchaseConfirmed: (p, transactionId) =>
           ApiService().confirmBCDIAPPurchase(
@@ -127,7 +128,8 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
           ),
         DashboardStatus.loaded => RefreshIndicator(
             onRefresh: () => context.read<DashboardProvider>().syncNow(),
-            child: _DashboardBody(provider: provider, onSubscribe: _handleSubscribe),
+            child: _DashboardBody(
+                provider: provider, onSubscribe: _handleSubscribe),
           ),
       },
     );
@@ -157,7 +159,8 @@ class _DashboardBody extends StatelessWidget {
 
         // ── My Exams carousel ─────────────────────────────────────────────────
         SliverToBoxAdapter(
-          child: _ExamCarouselSection(provider: provider, onSubscribe: onSubscribe),
+          child: _ExamCarouselSection(
+              provider: provider, onSubscribe: onSubscribe),
         ),
 
         // ── Performance overview ──────────────────────────────────────────────
@@ -265,7 +268,8 @@ class _HeroSection extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ExamCarouselSection extends StatelessWidget {
-  const _ExamCarouselSection({required this.provider, required this.onSubscribe});
+  const _ExamCarouselSection(
+      {required this.provider, required this.onSubscribe});
   final DashboardProvider provider;
   final VoidCallback onSubscribe;
 
@@ -291,7 +295,7 @@ class _ExamCarouselSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
-                _FreeBCDHubCard(),
+                const _FreeBCDHubCard(),
                 const SizedBox(height: 12),
                 _FreeVagmarkesCard(
                   onTap: () => Navigator.push(
@@ -306,8 +310,7 @@ class _ExamCarouselSection extends StatelessWidget {
               ],
             ),
           ),
-        ]
-        else
+        ] else
           SizedBox(
             height: 190,
             child: ListView.builder(
@@ -320,9 +323,8 @@ class _ExamCarouselSection extends StatelessWidget {
                 final progress = provider.overviewProgress[exam.id] ?? 0.0;
 
                 final bcdId = int.tryParse(exam.id);
-                final endDate = bcdId != null
-                    ? BcdCache.instance.endDateFor(bcdId)
-                    : null;
+                final endDate =
+                    bcdId != null ? BcdCache.instance.endDateFor(bcdId) : null;
 
                 return Padding(
                   padding: const EdgeInsets.only(right: 12),
@@ -388,7 +390,8 @@ class _FreeBCDHubCardState extends State<_FreeBCDHubCard> {
     if (cats.isEmpty) return null;
 
     final match = cats.firstWhereOrNull(
-          (c) => (c['name']?.toString() ?? '').toLowerCase().contains('vägmärk'),
+          (c) =>
+              (c['name']?.toString() ?? '').toLowerCase().contains('vägmärk'),
         ) ??
         cats.firstWhereOrNull((c) => c['subscription_product'] == null) ??
         cats.first;
@@ -417,12 +420,10 @@ class _FreeBCDHubCardState extends State<_FreeBCDHubCard> {
 
     final catName = _category?['name']?.toString();
     final displayTitle = catName ?? t.dash_free_hub_title;
-    final accent = catName != null
-        ? categoryColor(catName)
-        : const Color(0xFF4F46E5);
-    final icon = catName != null
-        ? categoryIcon(catName)
-        : Icons.menu_book_rounded;
+    final accent =
+        catName != null ? categoryColor(catName) : const Color(0xFF4F46E5);
+    final icon =
+        catName != null ? categoryIcon(catName) : Icons.menu_book_rounded;
 
     return InkWell(
       onTap: _handleTap,
@@ -468,7 +469,8 @@ class _FreeBCDHubCardState extends State<_FreeBCDHubCard> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF059669).withValues(alpha: 0.12),
+                          color:
+                              const Color(0xFF059669).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -576,7 +578,8 @@ class _FreeVagmarkesCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF059669).withValues(alpha: 0.12),
+                          color:
+                              const Color(0xFF059669).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -612,8 +615,7 @@ class _FreeVagmarkesCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Icon(LucideIcons.arrowRight,
-                          size: 14, color: cs.primary),
+                      Icon(LucideIcons.arrowRight, size: 14, color: cs.primary),
                     ],
                   ),
                 ],
@@ -652,16 +654,16 @@ class _SubscribeCTACard extends StatelessWidget {
           Text(
             t.dash_no_exams_found,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: cs.onSurface,
-            ),
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
             t.bcd_free_content_desc,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: cs.onSurfaceVariant,
-            ),
+                  color: cs.onSurfaceVariant,
+                ),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -674,7 +676,8 @@ class _SubscribeCTACard extends StatelessWidget {
                 backgroundColor: cs.primary.withValues(alpha: 0.85),
                 foregroundColor: cs.onPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
             ),
           ),
@@ -699,8 +702,18 @@ class _ExamCard extends StatelessWidget {
   final VoidCallback? onArrowTap;
 
   static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   String? _expiryLabel() {
@@ -1658,8 +1671,8 @@ class _BatchRowState extends State<_BatchRow> {
                       ),
                     ),
                     if (hasPaused)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 6),
+                      const Padding(
+                        padding: EdgeInsets.only(right: 6),
                         child: Icon(
                           Icons.pause_circle_outline_rounded,
                           size: 14,
@@ -1699,7 +1712,7 @@ class _BatchRowState extends State<_BatchRow> {
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeInOut,
               child: _expanded
-                  ? Container(
+                  ? DecoratedBox(
                       decoration: BoxDecoration(
                         color: cs.surface,
                         border: Border(

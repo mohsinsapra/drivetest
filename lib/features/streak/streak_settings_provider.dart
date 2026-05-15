@@ -42,7 +42,8 @@ class StreakSettingsProvider extends ChangeNotifier {
     _examDeadline = examDeadline;
     _practiceWeekdays = practiceWeekdays.isEmpty ? {0} : practiceWeekdays;
     await _persist();
-    StreakNotificationService.scheduleStreakReminders(_practiceWeekdays).ignore();
+    StreakNotificationService.scheduleStreakReminders(_practiceWeekdays)
+        .ignore();
     notifyListeners();
   }
 

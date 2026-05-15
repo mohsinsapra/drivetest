@@ -123,7 +123,8 @@ class _ImageViewerPageState extends State<_ImageViewerPage>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.broken_image, color: Colors.white54, size: 48),
+                        const Icon(Icons.broken_image,
+                            color: Colors.white54, size: 48),
                         const SizedBox(height: 8),
                         Text(Translations.of(ctx).image_viewer_load_error,
                             style: const TextStyle(color: Colors.white54)),
@@ -159,7 +160,8 @@ class _ImageViewerPageState extends State<_ImageViewerPage>
                     child: Center(
                       child: Text(
                         Translations.of(context).image_viewer_swipe_to_close,
-                        style: const TextStyle(color: Colors.white38, fontSize: 12),
+                        style: const TextStyle(
+                            color: Colors.white38, fontSize: 12),
                       ),
                     ),
                   ),

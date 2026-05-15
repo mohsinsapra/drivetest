@@ -23,17 +23,14 @@ class AttemptDetailScreen extends StatelessWidget {
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     final totalAnswered = a.userSelections.length;
     final correct = hasQuestions
-        ? a.userSelections.entries
-            .where((e) {
-              final idx = e.key;
-              if (idx < 0 || idx >= questions.length) return false;
-              return e.value == questions[idx].correctAnswer;
-            })
-            .length
+        ? a.userSelections.entries.where((e) {
+            final idx = e.key;
+            if (idx < 0 || idx >= questions.length) return false;
+            return e.value == questions[idx].correctAnswer;
+          }).length
         : null;
-    final duration = a.durationSeconds != null
-        ? _formatDuration(a.durationSeconds!)
-        : null;
+    final duration =
+        a.durationSeconds != null ? _formatDuration(a.durationSeconds!) : null;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,

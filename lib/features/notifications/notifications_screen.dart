@@ -42,16 +42,14 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   Future<void> _checkPermission() async {
-    final settings =
-        await FirebaseMessaging.instance.getNotificationSettings();
+    final settings = await FirebaseMessaging.instance.getNotificationSettings();
     if (mounted) {
       setState(() => _permissionStatus = settings.authorizationStatus);
     }
   }
 
   Future<void> _requestPermission() async {
-    final settings =
-        await FirebaseMessaging.instance.requestPermission();
+    final settings = await FirebaseMessaging.instance.requestPermission();
     if (mounted) {
       setState(() => _permissionStatus = settings.authorizationStatus);
     }
@@ -78,8 +76,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     showDialog<void>(
       context: context,
       builder: (_) => Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         backgroundColor: cs.surface,
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -221,9 +218,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               ? _PermissionState(
                   denied: permissionDenied,
                   colorScheme: colorScheme,
-                  onRequest: permissionDenied
-                      ? _openAppSettings
-                      : _requestPermission,
+                  onRequest:
+                      permissionDenied ? _openAppSettings : _requestPermission,
                 )
               : Consumer<NotificationProvider>(
                   builder: (_, provider, __) {

@@ -80,7 +80,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
       products: _products,
       title: _categoryName,
       createStripeIntent: (p) => _api.createBCDPaymentIntent(p['id'] as int),
-      onStripePaymentConfirmed: (id) => _api.confirmBCDPayment(id),
+      onStripePaymentConfirmed: _api.confirmBCDPayment,
       onIAPPurchaseConfirmed: (p, transactionId) => _api.confirmBCDIAPPurchase(
         (p['id'] as num).toInt(),
         transactionId: transactionId,
@@ -280,7 +280,8 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (!_subscribed && widget.category['subscription_product'] != null) ...[
+            if (!_subscribed &&
+                widget.category['subscription_product'] != null) ...[
               _SubscriptionBanner(onBuy: _showPaywall),
               const SizedBox(height: 20),
             ],
@@ -297,13 +298,15 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
                   label: t.bcd_hub_practice,
                   locked: false,
                   loading: _practiceLoading,
-                  tileColor: const Color(0xFF059669), // success green — universal start/go
+                  tileColor: const Color(
+                      0xFF059669), // success green — universal start/go
                   onTap: () => _onTileTap('practice'),
                 ),
                 _HubTile(
                   icon: LucideIcons.fileText,
                   label: t.bcd_hub_tests,
-                  locked: !_subscribed && widget.category['subscription_product'] != null,
+                  locked: !_subscribed &&
+                      widget.category['subscription_product'] != null,
                   tileColor: Theme.of(context).colorScheme.primary,
                   onTap: () => _onTileTap('tests'),
                 ),
@@ -331,7 +334,8 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
                 _HubTile(
                   icon: LucideIcons.barChart2,
                   label: t.bcd_hub_statistics,
-                  locked: !_subscribed && widget.category['subscription_product'] != null,
+                  locked: !_subscribed &&
+                      widget.category['subscription_product'] != null,
                   tileColor: Theme.of(context).colorScheme.inversePrimary,
                   onTap: () => _onTileTap('statistics'),
                 ),
@@ -408,7 +412,8 @@ class _SubscriptionBanner extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: cs.primary,
               foregroundColor: cs.onPrimary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
           ),
@@ -617,12 +622,15 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
                     widget.practiceOnly
                         ? Translations.of(context).bcd_no_free_practice_tests
                         : Translations.of(context).bcd_no_tests,
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 )
               : Column(
                   children: [
-                    if (!_subscribed && !widget.practiceOnly && !widget.isCategoryFree)
+                    if (!_subscribed &&
+                        !widget.practiceOnly &&
+                        !widget.isCategoryFree)
                       _TestsSubscriptionBanner(onBuy: widget.onBuySubscription),
                     Expanded(
                       child: ListView.builder(
@@ -630,7 +638,8 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
                         itemCount: _tests.length,
                         itemBuilder: (_, i) => _TestCard(
                           test: _tests[i],
-                          forceUnsubscribed: !_subscribed && !widget.isCategoryFree,
+                          forceUnsubscribed:
+                              !_subscribed && !widget.isCategoryFree,
                           onTap: () => _onTap(_tests[i]),
                         ),
                       ),
@@ -759,7 +768,9 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
           : _docs.isEmpty
               ? Center(
                   child: Text(Translations.of(context).bcd_no_documents,
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)))
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant)))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _docs.length,
@@ -788,11 +799,15 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(LucideIcons.fileText,
-                              color: Theme.of(context).colorScheme.primary, size: 18),
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 18),
                         ),
                         title: Text(
                           cleanBcdText(doc['title']?.toString() ?? ''),
@@ -849,7 +864,9 @@ class _BCDChecklistsScreenState extends State<_BCDChecklistsScreen> {
           : _items.isEmpty
               ? Center(
                   child: Text(Translations.of(context).bcd_no_checklists,
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)))
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant)))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _items.length,
@@ -965,15 +982,20 @@ class _TestCard extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: subscribed ? cs.onSurface : cs.onSurfaceVariant,
+                          color:
+                              subscribed ? cs.onSurface : cs.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 6,
                         children: [
-                          _Chip(label: '${test['question_count'] ?? 0} ${Translations.of(context).bcd_questions_label}'),
-                          _Chip(label: '${Translations.of(context).bcd_pass_label} ${test['pass_score'] ?? 0}%'),
+                          _Chip(
+                              label:
+                                  '${test['question_count'] ?? 0} ${Translations.of(context).bcd_questions_label}'),
+                          _Chip(
+                              label:
+                                  '${Translations.of(context).bcd_pass_label} ${test['pass_score'] ?? 0}%'),
                           if (isFree)
                             _Chip(
                               label: Translations.of(context).bcd_free_label,
@@ -1015,7 +1037,9 @@ class _Chip extends StatelessWidget {
         color: c.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(label, style: TextStyle(fontSize: 11, color: c, fontWeight: FontWeight.w500)),
+      child: Text(label,
+          style:
+              TextStyle(fontSize: 11, color: c, fontWeight: FontWeight.w500)),
     );
   }
 }

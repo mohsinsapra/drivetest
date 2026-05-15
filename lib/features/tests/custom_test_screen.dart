@@ -180,14 +180,16 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
         Navigator.pop(context);
         _isLoadingDialogDisplayed = false;
       }
-      showAppSnackBar('Request timed out. Please try again.', type: SnackBarType.error);
+      showAppSnackBar('Request timed out. Please try again.',
+          type: SnackBarType.error);
       return;
     } catch (e) {
       if (_isLoadingDialogDisplayed && mounted) {
         Navigator.pop(context);
         _isLoadingDialogDisplayed = false;
       }
-      showAppSnackBar('Failed to start test. Please try again.', type: SnackBarType.error);
+      showAppSnackBar('Failed to start test. Please try again.',
+          type: SnackBarType.error);
       return;
     } finally {
       if (_isLoadingDialogDisplayed && mounted) {

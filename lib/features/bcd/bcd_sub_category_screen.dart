@@ -58,7 +58,10 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
         });
       }
     } catch (e) {
-      if (mounted) showAppSnackBar(Translations.of(context).bcd_failed_subcategories, type: SnackBarType.error);
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_subcategories,
+            type: SnackBarType.error);
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -72,7 +75,8 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
     final categoryForHub = Map<String, dynamic>.from(category);
 
     final parentProduct = widget.parentCategory['subscription_product'];
-    if (categoryForHub['subscription_product'] == null && parentProduct != null) {
+    if (categoryForHub['subscription_product'] == null &&
+        parentProduct != null) {
       categoryForHub['subscription_product'] = parentProduct;
     }
 
@@ -92,7 +96,8 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final parentName = widget.parentCategory['name']?.toString() ?? 'Categories';
+    final parentName =
+        widget.parentCategory['name']?.toString() ?? 'Categories';
     return Scaffold(
       appBar: AppBar(title: Text(parentName)),
       body: Column(
@@ -107,7 +112,7 @@ class _BCDSubCategoryScreenState extends State<BCDSubCategoryScreen> {
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () => _searchController.clear(),
+                        onPressed: _searchController.clear,
                       )
                     : null,
                 isDense: true,
@@ -179,15 +184,17 @@ class _CategoryCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       elevation: 1,
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           width: 44,
           height: 44,
           decoration: BoxDecoration(
             color: subscribed
                 ? const Color(0xFF059669).withValues(alpha: 0.1)
-                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
+                : Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -257,11 +264,9 @@ class _StaggeredItemState extends State<_StaggeredItem>
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
     _slide = Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-    Future.delayed(
-        Duration(milliseconds: widget.index * 35),
-        () {
-          if (mounted) _ctrl.forward();
-        });
+    Future.delayed(Duration(milliseconds: widget.index * 35), () {
+      if (mounted) _ctrl.forward();
+    });
   }
 
   @override

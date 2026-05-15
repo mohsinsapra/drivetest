@@ -66,17 +66,17 @@ class IntroScreen extends StatelessWidget {
   }
 
   PageDecoration _getPageDecoration() {
-    return PageDecoration(
-      titleTextStyle: const TextStyle(
+    return const PageDecoration(
+      titleTextStyle: TextStyle(
         fontSize: 28,
         fontWeight: FontWeight.bold,
         color: Color.fromRGBO(0, 0, 0, 0.7),
       ),
-      bodyTextStyle: const TextStyle(
+      bodyTextStyle: TextStyle(
         fontSize: 20,
         color: Color.fromRGBO(0, 0, 0, 0.6),
       ),
-      imagePadding: const EdgeInsets.all(24),
+      imagePadding: EdgeInsets.all(24),
       pageColor: Colors.white,
     );
   }

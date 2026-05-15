@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
-import 'app_lottie_web.dart'
-    if (dart.library.io) 'app_lottie_stub.dart' as platform;
+import 'app_lottie_web.dart' if (dart.library.io) 'app_lottie_stub.dart'
+    as platform;
 
 /// Drop-in replacement for [Lottie.asset] that works on ALL platforms.
 ///

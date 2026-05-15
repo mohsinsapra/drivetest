@@ -90,7 +90,7 @@ class BcdProvider extends ChangeNotifier {
     final images = rawImages
         .map((e) => e.toString())
         .where((e) => e.isNotEmpty)
-        .map((path) => _api.bcdMediaUrl(path))
+        .map(_api.bcdMediaUrl)
         .toList();
 
     return Question(

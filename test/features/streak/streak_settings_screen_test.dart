@@ -49,7 +49,8 @@ void main() {
       expect(find.text('12'), findsOneWidget);
     });
 
-    testWidgets('tapping a preset card updates deadline banner', (tester) async {
+    testWidgets('tapping a preset card updates deadline banner',
+        (tester) async {
       final provider = StreakSettingsProvider();
       await tester.pumpWidget(_buildTestApp(provider));
       await tester.pumpAndSettle();
@@ -76,7 +77,8 @@ void main() {
       expect(find.text('S'), findsNWidgets(4));
     });
 
-    testWidgets('weekly goal label updates when weekday toggled', (tester) async {
+    testWidgets('weekly goal label updates when weekday toggled',
+        (tester) async {
       final provider = StreakSettingsProvider();
       // Default is 5 days (Mon–Fri)
       await tester.pumpWidget(_buildTestApp(provider));

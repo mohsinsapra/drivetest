@@ -196,13 +196,24 @@ class StreakNotificationService {
   }
 
   /// Returns the stored notification times for display. Returns null if not yet generated.
-  static Future<({int morningHour, int morningMinute, int eveningHour, int eveningMinute})?> getScheduledTimes() async {
+  static Future<
+      ({
+        int morningHour,
+        int morningMinute,
+        int eveningHour,
+        int eveningMinute
+      })?> getScheduledTimes() async {
     final prefs = await SharedPreferences.getInstance();
     final mH = prefs.getInt(_keyMorningHour);
     final mMin = prefs.getInt(_keyMorningMinute);
     final eH = prefs.getInt(_keyEveningHour);
     final eMin = prefs.getInt(_keyEveningMinute);
     if (mH == null || mMin == null || eH == null || eMin == null) return null;
-    return (morningHour: mH, morningMinute: mMin, eveningHour: eH, eveningMinute: eMin);
+    return (
+      morningHour: mH,
+      morningMinute: mMin,
+      eveningHour: eH,
+      eveningMinute: eMin
+    );
   }
 }

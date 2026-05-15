@@ -81,8 +81,8 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.title,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold)),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text(
               'Tap a slice to see details',
@@ -108,8 +108,8 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                               _touched = -1;
                               return;
                             }
-                            final idx = response!
-                                .touchedSection!.touchedSectionIndex;
+                            final idx =
+                                response!.touchedSection!.touchedSectionIndex;
                             _touched = _touched == idx ? -1 : idx;
                           });
                         },
@@ -158,12 +158,12 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                 final pct = total > 0 ? vals[i] / total * 100 : 0.0;
                 final isSelected = _touched == i;
                 return GestureDetector(
-                  onTap: () => setState(
-                      () => _touched = _touched == i ? -1 : i),
+                  onTap: () =>
+                      setState(() => _touched = _touched == i ? -1 : i),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? color.withValues(alpha: 0.12)
@@ -198,9 +198,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
                           '${pct.toStringAsFixed(1)}%',
                           style: TextStyle(
                               fontSize: 12,
-                              color: isSelected
-                                  ? color
-                                  : Colors.grey.shade500,
+                              color: isSelected ? color : Colors.grey.shade500,
                               fontWeight: FontWeight.w500),
                         ),
                       ],

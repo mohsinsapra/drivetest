@@ -618,7 +618,10 @@ class _HomeScreenState extends State<HomeScreen>
             final isActive = selectedTabIndex == e.key;
             return Expanded(
               child: GestureDetector(
-                onTap: () { HapticFeedback.selectionClick(); setState(() => selectedTabIndex = e.key); },
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => selectedTabIndex = e.key);
+                },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
@@ -845,7 +848,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            const SizedBox(
               height: 200,
               child: AppLottie(
                 asset: 'animations/no_attempts.json',

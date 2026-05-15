@@ -38,7 +38,8 @@ class BatchStats {
   });
 
   /// 0–100 progress: 100 if completed, otherwise avg score
-  double get progressPercent => isCompleted ? 100.0 : (attempts == 0 ? 0 : averageScore);
+  double get progressPercent =>
+      isCompleted ? 100.0 : (attempts == 0 ? 0 : averageScore);
 
   /// ratio: avgDuration / target. < 1.0 = fast, > 1.0 = over time
   double get timeEfficiencyRatio => (targetDurationSeconds > 0 && attempts > 0)
@@ -125,8 +126,7 @@ class StreakSummary {
 
   bool isActiveDay(DateTime day) {
     final d = DateTime(day.year, day.month, day.day);
-    return thisWeekActiveDays.any(
-        (a) => DateTime(a.year, a.month, a.day) == d);
+    return thisWeekActiveDays.any((a) => DateTime(a.year, a.month, a.day) == d);
   }
 }
 
@@ -186,12 +186,11 @@ class ExamDashboardStats {
   /// if nothing has been attempted yet.
   BatchStats? get continueNode {
     // Most recently attempted batch
-    final attempted = allBatchStats
-        .where((b) => b.lastAttemptDate != null)
-        .toList();
+    final attempted =
+        allBatchStats.where((b) => b.lastAttemptDate != null).toList();
     if (attempted.isNotEmpty) {
-      attempted.sort((a, b) =>
-          b.lastAttemptDate!.compareTo(a.lastAttemptDate!));
+      attempted
+          .sort((a, b) => b.lastAttemptDate!.compareTo(a.lastAttemptDate!));
       return attempted.first;
     }
     // Nothing attempted yet — suggest the first batch
@@ -215,12 +214,11 @@ class ExamDashboardStats {
 
   CategoryStats? get weakestCategory {
     if (categoryStats == null) return null;
-    final withTouched = categoryStats!
-        .where((c) => c.touchedBatches > 0)
-        .toList();
+    final withTouched =
+        categoryStats!.where((c) => c.touchedBatches > 0).toList();
     if (withTouched.isEmpty) return null;
-    return withTouched.reduce(
-        (a, b) => a.averageScore < b.averageScore ? a : b);
+    return withTouched
+        .reduce((a, b) => a.averageScore < b.averageScore ? a : b);
   }
 
   double get overallAverageScore {

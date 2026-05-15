@@ -9,6 +9,10 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    - lib/core/localization/*.g.dart
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`
@@ -21,8 +25,30 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    always_declare_return_types: true
+    avoid_print: true
+    avoid_types_as_parameter_names: true
+    curly_braces_in_flow_control_structures: true
+    depend_on_referenced_packages: true
+    prefer_const_constructors: true
+    prefer_const_constructors_in_immutables: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_final_fields: true
+    prefer_interpolation_to_compose_strings: true
+    prefer_is_empty: true
+    prefer_is_not_empty: true
+    sort_child_properties_last: true
+    unnecessary_await_in_return: true
+    unnecessary_brace_in_string_interps: true
+    unnecessary_const: true
+    unnecessary_lambdas: true
+    unnecessary_late: true
+    unnecessary_null_aware_assignments: true
+    unnecessary_null_in_if_null_operators: true
+    unnecessary_overrides: true
+    use_colored_box: true
+    use_decorated_box: true
+    use_rethrow_when_possible: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

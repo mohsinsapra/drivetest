@@ -23,7 +23,10 @@ class CategoryCard extends StatelessWidget {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () { HapticFeedback.selectionClick(); onTap(); },
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),

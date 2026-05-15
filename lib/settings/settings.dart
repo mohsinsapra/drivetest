@@ -116,11 +116,9 @@ class _SettingsScreenState extends State<SettingsScreen>
         return;
       }
       if (status == AuthorizationStatus.notDetermined || status == null) {
-        final result =
-            await FirebaseMessaging.instance.requestPermission();
+        final result = await FirebaseMessaging.instance.requestPermission();
         if (mounted) {
-          setState(
-              () => _notificationPermission = result.authorizationStatus);
+          setState(() => _notificationPermission = result.authorizationStatus);
         }
         if (result.authorizationStatus != AuthorizationStatus.authorized &&
             result.authorizationStatus != AuthorizationStatus.provisional) {
@@ -169,8 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     setState(() {
       isTimed = prefs.getBool('isTimed') ?? false;
       isInstantMarking = prefs.getBool('isInstantMarking') ?? false;
-      includeSavedQuestions =
-          prefs.getBool('includeSavedQuestions') ?? false;
+      includeSavedQuestions = prefs.getBool('includeSavedQuestions') ?? false;
       randomize = prefs.getBool('randomize') ?? true;
       shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
       numberOfQuestions = prefs.getInt('numberOfQuestions') ?? 10;
@@ -192,9 +189,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (raw == null || raw.isEmpty || raw == 'unknown') return 'unknown';
     final normalized = raw.contains(' ')
         ? raw.replaceFirst(' ', 'T').replaceFirstMapped(
-            RegExp(r'([+-]\d{2})(\d{2})$'),
-            (m) => '${m.group(1)}:${m.group(2)}',
-          )
+              RegExp(r'([+-]\d{2})(\d{2})$'),
+              (m) => '${m.group(1)}:${m.group(2)}',
+            )
         : raw;
     final parsed = DateTime.tryParse(normalized);
     if (parsed == null) return raw;
@@ -251,7 +248,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                             ? Colors.white
                             : themeProvider.themeMode == ThemeMode.light
                                 ? Colors.amber.shade700
-                                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.7),
                         size: 20,
                       ),
                     ),
@@ -294,7 +294,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(Icons.font_download_rounded,
-                          color: isDark ? Colors.purple.shade200 : Colors.purple.shade600, size: 20),
+                          color: isDark
+                              ? Colors.purple.shade200
+                              : Colors.purple.shade600,
+                          size: 20),
                     ),
                     title: const Text('Font'),
                     subtitle: Text(fontProvider.fontFamily),
@@ -329,7 +332,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(Icons.language_rounded,
-                          color: isDark ? Colors.blue.shade200 : Colors.blue.shade600, size: 20),
+                          color: isDark
+                              ? Colors.blue.shade200
+                              : Colors.blue.shade600,
+                          size: 20),
                     ),
                     title: Text(t.settings_language),
                     subtitle: Text(t.settings_language_sub),
@@ -387,7 +393,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ),
                     value: _notificationsEnabled &&
                         _notificationPermission != AuthorizationStatus.denied,
-                    onChanged: (v) => _toggleNotifications(v),
+                    onChanged: _toggleNotifications,
                   ),
 
                   if (_notificationPermission == AuthorizationStatus.denied &&
@@ -402,8 +408,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           foregroundColor:
                               Theme.of(context).colorScheme.primary,
                           side: BorderSide(
-                              color:
-                                  Theme.of(context).colorScheme.primary),
+                              color: Theme.of(context).colorScheme.primary),
                           shape: const StadiumBorder(),
                         ),
                       ),
@@ -418,7 +423,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                     title: Text(t.settings_timed_test),
                     subtitle: Text(t.settings_timed_test_sub),
                     value: isTimed,
-                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => isTimed = v); },
+                    onChanged: (v) {
+                      HapticFeedback.lightImpact();
+                      setState(() => isTimed = v);
+                    },
                   ),
 
                   const Divider(height: 1, indent: 16, endIndent: 16),
@@ -427,7 +435,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                     title: Text(t.settings_instant_marking),
                     subtitle: Text(t.settings_instant_marking_sub),
                     value: isInstantMarking,
-                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => isInstantMarking = v); },
+                    onChanged: (v) {
+                      HapticFeedback.lightImpact();
+                      setState(() => isInstantMarking = v);
+                    },
                   ),
 
                   const Divider(height: 1, indent: 16, endIndent: 16),
@@ -438,7 +449,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                       'Get a fresh set of different questions every time you start a test',
                     ),
                     value: randomize,
-                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => randomize = v); },
+                    onChanged: (v) {
+                      HapticFeedback.lightImpact();
+                      setState(() => randomize = v);
+                    },
                   ),
 
                   const Divider(height: 1, indent: 16, endIndent: 16),
@@ -449,7 +463,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                       'Keep the same questions but show them in a different order each time',
                     ),
                     value: shuffleOnDevice,
-                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => shuffleOnDevice = v); },
+                    onChanged: (v) {
+                      HapticFeedback.lightImpact();
+                      setState(() => shuffleOnDevice = v);
+                    },
                   ),
 
                   const Divider(height: 1, indent: 16, endIndent: 16),
@@ -475,8 +492,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         ),
                         Row(
                           children: [
-                            Expanded(
-                                child: Text(t.settings_enter_num)),
+                            Expanded(child: Text(t.settings_enter_num)),
                             SizedBox(
                               width: 80,
                               child: TextField(
@@ -488,9 +504,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                         horizontal: 10, vertical: 8)),
                                 onChanged: (value) {
                                   final n = int.tryParse(value);
-                                  if (n != null &&
-                                      n > 0 &&
-                                      n <= maxQuestions) {
+                                  if (n != null && n > 0 && n <= maxQuestions) {
                                     setState(() => numberOfQuestions = n);
                                   }
                                 },
@@ -508,7 +522,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                     title: Text(t.settings_include_saved),
                     subtitle: Text(t.settings_include_saved_sub),
                     value: includeSavedQuestions,
-                    onChanged: (v) { HapticFeedback.lightImpact(); setState(() => includeSavedQuestions = v); },
+                    onChanged: (v) {
+                      HapticFeedback.lightImpact();
+                      setState(() => includeSavedQuestions = v);
+                    },
                   ),
 
                   const SizedBox(height: 8),
@@ -544,7 +561,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
                   // ── Backend Info (admin only) ─────────────────────────────
                   if (_isAdmin) ...[
-                    _SectionHeader('Backend Info'),
+                    const _SectionHeader('Backend Info'),
                     if (_backendInfo == null)
                       const Center(
                         child: Padding(
@@ -557,10 +574,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         child: Column(
                           children: [
-                            _VersionRow('Status',
-                                (_backendInfo!['status'] ?? 'unknown').toString()),
-                            _VersionRow('Debug Mode',
-                                (_backendInfo!['debug_mode'] ?? false).toString()),
+                            _VersionRow(
+                                'Status',
+                                (_backendInfo!['status'] ?? 'unknown')
+                                    .toString()),
+                            _VersionRow(
+                                'Debug Mode',
+                                (_backendInfo!['debug_mode'] ?? false)
+                                    .toString()),
                             if (_backendInfo!['version'] is Map) ...[
                               _VersionRow(
                                   'Branch',
@@ -655,17 +676,17 @@ class _LangChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   const _LangChip(
-      {required this.label,
-      required this.selected,
-      required this.onTap});
+      {required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: () { HapticFeedback.selectionClick(); onTap(); },
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: selected
                 ? Theme.of(context).colorScheme.primary
@@ -707,8 +728,7 @@ class _VersionRow extends StatelessWidget {
             SizedBox(
               width: 110,
               child: Text(label,
-                  style: TextStyle(
-                      color: Colors.grey.shade500, fontSize: 13)),
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
             ),
             Expanded(
               child: Text(

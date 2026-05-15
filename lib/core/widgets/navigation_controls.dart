@@ -48,7 +48,10 @@ class NavigationControls extends StatelessWidget {
                 side: BorderSide(
                   color: atFirst
                       ? Theme.of(context).dividerColor
-                      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                      : Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.3),
                 ),
               ),
               child: Text(
@@ -57,7 +60,10 @@ class NavigationControls extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: atFirst
-                      ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35)
+                      ? Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.35)
                       : Theme.of(context).colorScheme.onSurface,
                 ),
               ),

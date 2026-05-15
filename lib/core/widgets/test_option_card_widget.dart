@@ -19,7 +19,10 @@ class TestOptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () { HapticFeedback.selectionClick(); onTap(); },
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
       child: Card(
         elevation: 3,
         shape: RoundedRectangleBorder(

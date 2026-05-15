@@ -61,8 +61,8 @@ Future<void> _mobilePayment(
   final method = await _pickPaymentMethod(context);
   if (method == null) {
     // User dismissed the sheet without selecting
-    throw stripe.StripeException(
-      error: const stripe.LocalizedErrorMessage(
+    throw const stripe.StripeException(
+      error: stripe.LocalizedErrorMessage(
         localizedMessage: 'cancelled',
         code: stripe.FailureCode.Canceled,
       ),
@@ -90,7 +90,8 @@ Future<bool> prepareStripeForMobilePayment({
 }) {
   return initializeStripe(
     defineValue: defineValue,
-    dotenvValue: dotenvValue ?? readStripePublishableKeySafely(() => dotenv.env),
+    dotenvValue:
+        dotenvValue ?? readStripePublishableKeySafely(() => dotenv.env),
     isReleaseMode: kReleaseMode,
     assignPublishableKey:
         assignPublishableKey ?? (key) => stripe.Stripe.publishableKey = key,

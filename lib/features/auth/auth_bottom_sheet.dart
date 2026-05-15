@@ -32,7 +32,8 @@ Future<bool> showAuthBottomSheet(
     backgroundColor: Colors.transparent,
     isDismissible: !required,
     enableDrag: !required,
-    builder: (_) => _AuthSheet(title: title, subtitle: subtitle, allowDemo: allowDemo),
+    builder: (_) =>
+        _AuthSheet(title: title, subtitle: subtitle, allowDemo: allowDemo),
   );
   return result == true;
 }
@@ -166,7 +167,9 @@ class _AuthSheetState extends State<_AuthSheet>
   Future<void> _login() async {
     final t = Translations.of(context);
     final errs = <String, String?>{};
-    if (_loginUser.text.trim().isEmpty) errs['user'] = t.auth_val_username_required;
+    if (_loginUser.text.trim().isEmpty) {
+      errs['user'] = t.auth_val_username_required;
+    }
     if (_loginPass.text.isEmpty) errs['pass'] = t.auth_val_password_required;
     if (errs.isNotEmpty) {
       setState(() => _loginFieldErrors = errs);
@@ -178,8 +181,7 @@ class _AuthSheetState extends State<_AuthSheet>
       _formLoading = true;
     });
     try {
-      await _api.authenticate(
-          _loginUser.text.trim(), _loginPass.text);
+      await _api.authenticate(_loginUser.text.trim(), _loginPass.text);
       if (!mounted) return;
       await _onSuccess();
     } on DioException {
@@ -202,8 +204,12 @@ class _AuthSheetState extends State<_AuthSheet>
   Future<void> _signup() async {
     final t = Translations.of(context);
     final errs = <String, String?>{};
-    if (_signupUser.text.trim().isEmpty) errs['user'] = t.auth_val_username_required;
-    if (_signupEmail.text.trim().isEmpty) errs['email'] = t.auth_val_email_required;
+    if (_signupUser.text.trim().isEmpty) {
+      errs['user'] = t.auth_val_username_required;
+    }
+    if (_signupEmail.text.trim().isEmpty) {
+      errs['email'] = t.auth_val_email_required;
+    }
     if (_signupPass.text.isEmpty) errs['pass'] = t.auth_val_password_required;
     if (errs.isNotEmpty) {
       setState(() => _signupFieldErrors = errs);
@@ -215,9 +221,7 @@ class _AuthSheetState extends State<_AuthSheet>
     });
     try {
       final resp = await _api.signup(
-          _signupEmail.text.trim(),
-          _signupUser.text.trim(),
-          _signupPass.text);
+          _signupEmail.text.trim(), _signupUser.text.trim(), _signupPass.text);
       if (!mounted) return;
       if (resp.statusCode == 201) {
         // Auto-login after signup
@@ -231,8 +235,7 @@ class _AuthSheetState extends State<_AuthSheet>
     } catch (_) {
       if (!mounted) return;
       setState(() => _formLoading = false);
-      showAppSnackBar(
-          Translations.of(context).auth_generic_error,
+      showAppSnackBar(Translations.of(context).auth_generic_error,
           type: SnackBarType.error);
     }
   }
@@ -351,7 +354,8 @@ class _AuthSheetState extends State<_AuthSheet>
     final t = Translations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final sheetBg = isDark ? theme.colorScheme.surface : theme.scaffoldBackgroundColor;
+    final sheetBg =
+        isDark ? theme.colorScheme.surface : theme.scaffoldBackgroundColor;
 
     // Shrink on small screens
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
@@ -406,7 +410,8 @@ class _AuthSheetState extends State<_AuthSheet>
               loading: _appleLoading,
               loadingLabel: t.auth_signing_in,
               onPressed: _anyLoading ? null : _appleSignIn,
-              icon: FaIcon(FontAwesomeIcons.apple, size: 20, color: theme.colorScheme.onPrimary),
+              icon: FaIcon(FontAwesomeIcons.apple,
+                  size: 20, color: theme.colorScheme.onPrimary),
             ),
             const SizedBox(height: 10),
           ],
@@ -417,7 +422,8 @@ class _AuthSheetState extends State<_AuthSheet>
             loading: _googleLoading,
             loadingLabel: t.auth_signing_in,
             onPressed: _anyLoading ? null : _googleSignIn,
-            icon: FaIcon(FontAwesomeIcons.google, size: 18, color: theme.colorScheme.onPrimary),
+            icon: FaIcon(FontAwesomeIcons.google,
+                size: 18, color: theme.colorScheme.onPrimary),
           ),
           const SizedBox(height: 14),
 
@@ -464,8 +470,8 @@ class _AuthSheetState extends State<_AuthSheet>
               labelColor: theme.colorScheme.onSurface,
               unselectedLabelColor:
                   theme.colorScheme.onSurface.withValues(alpha: 0.4),
-              labelStyle: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 14),
+              labelStyle:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               unselectedLabelStyle: const TextStyle(fontSize: 14),
               dividerColor: Colors.transparent,
               tabs: [
@@ -486,7 +492,8 @@ class _AuthSheetState extends State<_AuthSheet>
               ),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline, color: theme.colorScheme.error, size: 16),
+                  Icon(Icons.error_outline,
+                      color: theme.colorScheme.error, size: 16),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -572,7 +579,6 @@ class _AuthSheetState extends State<_AuthSheet>
               ),
             ),
           ],
-
         ],
       ),
     );
