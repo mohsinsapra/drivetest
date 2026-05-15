@@ -1,5 +1,6 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/features/auth/reset_password_screen.dart';
 
 class VerifyCodeScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   void _verifyCode() {
     if (_codeController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter the reset code from your email.';
+        _errorMessage = Translations.of(context).auth_verify_code_empty;
       });
       return;
     }
@@ -44,7 +45,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Verify Code'),
+        title: Text(Translations.of(context).auth_verify_title),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -59,9 +60,9 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
               ),
               const SizedBox(height: 24),
 
-              const Text(
-                'Check Your Email',
-                style: TextStyle(
+              Text(
+                Translations.of(context).auth_verify_heading,
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -69,7 +70,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
               const SizedBox(height: 8),
 
               Text(
-                'We sent a reset code to\n${widget.email}',
+                Translations.of(context).auth_verify_subtitle.replaceAll('{email}', widget.email),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 14,
@@ -105,10 +106,10 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
               // Reset Code field
               TextField(
                 controller: _codeController,
-                decoration: const InputDecoration(
-                  labelText: 'Reset Code',
-                  prefixIcon: Icon(Icons.confirmation_number),
-                  hintText: 'Enter the code from your email',
+                decoration: InputDecoration(
+                  labelText: Translations.of(context).auth_verify_code_label,
+                  prefixIcon: const Icon(Icons.confirmation_number),
+                  hintText: Translations.of(context).auth_verify_code_hint,
                 ),
               ),
               const SizedBox(height: 24),
@@ -124,9 +125,9 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Verify Code',
-                    style: TextStyle(fontSize: 16),
+                  child: Text(
+                    Translations.of(context).auth_verify_title,
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ),
               ),
@@ -138,7 +139,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                   Navigator.of(context).pop();
                 },
                 child: Text(
-                  'Resend Code',
+                  Translations.of(context).auth_verify_resend,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                   ),

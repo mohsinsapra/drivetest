@@ -23,13 +23,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.19+185] - 2026-05-15
 
 ### Added
--
+- Comprehensive localization for authentication, onboarding, and dashboard banners (English & Swedish)
+- New authentication screens: `VerifyCodeScreen` and `ResetPasswordScreen` with full localization support
+- Step-by-step loading labels for Google Sign-In (connecting, verifying, signing in, creating account)
+- `Skill(autoplan)` added to allowed skills in workspace settings
 
 ### Changed
--
+- Refactored Profile screen menu with structured action handlers and improved localization for all menu items
+- Improved product ID comparison logic in BCD subscriptions and onboarding using string conversion for better reliability
+- Replaced various hardcoded UI strings (e.g., "or", "Language", "username or email") with localized translation keys
 
 ### Fixed
--
+- Onboarding payment flow now filters out already-owned products from bundles before processing, preventing backend rejection when a bundle contains a pre-owned item
+- Fixed profile menu item labels and navigation for "Manage Subscription", "Help", and "Purchase History"
 
 ---
 ---

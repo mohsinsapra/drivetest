@@ -1,6 +1,7 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -30,23 +31,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   Future<void> _resetPassword() async {
     // Validate inputs
+    final t = Translations.of(context);
     if (_passwordController.text.isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter a new password.';
+        _errorMessage = t.auth_reset_empty;
       });
       return;
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() {
-        _errorMessage = 'Passwords do not match.';
+        _errorMessage = t.auth_reset_mismatch;
       });
       return;
     }
 
     if (_passwordController.text.length < 6) {
       setState(() {
-        _errorMessage = 'Password must be at least 6 characters long.';
+        _errorMessage = t.auth_val_password_length;
       });
       return;
     }
@@ -70,26 +72,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.green),
-              SizedBox(width: 8),
-              Text('Success!'),
+              const Icon(Icons.check_circle, color: Colors.green),
+              const SizedBox(width: 8),
+              Text(Translations.of(context).auth_reset_success_title),
             ],
           ),
-          content: const Text(
-            'Your password has been reset successfully. You can now log in with your new password.',
-          ),
+          content: Text(Translations.of(context).auth_reset_success_body),
           actions: [
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop();
                 Navigator.of(context).pushAndRemoveUntil(
                   AppPageRoute(builder: (_) => const AuthScreen()),
                   (route) => false,
                 );
               },
-              child: const Text('Go to Login'),
+              child: Text(Translations.of(context).auth_reset_go_to_login),
             ),
           ],
         ),
@@ -97,8 +97,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage =
-            'Invalid or expired reset code. Please try requesting a new reset link.';
+        _errorMessage = Translations.of(context).auth_reset_invalid_code;
       });
     } finally {
       if (mounted) {
@@ -120,7 +119,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reset Password'),
+        title: Text(Translations.of(context).auth_reset_title),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -135,19 +134,19 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               ),
               const SizedBox(height: 24),
 
-              const Text(
-                'Set New Password',
-                style: TextStyle(
+              Text(
+                Translations.of(context).auth_reset_heading,
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
 
-              const Text(
-                'Please enter your new password',
+              Text(
+                Translations.of(context).auth_reset_subtitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
                 ),
@@ -183,7 +182,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  labelText: 'New Password',
+                  labelText: Translations.of(context).auth_reset_new_password_label,
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -206,7 +205,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
-                  labelText: 'Confirm Password',
+                  labelText: Translations.of(context).auth_reset_confirm_password_label,
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -237,9 +236,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'Reset Password',
-                          style: TextStyle(fontSize: 16),
+                        child: Text(
+                          Translations.of(context).auth_reset_title,
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ),
                     ),
@@ -254,7 +253,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   );
                 },
                 child: Text(
-                  'Back to Login',
+                  Translations.of(context).auth_forgot_back_login,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                   ),

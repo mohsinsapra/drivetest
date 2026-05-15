@@ -363,33 +363,56 @@ class _ProfileScreenState extends State<ProfileScreen>
           icon: Icons.subscriptions_rounded,
           color: const Color(0xFFE8F5E9),
           title: t.profile_manage_subscription,
+          onTap: () => launchUrl(
+            Uri.parse('https://apps.apple.com/account/subscriptions'),
+            mode: LaunchMode.externalApplication,
+          ),
         ),
       if (!_profile.isGuest)
         (
           icon: Icons.receipt_long_outlined,
           color: const Color(0xFFDCEEFB),
           title: t.profile_purchase_history,
+          onTap: () => Navigator.push(
+            context,
+            AppPageRoute(builder: (_) => const PurchaseHistoryScreen()),
+          ),
         ),
       (
         icon: Icons.tour_rounded,
         color: const Color(0xFFE8EAF6),
         title: t.profile_revisit_setup,
+        onTap: () async {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('onboarding_complete');
+          if (!context.mounted) return;
+          Navigator.of(context).pushAndRemoveUntil(
+            AppPageRoute(builder: (_) => const OnboardingScreen()),
+            (_) => false,
+          );
+        },
       ),
       if (!_profile.isGuest)
         (
           icon: Icons.person_add_alt,
           color: const Color(0xFFE0E0E0),
           title: t.profile_invite,
+          onTap: () {},
         ),
       (
         icon: Icons.help_outline,
         color: const Color(0xFFE0E0E0),
         title: t.profile_help,
+        onTap: () => Navigator.push(
+          context,
+          AppPageRoute(builder: (_) => const HelpScreen()),
+        ),
       ),
       (
         icon: Icons.feedback_outlined,
         color: const Color(0xFFE0E0E0),
         title: t.profile_send_feedback,
+        onTap: _showAppFeedbackDialog,
       ),
     ];
 
@@ -521,42 +544,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     icon: e.value.icon,
                     iconColor: e.value.color,
                     title: e.value.title,
-                    onTap: e.value.title == 'Manage Subscription'
-                        ? () => launchUrl(
-                              Uri.parse(
-                                  'https://apps.apple.com/account/subscriptions'),
-                              mode: LaunchMode.externalApplication,
-                            )
-                        : e.value.title == 'Send Feedback'
-                            ? _showAppFeedbackDialog
-                            : e.value.title == 'Help'
-                                ? () => Navigator.push(
-                                    context,
-                                    AppPageRoute(
-                                        builder: (_) => const HelpScreen()))
-                                : e.value.title == 'Purchase History'
-                                    ? () => Navigator.push(
-                                        context,
-                                        AppPageRoute(
-                                            builder: (_) =>
-                                                const PurchaseHistoryScreen()))
-                                    : e.value.title == 'Revisit Setup'
-                                        ? () async {
-                                            final prefs =
-                                                await SharedPreferences
-                                                    .getInstance();
-                                            await prefs
-                                                .remove('onboarding_complete');
-                                            if (!context.mounted) return;
-                                            Navigator.of(context)
-                                                .pushAndRemoveUntil(
-                                              AppPageRoute(
-                                                  builder: (_) =>
-                                                      const OnboardingScreen()),
-                                              (_) => false,
-                                            );
-                                          }
-                                        : () {},
+                    onTap: e.value.onTap,
                   ),
                 )),
 

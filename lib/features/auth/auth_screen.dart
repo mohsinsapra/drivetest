@@ -135,7 +135,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() {
       _isGoogleLoading = true;
-      _googleLoadingStep = 'Connecting to Google...';
+      _googleLoadingStep = Translations.of(context).auth_google_connecting;
       _loginError = null;
     });
     try {
@@ -152,7 +152,7 @@ class _AuthScreenState extends State<AuthScreen> {
         });
         return;
       }
-      if (mounted) setState(() => _googleLoadingStep = 'Verifying account...');
+      if (mounted) setState(() => _googleLoadingStep = Translations.of(context).auth_google_verifying);
       await Sentry.addBreadcrumb(Breadcrumb(
           message: 'Google Sign-In: user obtained, fetching auth tokens',
           category: 'auth'));
@@ -162,7 +162,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (idToken == null && accessToken == null) {
         throw Exception('No authentication token received');
       }
-      if (mounted) setState(() => _googleLoadingStep = 'Signing you in...');
+      if (mounted) setState(() => _googleLoadingStep = Translations.of(context).auth_google_signing_in);
       await Sentry.addBreadcrumb(Breadcrumb(
           message:
               'Google Sign-In: tokens received, calling backend googleAuth',
@@ -175,8 +175,8 @@ class _AuthScreenState extends State<AuthScreen> {
           category: 'auth'));
       if (mounted) {
         setState(() => _googleLoadingStep = isFirstLogin
-            ? 'Creating your account...'
-            : 'Loading your profile...');
+            ? Translations.of(context).auth_google_creating
+            : Translations.of(context).auth_google_loading);
       }
       if (!mounted) return;
       vibrateLoginLogout();
@@ -1152,7 +1152,7 @@ class _LandingView extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         PopupMenuButton<AppLocale>(
-                          tooltip: 'Language',
+                          tooltip: Translations.of(context).settings_language,
                           onSelected: onSetLocale,
                           itemBuilder: (_) => [
                             CheckedPopupMenuItem<AppLocale>(
@@ -1233,7 +1233,7 @@ class _LandingView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Your journey to excellence starts with a single tap.',
+                          Translations.of(context).auth_landing_subtitle,
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 16,
@@ -1338,7 +1338,7 @@ class _LandingView extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'New here?  ',
+                            '${Translations.of(context).auth_landing_new_here}  ',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 15,
                               color: cs.onSurfaceVariant,
@@ -1347,7 +1347,7 @@ class _LandingView extends StatelessWidget {
                           GestureDetector(
                             onTap: onSignup,
                             child: Text(
-                              'Create an account',
+                              Translations.of(context).auth_create_account_link,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -1440,7 +1440,7 @@ class _LoginView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Welcome\nBack',
+                              Translations.of(context).auth_login_heading,
                               style: GoogleFonts.lexend(
                                 fontSize: 46,
                                 fontWeight: FontWeight.w800,
@@ -1451,7 +1451,7 @@ class _LoginView extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Continue your kinetic journey.',
+                              Translations.of(context).auth_login_subtitle,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 16,
                                 color: cs.onSurfaceVariant,
@@ -1492,7 +1492,7 @@ class _LoginView extends StatelessWidget {
                     _AuthField(
                       label: t.auth_username,
                       controller: usernameCtrl,
-                      hint: 'username or email',
+                      hint: t.auth_username_hint,
                       keyboardType: TextInputType.emailAddress,
                       error: fieldErrors['username'],
                     ),
@@ -1568,7 +1568,7 @@ class _LoginView extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Don't have an account?  ",
+                            '${t.auth_no_account} ',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
                               color: cs.onSurfaceVariant,
@@ -1675,9 +1675,9 @@ class _SignupView extends StatelessWidget {
                                   color: cs.onSurface,
                                 ),
                                 children: [
-                                  const TextSpan(text: 'Join the\n'),
+                                  TextSpan(text: '${Translations.of(context).auth_signup_heading_plain}\n'),
                                   TextSpan(
-                                    text: 'Movement.',
+                                    text: Translations.of(context).auth_signup_heading_italic,
                                     style: GoogleFonts.lexend(
                                       fontStyle: FontStyle.italic,
                                       color: cs.primary,
@@ -1688,7 +1688,7 @@ class _SignupView extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Accelerate your learning journey today.',
+                              Translations.of(context).auth_signup_subtitle,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 15,
                                 color: cs.onSurfaceVariant,
@@ -1704,7 +1704,7 @@ class _SignupView extends StatelessWidget {
                     _AuthField(
                       label: t.auth_username,
                       controller: usernameCtrl,
-                      hint: 'Erik Andersson',
+                      hint: t.auth_signup_username_hint,
                       error: fieldErrors['username'],
                     ),
                     const SizedBox(height: 18),
@@ -1713,7 +1713,7 @@ class _SignupView extends StatelessWidget {
                     _AuthField(
                       label: t.auth_email,
                       controller: emailCtrl,
-                      hint: 'erik@example.se',
+                      hint: t.auth_signup_email_hint,
                       keyboardType: TextInputType.emailAddress,
                       error: fieldErrors['email'],
                     ),
@@ -1756,7 +1756,7 @@ class _SignupView extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Already have an account?  ',
+                            '${t.auth_have_account}  ',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
                               color: cs.onSurfaceVariant,

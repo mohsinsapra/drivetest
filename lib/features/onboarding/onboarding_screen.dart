@@ -190,10 +190,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   bool _isOwned(Map<String, dynamic> product) {
-    final productId = product['id'];
+    final productId = product['id']?.toString();
+    if (productId == null) return false;
     return _mySubscriptions.any((s) {
       final p = s['product'];
-      final subProductId = (p is Map) ? p['id'] : p;
+      final subProductId = ((p is Map) ? p['id'] : p)?.toString();
       return subProductId == productId && s['status'] == 'paid';
     });
   }
@@ -401,10 +402,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await _saveProgressPrefs();
     if (!mounted) return;
 
+    // Strip already-owned products from the purchase list so the backend does
+    // not reject the payment intent when a bundle contains a pre-owned item.
+    final unpurchased = widget.isLoggedIn()
+        ? products.where((p) => !_isOwned(p)).toList()
+        : products;
+    if (unpurchased.isEmpty) {
+      setState(() => _purchaseInFlight = false);
+      return;
+    }
+
     try {
       SubscriptionSuccessResult? result;
       try {
-        result = await widget.processPayment(context, products);
+        result = await widget.processPayment(context, unpurchased);
       } catch (e) {
         debugPrint('[Onboarding] payment flow failed: $e');
         return;
@@ -1394,11 +1405,12 @@ class _PlanPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
-    final isBundle = products.length > 1;
+    final unownedProducts = products.where((p) => !isOwnedFn(p)).toList();
+    final isBundle = unownedProducts.length > 1;
     final currency = products.isNotEmpty
         ? products.first['currency']?.toString() ?? 'SEK'
         : 'SEK';
-    final total = products.fold<double>(0.0, (sum, p) {
+    final total = unownedProducts.fold<double>(0.0, (sum, p) {
       final s = p['price']?.toString().replaceAll(',', '.').trim() ?? '';
       return sum + (double.tryParse(s) ?? 0.0);
     });
@@ -1482,7 +1494,7 @@ class _PlanPage extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
-                        'or',
+                        Translations.of(context).auth_or,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           color: cs.outline,

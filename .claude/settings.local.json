@@ -203,7 +203,8 @@
       "Bash(pkill -f \"flutter_tools\")",
       "Bash(make showmigrations *)",
       "Bash(grep -i \"\\\\.dart$\")",
-      "Skill(humanizer)"
+      "Skill(humanizer)",
+      "Skill(autoplan)"
     ],
     "deny": [],
     "ask": []

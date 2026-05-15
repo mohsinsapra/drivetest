@@ -126,11 +126,13 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
 
   Future<void> _handleBuy(dynamic product) async {
     if (_buyingProductId != null) return;
-    final alreadyOwned = _mySubscriptions.any((s) {
-      final p = s['product'];
-      final subProductId = (p is Map) ? p['id'] : p;
-      return subProductId == product['id'] && s['status'] == 'paid';
-    });
+    final productId = product['id']?.toString();
+    final alreadyOwned = productId != null &&
+        _mySubscriptions.any((s) {
+          final p = s['product'];
+          final subProductId = ((p is Map) ? p['id'] : p)?.toString();
+          return subProductId == productId && s['status'] == 'paid';
+        });
     if (alreadyOwned) {
       await _handleFreeAccess(product);
       return;
