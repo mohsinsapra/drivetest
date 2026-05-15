@@ -1,0 +1,10 @@
+Added
+-
+
+Changed
+-
+
+Fixed
+• Logo ("DRIVE TEST") now always renders on a single line; wraps in `FittedBox` so it scales down proportionally on small screens instead of breaking to two lines
+• Debug credentials (`abc`/`abc`) are now pre-filled in the "Sign In to Subscribe" bottom sheet in debug mode, matching the behaviour of the main auth screen
+• IAP `restored` purchase events (triggered by iOS "You're currently subscribed" dialog) no longer call the backend confirmation endpoint — prevents a...

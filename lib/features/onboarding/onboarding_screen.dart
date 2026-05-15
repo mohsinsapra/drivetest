@@ -140,8 +140,7 @@ class OnboardingScreen extends StatefulWidget {
         cat['has_children'] == true
             ? AppPageRoute(
                 builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
-            : AppPageRoute(
-                builder: (_) => BCDCategoryHubScreen(category: cat)),
+            : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat)),
       );
     }
   }

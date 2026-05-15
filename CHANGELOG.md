@@ -20,6 +20,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.17+183] - 2026-05-15
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+- Logo ("DRIVE TEST") now always renders on a single line; wraps in `FittedBox` so it scales down proportionally on small screens instead of breaking to two lines
+- Debug credentials (`abc`/`abc`) are now pre-filled in the "Sign In to Subscribe" bottom sheet in debug mode, matching the behaviour of the main auth screen
+- IAP `restored` purchase events (triggered by iOS "You're currently subscribed" dialog) no longer call the backend confirmation endpoint — prevents a different logged-in app user from inheriting a subscription that belongs to the original Apple ID purchaser
+- Post-purchase navigation from the onboarding success screen ("Start Tests" / "Back to home") now correctly replaces the onboarding route with `MainScreen`; previously `findAncestorStateOfType` could never locate the onboarding state from its own context, so navigation silently did nothing and the user remained stuck on onboarding
+
+---
+---
+
 ## [1.0.16+182] - 2026-05-15
 
 ### Added
