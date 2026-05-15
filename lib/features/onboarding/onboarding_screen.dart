@@ -114,12 +114,36 @@ class OnboardingScreen extends StatefulWidget {
 
     if (!context.mounted) return;
 
-    final state = context.findAncestorStateOfType<_OnboardingScreenState>();
-    final targetCategory =
-        result == SubscriptionSuccessResult.startTests && state != null
-            ? state._resolveCategoryForProducts(products)
-            : null;
-    state?._navigateToMainAndCategory(Navigator.of(context), targetCategory);
+    // Resolve which BCD category to land on (only for "Start Tests" taps).
+    Map<String, dynamic>? targetCategory;
+    if (result == SubscriptionSuccessResult.startTests) {
+      for (final p in products) {
+        final ids = p['category_bcd_ids'] as List<dynamic>?;
+        final id = ids?.firstOrNull;
+        if (id == null) continue;
+        targetCategory = BcdCache.instance.categories.firstWhereOrNull(
+          (c) => c['bcd_id']?.toString() == id.toString(),
+        );
+        if (targetCategory != null) break;
+      }
+    }
+
+    // Navigate: replace onboarding with MainScreen, then optionally push category.
+    // NOTE: findAncestorStateOfType cannot locate the current widget's own state,
+    // so navigation is driven directly here using the navigator.
+    final navigator = Navigator.of(context);
+    navigator.pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
+    if (targetCategory != null) {
+      final cat = Map<String, dynamic>.from(targetCategory)
+        ..['is_subscribed'] = true;
+      navigator.push(
+        cat['has_children'] == true
+            ? AppPageRoute(
+                builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+            : AppPageRoute(
+                builder: (_) => BCDCategoryHubScreen(category: cat)),
+      );
+    }
   }
 
   @override

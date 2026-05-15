@@ -77,6 +77,10 @@ class _AuthSheetState extends State<_AuthSheet>
   void initState() {
     super.initState();
     _tabs = TabController(length: 2, vsync: this);
+    if (kDebugMode) {
+      _loginUser.text = kDebugUsername;
+      _loginPass.text = kDebugPassword;
+    }
   }
 
   @override

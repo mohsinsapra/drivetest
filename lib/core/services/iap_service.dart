@@ -228,6 +228,17 @@ class IAPService {
     // For the buy flow (_pendingInternalProductId set) call confirmBCDIAPPurchase
     // directly. For restored events (no internalProductId) skip — the backend
     // already has the subscription from the original purchase.
+    //
+    // IMPORTANT: Only confirm `purchased` status, never `restored`. A `restored`
+    // status during an initiated buy means the Apple ID already owns this
+    // subscription (iOS "You're currently subscribed" dialog) — confirming it
+    // would grant access to whichever backend user is currently logged in, even
+    // if they are not the original purchaser.
+    if (purchase.status == PurchaseStatus.restored) {
+      debugPrint(
+          '[IAP] skipping backend verify for restored purchase — subscription belongs to original purchaser');
+      return;
+    }
     if (kDebugMode) {
       if (_pendingInternalProductId != null) {
         debugPrint(
@@ -235,7 +246,7 @@ class IAPService {
         await _api.confirmBCDIAPPurchase(_pendingInternalProductId!);
       } else {
         debugPrint(
-            '[IAP] debug mode: skipping backend verify for restore (no internalProductId)');
+            '[IAP] debug mode: skipping backend verify (no internalProductId)');
       }
       return;
     }

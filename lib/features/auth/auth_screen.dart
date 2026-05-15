@@ -1205,26 +1205,30 @@ class _LandingView extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        RichText(
-                          textAlign: TextAlign.center,
-                          text: TextSpan(
-                            style: GoogleFonts.lexend(
-                              fontSize: 56,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -2,
-                              height: 1.0,
-                              color: cs.onSurface,
-                            ),
-                            children: [
-                              const TextSpan(text: 'DRIVE '),
-                              TextSpan(
-                                text: 'TEST',
-                                style: GoogleFonts.lexend(
-                                  fontStyle: FontStyle.italic,
-                                  color: cs.primary,
-                                ),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            text: TextSpan(
+                              style: GoogleFonts.lexend(
+                                fontSize: 56,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -2,
+                                height: 1.0,
+                                color: cs.onSurface,
                               ),
-                            ],
+                              children: [
+                                const TextSpan(text: 'DRIVE '),
+                                TextSpan(
+                                  text: 'TEST',
+                                  style: GoogleFonts.lexend(
+                                    fontStyle: FontStyle.italic,
+                                    color: cs.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
