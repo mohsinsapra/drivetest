@@ -182,7 +182,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  labelText: Translations.of(context).auth_reset_new_password_label,
+                  labelText:
+                      Translations.of(context).auth_reset_new_password_label,
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -205,7 +206,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
-                  labelText: Translations.of(context).auth_reset_confirm_password_label,
+                  labelText: Translations.of(context)
+                      .auth_reset_confirm_password_label,
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(

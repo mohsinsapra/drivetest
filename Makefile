@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build web-deploy web-run clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge
+.PHONY: help fmt lint check web-build web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -68,6 +68,7 @@ help:
 	@echo ""
 	@echo "$(COLOR_GREEN)Web Commands:$(COLOR_RESET)"
 	@echo "  make web-run          - Run web app in development mode"
+	@echo "  make web-tunnel       - Run web app + Cloudflare tunnel (accessible from anywhere)"
 	@echo "  make web-build        - Build web app for production"
 	@echo "  make web-deploy       - Build and deploy to web repository"
 	@echo ""
@@ -138,6 +139,51 @@ web-run:
 		--dart-define=GIT_SHORT_HASH="$(GIT_SHORT_HASH)" \
 		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
 		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)"
+
+## web-tunnel: Run web app + Cloudflare tunnel (no hot-reload; restart to pick up changes)
+web-tunnel:
+	@command -v cloudflared >/dev/null 2>&1 || (echo "$(COLOR_YELLOW)Installing cloudflared...$(COLOR_RESET)" && brew install cloudflared)
+	@lsof -ti:$(WEB_PORT) | xargs kill -9 2>/dev/null; true
+	@echo "$(COLOR_GREEN)Starting Flutter web server on port $(WEB_PORT)...$(COLOR_RESET)"
+	@flutter run -d web-server --web-port=$(WEB_PORT) \
+		--dart-define=API_BASE_URL="https://dev-dashboard.drivetest.se/" \
+		--dart-define=FIREBASE_API_KEY="$(FIREBASE_API_KEY)" \
+		--dart-define=FIREBASE_AUTH_DOMAIN="$(FIREBASE_AUTH_DOMAIN)" \
+		--dart-define=FIREBASE_PROJECT_ID="$(FIREBASE_PROJECT_ID)" \
+		--dart-define=FIREBASE_STORAGE_BUCKET="$(FIREBASE_STORAGE_BUCKET)" \
+		--dart-define=FIREBASE_MESSAGING_SENDER_ID="$(FIREBASE_MESSAGING_SENDER_ID)" \
+		--dart-define=FIREBASE_APP_ID="$(FIREBASE_APP_ID)" \
+		--dart-define=FIREBASE_MEASUREMENT_ID="$(FIREBASE_MEASUREMENT_ID)" \
+		--dart-define=STRIPE_PUBLISHABLE_KEY="$(STRIPE_PUBLISHABLE_KEY)" \
+		--dart-define=GOOGLE_WEB_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
+		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)" \
+		--dart-define=SENTRY_DSN="$(SENTRY_DSN)" \
+		--dart-define=APP_VERSION="$(APP_VERSION)" \
+		--dart-define=BUILD_NUMBER="$(APP_BUILD_NUMBER)" \
+		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
+		--dart-define=GIT_SHORT_HASH="$(GIT_SHORT_HASH)" \
+		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
+		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)" & \
+	FLUTTER_PID=$$!; \
+	trap "echo '$(COLOR_YELLOW)Shutting down...$(COLOR_RESET)'; kill $$FLUTTER_PID 2>/dev/null; exit" INT TERM; \
+	echo "$(COLOR_YELLOW)Waiting for Flutter web server to be ready...$(COLOR_RESET)"; \
+	until nc -z localhost $(WEB_PORT) 2>/dev/null; do sleep 1; done; \
+	echo "$(COLOR_GREEN)Flutter ready! Starting Cloudflare tunnel...$(COLOR_RESET)"; \
+	echo "$(COLOR_GREEN)Live at: https://dev-app.drivetest.se$(COLOR_RESET)"; \
+	cloudflared tunnel --config $(HOME)/.cloudflared/drivetest-flutter.yml run; \
+	kill $$FLUTTER_PID 2>/dev/null
+
+## tunnel: Start backend + Flutter web app tunnels (same as make tunnel in the backend dir)
+tunnel:
+	@$(MAKE) -C ../taxi_exam_backend tunnel
+
+## restart-flutter: Restart only the Flutter web server + tunnel
+restart-flutter:
+	@$(MAKE) -C ../taxi_exam_backend restart-flutter
+
+## restart-backend: Restart only Django + its tunnel
+restart-backend:
+	@$(MAKE) -C ../taxi_exam_backend restart-backend
 
 ## web-build: Build web app for production
 web-build: check

@@ -364,9 +364,9 @@ class _ProfileScreenState extends State<ProfileScreen>
           color: const Color(0xFFE8F5E9),
           title: t.profile_manage_subscription,
           onTap: () => launchUrl(
-            Uri.parse('https://apps.apple.com/account/subscriptions'),
-            mode: LaunchMode.externalApplication,
-          ),
+                Uri.parse('https://apps.apple.com/account/subscriptions'),
+                mode: LaunchMode.externalApplication,
+              ),
         ),
       if (!_profile.isGuest)
         (
@@ -374,9 +374,9 @@ class _ProfileScreenState extends State<ProfileScreen>
           color: const Color(0xFFDCEEFB),
           title: t.profile_purchase_history,
           onTap: () => Navigator.push(
-            context,
-            AppPageRoute(builder: (_) => const PurchaseHistoryScreen()),
-          ),
+                context,
+                AppPageRoute(builder: (_) => const PurchaseHistoryScreen()),
+              ),
         ),
       (
         icon: Icons.tour_rounded,
@@ -404,9 +404,9 @@ class _ProfileScreenState extends State<ProfileScreen>
         color: const Color(0xFFE0E0E0),
         title: t.profile_help,
         onTap: () => Navigator.push(
-          context,
-          AppPageRoute(builder: (_) => const HelpScreen()),
-        ),
+              context,
+              AppPageRoute(builder: (_) => const HelpScreen()),
+            ),
       ),
       (
         icon: Icons.feedback_outlined,

@@ -8,1010 +8,1572 @@ part of 'strings.g.dart';
 
 // Path: <root>
 typedef TranslationsEn = Translations; // ignore: unused_element
+
 class Translations implements BaseTranslations<AppLocale, Translations> {
-	/// Returns the current translations of the given [context].
-	///
-	/// Usage:
-	/// final t = Translations.of(context);
-	static Translations of(BuildContext context) => InheritedLocaleData.of<AppLocale, Translations>(context).translations;
+  /// Returns the current translations of the given [context].
+  ///
+  /// Usage:
+  /// final t = Translations.of(context);
+  static Translations of(BuildContext context) =>
+      InheritedLocaleData.of<AppLocale, Translations>(context).translations;
 
-	/// You can call this constructor and build your own translation instance of this locale.
-	/// Constructing via the enum [AppLocale.build] is preferred.
-	Translations({Map<String, Node>? overrides, PluralResolver? cardinalResolver, PluralResolver? ordinalResolver, TranslationMetadata<AppLocale, Translations>? meta})
-		: assert(overrides == null, 'Set "translation_overrides: true" in order to enable this feature.'),
-		  $meta = meta ?? TranslationMetadata(
-		    locale: AppLocale.en,
-		    overrides: overrides ?? {},
-		    cardinalResolver: cardinalResolver,
-		    ordinalResolver: ordinalResolver,
-		  ) {
-		$meta.setFlatMapFunction(_flatMapFunction);
-	}
+  /// You can call this constructor and build your own translation instance of this locale.
+  /// Constructing via the enum [AppLocale.build] is preferred.
+  Translations(
+      {Map<String, Node>? overrides,
+      PluralResolver? cardinalResolver,
+      PluralResolver? ordinalResolver,
+      TranslationMetadata<AppLocale, Translations>? meta})
+      : assert(overrides == null,
+            'Set "translation_overrides: true" in order to enable this feature.'),
+        $meta = meta ??
+            TranslationMetadata(
+              locale: AppLocale.en,
+              overrides: overrides ?? {},
+              cardinalResolver: cardinalResolver,
+              ordinalResolver: ordinalResolver,
+            ) {
+    $meta.setFlatMapFunction(_flatMapFunction);
+  }
 
-	/// Metadata for the translations of <en>.
-	@override final TranslationMetadata<AppLocale, Translations> $meta;
+  /// Metadata for the translations of <en>.
+  @override
+  final TranslationMetadata<AppLocale, Translations> $meta;
 
-	/// Access flat map
-	dynamic operator[](String key) => $meta.getTranslation(key);
+  /// Access flat map
+  dynamic operator [](String key) => $meta.getTranslation(key);
 
-	late final Translations _root = this; // ignore: unused_field
+  late final Translations _root = this; // ignore: unused_field
 
-	Translations $copyWith({TranslationMetadata<AppLocale, Translations>? meta}) => Translations(meta: meta ?? this.$meta);
+  Translations $copyWith(
+          {TranslationMetadata<AppLocale, Translations>? meta}) =>
+      Translations(meta: meta ?? this.$meta);
 
-	// Translations
-	String get home => 'Home';
-	String get tests => 'Tests';
-	String get profile => 'Profile';
-	String get welcome_message => 'Welcome to Drive Test';
-	String get save => 'Save';
-	String get cancel => 'Cancel';
-	String get delete => 'Delete';
-	String get logout => 'Logout';
-	String get loading => 'Loading...';
-	String get settings_title => 'Settings';
-	String get settings_appearance => 'Appearance';
-	String get settings_test_prefs => 'Test Preferences';
-	String get settings_timed_test => 'Timed Test';
-	String get settings_timed_test_sub => 'Enable a time limit for the test';
-	String get settings_instant_marking => 'Instant Marking';
-	String get settings_instant_marking_sub => 'Show correct answer after each question';
-	String get settings_num_questions => 'Number of Questions';
-	String get settings_enter_num => 'Enter number of questions:';
-	String get settings_include_saved => 'Include Saved Questions';
-	String get settings_include_saved_sub => 'Include questions you previously saved';
-	String get settings_notifications => 'Notifications';
-	String get settings_notifications_toggle => 'Push Notifications';
-	String get settings_notifications_on_sub => 'You will receive exam reminders and updates';
-	String get settings_notifications_off_sub => 'Notifications are turned off';
-	String get settings_notifications_denied => 'Permission denied — tap below to open Settings';
-	String get settings_notifications_open_settings => 'Open Settings';
-	String get settings_dark_mode => 'Dark Mode';
-	String get settings_dark_mode_sub => 'Switch between light and dark theme';
-	String get settings_language => 'Language';
-	String get settings_language_sub => 'Choose your preferred language';
-	String get settings_version => 'Version Information';
-	String get settings_app_version => 'App Version';
-	String get settings_commit => 'Commit';
-	String get settings_branch => 'Branch';
-	String get settings_last_update => 'Last Update';
-	String get settings_date => 'Date';
-	String get settings_saved => 'Settings saved successfully';
-	String get profile_student => 'STUDENT';
-	String get profile_edit => 'Edit profile';
-	String get profile_stats => 'My stats';
-	String get profile_settings => 'Settings';
-	String get profile_invite => 'Invite a friend';
-	String get profile_help => 'Help';
-	String get profile_manage_subscription => 'Manage Subscription';
-	String get profile_purchase_history => 'Purchase History';
-	String get profile_revisit_setup => 'Revisit Setup';
-	String get profile_send_feedback => 'Send Feedback';
-	String get profile_logout_confirm => 'Are you sure you want to log out?';
-	String get profile_yes_logout => 'Yes, Logout';
-	String get home_dashboard => 'Dashboard';
-	String get home_my_progress => 'My Progress';
-	String get home_overall_score => 'Overall Score';
-	String get home_passed => 'Passed';
-	String get home_failed => 'Failed';
-	String get home_total => 'Total';
-	String get home_in_progress => 'In Progress';
-	String get home_recent_activity => 'Recent Activity';
-	String get home_by_category => 'By Category';
-	String get home_this_week => 'This Week';
-	String get home_this_month => 'This Month';
-	String get home_no_attempts => 'No attempts yet!';
-	String get home_no_attempts_sub => 'Once you complete a quiz, your results will show up here.';
-	String get home_take_quiz => 'Take Your First Quiz';
-	String get home_paused => 'Paused';
-	String get home_resume => 'Resume';
-	String get home_attempts => 'attempts';
-	String get home_active => 'active';
-	String get home_tests => 'tests';
-	String get intro_slide1_body => 'Learn and practice for your license with ease.';
-	String get intro_slide2_title => 'Interactive Tests';
-	String get intro_slide2_body => 'Practice tests with real-time feedback and explanations.';
-	String get intro_slide3_title => 'Get Certified';
-	String get intro_slide3_body => 'Ace your exams and become a certified driver.';
-	String get intro_skip => 'Skip';
-	String get intro_get_started => 'Get Started';
-	String get auth_welcome_title => 'Welcome to Drive Test!';
-	String get auth_welcome_subtitle => 'Practice. Pass with confidence.';
-	String get auth_login_btn => 'LOGIN';
-	String get auth_signup_btn => 'SIGNUP';
-	String get auth_skip_demo => 'SKIP FOR NOW (TRY DEMO)';
-	String get auth_demo_error => 'Failed to login with demo account. Please try again.';
-	String get auth_or => 'OR';
-	String get auth_login_title => 'Login';
-	String get auth_contact_support => 'Contact support';
-	String get auth_username => 'Username or Email';
-	String get auth_email => 'Email';
-	String get auth_password => 'Password';
-	String get auth_remember_me => 'Remember me';
-	String get auth_forgot_password => 'Forgot Password?';
-	String get auth_invalid_credentials => 'Invalid username or password';
-	String get auth_no_account => 'Don\'t have an account? ';
-	String get auth_sign_up_link => 'Sign up';
-	String get auth_skip_demo_short => 'Skip for now (Try Demo)';
-	String get auth_google_continue => 'Continue with Google';
-	String get auth_feedback_type => 'Type';
-	String get auth_feedback_email_optional => 'Email (optional)';
-	String get auth_feedback_subject_optional => 'Subject (optional)';
-	String get auth_feedback_message => 'Message';
-	String get auth_feedback_sent => 'Thanks! Your feedback was sent.';
-	String get auth_feedback_error => 'Could not send feedback. Please try again.';
-	String get auth_submit => 'Submit';
-	String get auth_feedback_login_issue => 'Login issue';
-	String get auth_feedback_signup_issue => 'Signup issue';
-	String get auth_feedback_app_issue => 'App issue';
-	String get auth_feedback_feature_request => 'Feature request';
-	String get auth_feedback_other => 'Other';
-	String get auth_create_account => 'Create Account';
-	String get auth_sign_up_btn => 'Sign Up';
-	String get auth_val_username_required => 'Please enter your username or email';
-	String get auth_val_username_length => 'Username must be at least 4 characters';
-	String get auth_val_email_required => 'Please enter an email';
-	String get auth_val_email_invalid => 'Please enter a valid email';
-	String get auth_val_password_required => 'Please enter a password';
-	String get auth_val_password_length => 'Password must be at least 6 characters';
-	String get auth_signup_success => 'Signup successful! Please login.';
-	String get auth_welcome_first_login => 'Welcome. Enjoy exam prep.';
-	String get auth_welcome_returning => 'Welcome back again.';
-	String get auth_deleted_account_welcome_back => 'Always welcome back.';
-	String get auth_signup_failed => 'Signup failed. Please correct the errors.';
-	String get auth_generic_error => 'An error occurred. Please try again.';
-	String get auth_express_google => 'Express login via Google';
-	String get auth_google_label => 'Google';
-	String get auth_express_apple => 'Sign in with Apple';
-	String get auth_apple_label => 'Apple';
-	String get auth_signing_in => 'Signing in...';
-	String get auth_tab_login => 'Log in';
-	String get auth_tab_signup => 'Sign up';
-	String get auth_show_password => 'Show';
-	String get auth_hide_password => 'Hide';
-	String get auth_forgot_title => 'Forgot Password';
-	String get auth_forgot_heading => 'Reset Your Password';
-	String get auth_forgot_subtitle => 'Enter your email address and we\'ll send you instructions to reset your password.';
-	String get auth_forgot_email_label => 'Email Address';
-	String get auth_forgot_send_btn => 'Send Reset Instructions';
-	String get auth_forgot_back_login => 'Back to Login';
-	String get auth_forgot_success => 'Password reset instructions have been sent to your email.';
-	String get auth_forgot_error => 'Failed to send reset email. Please try again.';
-	String get auth_verify_title => 'Verify Code';
-	String get auth_verify_heading => 'Check Your Email';
-	String get auth_verify_subtitle => 'We sent a reset code to\n{email}';
-	String get auth_verify_code_label => 'Reset Code';
-	String get auth_verify_code_hint => 'Enter the code from your email';
-	String get auth_verify_code_empty => 'Please enter the reset code from your email.';
-	String get auth_verify_resend => 'Resend Code';
-	String get auth_reset_title => 'Reset Password';
-	String get auth_reset_heading => 'Set New Password';
-	String get auth_reset_subtitle => 'Please enter your new password';
-	String get auth_reset_new_password_label => 'New Password';
-	String get auth_reset_confirm_password_label => 'Confirm Password';
-	String get auth_reset_empty => 'Please enter a new password.';
-	String get auth_reset_mismatch => 'Passwords do not match.';
-	String get auth_reset_invalid_code => 'Invalid or expired reset code. Please try requesting a new reset link.';
-	String get auth_reset_success_title => 'Success!';
-	String get auth_reset_success_body => 'Your password has been reset successfully. You can now log in with your new password.';
-	String get auth_reset_go_to_login => 'Go to Login';
-	String get auth_google_connecting => 'Connecting to Google...';
-	String get auth_google_verifying => 'Verifying account...';
-	String get auth_google_signing_in => 'Signing you in...';
-	String get auth_google_creating => 'Creating your account...';
-	String get auth_google_loading => 'Loading your profile...';
-	String get auth_landing_subtitle => 'Your journey to excellence starts with a single tap.';
-	String get auth_landing_new_here => 'New here?';
-	String get auth_create_account_link => 'Create an account';
-	String get auth_login_heading => 'Welcome\nBack';
-	String get auth_login_subtitle => 'Continue your kinetic journey.';
-	String get auth_username_hint => 'username or email';
-	String get auth_signup_heading_plain => 'Join the';
-	String get auth_signup_heading_italic => 'Movement.';
-	String get auth_signup_subtitle => 'Accelerate your learning journey today.';
-	String get auth_signup_username_hint => 'Erik Andersson';
-	String get auth_signup_email_hint => 'erik@example.se';
-	String get auth_have_account => 'Already have an account?';
-	String get purchase_success_title => 'Your Purchase has\nbeen confirmed';
-	String get purchase_success_start_tests => 'Start Tests';
-	String get purchase_success_back_home => 'Back to home';
-	String get bcd_drive_test => 'Drive Test';
-	String get bcd_exams => 'Exams';
-	String get bcd_exams_sub => 'Licences, categories & tests';
-	String get bcd_traffic_signs => 'Traffic Signs';
-	String get bcd_traffic_signs_sub => 'Browse all traffic signs';
-	String get bcd_subscriptions => 'Subscriptions';
-	String get bcd_subscriptions_sub => 'View plans & manage access';
-	String get bcd_hub_practice => 'Practice';
-	String get bcd_hub_tests => 'Tests';
-	String get bcd_hub_theory_docs => 'Theory\nDocuments';
-	String get bcd_hub_traffic_signs => 'Traffic Signs';
-	String get bcd_hub_checklist => 'Checklist';
-	String get bcd_hub_statistics => 'Statistics';
-	String get bcd_hub_saved_questions => 'Saved\nQuestions';
-	String get bcd_no_free_practice => 'No free practice test available for this category.';
-	String get bcd_failed_practice => 'Failed to load practice test.';
-	String get bcd_no_saved_questions => 'No saved questions in this category yet.';
-	String get bcd_no_saved_questions_found => 'No saved questions found in this category.';
-	String get bcd_failed_saved => 'Failed to load saved questions.';
-	String get bcd_no_subscription => 'You don\'t have an active subscription for this category';
-	String get bcd_free_content_desc => 'Practice, Traffic Signs, Documents and Checklists are free. Subscribe to unlock Tests.';
-	String get bcd_buy_subscription => 'Buy subscription';
-	String get bcd_buy_subscription_arrow => 'Buy subscription →';
-	String get bcd_not_subscribed => 'You\'re not subscribed to this category';
-	String get bcd_only_free_tests => 'Only free practice tests are available. Subscribe to unlock all tests.';
-	String get bcd_no_free_practice_tests => 'No free practice tests available.';
-	String get bcd_no_tests => 'No tests available.';
-	String get bcd_no_documents => 'No documents available.';
-	String get bcd_no_checklists => 'No checklists available.';
-	String get bcd_failed_tests => 'Failed to load tests';
-	String get bcd_subscription_required => 'Subscription Required';
-	String get bcd_subscribe_access => 'Subscribe to access "{name}" and all its content.';
-	String get bcd_not_now => 'Not now';
-	String get bcd_buy => 'Buy';
-	String get bcd_payment_failed => 'Payment failed. Please try again.';
-	String get bcd_feedback_unavailable => 'Feedback is unavailable for this question.';
-	String get bcd_feedback_submitted => 'Thanks! Your feedback was submitted.';
-	String get bcd_feedback_failed => 'Could not submit feedback. Please try again.';
-	String get bcd_categories => 'Categories';
-	String get bcd_search_categories => 'Search categories…';
-	String get bcd_no_categories => 'No categories available.';
-	String get bcd_no_match_search => 'No matches found.';
-	String get bcd_subscribed => 'Subscribed';
-	String get bcd_tap_to_subscribe => 'Tap to subscribe';
-	String get bcd_failed_categories => 'Failed to load categories';
-	String get bcd_plans_tab => 'Plans';
-	String get bcd_my_subscriptions_tab => 'My Subscriptions';
-	String get bcd_no_plans => 'No plans available';
-	String get bcd_active_label => 'Active';
-	String get bcd_subscribe_btn => 'Subscribe';
-	String get bcd_start_practice => 'Start Practice';
-	String get bcd_no_active_subscriptions => 'No active subscriptions';
-	String get bcd_browse_plans => 'Browse plans to get started';
-	String get bcd_expires => 'Expires';
-	String get bcd_failed_plans => 'Failed to load plans';
-	String get bcd_no_categories_linked => 'No categories linked to this subscription';
-	String get bcd_failed_category => 'Failed to load category';
-	String get bcd_search_signs => 'Search sign groups…';
-	String get bcd_no_signs => 'No signs found';
-	String get bcd_no_image => 'No image';
-	String get bcd_signs_count_label => 'traffic signs';
-	String get bcd_view => 'View';
-	String get bcd_previous => 'Previous';
-	String get bcd_next => 'Next';
-	String get bcd_failed_traffic_signs => 'Failed to load traffic signs';
-	String get bcd_search_hint => 'Search…';
-	String get bcd_no_subcategories => 'No sub-categories available.';
-	String get bcd_failed_subcategories => 'Failed to load sub-categories';
-	String get bcd_no_questions => 'No questions found for this test.';
-	String get bcd_failed_test_questions => 'Failed to load test questions.';
-	String get bcd_questions_label => 'questions';
-	String get bcd_pass_label => 'Pass';
-	String get bcd_free_label => 'FREE';
-	String get settings_theme_label => 'Theme';
-	String get settings_theme_sub => 'Light, dark or follow system';
-	String get settings_theme_system => 'System';
-	String get settings_theme_light => 'Light';
-	String get settings_theme_dark => 'Dark';
-	String get help_title => 'Help & Support';
-	String get help_need_help => 'Need Help?';
-	String get help_subtitle => 'Tell us about your issue and we\'ll get back to you soon.';
-	String get help_your_information => 'Your Information';
-	String get help_username => 'Username';
-	String get help_email => 'Email';
-	String get help_user_id => 'User ID';
-	String get help_subject => 'Subject';
-	String get help_subject_hint => 'e.g., Login issue, Bug report, Feature request';
-	String get help_subject_required => 'Please enter a subject';
-	String get help_description => 'Description';
-	String get help_description_hint => 'Please describe your issue in detail...';
-	String get help_description_required => 'Please describe your issue';
-	String get help_description_too_short => 'Please provide more details (at least 10 characters)';
-	String get help_submit => 'Submit Report';
-	String get help_or_email => 'Or email us directly at mohsin.sapra@gmail.com';
-	String get help_opening_email => 'Opening email app...';
-	String get help_email_error => 'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
-	String get help_generic_error => 'Error opening email app. Please try again.';
-	String get notifications_title => 'Notifications';
-	String get notifications_mark_all_read => 'Mark all read';
-	String get notifications_clear => 'Clear';
-	String get notifications_clear_confirm_title => 'Clear all notifications?';
-	String get notifications_clear_confirm_body => 'This will remove all notifications. This action cannot be undone.';
-	String get notifications_empty_title => 'No notifications';
-	String get notifications_empty_subtitle => 'You\'re all caught up! We\'ll let you know when something new arrives.';
-	String get notifications_just_now => 'Just now';
-	String get notifications_minutes_ago => '{n} min ago';
-	String get notifications_hours_ago => '{n}h ago';
-	String get notifications_days_ago => '{n}d ago';
-	String get notifications_permission_off_title => 'Notifications are off';
-	String get notifications_permission_denied_body => 'You have denied notification permission. Open Settings to enable them.';
-	String get notifications_permission_not_determined_body => 'Allow notifications to stay updated on your exam progress and reminders.';
-	String get notifications_permission_open_settings => 'Open Settings';
-	String get notifications_permission_enable => 'Enable Notifications';
-	String get notifications_permission_web_dialog_title => 'Enable in browser';
-	String get notifications_permission_web_dialog_body => 'To enable notifications, click the lock icon (🔒) in your browser\'s address bar, find "Notifications", and set it to "Allow". Then refresh the page.';
-	String get notifications_permission_web_dialog_ok => 'Got it';
-	String get image_viewer_swipe_to_close => 'Swipe down to close';
-	String get image_viewer_load_error => 'Could not load image';
-	String get dash_my_progress => 'My Progress';
-	String get dash_sync_from_server => 'Sync from server';
-	String get dash_unknown_error => 'Something went wrong. Please try again.';
-	String get dash_network_error => 'No internet connection. Check your connection and try again.';
-	String get dash_server_error => 'Server error. Please try again later.';
-	String get dash_retry => 'Retry';
-	String get dash_my_exams => 'My Exams';
-	String get dash_tap_to_dive => 'Tap an exam to dive in';
-	String get dash_overview => 'Overview';
-	String get dash_categories_header => 'Categories';
-	String get dash_batches_header => 'Batches';
-	String get dash_expand_categories => 'Expand each category to see batches';
-	String get dash_weekly_streak => 'Weekly Streak';
-	String get dash_consistency_builds => 'Consistency builds mastery';
-	String get dash_smart_insights => 'Smart Insights';
-	String get dash_based_on_attempts => 'Based on your attempts';
-	String get dash_continue_label => 'Continue: {name}';
-	String get dash_total_attempts => 'Total Attempts';
-	String get dash_batches_done => 'Batches Done';
-	String get dash_avg_time => 'Avg Time';
-	String get dash_weakest_label => 'Weakest: {name} ({score}%)';
-	String get dash_batches_completed_label => '{done}/{total} batches completed';
-	String get dash_weakness_low_score => 'Low score';
-	String get dash_weakness_over_time => 'Over time';
-	String get dash_weakness_needs_work => 'Needs work';
-	String get dash_weakness_on_track => 'On track';
-	String get dash_not_started => 'Not started';
-	String get dash_attempt_one => '1 attempt';
-	String get dash_attempt_many => '{n} attempts';
-	String get dash_avg_duration => 'Avg {duration}';
-	String get dash_over_time_pct => '+{pct}% time';
-	String get dash_on_time => 'On time';
-	String get dash_insight_strongest => 'Strongest area';
-	String get dash_insight_weakest => 'Weakest area';
-	String get dash_insight_focus => 'Focus recommendation';
-	String get dash_insight_continue_learning => 'Continue learning';
-	String get dash_insight_area_detail => '{name} — {score}% avg';
-	String get dash_insight_focus_detail => 'Work on {name} next to keep progressing';
-	String get dash_insight_start => 'Start with {name} — pick any batch to begin.';
-	String get dash_insight_all_done => 'All batches completed! Revisit low-scoring batches to master them.';
-	String get dash_insight_progress => '{done}/{total} batches passed. Keep going — you\'re {pct}% there!';
-	String get dash_streak_current => 'Current\nStreak';
-	String get dash_streak_best => 'Best\nStreak';
-	String get dash_streak_weekly_goal => 'Weekly goal';
-	String get dash_day_mon => 'M';
-	String get dash_day_tue => 'T';
-	String get dash_day_wed => 'W';
-	String get dash_day_thu => 'T';
-	String get dash_day_fri => 'F';
-	String get dash_day_sat => 'S';
-	String get dash_day_sun => 'S';
-	String get dash_streak_msg_none => 'Start a session today to begin your streak!';
-	String get dash_streak_msg_amazing => 'Amazing! {n} days in a row — keep it up!';
-	String get dash_streak_msg_goal => 'Weekly goal reached! You\'re on fire 🔥';
-	String get dash_streak_msg_progress_one => '{n} day streak! 1 more session to hit your weekly goal.';
-	String get dash_streak_msg_progress_other => '{n} day streak! {left} more sessions to hit your weekly goal.';
-	String get dash_completed => 'Completed!';
-	String get dash_tap_to_explore => 'Tap to explore';
-	String get onb_which_exams => 'Which exams are you preparing for?';
-	String get onb_select_all_apply => 'Select all that apply';
-	String get onb_exam_date_title => 'When is your exam?';
-	String get onb_exam_date_subtitle => 'Set a target date to stay on track';
-	String get onb_practice_days_title => 'How many days a week will you practice?';
-	String get onb_practice_days_subtitle => 'Be realistic — consistency is key';
-	String get onb_recommendations_title => 'Recommended for you';
-	String get onb_recommendations_subtitle => 'Subscribe to unlock full access to these exams';
-	String get onb_continue => 'Continue';
-	String get onb_get_started => 'Get Started';
-	String get onb_1_week => '1 week';
-	String get onb_2_weeks => '2 weeks';
-	String get onb_3_weeks => '3 weeks';
-	String get onb_1_month => '1 month';
-	String get onb_2_months => '2 months';
-	String get onb_3_months => '3 months';
-	String get onb_custom_date => 'Custom date';
-	String get onb_subscribe => 'Subscribe';
-	String get onb_sign_in_to_subscribe => 'Sign in to subscribe';
-	String get onb_sign_in_subtitle => 'Create a free account or log in to unlock full exam access';
-	String get onb_no_exams => 'No exams available right now';
-	String get onb_days_week_label => '{n} days/week';
-	String get onb_step_of => 'Step {current} of {total}';
-	String get onb_weekly_goal_title => 'Weekly Study Goal';
-	String get onb_weekly_goal_sub => 'Select the days you\'ll commit to studying.';
-	String get dash_exam_deadline => 'Exam Deadline';
-	String get dash_days_remaining => '{n} days left';
-	String get dash_deadline_today => 'Today!';
-	String get dash_deadline_passed => 'Deadline passed';
-	String get dash_no_deadline => 'No deadline set';
-	String get dash_set_deadline => 'Set deadline';
-	String get dash_change_deadline => 'Change deadline';
-	String get dash_practice_days => '{n} days/week';
-	String get dash_hero_sub_start => 'Start your learning journey!';
-	String get dash_hero_sub_progress => 'Keep going, you\'re doing great!';
-	String get dash_hero_sub_almost => 'Almost ready for the exam!';
-	String get dash_hero_sub_done => 'All done — great work!';
-	String get dash_performance_overview => 'Performance Overview';
-	String get dash_focus_areas => 'Focus Areas';
-	String get dash_no_exams_found => 'No exams found.';
-	String get dash_stat_completed => 'Completed';
-	String get dash_stat_none_yet => 'None yet';
-	String get dash_stat_of_n => 'of {total}';
-	String get dash_stat_per_session => 'Per session';
-	String get dash_exam_type_taxi => 'TAXI';
-	String get dash_exam_type_test => 'TEST';
-	String get dash_streak_title => '{n} day streak!';
-	String get dash_streak_days => '{n} days';
-	String get dash_batches_count => '{n} batches';
-	String get dash_avg_score_label => '{score}% avg';
-	String get tut_step1_title => 'Step 1 of 3 — Translate';
-	String get tut_step1_body => 'Tap the language button to open the list, then select English (or any other language).';
-	String get tut_step1b_title => 'Step 1 of 3 — Choose a language';
-	String get tut_step1b_body => 'Select a different language from the list, for example English.';
-	String get tut_step2a_title => 'Step 2 of 4 — Peek original';
-	String get tut_step2a_body => 'Press and hold anywhere on the question (not the options) to temporarily see the original Swedish text.';
-	String get tut_step2b_title => 'Step 2 of 4 — Now release';
-	String get tut_step2b_body => 'Release your finger to go back to the translated text.';
-	String get tut_step3a_title => 'Step 3 of 4 — Next question';
-	String get tut_step3a_body => 'Swipe left to go to the next question.';
-	String get tut_step3b_title => 'Step 4 of 4 — Come back';
-	String get tut_step3b_body => 'Now swipe right to come back to the previous question.';
-	String get tut_complete_title => 'You\'re all set!';
-	String get tut_complete_body => 'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
-	String get tut_complete_subtitle => 'You\'re ready to prepare for your taxi exam!';
-	String get tut_start_practicing => 'Start practicing!';
-	String get sg_title => 'Study Goals';
-	String get sg_section_exam_date => 'EXAM DATE';
-	String get sg_section_practice_days => 'PRACTICE DAYS';
-	String get sg_practice_days_sub => 'Pick the days you commit to practising each week.';
-	String get sg_days_per_week => '{n} day(s) / week';
-	String get sg_save => 'Save Settings';
-	String get sg_settings_saved => 'Settings saved!';
-	String get sg_months => 'MONTHS';
-	String get sg_custom_date => 'Custom date';
-	String get sg_deadline_passed => 'Exam date passed';
-	String get sg_days_remaining => '{n} days remaining';
-	String get sg_notif_note => 'You\'ll get two reminders on each practice day — one in the morning and one in the evening — at randomised times to help you build a habit.';
-	String get sg_profile_menu_label => 'Study Goals';
-	String get splash_tagline => 'HELLO SWEDEN';
-	String get splash_loading => 'Preparing your success...';
-	String get splash_footer => 'ACADEMIC EXCELLENCE THROUGH KINETIC LEARNING';
-	String get onb_top_bar_title => 'GET STARTED';
-	String get onb_months => 'MONTHS';
-	String get onb_step1_plain => 'What are you studying ';
-	String get onb_step1_italic => 'for?';
-	String get onb_step2_plain => 'When is your ';
-	String get onb_step2_italic => 'exam?';
-	String get onb_step3_plain => 'Set your weekly ';
-	String get onb_step3_italic => 'goal.';
-	String get onb_step4_plain => 'Your Path to ';
-	String get onb_step4_italic => 'Mastery.';
-	String get onb_step4_subtitle => 'Accelerate your learning with personalised study tools.';
-	String get onb_no_plan_selected => 'No plan selected.';
-	String get onb_buy_bundle => 'Buy bundle — {price}';
-	String get onb_signin_to_purchase_title => 'Sign In to Subscribe';
-	String get onb_signin_to_purchase_subtitle => 'Create a free account or sign in to start your subscription. Your progress and subscription will sync across all your devices.';
-	String get onb_create_account_title => 'Create Your Free Account';
-	String get onb_create_account_subtitle => 'Save your study plan and track your progress across all your devices.';
-	String get onb_start_practicing => 'Start Practicing';
-	String get onb_your_plan_badge => 'YOUR PLAN';
-	String get onb_days_per_week => 'days/week';
-	String get onb_most_popular => 'MOST POPULAR';
-	String get onb_feature_mock_exams => 'Full mock exam library';
-	String get onb_feature_progress_tracking => 'Smart progress tracking';
-	String get onb_feature_explanations => 'Detailed answer explanations';
-	String get onb_get_best_deal => 'Get Best Deal';
-	String get onb_best_value => 'BEST VALUE';
-	String get onb_choose_plan => 'Choose Plan';
-	String get onb_bundle_discount_title => 'You\'re getting 20% off';
-	String get onb_bundle_saving => 'Saving {amount}';
-	String get onb_price_unavailable => 'Price unavailable';
-	String get onb_free_trial => '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
-	String get onb_start_free => 'Continue as Guest';
-	String get onb_skip_for_now => 'Skip for now';
-	String get free_trial_banner_badge => 'FREE';
-	String get free_trial_banner_title => 'Try road signs — no subscription needed';
-	String get free_trial_banner_subtitle => 'Vägmärkestest is completely free. Practise at your own pace and get a feel for the app before subscribing.';
-	String get free_trial_banner_cta => 'Start Practising';
-	String get guest_banner_title => 'You\'re browsing as a guest';
-	String get guest_banner_subtitle => 'Create a free account to save your progress and sync across all your devices.';
-	String get guest_banner_cta => 'Create Account';
-	String get guest_convert_title => 'Save Your Progress';
-	String get guest_convert_subtitle => 'Create a free account to keep everything you\'ve practised.';
-	String get guest_username_hint => 'Choose a username';
-	String get guest_email_hint => 'Email address';
-	String get guest_password_hint => 'Password (min. 8 characters)';
-	String get guest_convert_cta => 'Create Account';
-	String get dash_free_hub_title => 'Full Exam Practice — Free Content';
-	String get dash_free_hub_subtitle => 'Practice questions, theory documents, checklists and statistics — no subscription needed.';
-	String get dash_free_hub_badge => 'FREE';
+  // Translations
+  String get home => 'Home';
+  String get tests => 'Tests';
+  String get profile => 'Profile';
+  String get welcome_message => 'Welcome to Drive Test';
+  String get save => 'Save';
+  String get cancel => 'Cancel';
+  String get delete => 'Delete';
+  String get logout => 'Logout';
+  String get loading => 'Loading...';
+  String get settings_title => 'Settings';
+  String get settings_appearance => 'Appearance';
+  String get settings_test_prefs => 'Test Preferences';
+  String get settings_timed_test => 'Timed Test';
+  String get settings_timed_test_sub => 'Enable a time limit for the test';
+  String get settings_instant_marking => 'Instant Marking';
+  String get settings_instant_marking_sub =>
+      'Show correct answer after each question';
+  String get settings_num_questions => 'Number of Questions';
+  String get settings_enter_num => 'Enter number of questions:';
+  String get settings_include_saved => 'Include Saved Questions';
+  String get settings_include_saved_sub =>
+      'Include questions you previously saved';
+  String get settings_notifications => 'Notifications';
+  String get settings_notifications_toggle => 'Push Notifications';
+  String get settings_notifications_on_sub =>
+      'You will receive exam reminders and updates';
+  String get settings_notifications_off_sub => 'Notifications are turned off';
+  String get settings_notifications_denied =>
+      'Permission denied — tap below to open Settings';
+  String get settings_notifications_open_settings => 'Open Settings';
+  String get settings_dark_mode => 'Dark Mode';
+  String get settings_dark_mode_sub => 'Switch between light and dark theme';
+  String get settings_language => 'Language';
+  String get settings_language_sub => 'Choose your preferred language';
+  String get settings_version => 'Version Information';
+  String get settings_app_version => 'App Version';
+  String get settings_commit => 'Commit';
+  String get settings_branch => 'Branch';
+  String get settings_last_update => 'Last Update';
+  String get settings_date => 'Date';
+  String get settings_saved => 'Settings saved successfully';
+  String get profile_student => 'STUDENT';
+  String get profile_edit => 'Edit profile';
+  String get profile_stats => 'My stats';
+  String get profile_settings => 'Settings';
+  String get profile_invite => 'Invite a friend';
+  String get profile_help => 'Help';
+  String get profile_manage_subscription => 'Manage Subscription';
+  String get profile_purchase_history => 'Purchase History';
+  String get profile_revisit_setup => 'Revisit Setup';
+  String get profile_send_feedback => 'Send Feedback';
+  String get profile_logout_confirm => 'Are you sure you want to log out?';
+  String get profile_yes_logout => 'Yes, Logout';
+  String get home_dashboard => 'Dashboard';
+  String get home_my_progress => 'My Progress';
+  String get home_overall_score => 'Overall Score';
+  String get home_passed => 'Passed';
+  String get home_failed => 'Failed';
+  String get home_total => 'Total';
+  String get home_in_progress => 'In Progress';
+  String get home_recent_activity => 'Recent Activity';
+  String get home_by_category => 'By Category';
+  String get home_this_week => 'This Week';
+  String get home_this_month => 'This Month';
+  String get home_no_attempts => 'No attempts yet!';
+  String get home_no_attempts_sub =>
+      'Once you complete a quiz, your results will show up here.';
+  String get home_take_quiz => 'Take Your First Quiz';
+  String get home_paused => 'Paused';
+  String get home_resume => 'Resume';
+  String get home_attempts => 'attempts';
+  String get home_active => 'active';
+  String get home_tests => 'tests';
+  String get intro_slide1_body =>
+      'Learn and practice for your license with ease.';
+  String get intro_slide2_title => 'Interactive Tests';
+  String get intro_slide2_body =>
+      'Practice tests with real-time feedback and explanations.';
+  String get intro_slide3_title => 'Get Certified';
+  String get intro_slide3_body =>
+      'Ace your exams and become a certified driver.';
+  String get intro_skip => 'Skip';
+  String get intro_get_started => 'Get Started';
+  String get auth_welcome_title => 'Welcome to Drive Test!';
+  String get auth_welcome_subtitle => 'Practice. Pass with confidence.';
+  String get auth_login_btn => 'LOGIN';
+  String get auth_signup_btn => 'SIGNUP';
+  String get auth_skip_demo => 'SKIP FOR NOW (TRY DEMO)';
+  String get auth_demo_error =>
+      'Failed to login with demo account. Please try again.';
+  String get auth_or => 'OR';
+  String get auth_login_title => 'Login';
+  String get auth_contact_support => 'Contact support';
+  String get auth_username => 'Username or Email';
+  String get auth_email => 'Email';
+  String get auth_password => 'Password';
+  String get auth_remember_me => 'Remember me';
+  String get auth_forgot_password => 'Forgot Password?';
+  String get auth_invalid_credentials => 'Invalid username or password';
+  String get auth_no_account => 'Don\'t have an account? ';
+  String get auth_sign_up_link => 'Sign up';
+  String get auth_skip_demo_short => 'Skip for now (Try Demo)';
+  String get auth_google_continue => 'Continue with Google';
+  String get auth_feedback_type => 'Type';
+  String get auth_feedback_email_optional => 'Email (optional)';
+  String get auth_feedback_subject_optional => 'Subject (optional)';
+  String get auth_feedback_message => 'Message';
+  String get auth_feedback_sent => 'Thanks! Your feedback was sent.';
+  String get auth_feedback_error =>
+      'Could not send feedback. Please try again.';
+  String get auth_submit => 'Submit';
+  String get auth_feedback_login_issue => 'Login issue';
+  String get auth_feedback_signup_issue => 'Signup issue';
+  String get auth_feedback_app_issue => 'App issue';
+  String get auth_feedback_feature_request => 'Feature request';
+  String get auth_feedback_other => 'Other';
+  String get auth_create_account => 'Create Account';
+  String get auth_sign_up_btn => 'Sign Up';
+  String get auth_val_username_required =>
+      'Please enter your username or email';
+  String get auth_val_username_length =>
+      'Username must be at least 4 characters';
+  String get auth_val_email_required => 'Please enter an email';
+  String get auth_val_email_invalid => 'Please enter a valid email';
+  String get auth_val_password_required => 'Please enter a password';
+  String get auth_val_password_length =>
+      'Password must be at least 6 characters';
+  String get auth_signup_success => 'Signup successful! Please login.';
+  String get auth_welcome_first_login => 'Welcome. Enjoy exam prep.';
+  String get auth_welcome_returning => 'Welcome back again.';
+  String get auth_deleted_account_welcome_back => 'Always welcome back.';
+  String get auth_signup_failed => 'Signup failed. Please correct the errors.';
+  String get auth_generic_error => 'An error occurred. Please try again.';
+  String get auth_express_google => 'Express login via Google';
+  String get auth_google_label => 'Google';
+  String get auth_express_apple => 'Sign in with Apple';
+  String get auth_apple_label => 'Apple';
+  String get auth_signing_in => 'Signing in...';
+  String get auth_tab_login => 'Log in';
+  String get auth_tab_signup => 'Sign up';
+  String get auth_show_password => 'Show';
+  String get auth_hide_password => 'Hide';
+  String get auth_forgot_title => 'Forgot Password';
+  String get auth_forgot_heading => 'Reset Your Password';
+  String get auth_forgot_subtitle =>
+      'Enter your email address and we\'ll send you instructions to reset your password.';
+  String get auth_forgot_email_label => 'Email Address';
+  String get auth_forgot_send_btn => 'Send Reset Instructions';
+  String get auth_forgot_back_login => 'Back to Login';
+  String get auth_forgot_success =>
+      'Password reset instructions have been sent to your email.';
+  String get auth_forgot_error =>
+      'Failed to send reset email. Please try again.';
+  String get auth_verify_title => 'Verify Code';
+  String get auth_verify_heading => 'Check Your Email';
+  String get auth_verify_subtitle => 'We sent a reset code to\n{email}';
+  String get auth_verify_code_label => 'Reset Code';
+  String get auth_verify_code_hint => 'Enter the code from your email';
+  String get auth_verify_code_empty =>
+      'Please enter the reset code from your email.';
+  String get auth_verify_resend => 'Resend Code';
+  String get auth_reset_title => 'Reset Password';
+  String get auth_reset_heading => 'Set New Password';
+  String get auth_reset_subtitle => 'Please enter your new password';
+  String get auth_reset_new_password_label => 'New Password';
+  String get auth_reset_confirm_password_label => 'Confirm Password';
+  String get auth_reset_empty => 'Please enter a new password.';
+  String get auth_reset_mismatch => 'Passwords do not match.';
+  String get auth_reset_invalid_code =>
+      'Invalid or expired reset code. Please try requesting a new reset link.';
+  String get auth_reset_success_title => 'Success!';
+  String get auth_reset_success_body =>
+      'Your password has been reset successfully. You can now log in with your new password.';
+  String get auth_reset_go_to_login => 'Go to Login';
+  String get auth_google_connecting => 'Connecting to Google...';
+  String get auth_google_verifying => 'Verifying account...';
+  String get auth_google_signing_in => 'Signing you in...';
+  String get auth_google_creating => 'Creating your account...';
+  String get auth_google_loading => 'Loading your profile...';
+  String get auth_landing_subtitle =>
+      'Your journey to excellence starts with a single tap.';
+  String get auth_landing_new_here => 'New here?';
+  String get auth_create_account_link => 'Create an account';
+  String get auth_login_heading => 'Welcome\nBack';
+  String get auth_login_subtitle => 'Continue your kinetic journey.';
+  String get auth_username_hint => 'username or email';
+  String get auth_signup_heading_plain => 'Join the';
+  String get auth_signup_heading_italic => 'Movement.';
+  String get auth_signup_subtitle => 'Accelerate your learning journey today.';
+  String get auth_signup_username_hint => 'Erik Andersson';
+  String get auth_signup_email_hint => 'erik@example.se';
+  String get auth_have_account => 'Already have an account?';
+  String get purchase_success_title => 'Your Purchase has\nbeen confirmed';
+  String get purchase_success_start_tests => 'Start Tests';
+  String get purchase_success_back_home => 'Back to home';
+  String get bcd_drive_test => 'Drive Test';
+  String get bcd_exams => 'Exams';
+  String get bcd_exams_sub => 'Licences, categories & tests';
+  String get bcd_traffic_signs => 'Traffic Signs';
+  String get bcd_traffic_signs_sub => 'Browse all traffic signs';
+  String get bcd_subscriptions => 'Subscriptions';
+  String get bcd_subscriptions_sub => 'View plans & manage access';
+  String get bcd_hub_practice => 'Practice';
+  String get bcd_hub_tests => 'Tests';
+  String get bcd_hub_theory_docs => 'Theory\nDocuments';
+  String get bcd_hub_traffic_signs => 'Traffic Signs';
+  String get bcd_hub_checklist => 'Checklist';
+  String get bcd_hub_statistics => 'Statistics';
+  String get bcd_hub_saved_questions => 'Saved\nQuestions';
+  String get bcd_no_free_practice =>
+      'No free practice test available for this category.';
+  String get bcd_failed_practice => 'Failed to load practice test.';
+  String get bcd_no_saved_questions =>
+      'No saved questions in this category yet.';
+  String get bcd_no_saved_questions_found =>
+      'No saved questions found in this category.';
+  String get bcd_failed_saved => 'Failed to load saved questions.';
+  String get bcd_no_subscription =>
+      'You don\'t have an active subscription for this category';
+  String get bcd_free_content_desc =>
+      'Practice, Traffic Signs, Documents and Checklists are free. Subscribe to unlock Tests.';
+  String get bcd_buy_subscription => 'Buy subscription';
+  String get bcd_buy_subscription_arrow => 'Buy subscription →';
+  String get bcd_not_subscribed => 'You\'re not subscribed to this category';
+  String get bcd_only_free_tests =>
+      'Only free practice tests are available. Subscribe to unlock all tests.';
+  String get bcd_no_free_practice_tests => 'No free practice tests available.';
+  String get bcd_no_tests => 'No tests available.';
+  String get bcd_no_documents => 'No documents available.';
+  String get bcd_no_checklists => 'No checklists available.';
+  String get bcd_failed_tests => 'Failed to load tests';
+  String get bcd_subscription_required => 'Subscription Required';
+  String get bcd_subscribe_access =>
+      'Subscribe to access "{name}" and all its content.';
+  String get bcd_not_now => 'Not now';
+  String get bcd_buy => 'Buy';
+  String get bcd_payment_failed => 'Payment failed. Please try again.';
+  String get bcd_feedback_unavailable =>
+      'Feedback is unavailable for this question.';
+  String get bcd_feedback_submitted => 'Thanks! Your feedback was submitted.';
+  String get bcd_feedback_failed =>
+      'Could not submit feedback. Please try again.';
+  String get bcd_categories => 'Categories';
+  String get bcd_search_categories => 'Search categories…';
+  String get bcd_no_categories => 'No categories available.';
+  String get bcd_no_match_search => 'No matches found.';
+  String get bcd_subscribed => 'Subscribed';
+  String get bcd_tap_to_subscribe => 'Tap to subscribe';
+  String get bcd_failed_categories => 'Failed to load categories';
+  String get bcd_plans_tab => 'Plans';
+  String get bcd_my_subscriptions_tab => 'My Subscriptions';
+  String get bcd_no_plans => 'No plans available';
+  String get bcd_active_label => 'Active';
+  String get bcd_subscribe_btn => 'Subscribe';
+  String get bcd_start_practice => 'Start Practice';
+  String get bcd_no_active_subscriptions => 'No active subscriptions';
+  String get bcd_browse_plans => 'Browse plans to get started';
+  String get bcd_expires => 'Expires';
+  String get bcd_failed_plans => 'Failed to load plans';
+  String get bcd_no_categories_linked =>
+      'No categories linked to this subscription';
+  String get bcd_failed_category => 'Failed to load category';
+  String get bcd_search_signs => 'Search sign groups…';
+  String get bcd_no_signs => 'No signs found';
+  String get bcd_no_image => 'No image';
+  String get bcd_signs_count_label => 'traffic signs';
+  String get bcd_view => 'View';
+  String get bcd_previous => 'Previous';
+  String get bcd_next => 'Next';
+  String get bcd_failed_traffic_signs => 'Failed to load traffic signs';
+  String get bcd_search_hint => 'Search…';
+  String get bcd_no_subcategories => 'No sub-categories available.';
+  String get bcd_failed_subcategories => 'Failed to load sub-categories';
+  String get bcd_no_questions => 'No questions found for this test.';
+  String get bcd_failed_test_questions => 'Failed to load test questions.';
+  String get bcd_questions_label => 'questions';
+  String get bcd_pass_label => 'Pass';
+  String get bcd_free_label => 'FREE';
+  String get settings_theme_label => 'Theme';
+  String get settings_theme_sub => 'Light, dark or follow system';
+  String get settings_theme_system => 'System';
+  String get settings_theme_light => 'Light';
+  String get settings_theme_dark => 'Dark';
+  String get help_title => 'Help & Support';
+  String get help_need_help => 'Need Help?';
+  String get help_subtitle =>
+      'Tell us about your issue and we\'ll get back to you soon.';
+  String get help_your_information => 'Your Information';
+  String get help_username => 'Username';
+  String get help_email => 'Email';
+  String get help_user_id => 'User ID';
+  String get help_subject => 'Subject';
+  String get help_subject_hint =>
+      'e.g., Login issue, Bug report, Feature request';
+  String get help_subject_required => 'Please enter a subject';
+  String get help_description => 'Description';
+  String get help_description_hint => 'Please describe your issue in detail...';
+  String get help_description_required => 'Please describe your issue';
+  String get help_description_too_short =>
+      'Please provide more details (at least 10 characters)';
+  String get help_submit => 'Submit Report';
+  String get help_or_email => 'Or email us directly at mohsin.sapra@gmail.com';
+  String get help_opening_email => 'Opening email app...';
+  String get help_email_error =>
+      'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
+  String get help_generic_error => 'Error opening email app. Please try again.';
+  String get notifications_title => 'Notifications';
+  String get notifications_mark_all_read => 'Mark all read';
+  String get notifications_clear => 'Clear';
+  String get notifications_clear_confirm_title => 'Clear all notifications?';
+  String get notifications_clear_confirm_body =>
+      'This will remove all notifications. This action cannot be undone.';
+  String get notifications_empty_title => 'No notifications';
+  String get notifications_empty_subtitle =>
+      'You\'re all caught up! We\'ll let you know when something new arrives.';
+  String get notifications_just_now => 'Just now';
+  String get notifications_minutes_ago => '{n} min ago';
+  String get notifications_hours_ago => '{n}h ago';
+  String get notifications_days_ago => '{n}d ago';
+  String get notifications_permission_off_title => 'Notifications are off';
+  String get notifications_permission_denied_body =>
+      'You have denied notification permission. Open Settings to enable them.';
+  String get notifications_permission_not_determined_body =>
+      'Allow notifications to stay updated on your exam progress and reminders.';
+  String get notifications_permission_open_settings => 'Open Settings';
+  String get notifications_permission_enable => 'Enable Notifications';
+  String get notifications_permission_web_dialog_title => 'Enable in browser';
+  String get notifications_permission_web_dialog_body =>
+      'To enable notifications, click the lock icon (🔒) in your browser\'s address bar, find "Notifications", and set it to "Allow". Then refresh the page.';
+  String get notifications_permission_web_dialog_ok => 'Got it';
+  String get image_viewer_swipe_to_close => 'Swipe down to close';
+  String get image_viewer_load_error => 'Could not load image';
+  String get dash_my_progress => 'My Progress';
+  String get dash_sync_from_server => 'Sync from server';
+  String get dash_unknown_error => 'Something went wrong. Please try again.';
+  String get dash_network_error =>
+      'No internet connection. Check your connection and try again.';
+  String get dash_server_error => 'Server error. Please try again later.';
+  String get dash_retry => 'Retry';
+  String get dash_my_exams => 'My Exams';
+  String get dash_tap_to_dive => 'Tap an exam to dive in';
+  String get dash_overview => 'Overview';
+  String get dash_categories_header => 'Categories';
+  String get dash_batches_header => 'Batches';
+  String get dash_expand_categories => 'Expand each category to see batches';
+  String get dash_weekly_streak => 'Weekly Streak';
+  String get dash_consistency_builds => 'Consistency builds mastery';
+  String get dash_smart_insights => 'Smart Insights';
+  String get dash_based_on_attempts => 'Based on your attempts';
+  String get dash_continue_label => 'Continue: {name}';
+  String get dash_total_attempts => 'Total Attempts';
+  String get dash_batches_done => 'Batches Done';
+  String get dash_avg_time => 'Avg Time';
+  String get dash_weakest_label => 'Weakest: {name} ({score}%)';
+  String get dash_batches_completed_label => '{done}/{total} batches completed';
+  String get dash_weakness_low_score => 'Low score';
+  String get dash_weakness_over_time => 'Over time';
+  String get dash_weakness_needs_work => 'Needs work';
+  String get dash_weakness_on_track => 'On track';
+  String get dash_not_started => 'Not started';
+  String get dash_attempt_one => '1 attempt';
+  String get dash_attempt_many => '{n} attempts';
+  String get dash_avg_duration => 'Avg {duration}';
+  String get dash_over_time_pct => '+{pct}% time';
+  String get dash_on_time => 'On time';
+  String get dash_insight_strongest => 'Strongest area';
+  String get dash_insight_weakest => 'Weakest area';
+  String get dash_insight_focus => 'Focus recommendation';
+  String get dash_insight_continue_learning => 'Continue learning';
+  String get dash_insight_area_detail => '{name} — {score}% avg';
+  String get dash_insight_focus_detail =>
+      'Work on {name} next to keep progressing';
+  String get dash_insight_start =>
+      'Start with {name} — pick any batch to begin.';
+  String get dash_insight_all_done =>
+      'All batches completed! Revisit low-scoring batches to master them.';
+  String get dash_insight_progress =>
+      '{done}/{total} batches passed. Keep going — you\'re {pct}% there!';
+  String get dash_streak_current => 'Current\nStreak';
+  String get dash_streak_best => 'Best\nStreak';
+  String get dash_streak_weekly_goal => 'Weekly goal';
+  String get dash_day_mon => 'M';
+  String get dash_day_tue => 'T';
+  String get dash_day_wed => 'W';
+  String get dash_day_thu => 'T';
+  String get dash_day_fri => 'F';
+  String get dash_day_sat => 'S';
+  String get dash_day_sun => 'S';
+  String get dash_streak_msg_none =>
+      'Start a session today to begin your streak!';
+  String get dash_streak_msg_amazing =>
+      'Amazing! {n} days in a row — keep it up!';
+  String get dash_streak_msg_goal => 'Weekly goal reached! You\'re on fire 🔥';
+  String get dash_streak_msg_progress_one =>
+      '{n} day streak! 1 more session to hit your weekly goal.';
+  String get dash_streak_msg_progress_other =>
+      '{n} day streak! {left} more sessions to hit your weekly goal.';
+  String get dash_completed => 'Completed!';
+  String get dash_tap_to_explore => 'Tap to explore';
+  String get onb_which_exams => 'Which exams are you preparing for?';
+  String get onb_select_all_apply => 'Select all that apply';
+  String get onb_exam_date_title => 'When is your exam?';
+  String get onb_exam_date_subtitle => 'Set a target date to stay on track';
+  String get onb_practice_days_title =>
+      'How many days a week will you practice?';
+  String get onb_practice_days_subtitle => 'Be realistic — consistency is key';
+  String get onb_recommendations_title => 'Recommended for you';
+  String get onb_recommendations_subtitle =>
+      'Subscribe to unlock full access to these exams';
+  String get onb_continue => 'Continue';
+  String get onb_get_started => 'Get Started';
+  String get onb_1_week => '1 week';
+  String get onb_2_weeks => '2 weeks';
+  String get onb_3_weeks => '3 weeks';
+  String get onb_1_month => '1 month';
+  String get onb_2_months => '2 months';
+  String get onb_3_months => '3 months';
+  String get onb_custom_date => 'Custom date';
+  String get onb_subscribe => 'Subscribe';
+  String get onb_sign_in_to_subscribe => 'Sign in to subscribe';
+  String get onb_sign_in_subtitle =>
+      'Create a free account or log in to unlock full exam access';
+  String get onb_no_exams => 'No exams available right now';
+  String get onb_days_week_label => '{n} days/week';
+  String get onb_step_of => 'Step {current} of {total}';
+  String get onb_weekly_goal_title => 'Weekly Study Goal';
+  String get onb_weekly_goal_sub =>
+      'Select the days you\'ll commit to studying.';
+  String get dash_exam_deadline => 'Exam Deadline';
+  String get dash_days_remaining => '{n} days left';
+  String get dash_deadline_today => 'Today!';
+  String get dash_deadline_passed => 'Deadline passed';
+  String get dash_no_deadline => 'No deadline set';
+  String get dash_set_deadline => 'Set deadline';
+  String get dash_change_deadline => 'Change deadline';
+  String get dash_practice_days => '{n} days/week';
+  String get dash_hero_sub_start => 'Start your learning journey!';
+  String get dash_hero_sub_progress => 'Keep going, you\'re doing great!';
+  String get dash_hero_sub_almost => 'Almost ready for the exam!';
+  String get dash_hero_sub_done => 'All done — great work!';
+  String get dash_performance_overview => 'Performance Overview';
+  String get dash_focus_areas => 'Focus Areas';
+  String get dash_no_exams_found => 'No exams found.';
+  String get dash_stat_completed => 'Completed';
+  String get dash_stat_none_yet => 'None yet';
+  String get dash_stat_of_n => 'of {total}';
+  String get dash_stat_per_session => 'Per session';
+  String get dash_exam_type_taxi => 'TAXI';
+  String get dash_exam_type_test => 'TEST';
+  String get dash_streak_title => '{n} day streak!';
+  String get dash_streak_days => '{n} days';
+  String get dash_batches_count => '{n} batches';
+  String get dash_avg_score_label => '{score}% avg';
+  String get tut_step1_title => 'Step 1 of 3 — Translate';
+  String get tut_step1_body =>
+      'Tap the language button to open the list, then select English (or any other language).';
+  String get tut_step1b_title => 'Step 1 of 3 — Choose a language';
+  String get tut_step1b_body =>
+      'Select a different language from the list, for example English.';
+  String get tut_step2a_title => 'Step 2 of 4 — Peek original';
+  String get tut_step2a_body =>
+      'Press and hold anywhere on the question (not the options) to temporarily see the original Swedish text.';
+  String get tut_step2b_title => 'Step 2 of 4 — Now release';
+  String get tut_step2b_body =>
+      'Release your finger to go back to the translated text.';
+  String get tut_step3a_title => 'Step 3 of 4 — Next question';
+  String get tut_step3a_body => 'Swipe left to go to the next question.';
+  String get tut_step3b_title => 'Step 4 of 4 — Come back';
+  String get tut_step3b_body =>
+      'Now swipe right to come back to the previous question.';
+  String get tut_complete_title => 'You\'re all set!';
+  String get tut_complete_body =>
+      'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
+  String get tut_complete_subtitle =>
+      'You\'re ready to prepare for your taxi exam!';
+  String get tut_start_practicing => 'Start practicing!';
+  String get sg_title => 'Study Goals';
+  String get sg_section_exam_date => 'EXAM DATE';
+  String get sg_section_practice_days => 'PRACTICE DAYS';
+  String get sg_practice_days_sub =>
+      'Pick the days you commit to practising each week.';
+  String get sg_days_per_week => '{n} day(s) / week';
+  String get sg_save => 'Save Settings';
+  String get sg_settings_saved => 'Settings saved!';
+  String get sg_months => 'MONTHS';
+  String get sg_custom_date => 'Custom date';
+  String get sg_deadline_passed => 'Exam date passed';
+  String get sg_days_remaining => '{n} days remaining';
+  String get sg_notif_note =>
+      'You\'ll get two reminders on each practice day — one in the morning and one in the evening — at randomised times to help you build a habit.';
+  String get sg_profile_menu_label => 'Study Goals';
+  String get splash_tagline => 'HELLO SWEDEN';
+  String get splash_loading => 'Preparing your success...';
+  String get splash_footer => 'ACADEMIC EXCELLENCE THROUGH KINETIC LEARNING';
+  String get onb_top_bar_title => 'GET STARTED';
+  String get onb_months => 'MONTHS';
+  String get onb_step1_plain => 'What are you studying ';
+  String get onb_step1_italic => 'for?';
+  String get onb_step2_plain => 'When is your ';
+  String get onb_step2_italic => 'exam?';
+  String get onb_step3_plain => 'Set your weekly ';
+  String get onb_step3_italic => 'goal.';
+  String get onb_step4_plain => 'Your Path to ';
+  String get onb_step4_italic => 'Mastery.';
+  String get onb_step4_subtitle =>
+      'Accelerate your learning with personalised study tools.';
+  String get onb_no_plan_selected => 'No plan selected.';
+  String get onb_buy_bundle => 'Buy bundle — {price}';
+  String get onb_signin_to_purchase_title => 'Sign In to Subscribe';
+  String get onb_signin_to_purchase_subtitle =>
+      'Create a free account or sign in to start your subscription. Your progress and subscription will sync across all your devices.';
+  String get onb_create_account_title => 'Create Your Free Account';
+  String get onb_create_account_subtitle =>
+      'Save your study plan and track your progress across all your devices.';
+  String get onb_start_practicing => 'Start Practicing';
+  String get onb_your_plan_badge => 'YOUR PLAN';
+  String get onb_days_per_week => 'days/week';
+  String get onb_most_popular => 'MOST POPULAR';
+  String get onb_feature_mock_exams => 'Full mock exam library';
+  String get onb_feature_progress_tracking => 'Smart progress tracking';
+  String get onb_feature_explanations => 'Detailed answer explanations';
+  String get onb_get_best_deal => 'Get Best Deal';
+  String get onb_best_value => 'BEST VALUE';
+  String get onb_choose_plan => 'Choose Plan';
+  String get onb_bundle_discount_title => 'You\'re getting 20% off';
+  String get onb_bundle_saving => 'Saving {amount}';
+  String get onb_price_unavailable => 'Price unavailable';
+  String get onb_free_trial => '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
+  String get onb_start_free => 'Continue as Guest';
+  String get onb_skip_for_now => 'Skip for now';
+  String get free_trial_banner_badge => 'FREE';
+  String get free_trial_banner_title =>
+      'Try road signs — no subscription needed';
+  String get free_trial_banner_subtitle =>
+      'Vägmärkestest is completely free. Practise at your own pace and get a feel for the app before subscribing.';
+  String get free_trial_banner_cta => 'Start Practising';
+  String get guest_banner_title => 'You\'re browsing as a guest';
+  String get guest_banner_subtitle =>
+      'Create a free account to save your progress and sync across all your devices.';
+  String get guest_banner_cta => 'Create Account';
+  String get guest_convert_title => 'Save Your Progress';
+  String get guest_convert_subtitle =>
+      'Create a free account to keep everything you\'ve practised.';
+  String get guest_username_hint => 'Choose a username';
+  String get guest_email_hint => 'Email address';
+  String get guest_password_hint => 'Password (min. 8 characters)';
+  String get guest_convert_cta => 'Create Account';
+  String get dash_free_hub_title => 'Full Exam Practice — Free Content';
+  String get dash_free_hub_subtitle =>
+      'Practice questions, theory documents, checklists and statistics — no subscription needed.';
+  String get dash_free_hub_badge => 'FREE';
 }
 
 /// Flat map(s) containing all translations.
 /// Only for edge cases! For simple maps, use the map function of this library.
 extension on Translations {
-	dynamic _flatMapFunction(String path) {
-		switch (path) {
-			case 'home': return 'Home';
-			case 'tests': return 'Tests';
-			case 'profile': return 'Profile';
-			case 'welcome_message': return 'Welcome to Drive Test';
-			case 'save': return 'Save';
-			case 'cancel': return 'Cancel';
-			case 'delete': return 'Delete';
-			case 'logout': return 'Logout';
-			case 'loading': return 'Loading...';
-			case 'settings_title': return 'Settings';
-			case 'settings_appearance': return 'Appearance';
-			case 'settings_test_prefs': return 'Test Preferences';
-			case 'settings_timed_test': return 'Timed Test';
-			case 'settings_timed_test_sub': return 'Enable a time limit for the test';
-			case 'settings_instant_marking': return 'Instant Marking';
-			case 'settings_instant_marking_sub': return 'Show correct answer after each question';
-			case 'settings_num_questions': return 'Number of Questions';
-			case 'settings_enter_num': return 'Enter number of questions:';
-			case 'settings_include_saved': return 'Include Saved Questions';
-			case 'settings_include_saved_sub': return 'Include questions you previously saved';
-			case 'settings_notifications': return 'Notifications';
-			case 'settings_notifications_toggle': return 'Push Notifications';
-			case 'settings_notifications_on_sub': return 'You will receive exam reminders and updates';
-			case 'settings_notifications_off_sub': return 'Notifications are turned off';
-			case 'settings_notifications_denied': return 'Permission denied — tap below to open Settings';
-			case 'settings_notifications_open_settings': return 'Open Settings';
-			case 'settings_dark_mode': return 'Dark Mode';
-			case 'settings_dark_mode_sub': return 'Switch between light and dark theme';
-			case 'settings_language': return 'Language';
-			case 'settings_language_sub': return 'Choose your preferred language';
-			case 'settings_version': return 'Version Information';
-			case 'settings_app_version': return 'App Version';
-			case 'settings_commit': return 'Commit';
-			case 'settings_branch': return 'Branch';
-			case 'settings_last_update': return 'Last Update';
-			case 'settings_date': return 'Date';
-			case 'settings_saved': return 'Settings saved successfully';
-			case 'profile_student': return 'STUDENT';
-			case 'profile_edit': return 'Edit profile';
-			case 'profile_stats': return 'My stats';
-			case 'profile_settings': return 'Settings';
-			case 'profile_invite': return 'Invite a friend';
-			case 'profile_help': return 'Help';
-			case 'profile_manage_subscription': return 'Manage Subscription';
-			case 'profile_purchase_history': return 'Purchase History';
-			case 'profile_revisit_setup': return 'Revisit Setup';
-			case 'profile_send_feedback': return 'Send Feedback';
-			case 'profile_logout_confirm': return 'Are you sure you want to log out?';
-			case 'profile_yes_logout': return 'Yes, Logout';
-			case 'home_dashboard': return 'Dashboard';
-			case 'home_my_progress': return 'My Progress';
-			case 'home_overall_score': return 'Overall Score';
-			case 'home_passed': return 'Passed';
-			case 'home_failed': return 'Failed';
-			case 'home_total': return 'Total';
-			case 'home_in_progress': return 'In Progress';
-			case 'home_recent_activity': return 'Recent Activity';
-			case 'home_by_category': return 'By Category';
-			case 'home_this_week': return 'This Week';
-			case 'home_this_month': return 'This Month';
-			case 'home_no_attempts': return 'No attempts yet!';
-			case 'home_no_attempts_sub': return 'Once you complete a quiz, your results will show up here.';
-			case 'home_take_quiz': return 'Take Your First Quiz';
-			case 'home_paused': return 'Paused';
-			case 'home_resume': return 'Resume';
-			case 'home_attempts': return 'attempts';
-			case 'home_active': return 'active';
-			case 'home_tests': return 'tests';
-			case 'intro_slide1_body': return 'Learn and practice for your license with ease.';
-			case 'intro_slide2_title': return 'Interactive Tests';
-			case 'intro_slide2_body': return 'Practice tests with real-time feedback and explanations.';
-			case 'intro_slide3_title': return 'Get Certified';
-			case 'intro_slide3_body': return 'Ace your exams and become a certified driver.';
-			case 'intro_skip': return 'Skip';
-			case 'intro_get_started': return 'Get Started';
-			case 'auth_welcome_title': return 'Welcome to Drive Test!';
-			case 'auth_welcome_subtitle': return 'Practice. Pass with confidence.';
-			case 'auth_login_btn': return 'LOGIN';
-			case 'auth_signup_btn': return 'SIGNUP';
-			case 'auth_skip_demo': return 'SKIP FOR NOW (TRY DEMO)';
-			case 'auth_demo_error': return 'Failed to login with demo account. Please try again.';
-			case 'auth_or': return 'OR';
-			case 'auth_login_title': return 'Login';
-			case 'auth_contact_support': return 'Contact support';
-			case 'auth_username': return 'Username or Email';
-			case 'auth_email': return 'Email';
-			case 'auth_password': return 'Password';
-			case 'auth_remember_me': return 'Remember me';
-			case 'auth_forgot_password': return 'Forgot Password?';
-			case 'auth_invalid_credentials': return 'Invalid username or password';
-			case 'auth_no_account': return 'Don\'t have an account? ';
-			case 'auth_sign_up_link': return 'Sign up';
-			case 'auth_skip_demo_short': return 'Skip for now (Try Demo)';
-			case 'auth_google_continue': return 'Continue with Google';
-			case 'auth_feedback_type': return 'Type';
-			case 'auth_feedback_email_optional': return 'Email (optional)';
-			case 'auth_feedback_subject_optional': return 'Subject (optional)';
-			case 'auth_feedback_message': return 'Message';
-			case 'auth_feedback_sent': return 'Thanks! Your feedback was sent.';
-			case 'auth_feedback_error': return 'Could not send feedback. Please try again.';
-			case 'auth_submit': return 'Submit';
-			case 'auth_feedback_login_issue': return 'Login issue';
-			case 'auth_feedback_signup_issue': return 'Signup issue';
-			case 'auth_feedback_app_issue': return 'App issue';
-			case 'auth_feedback_feature_request': return 'Feature request';
-			case 'auth_feedback_other': return 'Other';
-			case 'auth_create_account': return 'Create Account';
-			case 'auth_sign_up_btn': return 'Sign Up';
-			case 'auth_val_username_required': return 'Please enter your username or email';
-			case 'auth_val_username_length': return 'Username must be at least 4 characters';
-			case 'auth_val_email_required': return 'Please enter an email';
-			case 'auth_val_email_invalid': return 'Please enter a valid email';
-			case 'auth_val_password_required': return 'Please enter a password';
-			case 'auth_val_password_length': return 'Password must be at least 6 characters';
-			case 'auth_signup_success': return 'Signup successful! Please login.';
-			case 'auth_welcome_first_login': return 'Welcome. Enjoy exam prep.';
-			case 'auth_welcome_returning': return 'Welcome back again.';
-			case 'auth_deleted_account_welcome_back': return 'Always welcome back.';
-			case 'auth_signup_failed': return 'Signup failed. Please correct the errors.';
-			case 'auth_generic_error': return 'An error occurred. Please try again.';
-			case 'auth_express_google': return 'Express login via Google';
-			case 'auth_google_label': return 'Google';
-			case 'auth_express_apple': return 'Sign in with Apple';
-			case 'auth_apple_label': return 'Apple';
-			case 'auth_signing_in': return 'Signing in...';
-			case 'auth_tab_login': return 'Log in';
-			case 'auth_tab_signup': return 'Sign up';
-			case 'auth_show_password': return 'Show';
-			case 'auth_hide_password': return 'Hide';
-			case 'auth_forgot_title': return 'Forgot Password';
-			case 'auth_forgot_heading': return 'Reset Your Password';
-			case 'auth_forgot_subtitle': return 'Enter your email address and we\'ll send you instructions to reset your password.';
-			case 'auth_forgot_email_label': return 'Email Address';
-			case 'auth_forgot_send_btn': return 'Send Reset Instructions';
-			case 'auth_forgot_back_login': return 'Back to Login';
-			case 'auth_forgot_success': return 'Password reset instructions have been sent to your email.';
-			case 'auth_forgot_error': return 'Failed to send reset email. Please try again.';
-			case 'auth_verify_title': return 'Verify Code';
-			case 'auth_verify_heading': return 'Check Your Email';
-			case 'auth_verify_subtitle': return 'We sent a reset code to\n{email}';
-			case 'auth_verify_code_label': return 'Reset Code';
-			case 'auth_verify_code_hint': return 'Enter the code from your email';
-			case 'auth_verify_code_empty': return 'Please enter the reset code from your email.';
-			case 'auth_verify_resend': return 'Resend Code';
-			case 'auth_reset_title': return 'Reset Password';
-			case 'auth_reset_heading': return 'Set New Password';
-			case 'auth_reset_subtitle': return 'Please enter your new password';
-			case 'auth_reset_new_password_label': return 'New Password';
-			case 'auth_reset_confirm_password_label': return 'Confirm Password';
-			case 'auth_reset_empty': return 'Please enter a new password.';
-			case 'auth_reset_mismatch': return 'Passwords do not match.';
-			case 'auth_reset_invalid_code': return 'Invalid or expired reset code. Please try requesting a new reset link.';
-			case 'auth_reset_success_title': return 'Success!';
-			case 'auth_reset_success_body': return 'Your password has been reset successfully. You can now log in with your new password.';
-			case 'auth_reset_go_to_login': return 'Go to Login';
-			case 'auth_google_connecting': return 'Connecting to Google...';
-			case 'auth_google_verifying': return 'Verifying account...';
-			case 'auth_google_signing_in': return 'Signing you in...';
-			case 'auth_google_creating': return 'Creating your account...';
-			case 'auth_google_loading': return 'Loading your profile...';
-			case 'auth_landing_subtitle': return 'Your journey to excellence starts with a single tap.';
-			case 'auth_landing_new_here': return 'New here?';
-			case 'auth_create_account_link': return 'Create an account';
-			case 'auth_login_heading': return 'Welcome\nBack';
-			case 'auth_login_subtitle': return 'Continue your kinetic journey.';
-			case 'auth_username_hint': return 'username or email';
-			case 'auth_signup_heading_plain': return 'Join the';
-			case 'auth_signup_heading_italic': return 'Movement.';
-			case 'auth_signup_subtitle': return 'Accelerate your learning journey today.';
-			case 'auth_signup_username_hint': return 'Erik Andersson';
-			case 'auth_signup_email_hint': return 'erik@example.se';
-			case 'auth_have_account': return 'Already have an account?';
-			case 'purchase_success_title': return 'Your Purchase has\nbeen confirmed';
-			case 'purchase_success_start_tests': return 'Start Tests';
-			case 'purchase_success_back_home': return 'Back to home';
-			case 'bcd_drive_test': return 'Drive Test';
-			case 'bcd_exams': return 'Exams';
-			case 'bcd_exams_sub': return 'Licences, categories & tests';
-			case 'bcd_traffic_signs': return 'Traffic Signs';
-			case 'bcd_traffic_signs_sub': return 'Browse all traffic signs';
-			case 'bcd_subscriptions': return 'Subscriptions';
-			case 'bcd_subscriptions_sub': return 'View plans & manage access';
-			case 'bcd_hub_practice': return 'Practice';
-			case 'bcd_hub_tests': return 'Tests';
-			case 'bcd_hub_theory_docs': return 'Theory\nDocuments';
-			case 'bcd_hub_traffic_signs': return 'Traffic Signs';
-			case 'bcd_hub_checklist': return 'Checklist';
-			case 'bcd_hub_statistics': return 'Statistics';
-			case 'bcd_hub_saved_questions': return 'Saved\nQuestions';
-			case 'bcd_no_free_practice': return 'No free practice test available for this category.';
-			case 'bcd_failed_practice': return 'Failed to load practice test.';
-			case 'bcd_no_saved_questions': return 'No saved questions in this category yet.';
-			case 'bcd_no_saved_questions_found': return 'No saved questions found in this category.';
-			case 'bcd_failed_saved': return 'Failed to load saved questions.';
-			case 'bcd_no_subscription': return 'You don\'t have an active subscription for this category';
-			case 'bcd_free_content_desc': return 'Practice, Traffic Signs, Documents and Checklists are free. Subscribe to unlock Tests.';
-			case 'bcd_buy_subscription': return 'Buy subscription';
-			case 'bcd_buy_subscription_arrow': return 'Buy subscription →';
-			case 'bcd_not_subscribed': return 'You\'re not subscribed to this category';
-			case 'bcd_only_free_tests': return 'Only free practice tests are available. Subscribe to unlock all tests.';
-			case 'bcd_no_free_practice_tests': return 'No free practice tests available.';
-			case 'bcd_no_tests': return 'No tests available.';
-			case 'bcd_no_documents': return 'No documents available.';
-			case 'bcd_no_checklists': return 'No checklists available.';
-			case 'bcd_failed_tests': return 'Failed to load tests';
-			case 'bcd_subscription_required': return 'Subscription Required';
-			case 'bcd_subscribe_access': return 'Subscribe to access "{name}" and all its content.';
-			case 'bcd_not_now': return 'Not now';
-			case 'bcd_buy': return 'Buy';
-			case 'bcd_payment_failed': return 'Payment failed. Please try again.';
-			case 'bcd_feedback_unavailable': return 'Feedback is unavailable for this question.';
-			case 'bcd_feedback_submitted': return 'Thanks! Your feedback was submitted.';
-			case 'bcd_feedback_failed': return 'Could not submit feedback. Please try again.';
-			case 'bcd_categories': return 'Categories';
-			case 'bcd_search_categories': return 'Search categories…';
-			case 'bcd_no_categories': return 'No categories available.';
-			case 'bcd_no_match_search': return 'No matches found.';
-			case 'bcd_subscribed': return 'Subscribed';
-			case 'bcd_tap_to_subscribe': return 'Tap to subscribe';
-			case 'bcd_failed_categories': return 'Failed to load categories';
-			case 'bcd_plans_tab': return 'Plans';
-			case 'bcd_my_subscriptions_tab': return 'My Subscriptions';
-			case 'bcd_no_plans': return 'No plans available';
-			case 'bcd_active_label': return 'Active';
-			case 'bcd_subscribe_btn': return 'Subscribe';
-			case 'bcd_start_practice': return 'Start Practice';
-			case 'bcd_no_active_subscriptions': return 'No active subscriptions';
-			case 'bcd_browse_plans': return 'Browse plans to get started';
-			case 'bcd_expires': return 'Expires';
-			case 'bcd_failed_plans': return 'Failed to load plans';
-			case 'bcd_no_categories_linked': return 'No categories linked to this subscription';
-			case 'bcd_failed_category': return 'Failed to load category';
-			case 'bcd_search_signs': return 'Search sign groups…';
-			case 'bcd_no_signs': return 'No signs found';
-			case 'bcd_no_image': return 'No image';
-			case 'bcd_signs_count_label': return 'traffic signs';
-			case 'bcd_view': return 'View';
-			case 'bcd_previous': return 'Previous';
-			case 'bcd_next': return 'Next';
-			case 'bcd_failed_traffic_signs': return 'Failed to load traffic signs';
-			case 'bcd_search_hint': return 'Search…';
-			case 'bcd_no_subcategories': return 'No sub-categories available.';
-			case 'bcd_failed_subcategories': return 'Failed to load sub-categories';
-			case 'bcd_no_questions': return 'No questions found for this test.';
-			case 'bcd_failed_test_questions': return 'Failed to load test questions.';
-			case 'bcd_questions_label': return 'questions';
-			case 'bcd_pass_label': return 'Pass';
-			case 'bcd_free_label': return 'FREE';
-			case 'settings_theme_label': return 'Theme';
-			case 'settings_theme_sub': return 'Light, dark or follow system';
-			case 'settings_theme_system': return 'System';
-			case 'settings_theme_light': return 'Light';
-			case 'settings_theme_dark': return 'Dark';
-			case 'help_title': return 'Help & Support';
-			case 'help_need_help': return 'Need Help?';
-			case 'help_subtitle': return 'Tell us about your issue and we\'ll get back to you soon.';
-			case 'help_your_information': return 'Your Information';
-			case 'help_username': return 'Username';
-			case 'help_email': return 'Email';
-			case 'help_user_id': return 'User ID';
-			case 'help_subject': return 'Subject';
-			case 'help_subject_hint': return 'e.g., Login issue, Bug report, Feature request';
-			case 'help_subject_required': return 'Please enter a subject';
-			case 'help_description': return 'Description';
-			case 'help_description_hint': return 'Please describe your issue in detail...';
-			case 'help_description_required': return 'Please describe your issue';
-			case 'help_description_too_short': return 'Please provide more details (at least 10 characters)';
-			case 'help_submit': return 'Submit Report';
-			case 'help_or_email': return 'Or email us directly at mohsin.sapra@gmail.com';
-			case 'help_opening_email': return 'Opening email app...';
-			case 'help_email_error': return 'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
-			case 'help_generic_error': return 'Error opening email app. Please try again.';
-			case 'notifications_title': return 'Notifications';
-			case 'notifications_mark_all_read': return 'Mark all read';
-			case 'notifications_clear': return 'Clear';
-			case 'notifications_clear_confirm_title': return 'Clear all notifications?';
-			case 'notifications_clear_confirm_body': return 'This will remove all notifications. This action cannot be undone.';
-			case 'notifications_empty_title': return 'No notifications';
-			case 'notifications_empty_subtitle': return 'You\'re all caught up! We\'ll let you know when something new arrives.';
-			case 'notifications_just_now': return 'Just now';
-			case 'notifications_minutes_ago': return '{n} min ago';
-			case 'notifications_hours_ago': return '{n}h ago';
-			case 'notifications_days_ago': return '{n}d ago';
-			case 'notifications_permission_off_title': return 'Notifications are off';
-			case 'notifications_permission_denied_body': return 'You have denied notification permission. Open Settings to enable them.';
-			case 'notifications_permission_not_determined_body': return 'Allow notifications to stay updated on your exam progress and reminders.';
-			case 'notifications_permission_open_settings': return 'Open Settings';
-			case 'notifications_permission_enable': return 'Enable Notifications';
-			case 'notifications_permission_web_dialog_title': return 'Enable in browser';
-			case 'notifications_permission_web_dialog_body': return 'To enable notifications, click the lock icon (🔒) in your browser\'s address bar, find "Notifications", and set it to "Allow". Then refresh the page.';
-			case 'notifications_permission_web_dialog_ok': return 'Got it';
-			case 'image_viewer_swipe_to_close': return 'Swipe down to close';
-			case 'image_viewer_load_error': return 'Could not load image';
-			case 'dash_my_progress': return 'My Progress';
-			case 'dash_sync_from_server': return 'Sync from server';
-			case 'dash_unknown_error': return 'Something went wrong. Please try again.';
-			case 'dash_network_error': return 'No internet connection. Check your connection and try again.';
-			case 'dash_server_error': return 'Server error. Please try again later.';
-			case 'dash_retry': return 'Retry';
-			case 'dash_my_exams': return 'My Exams';
-			case 'dash_tap_to_dive': return 'Tap an exam to dive in';
-			case 'dash_overview': return 'Overview';
-			case 'dash_categories_header': return 'Categories';
-			case 'dash_batches_header': return 'Batches';
-			case 'dash_expand_categories': return 'Expand each category to see batches';
-			case 'dash_weekly_streak': return 'Weekly Streak';
-			case 'dash_consistency_builds': return 'Consistency builds mastery';
-			case 'dash_smart_insights': return 'Smart Insights';
-			case 'dash_based_on_attempts': return 'Based on your attempts';
-			case 'dash_continue_label': return 'Continue: {name}';
-			case 'dash_total_attempts': return 'Total Attempts';
-			case 'dash_batches_done': return 'Batches Done';
-			case 'dash_avg_time': return 'Avg Time';
-			case 'dash_weakest_label': return 'Weakest: {name} ({score}%)';
-			case 'dash_batches_completed_label': return '{done}/{total} batches completed';
-			case 'dash_weakness_low_score': return 'Low score';
-			case 'dash_weakness_over_time': return 'Over time';
-			case 'dash_weakness_needs_work': return 'Needs work';
-			case 'dash_weakness_on_track': return 'On track';
-			case 'dash_not_started': return 'Not started';
-			case 'dash_attempt_one': return '1 attempt';
-			case 'dash_attempt_many': return '{n} attempts';
-			case 'dash_avg_duration': return 'Avg {duration}';
-			case 'dash_over_time_pct': return '+{pct}% time';
-			case 'dash_on_time': return 'On time';
-			case 'dash_insight_strongest': return 'Strongest area';
-			case 'dash_insight_weakest': return 'Weakest area';
-			case 'dash_insight_focus': return 'Focus recommendation';
-			case 'dash_insight_continue_learning': return 'Continue learning';
-			case 'dash_insight_area_detail': return '{name} — {score}% avg';
-			case 'dash_insight_focus_detail': return 'Work on {name} next to keep progressing';
-			case 'dash_insight_start': return 'Start with {name} — pick any batch to begin.';
-			case 'dash_insight_all_done': return 'All batches completed! Revisit low-scoring batches to master them.';
-			case 'dash_insight_progress': return '{done}/{total} batches passed. Keep going — you\'re {pct}% there!';
-			case 'dash_streak_current': return 'Current\nStreak';
-			case 'dash_streak_best': return 'Best\nStreak';
-			case 'dash_streak_weekly_goal': return 'Weekly goal';
-			case 'dash_day_mon': return 'M';
-			case 'dash_day_tue': return 'T';
-			case 'dash_day_wed': return 'W';
-			case 'dash_day_thu': return 'T';
-			case 'dash_day_fri': return 'F';
-			case 'dash_day_sat': return 'S';
-			case 'dash_day_sun': return 'S';
-			case 'dash_streak_msg_none': return 'Start a session today to begin your streak!';
-			case 'dash_streak_msg_amazing': return 'Amazing! {n} days in a row — keep it up!';
-			case 'dash_streak_msg_goal': return 'Weekly goal reached! You\'re on fire 🔥';
-			case 'dash_streak_msg_progress_one': return '{n} day streak! 1 more session to hit your weekly goal.';
-			case 'dash_streak_msg_progress_other': return '{n} day streak! {left} more sessions to hit your weekly goal.';
-			case 'dash_completed': return 'Completed!';
-			case 'dash_tap_to_explore': return 'Tap to explore';
-			case 'onb_which_exams': return 'Which exams are you preparing for?';
-			case 'onb_select_all_apply': return 'Select all that apply';
-			case 'onb_exam_date_title': return 'When is your exam?';
-			case 'onb_exam_date_subtitle': return 'Set a target date to stay on track';
-			case 'onb_practice_days_title': return 'How many days a week will you practice?';
-			case 'onb_practice_days_subtitle': return 'Be realistic — consistency is key';
-			case 'onb_recommendations_title': return 'Recommended for you';
-			case 'onb_recommendations_subtitle': return 'Subscribe to unlock full access to these exams';
-			case 'onb_continue': return 'Continue';
-			case 'onb_get_started': return 'Get Started';
-			case 'onb_1_week': return '1 week';
-			case 'onb_2_weeks': return '2 weeks';
-			case 'onb_3_weeks': return '3 weeks';
-			case 'onb_1_month': return '1 month';
-			case 'onb_2_months': return '2 months';
-			case 'onb_3_months': return '3 months';
-			case 'onb_custom_date': return 'Custom date';
-			case 'onb_subscribe': return 'Subscribe';
-			case 'onb_sign_in_to_subscribe': return 'Sign in to subscribe';
-			case 'onb_sign_in_subtitle': return 'Create a free account or log in to unlock full exam access';
-			case 'onb_no_exams': return 'No exams available right now';
-			case 'onb_days_week_label': return '{n} days/week';
-			case 'onb_step_of': return 'Step {current} of {total}';
-			case 'onb_weekly_goal_title': return 'Weekly Study Goal';
-			case 'onb_weekly_goal_sub': return 'Select the days you\'ll commit to studying.';
-			case 'dash_exam_deadline': return 'Exam Deadline';
-			case 'dash_days_remaining': return '{n} days left';
-			case 'dash_deadline_today': return 'Today!';
-			case 'dash_deadline_passed': return 'Deadline passed';
-			case 'dash_no_deadline': return 'No deadline set';
-			case 'dash_set_deadline': return 'Set deadline';
-			case 'dash_change_deadline': return 'Change deadline';
-			case 'dash_practice_days': return '{n} days/week';
-			case 'dash_hero_sub_start': return 'Start your learning journey!';
-			case 'dash_hero_sub_progress': return 'Keep going, you\'re doing great!';
-			case 'dash_hero_sub_almost': return 'Almost ready for the exam!';
-			case 'dash_hero_sub_done': return 'All done — great work!';
-			case 'dash_performance_overview': return 'Performance Overview';
-			case 'dash_focus_areas': return 'Focus Areas';
-			case 'dash_no_exams_found': return 'No exams found.';
-			case 'dash_stat_completed': return 'Completed';
-			case 'dash_stat_none_yet': return 'None yet';
-			case 'dash_stat_of_n': return 'of {total}';
-			case 'dash_stat_per_session': return 'Per session';
-			case 'dash_exam_type_taxi': return 'TAXI';
-			case 'dash_exam_type_test': return 'TEST';
-			case 'dash_streak_title': return '{n} day streak!';
-			case 'dash_streak_days': return '{n} days';
-			case 'dash_batches_count': return '{n} batches';
-			case 'dash_avg_score_label': return '{score}% avg';
-			case 'tut_step1_title': return 'Step 1 of 3 — Translate';
-			case 'tut_step1_body': return 'Tap the language button to open the list, then select English (or any other language).';
-			case 'tut_step1b_title': return 'Step 1 of 3 — Choose a language';
-			case 'tut_step1b_body': return 'Select a different language from the list, for example English.';
-			case 'tut_step2a_title': return 'Step 2 of 4 — Peek original';
-			case 'tut_step2a_body': return 'Press and hold anywhere on the question (not the options) to temporarily see the original Swedish text.';
-			case 'tut_step2b_title': return 'Step 2 of 4 — Now release';
-			case 'tut_step2b_body': return 'Release your finger to go back to the translated text.';
-			case 'tut_step3a_title': return 'Step 3 of 4 — Next question';
-			case 'tut_step3a_body': return 'Swipe left to go to the next question.';
-			case 'tut_step3b_title': return 'Step 4 of 4 — Come back';
-			case 'tut_step3b_body': return 'Now swipe right to come back to the previous question.';
-			case 'tut_complete_title': return 'You\'re all set!';
-			case 'tut_complete_body': return 'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
-			case 'tut_complete_subtitle': return 'You\'re ready to prepare for your taxi exam!';
-			case 'tut_start_practicing': return 'Start practicing!';
-			case 'sg_title': return 'Study Goals';
-			case 'sg_section_exam_date': return 'EXAM DATE';
-			case 'sg_section_practice_days': return 'PRACTICE DAYS';
-			case 'sg_practice_days_sub': return 'Pick the days you commit to practising each week.';
-			case 'sg_days_per_week': return '{n} day(s) / week';
-			case 'sg_save': return 'Save Settings';
-			case 'sg_settings_saved': return 'Settings saved!';
-			case 'sg_months': return 'MONTHS';
-			case 'sg_custom_date': return 'Custom date';
-			case 'sg_deadline_passed': return 'Exam date passed';
-			case 'sg_days_remaining': return '{n} days remaining';
-			case 'sg_notif_note': return 'You\'ll get two reminders on each practice day — one in the morning and one in the evening — at randomised times to help you build a habit.';
-			case 'sg_profile_menu_label': return 'Study Goals';
-			case 'splash_tagline': return 'HELLO SWEDEN';
-			case 'splash_loading': return 'Preparing your success...';
-			case 'splash_footer': return 'ACADEMIC EXCELLENCE THROUGH KINETIC LEARNING';
-			case 'onb_top_bar_title': return 'GET STARTED';
-			case 'onb_months': return 'MONTHS';
-			case 'onb_step1_plain': return 'What are you studying ';
-			case 'onb_step1_italic': return 'for?';
-			case 'onb_step2_plain': return 'When is your ';
-			case 'onb_step2_italic': return 'exam?';
-			case 'onb_step3_plain': return 'Set your weekly ';
-			case 'onb_step3_italic': return 'goal.';
-			case 'onb_step4_plain': return 'Your Path to ';
-			case 'onb_step4_italic': return 'Mastery.';
-			case 'onb_step4_subtitle': return 'Accelerate your learning with personalised study tools.';
-			case 'onb_no_plan_selected': return 'No plan selected.';
-			case 'onb_buy_bundle': return 'Buy bundle — {price}';
-			case 'onb_signin_to_purchase_title': return 'Sign In to Subscribe';
-			case 'onb_signin_to_purchase_subtitle': return 'Create a free account or sign in to start your subscription. Your progress and subscription will sync across all your devices.';
-			case 'onb_create_account_title': return 'Create Your Free Account';
-			case 'onb_create_account_subtitle': return 'Save your study plan and track your progress across all your devices.';
-			case 'onb_start_practicing': return 'Start Practicing';
-			case 'onb_your_plan_badge': return 'YOUR PLAN';
-			case 'onb_days_per_week': return 'days/week';
-			case 'onb_most_popular': return 'MOST POPULAR';
-			case 'onb_feature_mock_exams': return 'Full mock exam library';
-			case 'onb_feature_progress_tracking': return 'Smart progress tracking';
-			case 'onb_feature_explanations': return 'Detailed answer explanations';
-			case 'onb_get_best_deal': return 'Get Best Deal';
-			case 'onb_best_value': return 'BEST VALUE';
-			case 'onb_choose_plan': return 'Choose Plan';
-			case 'onb_bundle_discount_title': return 'You\'re getting 20% off';
-			case 'onb_bundle_saving': return 'Saving {amount}';
-			case 'onb_price_unavailable': return 'Price unavailable';
-			case 'onb_free_trial': return '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
-			case 'onb_start_free': return 'Continue as Guest';
-			case 'onb_skip_for_now': return 'Skip for now';
-			case 'free_trial_banner_badge': return 'FREE';
-			case 'free_trial_banner_title': return 'Try road signs — no subscription needed';
-			case 'free_trial_banner_subtitle': return 'Vägmärkestest is completely free. Practise at your own pace and get a feel for the app before subscribing.';
-			case 'free_trial_banner_cta': return 'Start Practising';
-			case 'guest_banner_title': return 'You\'re browsing as a guest';
-			case 'guest_banner_subtitle': return 'Create a free account to save your progress and sync across all your devices.';
-			case 'guest_banner_cta': return 'Create Account';
-			case 'guest_convert_title': return 'Save Your Progress';
-			case 'guest_convert_subtitle': return 'Create a free account to keep everything you\'ve practised.';
-			case 'guest_username_hint': return 'Choose a username';
-			case 'guest_email_hint': return 'Email address';
-			case 'guest_password_hint': return 'Password (min. 8 characters)';
-			case 'guest_convert_cta': return 'Create Account';
-			case 'dash_free_hub_title': return 'Full Exam Practice — Free Content';
-			case 'dash_free_hub_subtitle': return 'Practice questions, theory documents, checklists and statistics — no subscription needed.';
-			case 'dash_free_hub_badge': return 'FREE';
-			default: return null;
-		}
-	}
+  dynamic _flatMapFunction(String path) {
+    switch (path) {
+      case 'home':
+        return 'Home';
+      case 'tests':
+        return 'Tests';
+      case 'profile':
+        return 'Profile';
+      case 'welcome_message':
+        return 'Welcome to Drive Test';
+      case 'save':
+        return 'Save';
+      case 'cancel':
+        return 'Cancel';
+      case 'delete':
+        return 'Delete';
+      case 'logout':
+        return 'Logout';
+      case 'loading':
+        return 'Loading...';
+      case 'settings_title':
+        return 'Settings';
+      case 'settings_appearance':
+        return 'Appearance';
+      case 'settings_test_prefs':
+        return 'Test Preferences';
+      case 'settings_timed_test':
+        return 'Timed Test';
+      case 'settings_timed_test_sub':
+        return 'Enable a time limit for the test';
+      case 'settings_instant_marking':
+        return 'Instant Marking';
+      case 'settings_instant_marking_sub':
+        return 'Show correct answer after each question';
+      case 'settings_num_questions':
+        return 'Number of Questions';
+      case 'settings_enter_num':
+        return 'Enter number of questions:';
+      case 'settings_include_saved':
+        return 'Include Saved Questions';
+      case 'settings_include_saved_sub':
+        return 'Include questions you previously saved';
+      case 'settings_notifications':
+        return 'Notifications';
+      case 'settings_notifications_toggle':
+        return 'Push Notifications';
+      case 'settings_notifications_on_sub':
+        return 'You will receive exam reminders and updates';
+      case 'settings_notifications_off_sub':
+        return 'Notifications are turned off';
+      case 'settings_notifications_denied':
+        return 'Permission denied — tap below to open Settings';
+      case 'settings_notifications_open_settings':
+        return 'Open Settings';
+      case 'settings_dark_mode':
+        return 'Dark Mode';
+      case 'settings_dark_mode_sub':
+        return 'Switch between light and dark theme';
+      case 'settings_language':
+        return 'Language';
+      case 'settings_language_sub':
+        return 'Choose your preferred language';
+      case 'settings_version':
+        return 'Version Information';
+      case 'settings_app_version':
+        return 'App Version';
+      case 'settings_commit':
+        return 'Commit';
+      case 'settings_branch':
+        return 'Branch';
+      case 'settings_last_update':
+        return 'Last Update';
+      case 'settings_date':
+        return 'Date';
+      case 'settings_saved':
+        return 'Settings saved successfully';
+      case 'profile_student':
+        return 'STUDENT';
+      case 'profile_edit':
+        return 'Edit profile';
+      case 'profile_stats':
+        return 'My stats';
+      case 'profile_settings':
+        return 'Settings';
+      case 'profile_invite':
+        return 'Invite a friend';
+      case 'profile_help':
+        return 'Help';
+      case 'profile_manage_subscription':
+        return 'Manage Subscription';
+      case 'profile_purchase_history':
+        return 'Purchase History';
+      case 'profile_revisit_setup':
+        return 'Revisit Setup';
+      case 'profile_send_feedback':
+        return 'Send Feedback';
+      case 'profile_logout_confirm':
+        return 'Are you sure you want to log out?';
+      case 'profile_yes_logout':
+        return 'Yes, Logout';
+      case 'home_dashboard':
+        return 'Dashboard';
+      case 'home_my_progress':
+        return 'My Progress';
+      case 'home_overall_score':
+        return 'Overall Score';
+      case 'home_passed':
+        return 'Passed';
+      case 'home_failed':
+        return 'Failed';
+      case 'home_total':
+        return 'Total';
+      case 'home_in_progress':
+        return 'In Progress';
+      case 'home_recent_activity':
+        return 'Recent Activity';
+      case 'home_by_category':
+        return 'By Category';
+      case 'home_this_week':
+        return 'This Week';
+      case 'home_this_month':
+        return 'This Month';
+      case 'home_no_attempts':
+        return 'No attempts yet!';
+      case 'home_no_attempts_sub':
+        return 'Once you complete a quiz, your results will show up here.';
+      case 'home_take_quiz':
+        return 'Take Your First Quiz';
+      case 'home_paused':
+        return 'Paused';
+      case 'home_resume':
+        return 'Resume';
+      case 'home_attempts':
+        return 'attempts';
+      case 'home_active':
+        return 'active';
+      case 'home_tests':
+        return 'tests';
+      case 'intro_slide1_body':
+        return 'Learn and practice for your license with ease.';
+      case 'intro_slide2_title':
+        return 'Interactive Tests';
+      case 'intro_slide2_body':
+        return 'Practice tests with real-time feedback and explanations.';
+      case 'intro_slide3_title':
+        return 'Get Certified';
+      case 'intro_slide3_body':
+        return 'Ace your exams and become a certified driver.';
+      case 'intro_skip':
+        return 'Skip';
+      case 'intro_get_started':
+        return 'Get Started';
+      case 'auth_welcome_title':
+        return 'Welcome to Drive Test!';
+      case 'auth_welcome_subtitle':
+        return 'Practice. Pass with confidence.';
+      case 'auth_login_btn':
+        return 'LOGIN';
+      case 'auth_signup_btn':
+        return 'SIGNUP';
+      case 'auth_skip_demo':
+        return 'SKIP FOR NOW (TRY DEMO)';
+      case 'auth_demo_error':
+        return 'Failed to login with demo account. Please try again.';
+      case 'auth_or':
+        return 'OR';
+      case 'auth_login_title':
+        return 'Login';
+      case 'auth_contact_support':
+        return 'Contact support';
+      case 'auth_username':
+        return 'Username or Email';
+      case 'auth_email':
+        return 'Email';
+      case 'auth_password':
+        return 'Password';
+      case 'auth_remember_me':
+        return 'Remember me';
+      case 'auth_forgot_password':
+        return 'Forgot Password?';
+      case 'auth_invalid_credentials':
+        return 'Invalid username or password';
+      case 'auth_no_account':
+        return 'Don\'t have an account? ';
+      case 'auth_sign_up_link':
+        return 'Sign up';
+      case 'auth_skip_demo_short':
+        return 'Skip for now (Try Demo)';
+      case 'auth_google_continue':
+        return 'Continue with Google';
+      case 'auth_feedback_type':
+        return 'Type';
+      case 'auth_feedback_email_optional':
+        return 'Email (optional)';
+      case 'auth_feedback_subject_optional':
+        return 'Subject (optional)';
+      case 'auth_feedback_message':
+        return 'Message';
+      case 'auth_feedback_sent':
+        return 'Thanks! Your feedback was sent.';
+      case 'auth_feedback_error':
+        return 'Could not send feedback. Please try again.';
+      case 'auth_submit':
+        return 'Submit';
+      case 'auth_feedback_login_issue':
+        return 'Login issue';
+      case 'auth_feedback_signup_issue':
+        return 'Signup issue';
+      case 'auth_feedback_app_issue':
+        return 'App issue';
+      case 'auth_feedback_feature_request':
+        return 'Feature request';
+      case 'auth_feedback_other':
+        return 'Other';
+      case 'auth_create_account':
+        return 'Create Account';
+      case 'auth_sign_up_btn':
+        return 'Sign Up';
+      case 'auth_val_username_required':
+        return 'Please enter your username or email';
+      case 'auth_val_username_length':
+        return 'Username must be at least 4 characters';
+      case 'auth_val_email_required':
+        return 'Please enter an email';
+      case 'auth_val_email_invalid':
+        return 'Please enter a valid email';
+      case 'auth_val_password_required':
+        return 'Please enter a password';
+      case 'auth_val_password_length':
+        return 'Password must be at least 6 characters';
+      case 'auth_signup_success':
+        return 'Signup successful! Please login.';
+      case 'auth_welcome_first_login':
+        return 'Welcome. Enjoy exam prep.';
+      case 'auth_welcome_returning':
+        return 'Welcome back again.';
+      case 'auth_deleted_account_welcome_back':
+        return 'Always welcome back.';
+      case 'auth_signup_failed':
+        return 'Signup failed. Please correct the errors.';
+      case 'auth_generic_error':
+        return 'An error occurred. Please try again.';
+      case 'auth_express_google':
+        return 'Express login via Google';
+      case 'auth_google_label':
+        return 'Google';
+      case 'auth_express_apple':
+        return 'Sign in with Apple';
+      case 'auth_apple_label':
+        return 'Apple';
+      case 'auth_signing_in':
+        return 'Signing in...';
+      case 'auth_tab_login':
+        return 'Log in';
+      case 'auth_tab_signup':
+        return 'Sign up';
+      case 'auth_show_password':
+        return 'Show';
+      case 'auth_hide_password':
+        return 'Hide';
+      case 'auth_forgot_title':
+        return 'Forgot Password';
+      case 'auth_forgot_heading':
+        return 'Reset Your Password';
+      case 'auth_forgot_subtitle':
+        return 'Enter your email address and we\'ll send you instructions to reset your password.';
+      case 'auth_forgot_email_label':
+        return 'Email Address';
+      case 'auth_forgot_send_btn':
+        return 'Send Reset Instructions';
+      case 'auth_forgot_back_login':
+        return 'Back to Login';
+      case 'auth_forgot_success':
+        return 'Password reset instructions have been sent to your email.';
+      case 'auth_forgot_error':
+        return 'Failed to send reset email. Please try again.';
+      case 'auth_verify_title':
+        return 'Verify Code';
+      case 'auth_verify_heading':
+        return 'Check Your Email';
+      case 'auth_verify_subtitle':
+        return 'We sent a reset code to\n{email}';
+      case 'auth_verify_code_label':
+        return 'Reset Code';
+      case 'auth_verify_code_hint':
+        return 'Enter the code from your email';
+      case 'auth_verify_code_empty':
+        return 'Please enter the reset code from your email.';
+      case 'auth_verify_resend':
+        return 'Resend Code';
+      case 'auth_reset_title':
+        return 'Reset Password';
+      case 'auth_reset_heading':
+        return 'Set New Password';
+      case 'auth_reset_subtitle':
+        return 'Please enter your new password';
+      case 'auth_reset_new_password_label':
+        return 'New Password';
+      case 'auth_reset_confirm_password_label':
+        return 'Confirm Password';
+      case 'auth_reset_empty':
+        return 'Please enter a new password.';
+      case 'auth_reset_mismatch':
+        return 'Passwords do not match.';
+      case 'auth_reset_invalid_code':
+        return 'Invalid or expired reset code. Please try requesting a new reset link.';
+      case 'auth_reset_success_title':
+        return 'Success!';
+      case 'auth_reset_success_body':
+        return 'Your password has been reset successfully. You can now log in with your new password.';
+      case 'auth_reset_go_to_login':
+        return 'Go to Login';
+      case 'auth_google_connecting':
+        return 'Connecting to Google...';
+      case 'auth_google_verifying':
+        return 'Verifying account...';
+      case 'auth_google_signing_in':
+        return 'Signing you in...';
+      case 'auth_google_creating':
+        return 'Creating your account...';
+      case 'auth_google_loading':
+        return 'Loading your profile...';
+      case 'auth_landing_subtitle':
+        return 'Your journey to excellence starts with a single tap.';
+      case 'auth_landing_new_here':
+        return 'New here?';
+      case 'auth_create_account_link':
+        return 'Create an account';
+      case 'auth_login_heading':
+        return 'Welcome\nBack';
+      case 'auth_login_subtitle':
+        return 'Continue your kinetic journey.';
+      case 'auth_username_hint':
+        return 'username or email';
+      case 'auth_signup_heading_plain':
+        return 'Join the';
+      case 'auth_signup_heading_italic':
+        return 'Movement.';
+      case 'auth_signup_subtitle':
+        return 'Accelerate your learning journey today.';
+      case 'auth_signup_username_hint':
+        return 'Erik Andersson';
+      case 'auth_signup_email_hint':
+        return 'erik@example.se';
+      case 'auth_have_account':
+        return 'Already have an account?';
+      case 'purchase_success_title':
+        return 'Your Purchase has\nbeen confirmed';
+      case 'purchase_success_start_tests':
+        return 'Start Tests';
+      case 'purchase_success_back_home':
+        return 'Back to home';
+      case 'bcd_drive_test':
+        return 'Drive Test';
+      case 'bcd_exams':
+        return 'Exams';
+      case 'bcd_exams_sub':
+        return 'Licences, categories & tests';
+      case 'bcd_traffic_signs':
+        return 'Traffic Signs';
+      case 'bcd_traffic_signs_sub':
+        return 'Browse all traffic signs';
+      case 'bcd_subscriptions':
+        return 'Subscriptions';
+      case 'bcd_subscriptions_sub':
+        return 'View plans & manage access';
+      case 'bcd_hub_practice':
+        return 'Practice';
+      case 'bcd_hub_tests':
+        return 'Tests';
+      case 'bcd_hub_theory_docs':
+        return 'Theory\nDocuments';
+      case 'bcd_hub_traffic_signs':
+        return 'Traffic Signs';
+      case 'bcd_hub_checklist':
+        return 'Checklist';
+      case 'bcd_hub_statistics':
+        return 'Statistics';
+      case 'bcd_hub_saved_questions':
+        return 'Saved\nQuestions';
+      case 'bcd_no_free_practice':
+        return 'No free practice test available for this category.';
+      case 'bcd_failed_practice':
+        return 'Failed to load practice test.';
+      case 'bcd_no_saved_questions':
+        return 'No saved questions in this category yet.';
+      case 'bcd_no_saved_questions_found':
+        return 'No saved questions found in this category.';
+      case 'bcd_failed_saved':
+        return 'Failed to load saved questions.';
+      case 'bcd_no_subscription':
+        return 'You don\'t have an active subscription for this category';
+      case 'bcd_free_content_desc':
+        return 'Practice, Traffic Signs, Documents and Checklists are free. Subscribe to unlock Tests.';
+      case 'bcd_buy_subscription':
+        return 'Buy subscription';
+      case 'bcd_buy_subscription_arrow':
+        return 'Buy subscription →';
+      case 'bcd_not_subscribed':
+        return 'You\'re not subscribed to this category';
+      case 'bcd_only_free_tests':
+        return 'Only free practice tests are available. Subscribe to unlock all tests.';
+      case 'bcd_no_free_practice_tests':
+        return 'No free practice tests available.';
+      case 'bcd_no_tests':
+        return 'No tests available.';
+      case 'bcd_no_documents':
+        return 'No documents available.';
+      case 'bcd_no_checklists':
+        return 'No checklists available.';
+      case 'bcd_failed_tests':
+        return 'Failed to load tests';
+      case 'bcd_subscription_required':
+        return 'Subscription Required';
+      case 'bcd_subscribe_access':
+        return 'Subscribe to access "{name}" and all its content.';
+      case 'bcd_not_now':
+        return 'Not now';
+      case 'bcd_buy':
+        return 'Buy';
+      case 'bcd_payment_failed':
+        return 'Payment failed. Please try again.';
+      case 'bcd_feedback_unavailable':
+        return 'Feedback is unavailable for this question.';
+      case 'bcd_feedback_submitted':
+        return 'Thanks! Your feedback was submitted.';
+      case 'bcd_feedback_failed':
+        return 'Could not submit feedback. Please try again.';
+      case 'bcd_categories':
+        return 'Categories';
+      case 'bcd_search_categories':
+        return 'Search categories…';
+      case 'bcd_no_categories':
+        return 'No categories available.';
+      case 'bcd_no_match_search':
+        return 'No matches found.';
+      case 'bcd_subscribed':
+        return 'Subscribed';
+      case 'bcd_tap_to_subscribe':
+        return 'Tap to subscribe';
+      case 'bcd_failed_categories':
+        return 'Failed to load categories';
+      case 'bcd_plans_tab':
+        return 'Plans';
+      case 'bcd_my_subscriptions_tab':
+        return 'My Subscriptions';
+      case 'bcd_no_plans':
+        return 'No plans available';
+      case 'bcd_active_label':
+        return 'Active';
+      case 'bcd_subscribe_btn':
+        return 'Subscribe';
+      case 'bcd_start_practice':
+        return 'Start Practice';
+      case 'bcd_no_active_subscriptions':
+        return 'No active subscriptions';
+      case 'bcd_browse_plans':
+        return 'Browse plans to get started';
+      case 'bcd_expires':
+        return 'Expires';
+      case 'bcd_failed_plans':
+        return 'Failed to load plans';
+      case 'bcd_no_categories_linked':
+        return 'No categories linked to this subscription';
+      case 'bcd_failed_category':
+        return 'Failed to load category';
+      case 'bcd_search_signs':
+        return 'Search sign groups…';
+      case 'bcd_no_signs':
+        return 'No signs found';
+      case 'bcd_no_image':
+        return 'No image';
+      case 'bcd_signs_count_label':
+        return 'traffic signs';
+      case 'bcd_view':
+        return 'View';
+      case 'bcd_previous':
+        return 'Previous';
+      case 'bcd_next':
+        return 'Next';
+      case 'bcd_failed_traffic_signs':
+        return 'Failed to load traffic signs';
+      case 'bcd_search_hint':
+        return 'Search…';
+      case 'bcd_no_subcategories':
+        return 'No sub-categories available.';
+      case 'bcd_failed_subcategories':
+        return 'Failed to load sub-categories';
+      case 'bcd_no_questions':
+        return 'No questions found for this test.';
+      case 'bcd_failed_test_questions':
+        return 'Failed to load test questions.';
+      case 'bcd_questions_label':
+        return 'questions';
+      case 'bcd_pass_label':
+        return 'Pass';
+      case 'bcd_free_label':
+        return 'FREE';
+      case 'settings_theme_label':
+        return 'Theme';
+      case 'settings_theme_sub':
+        return 'Light, dark or follow system';
+      case 'settings_theme_system':
+        return 'System';
+      case 'settings_theme_light':
+        return 'Light';
+      case 'settings_theme_dark':
+        return 'Dark';
+      case 'help_title':
+        return 'Help & Support';
+      case 'help_need_help':
+        return 'Need Help?';
+      case 'help_subtitle':
+        return 'Tell us about your issue and we\'ll get back to you soon.';
+      case 'help_your_information':
+        return 'Your Information';
+      case 'help_username':
+        return 'Username';
+      case 'help_email':
+        return 'Email';
+      case 'help_user_id':
+        return 'User ID';
+      case 'help_subject':
+        return 'Subject';
+      case 'help_subject_hint':
+        return 'e.g., Login issue, Bug report, Feature request';
+      case 'help_subject_required':
+        return 'Please enter a subject';
+      case 'help_description':
+        return 'Description';
+      case 'help_description_hint':
+        return 'Please describe your issue in detail...';
+      case 'help_description_required':
+        return 'Please describe your issue';
+      case 'help_description_too_short':
+        return 'Please provide more details (at least 10 characters)';
+      case 'help_submit':
+        return 'Submit Report';
+      case 'help_or_email':
+        return 'Or email us directly at mohsin.sapra@gmail.com';
+      case 'help_opening_email':
+        return 'Opening email app...';
+      case 'help_email_error':
+        return 'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
+      case 'help_generic_error':
+        return 'Error opening email app. Please try again.';
+      case 'notifications_title':
+        return 'Notifications';
+      case 'notifications_mark_all_read':
+        return 'Mark all read';
+      case 'notifications_clear':
+        return 'Clear';
+      case 'notifications_clear_confirm_title':
+        return 'Clear all notifications?';
+      case 'notifications_clear_confirm_body':
+        return 'This will remove all notifications. This action cannot be undone.';
+      case 'notifications_empty_title':
+        return 'No notifications';
+      case 'notifications_empty_subtitle':
+        return 'You\'re all caught up! We\'ll let you know when something new arrives.';
+      case 'notifications_just_now':
+        return 'Just now';
+      case 'notifications_minutes_ago':
+        return '{n} min ago';
+      case 'notifications_hours_ago':
+        return '{n}h ago';
+      case 'notifications_days_ago':
+        return '{n}d ago';
+      case 'notifications_permission_off_title':
+        return 'Notifications are off';
+      case 'notifications_permission_denied_body':
+        return 'You have denied notification permission. Open Settings to enable them.';
+      case 'notifications_permission_not_determined_body':
+        return 'Allow notifications to stay updated on your exam progress and reminders.';
+      case 'notifications_permission_open_settings':
+        return 'Open Settings';
+      case 'notifications_permission_enable':
+        return 'Enable Notifications';
+      case 'notifications_permission_web_dialog_title':
+        return 'Enable in browser';
+      case 'notifications_permission_web_dialog_body':
+        return 'To enable notifications, click the lock icon (🔒) in your browser\'s address bar, find "Notifications", and set it to "Allow". Then refresh the page.';
+      case 'notifications_permission_web_dialog_ok':
+        return 'Got it';
+      case 'image_viewer_swipe_to_close':
+        return 'Swipe down to close';
+      case 'image_viewer_load_error':
+        return 'Could not load image';
+      case 'dash_my_progress':
+        return 'My Progress';
+      case 'dash_sync_from_server':
+        return 'Sync from server';
+      case 'dash_unknown_error':
+        return 'Something went wrong. Please try again.';
+      case 'dash_network_error':
+        return 'No internet connection. Check your connection and try again.';
+      case 'dash_server_error':
+        return 'Server error. Please try again later.';
+      case 'dash_retry':
+        return 'Retry';
+      case 'dash_my_exams':
+        return 'My Exams';
+      case 'dash_tap_to_dive':
+        return 'Tap an exam to dive in';
+      case 'dash_overview':
+        return 'Overview';
+      case 'dash_categories_header':
+        return 'Categories';
+      case 'dash_batches_header':
+        return 'Batches';
+      case 'dash_expand_categories':
+        return 'Expand each category to see batches';
+      case 'dash_weekly_streak':
+        return 'Weekly Streak';
+      case 'dash_consistency_builds':
+        return 'Consistency builds mastery';
+      case 'dash_smart_insights':
+        return 'Smart Insights';
+      case 'dash_based_on_attempts':
+        return 'Based on your attempts';
+      case 'dash_continue_label':
+        return 'Continue: {name}';
+      case 'dash_total_attempts':
+        return 'Total Attempts';
+      case 'dash_batches_done':
+        return 'Batches Done';
+      case 'dash_avg_time':
+        return 'Avg Time';
+      case 'dash_weakest_label':
+        return 'Weakest: {name} ({score}%)';
+      case 'dash_batches_completed_label':
+        return '{done}/{total} batches completed';
+      case 'dash_weakness_low_score':
+        return 'Low score';
+      case 'dash_weakness_over_time':
+        return 'Over time';
+      case 'dash_weakness_needs_work':
+        return 'Needs work';
+      case 'dash_weakness_on_track':
+        return 'On track';
+      case 'dash_not_started':
+        return 'Not started';
+      case 'dash_attempt_one':
+        return '1 attempt';
+      case 'dash_attempt_many':
+        return '{n} attempts';
+      case 'dash_avg_duration':
+        return 'Avg {duration}';
+      case 'dash_over_time_pct':
+        return '+{pct}% time';
+      case 'dash_on_time':
+        return 'On time';
+      case 'dash_insight_strongest':
+        return 'Strongest area';
+      case 'dash_insight_weakest':
+        return 'Weakest area';
+      case 'dash_insight_focus':
+        return 'Focus recommendation';
+      case 'dash_insight_continue_learning':
+        return 'Continue learning';
+      case 'dash_insight_area_detail':
+        return '{name} — {score}% avg';
+      case 'dash_insight_focus_detail':
+        return 'Work on {name} next to keep progressing';
+      case 'dash_insight_start':
+        return 'Start with {name} — pick any batch to begin.';
+      case 'dash_insight_all_done':
+        return 'All batches completed! Revisit low-scoring batches to master them.';
+      case 'dash_insight_progress':
+        return '{done}/{total} batches passed. Keep going — you\'re {pct}% there!';
+      case 'dash_streak_current':
+        return 'Current\nStreak';
+      case 'dash_streak_best':
+        return 'Best\nStreak';
+      case 'dash_streak_weekly_goal':
+        return 'Weekly goal';
+      case 'dash_day_mon':
+        return 'M';
+      case 'dash_day_tue':
+        return 'T';
+      case 'dash_day_wed':
+        return 'W';
+      case 'dash_day_thu':
+        return 'T';
+      case 'dash_day_fri':
+        return 'F';
+      case 'dash_day_sat':
+        return 'S';
+      case 'dash_day_sun':
+        return 'S';
+      case 'dash_streak_msg_none':
+        return 'Start a session today to begin your streak!';
+      case 'dash_streak_msg_amazing':
+        return 'Amazing! {n} days in a row — keep it up!';
+      case 'dash_streak_msg_goal':
+        return 'Weekly goal reached! You\'re on fire 🔥';
+      case 'dash_streak_msg_progress_one':
+        return '{n} day streak! 1 more session to hit your weekly goal.';
+      case 'dash_streak_msg_progress_other':
+        return '{n} day streak! {left} more sessions to hit your weekly goal.';
+      case 'dash_completed':
+        return 'Completed!';
+      case 'dash_tap_to_explore':
+        return 'Tap to explore';
+      case 'onb_which_exams':
+        return 'Which exams are you preparing for?';
+      case 'onb_select_all_apply':
+        return 'Select all that apply';
+      case 'onb_exam_date_title':
+        return 'When is your exam?';
+      case 'onb_exam_date_subtitle':
+        return 'Set a target date to stay on track';
+      case 'onb_practice_days_title':
+        return 'How many days a week will you practice?';
+      case 'onb_practice_days_subtitle':
+        return 'Be realistic — consistency is key';
+      case 'onb_recommendations_title':
+        return 'Recommended for you';
+      case 'onb_recommendations_subtitle':
+        return 'Subscribe to unlock full access to these exams';
+      case 'onb_continue':
+        return 'Continue';
+      case 'onb_get_started':
+        return 'Get Started';
+      case 'onb_1_week':
+        return '1 week';
+      case 'onb_2_weeks':
+        return '2 weeks';
+      case 'onb_3_weeks':
+        return '3 weeks';
+      case 'onb_1_month':
+        return '1 month';
+      case 'onb_2_months':
+        return '2 months';
+      case 'onb_3_months':
+        return '3 months';
+      case 'onb_custom_date':
+        return 'Custom date';
+      case 'onb_subscribe':
+        return 'Subscribe';
+      case 'onb_sign_in_to_subscribe':
+        return 'Sign in to subscribe';
+      case 'onb_sign_in_subtitle':
+        return 'Create a free account or log in to unlock full exam access';
+      case 'onb_no_exams':
+        return 'No exams available right now';
+      case 'onb_days_week_label':
+        return '{n} days/week';
+      case 'onb_step_of':
+        return 'Step {current} of {total}';
+      case 'onb_weekly_goal_title':
+        return 'Weekly Study Goal';
+      case 'onb_weekly_goal_sub':
+        return 'Select the days you\'ll commit to studying.';
+      case 'dash_exam_deadline':
+        return 'Exam Deadline';
+      case 'dash_days_remaining':
+        return '{n} days left';
+      case 'dash_deadline_today':
+        return 'Today!';
+      case 'dash_deadline_passed':
+        return 'Deadline passed';
+      case 'dash_no_deadline':
+        return 'No deadline set';
+      case 'dash_set_deadline':
+        return 'Set deadline';
+      case 'dash_change_deadline':
+        return 'Change deadline';
+      case 'dash_practice_days':
+        return '{n} days/week';
+      case 'dash_hero_sub_start':
+        return 'Start your learning journey!';
+      case 'dash_hero_sub_progress':
+        return 'Keep going, you\'re doing great!';
+      case 'dash_hero_sub_almost':
+        return 'Almost ready for the exam!';
+      case 'dash_hero_sub_done':
+        return 'All done — great work!';
+      case 'dash_performance_overview':
+        return 'Performance Overview';
+      case 'dash_focus_areas':
+        return 'Focus Areas';
+      case 'dash_no_exams_found':
+        return 'No exams found.';
+      case 'dash_stat_completed':
+        return 'Completed';
+      case 'dash_stat_none_yet':
+        return 'None yet';
+      case 'dash_stat_of_n':
+        return 'of {total}';
+      case 'dash_stat_per_session':
+        return 'Per session';
+      case 'dash_exam_type_taxi':
+        return 'TAXI';
+      case 'dash_exam_type_test':
+        return 'TEST';
+      case 'dash_streak_title':
+        return '{n} day streak!';
+      case 'dash_streak_days':
+        return '{n} days';
+      case 'dash_batches_count':
+        return '{n} batches';
+      case 'dash_avg_score_label':
+        return '{score}% avg';
+      case 'tut_step1_title':
+        return 'Step 1 of 3 — Translate';
+      case 'tut_step1_body':
+        return 'Tap the language button to open the list, then select English (or any other language).';
+      case 'tut_step1b_title':
+        return 'Step 1 of 3 — Choose a language';
+      case 'tut_step1b_body':
+        return 'Select a different language from the list, for example English.';
+      case 'tut_step2a_title':
+        return 'Step 2 of 4 — Peek original';
+      case 'tut_step2a_body':
+        return 'Press and hold anywhere on the question (not the options) to temporarily see the original Swedish text.';
+      case 'tut_step2b_title':
+        return 'Step 2 of 4 — Now release';
+      case 'tut_step2b_body':
+        return 'Release your finger to go back to the translated text.';
+      case 'tut_step3a_title':
+        return 'Step 3 of 4 — Next question';
+      case 'tut_step3a_body':
+        return 'Swipe left to go to the next question.';
+      case 'tut_step3b_title':
+        return 'Step 4 of 4 — Come back';
+      case 'tut_step3b_body':
+        return 'Now swipe right to come back to the previous question.';
+      case 'tut_complete_title':
+        return 'You\'re all set!';
+      case 'tut_complete_body':
+        return 'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
+      case 'tut_complete_subtitle':
+        return 'You\'re ready to prepare for your taxi exam!';
+      case 'tut_start_practicing':
+        return 'Start practicing!';
+      case 'sg_title':
+        return 'Study Goals';
+      case 'sg_section_exam_date':
+        return 'EXAM DATE';
+      case 'sg_section_practice_days':
+        return 'PRACTICE DAYS';
+      case 'sg_practice_days_sub':
+        return 'Pick the days you commit to practising each week.';
+      case 'sg_days_per_week':
+        return '{n} day(s) / week';
+      case 'sg_save':
+        return 'Save Settings';
+      case 'sg_settings_saved':
+        return 'Settings saved!';
+      case 'sg_months':
+        return 'MONTHS';
+      case 'sg_custom_date':
+        return 'Custom date';
+      case 'sg_deadline_passed':
+        return 'Exam date passed';
+      case 'sg_days_remaining':
+        return '{n} days remaining';
+      case 'sg_notif_note':
+        return 'You\'ll get two reminders on each practice day — one in the morning and one in the evening — at randomised times to help you build a habit.';
+      case 'sg_profile_menu_label':
+        return 'Study Goals';
+      case 'splash_tagline':
+        return 'HELLO SWEDEN';
+      case 'splash_loading':
+        return 'Preparing your success...';
+      case 'splash_footer':
+        return 'ACADEMIC EXCELLENCE THROUGH KINETIC LEARNING';
+      case 'onb_top_bar_title':
+        return 'GET STARTED';
+      case 'onb_months':
+        return 'MONTHS';
+      case 'onb_step1_plain':
+        return 'What are you studying ';
+      case 'onb_step1_italic':
+        return 'for?';
+      case 'onb_step2_plain':
+        return 'When is your ';
+      case 'onb_step2_italic':
+        return 'exam?';
+      case 'onb_step3_plain':
+        return 'Set your weekly ';
+      case 'onb_step3_italic':
+        return 'goal.';
+      case 'onb_step4_plain':
+        return 'Your Path to ';
+      case 'onb_step4_italic':
+        return 'Mastery.';
+      case 'onb_step4_subtitle':
+        return 'Accelerate your learning with personalised study tools.';
+      case 'onb_no_plan_selected':
+        return 'No plan selected.';
+      case 'onb_buy_bundle':
+        return 'Buy bundle — {price}';
+      case 'onb_signin_to_purchase_title':
+        return 'Sign In to Subscribe';
+      case 'onb_signin_to_purchase_subtitle':
+        return 'Create a free account or sign in to start your subscription. Your progress and subscription will sync across all your devices.';
+      case 'onb_create_account_title':
+        return 'Create Your Free Account';
+      case 'onb_create_account_subtitle':
+        return 'Save your study plan and track your progress across all your devices.';
+      case 'onb_start_practicing':
+        return 'Start Practicing';
+      case 'onb_your_plan_badge':
+        return 'YOUR PLAN';
+      case 'onb_days_per_week':
+        return 'days/week';
+      case 'onb_most_popular':
+        return 'MOST POPULAR';
+      case 'onb_feature_mock_exams':
+        return 'Full mock exam library';
+      case 'onb_feature_progress_tracking':
+        return 'Smart progress tracking';
+      case 'onb_feature_explanations':
+        return 'Detailed answer explanations';
+      case 'onb_get_best_deal':
+        return 'Get Best Deal';
+      case 'onb_best_value':
+        return 'BEST VALUE';
+      case 'onb_choose_plan':
+        return 'Choose Plan';
+      case 'onb_bundle_discount_title':
+        return 'You\'re getting 20% off';
+      case 'onb_bundle_saving':
+        return 'Saving {amount}';
+      case 'onb_price_unavailable':
+        return 'Price unavailable';
+      case 'onb_free_trial':
+        return '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
+      case 'onb_start_free':
+        return 'Continue as Guest';
+      case 'onb_skip_for_now':
+        return 'Skip for now';
+      case 'free_trial_banner_badge':
+        return 'FREE';
+      case 'free_trial_banner_title':
+        return 'Try road signs — no subscription needed';
+      case 'free_trial_banner_subtitle':
+        return 'Vägmärkestest is completely free. Practise at your own pace and get a feel for the app before subscribing.';
+      case 'free_trial_banner_cta':
+        return 'Start Practising';
+      case 'guest_banner_title':
+        return 'You\'re browsing as a guest';
+      case 'guest_banner_subtitle':
+        return 'Create a free account to save your progress and sync across all your devices.';
+      case 'guest_banner_cta':
+        return 'Create Account';
+      case 'guest_convert_title':
+        return 'Save Your Progress';
+      case 'guest_convert_subtitle':
+        return 'Create a free account to keep everything you\'ve practised.';
+      case 'guest_username_hint':
+        return 'Choose a username';
+      case 'guest_email_hint':
+        return 'Email address';
+      case 'guest_password_hint':
+        return 'Password (min. 8 characters)';
+      case 'guest_convert_cta':
+        return 'Create Account';
+      case 'dash_free_hub_title':
+        return 'Full Exam Practice — Free Content';
+      case 'dash_free_hub_subtitle':
+        return 'Practice questions, theory documents, checklists and statistics — no subscription needed.';
+      case 'dash_free_hub_badge':
+        return 'FREE';
+      default:
+        return null;
+    }
+  }
 }
-

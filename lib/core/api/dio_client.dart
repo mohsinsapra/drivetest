@@ -132,9 +132,12 @@ class DioClient {
       // Overriding [keyBuilder] is strongly recommended when [true].
       allowPostMethod: false,
     );
-    final baseUrl = kReleaseMode
-        ? 'https://taxiexam.hayatpoetry.com/'
-        : 'http://192.168.1.130:8010/';
+    const tunnelUrl = String.fromEnvironment('API_BASE_URL');
+    final baseUrl = tunnelUrl.isNotEmpty
+        ? tunnelUrl
+        : kReleaseMode
+            ? 'https://taxiexam.hayatpoetry.com/'
+            : 'http://192.168.1.130:8010/';
 
     _dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',

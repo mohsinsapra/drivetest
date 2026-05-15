@@ -70,7 +70,9 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
               const SizedBox(height: 8),
 
               Text(
-                Translations.of(context).auth_verify_subtitle.replaceAll('{email}', widget.email),
+                Translations.of(context)
+                    .auth_verify_subtitle
+                    .replaceAll('{email}', widget.email),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 14,

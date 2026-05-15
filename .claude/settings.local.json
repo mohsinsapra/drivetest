@@ -204,7 +204,18 @@
       "Bash(make showmigrations *)",
       "Bash(grep -i \"\\\\.dart$\")",
       "Skill(humanizer)",
-      "Skill(autoplan)"
+      "Skill(autoplan)",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(gh run *)",
+      "Bash(ssh-add -l)",
+      "Bash(cloudflared tunnel *)",
+      "Bash(curl -s -X GET https://api.cloudflare.com/client/v4/zones?name=mohsin.se -H 'Authorization: Bearer cfat_PX81IjpTqGjGRwjtSSCPUax5GGZ9JxsKEs8IBxFh349315f1' -H 'Content-Type: application/json')",
+      "Bash(curl -s -X GET https://api.cloudflare.com/client/v4/zones -H 'Authorization: Bearer cfat_PX81IjpTqGjGRwjtSSCPUax5GGZ9JxsKEs8IBxFh349315f1')",
+      "Bash(make dev-tunnel *)",
+      "Bash(make web-tunnel *)",
+      "Bash(lsof -ti:8010)",
+      "Bash(xargs kill -9)"
     ],
     "deny": [],
     "ask": []

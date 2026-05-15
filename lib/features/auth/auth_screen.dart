@@ -152,7 +152,10 @@ class _AuthScreenState extends State<AuthScreen> {
         });
         return;
       }
-      if (mounted) setState(() => _googleLoadingStep = Translations.of(context).auth_google_verifying);
+      if (mounted) {
+        setState(() => _googleLoadingStep =
+            Translations.of(context).auth_google_verifying);
+      }
       await Sentry.addBreadcrumb(Breadcrumb(
           message: 'Google Sign-In: user obtained, fetching auth tokens',
           category: 'auth'));
@@ -162,7 +165,10 @@ class _AuthScreenState extends State<AuthScreen> {
       if (idToken == null && accessToken == null) {
         throw Exception('No authentication token received');
       }
-      if (mounted) setState(() => _googleLoadingStep = Translations.of(context).auth_google_signing_in);
+      if (mounted) {
+        setState(() => _googleLoadingStep =
+            Translations.of(context).auth_google_signing_in);
+      }
       await Sentry.addBreadcrumb(Breadcrumb(
           message:
               'Google Sign-In: tokens received, calling backend googleAuth',
@@ -1675,9 +1681,12 @@ class _SignupView extends StatelessWidget {
                                   color: cs.onSurface,
                                 ),
                                 children: [
-                                  TextSpan(text: '${Translations.of(context).auth_signup_heading_plain}\n'),
                                   TextSpan(
-                                    text: Translations.of(context).auth_signup_heading_italic,
+                                      text:
+                                          '${Translations.of(context).auth_signup_heading_plain}\n'),
+                                  TextSpan(
+                                    text: Translations.of(context)
+                                        .auth_signup_heading_italic,
                                     style: GoogleFonts.lexend(
                                       fontStyle: FontStyle.italic,
                                       color: cs.primary,
