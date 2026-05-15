@@ -10,13 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Guest account flow: users can now continue as a guest from the onboarding pricing screen without registering; guest session is created via `POST /api/user/guest/`
+- Guest account conversion: guests can upgrade to a full account in-place via `POST /api/user/guest/convert/` — all progress and session history is preserved
+- Guest banner on profile screen prompting guests to create a full account
+- `_FreeBCDHubCard` and `_FreeVagmarkesCard` on the dashboard for users without an active subscription, surfacing free content immediately
+- Per-button loading indicators on auth sheet: Apple, Google, and form buttons now show individual spinners with a "Signing in…" label instead of a single shared loader
+- `required` and `allowDemo` params on `showAuthBottomSheet` — post-purchase sheets cannot be dismissed by tapping outside, and the demo login shortcut is hidden during onboarding
 
 ### Changed
--
+- Auth required **before** purchase (not after): login/signup sheet now shown before the StoreKit payment sheet for subscription purchases, satisfying Apple guideline 5.1.1(v) for account-based products
+- Removed "Restore Purchases" button and `restore()` flow entirely; auto-renewable subscriptions are restored by StoreKit automatically (Apple guideline 3.1.1)
+- `_FreeTrialBanner` removed from the Drive Test (BCD) screen
+- `_TestCard` in category hub no longer shows a sequence number; tests are now sorted alphabetically instead
+- Category icons on licences and subscriptions screens now use content-specific icons from `category_icon_mapper.dart` instead of generic lock/book icons; unsubscribed categories show a small lock badge overlay
+- `_ProductCard` on subscriptions screen redesigned: icon + duration badge row, larger title, `FilledButton` CTAs, category-matched accent colour
+- Backend verification failure during purchase no longer surfaces an error to the user — transaction always completes successfully and the receipt is saved for deferred retry
+- `debug_credentials.dart` constants used for demo login in both `auth_screen.dart` and `auth_bottom_sheet.dart` (previously hardcoded inline)
+- Demo login button hidden behind `kDebugMode` guard in production builds
+- Auth screen `_GradientButton` and sheet `_SheetGradientButton` now show spinner + loading label inline (button does not collapse during loading)
 
 ### Fixed
--
+- Deferred IAP receipt retried on next login via `IAPService.instance.verifyDeferredReceipt()` called in both `_onSuccess` (auth sheet) and post-login callback (auth screen)
+- `_findFreeCategory()` in dashboard replaced empty-map sentinel pattern with `firstWhereOrNull` (collection package)
+- Duplicate `category_bcd_ids` → BCD category lookup extracted into `_resolveCategoryForProducts()` in onboarding (was copy-pasted three times)
+- Duplicate navigation logic (`pushReplacement` + optional hub push) extracted into `_navigateToMainAndCategory()` in onboarding
+- Pass-through `_colorForCategory` / `_iconForCategory` wrapper methods removed from dashboard; `categoryColor()` / `categoryIcon()` called directly
+- `.catchError((_) => null)` replaced with `.ignore()` for fire-and-forget deferred receipt calls
+- Errors cleared when switching between login/signup/landing views in auth screen
 
 ---
 

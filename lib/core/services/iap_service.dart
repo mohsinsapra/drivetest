@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/api/dio_client.dart';
 
 /// Wraps [InAppPurchase] and wires purchases through backend validation.
 ///
@@ -33,10 +32,6 @@ class IAPService {
 
   static const _kDeferredKey = 'iap_deferred_receipt';
 
-  // Broadcast stream that emits each successfully restored product ID.
-  final _restoreController = StreamController<String>.broadcast();
-  Stream<String> get restoredProductIds => _restoreController.stream;
-
   Future<bool> get isAvailable => _iap.isAvailable();
 
   /// Start listening to the purchase stream. Call once at app startup (or
@@ -55,14 +50,7 @@ class IAPService {
 
   void dispose() {
     _subscription?.cancel();
-    _restoreController.close();
     _initialized = false;
-  }
-
-  /// Initialises the service (if not already) and triggers a restore.
-  Future<void> restore() async {
-    init();
-    await _iap.restorePurchases();
   }
 
   /// Load [ProductDetails] for the given IAP product IDs from the store.
@@ -105,36 +93,19 @@ class IAPService {
 
       if (purchase.status == PurchaseStatus.purchased ||
           purchase.status == PurchaseStatus.restored) {
-        // If the user is not logged in yet, save the receipt and skip backend verify.
-        if (DioClient().accessToken == null) {
-          await _saveReceiptForLater(purchase);
-          debugPrint('[IAP] no auth token, saving receipt for deferred verify');
-          try {
-            await _iap.completePurchase(purchase);
-          } catch (e) {
-            debugPrint('[IAP] completePurchase error (non-fatal): $e');
-          }
-          // For a buy flow: resolve the completer with success so the UI can prompt login.
-          if (_pendingCompleter != null &&
-              purchase.productID == _pendingProductId) {
-            _pendingCompleter?.complete(purchase.purchaseID);
-            _pendingCompleter = null;
-            _pendingProductId = null;
-            _pendingInternalProductId = null;
-          }
-          // For restore flow with no auth: do NOT emit to _restoreController.
-          // Caller should detect no-auth state and call verifyDeferredReceipt() after login.
-          continue;
-        }
-
-        Object? verifyError;
         try {
           debugPrint('[IAP] verifying on backend...');
           await _verifyOnBackend(purchase);
           debugPrint('[IAP] backend verified, completing purchase');
         } catch (e) {
           debugPrint('[IAP] backend verify failed: $e');
-          verifyError = e;
+          // Save the receipt so it can be retried after re-login or network recovery.
+          // Never surface this error to the user — the StoreKit transaction already succeeded.
+          try {
+            await _saveDeferredReceipt(purchase);
+          } catch (saveErr) {
+            debugPrint('[IAP] failed to save deferred receipt: $saveErr');
+          }
         }
 
         // Always finish the transaction; completePurchase errors are non-fatal
@@ -146,18 +117,13 @@ class IAPService {
         }
 
         if (_pendingCompleter != null && purchase.productID == _pendingProductId) {
-          // Active buy flow — resolve the completer.
-          if (verifyError != null) {
-            _pendingCompleter?.completeError(verifyError);
-          } else {
-            _pendingCompleter?.complete(purchase.purchaseID);
-          }
+          // Active buy flow — always resolve as success so the user does not see
+          // a payment error. If backend verify failed, the receipt is saved for
+          // deferred processing.
+          _pendingCompleter?.complete(purchase.purchaseID);
           _pendingCompleter = null;
           _pendingProductId = null;
           _pendingInternalProductId = null;
-        } else if (purchase.status == PurchaseStatus.restored && verifyError == null) {
-          // Restore flow — notify listeners.
-          _restoreController.add(purchase.productID);
         }
       } else if (purchase.status == PurchaseStatus.error) {
         try {
@@ -180,7 +146,7 @@ class IAPService {
     }
   }
 
-  Future<void> _saveReceiptForLater(PurchaseDetails purchase) async {
+  Future<void> _saveDeferredReceipt(PurchaseDetails purchase) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
@@ -190,14 +156,21 @@ class IAPService {
             'product_id': purchase.productID,
             'internal_product_id': _pendingInternalProductId,
           }));
-      debugPrint('[IAP] receipt saved for deferred verify');
+      debugPrint('[IAP] deferred receipt saved for authenticated retry');
     } catch (e) {
       debugPrint('[IAP] failed to save deferred receipt: $e');
     }
   }
 
-  /// Called after login to verify any receipt that was saved during a
-  /// purchase or restore that occurred while the user was not logged in.
+  /// Returns true if a receipt was saved during a purchase while backend
+  /// verification failed and is still waiting to be retried.
+  Future<bool> hasDeferredReceipt() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kDeferredKey) != null;
+  }
+
+  /// Called after login to verify any receipt that was saved during a purchase
+  /// where backend verification failed (e.g. transient network error).
   /// Returns the backend response map (includes receipt_number) on success,
   /// or null if no deferred receipt exists or verification fails.
   Future<Map<String, dynamic>?> verifyDeferredReceipt() async {
@@ -211,6 +184,24 @@ class IAPService {
     } catch (_) {
       await prefs.remove(_kDeferredKey);
       debugPrint('[IAP] deferred receipt was malformed JSON, purged');
+      return null;
+    }
+
+    // Local StoreKit testing produces JWS tokens that Apple's servers can't
+    // verify. Use the confirm endpoint directly (no real receipt needed).
+    if (kDebugMode) {
+      debugPrint('[IAP] debug mode: skipping Apple receipt verify for deferred receipt');
+      try {
+        final internalId = data['internal_product_id'] as int?;
+        if (internalId != null) {
+          final result = await _api.confirmBCDIAPPurchase(internalId);
+          await prefs.remove(_kDeferredKey);
+          debugPrint('[IAP] debug deferred confirm succeeded');
+          return result;
+        }
+      } catch (e) {
+        debugPrint('[IAP] debug deferred confirm failed: $e');
+      }
       return null;
     }
 
@@ -231,14 +222,17 @@ class IAPService {
 
   Future<void> _verifyOnBackend(PurchaseDetails purchase) async {
     if (kIsWeb || !Platform.isIOS) return;
-    // Local StoreKit testing produces JWS tokens that Apple's servers can't verify.
+    // Local StoreKit testing produces JWS tokens Apple's servers can't verify.
+    // For the buy flow (_pendingInternalProductId set) call confirmBCDIAPPurchase
+    // directly. For restored events (no internalProductId) skip — the backend
+    // already has the subscription from the original purchase.
     if (kDebugMode) {
-      debugPrint('[IAP] skipping backend verify in debug mode');
-      return;
-    }
-    if (DioClient().accessToken == null) {
-      // Shouldn't reach here normally (caught in _onPurchaseUpdate), but guard anyway.
-      debugPrint('[IAP] no auth token in _verifyOnBackend (should not happen)');
+      if (_pendingInternalProductId != null) {
+        debugPrint('[IAP] debug mode: confirming purchase on backend (no Apple verify)');
+        await _api.confirmBCDIAPPurchase(_pendingInternalProductId!);
+      } else {
+        debugPrint('[IAP] debug mode: skipping backend verify for restore (no internalProductId)');
+      }
       return;
     }
     await _api.verifyAppleIAP(

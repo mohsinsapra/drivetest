@@ -24,6 +24,7 @@ class ProfileProvider extends ChangeNotifier {
   bool hasPassword = true;
   bool isGoogleAccount = false;
   bool isDemo = false;
+  bool isGuest = false;
 
   // ── Loading states ────────────────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ class ProfileProvider extends ChangeNotifier {
       final map = jsonDecode(stored) as Map<String, dynamic>;
       username = map['username']?.toString() ?? 'Unknown';
       email = map['email']?.toString() ?? '';
+      isGuest = map['is_guest'] == true;
       notifyListeners();
     }
   }
@@ -60,6 +62,16 @@ class ProfileProvider extends ChangeNotifier {
           (map['has_password'] ?? map['has_usable_password']) == true;
       isGoogleAccount = map['is_google_account'] == true;
       isDemo = map['is_demo'] == true;
+      isGuest = map['is_guest'] == true;
+
+      // Persist so the correct menu state is shown immediately on next cold start.
+      final prefs = await SharedPreferences.getInstance();
+      final stored = prefs.getString('user');
+      final existing = stored != null
+          ? Map<String, dynamic>.from(jsonDecode(stored) as Map)
+          : <String, dynamic>{};
+      existing['is_guest'] = isGuest;
+      await prefs.setString('user', jsonEncode(existing));
     } catch (_) {
       rethrow;
     } finally {

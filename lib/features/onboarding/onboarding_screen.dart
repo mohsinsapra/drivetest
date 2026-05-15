@@ -18,7 +18,6 @@ import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_sub_category_screen.dart';
 import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
-import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 typedef OnboardingLoadProducts = Future<List<Map<String, dynamic>>> Function();
@@ -27,6 +26,7 @@ typedef OnboardingAuthSheet = Future<bool> Function(
   BuildContext context, {
   String? title,
   String? subtitle,
+  bool required,
 });
 typedef OnboardingPayment = Future<SubscriptionSuccessResult?> Function(
   BuildContext context,
@@ -59,9 +59,10 @@ class OnboardingScreen extends StatefulWidget {
     BuildContext context, {
     String? title,
     String? subtitle,
+    bool required = false,
   }) async {
     if (DioClient().accessToken != null) return true;
-    return showAuthBottomSheet(context, title: title, subtitle: subtitle);
+    return showAuthBottomSheet(context, title: title, subtitle: subtitle, required: required, allowDemo: false);
   }
 
   static bool _defaultIsLoggedIn() => DioClient().accessToken != null;
@@ -103,7 +104,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _loadingProducts = true;
   final List<Map<String, dynamic>> _selectedProducts = [];
   bool _purchaseInFlight = false;
-  bool _restoreInFlight = false;
   List<Map<String, dynamic>> _mySubscriptions = [];
 
   // Step 0 — exam date
@@ -117,7 +117,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void initState() {
     super.initState();
     _fetchProductsInBackground();
-    if (widget.isLoggedIn()) _fetchMySubscriptions();
+    if (widget.isLoggedIn()) {
+      _fetchMySubscriptions();
+    }
   }
 
   Future<void> _fetchMySubscriptions({bool forceRefresh = false}) async {
@@ -179,7 +181,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await _saveProgressPrefs();
     await _markOnboardingComplete();
     if (!mounted) return;
-    // If already logged in, go straight to the app — not the login screen.
     navigator.pushReplacement(
       widget.isLoggedIn()
           ? AppPageRoute(builder: (_) => const MainScreen())
@@ -221,6 +222,60 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  /// Returns the first BCD category from [BcdCache] that matches the
+  /// `category_bcd_ids` of any product in [products], or null if none match.
+  Map<String, dynamic>? _resolveCategoryForProducts(List<Map<String, dynamic>> products) {
+    for (final p in products) {
+      final ids = p['category_bcd_ids'] as List<dynamic>?;
+      final id = ids?.firstOrNull;
+      if (id == null) continue;
+      final cat = BcdCache.instance.categories.firstWhereOrNull(
+        (c) => c['bcd_id']?.toString() == id.toString(),
+      );
+      if (cat != null) return cat;
+    }
+    return null;
+  }
+
+  /// Replaces onboarding with [MainScreen] then, if [targetCategory] is set,
+  /// pushes the category hub so the user lands in their chosen subject.
+  void _navigateToMainAndCategory(
+    NavigatorState navigator,
+    Map<String, dynamic>? targetCategory,
+  ) {
+    navigator.pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
+    if (targetCategory == null) return;
+    final cat = Map<String, dynamic>.from(targetCategory);
+    final hasChildren = cat['has_children'] == true;
+    navigator.push(
+      hasChildren
+          ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: cat))
+          : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat)),
+    );
+  }
+
+  Future<void> _handleStartFree() async {
+    if (_purchaseInFlight || !mounted) return;
+    setState(() => _purchaseInFlight = true);
+    try {
+      await ApiService().guestLogin();
+    } catch (e) {
+      if (mounted) setState(() => _purchaseInFlight = false);
+      return;
+    }
+
+    await BcdCache.instance.ensureLoaded();
+
+    await _saveProgressPrefs();
+    await _markOnboardingComplete();
+    if (!mounted) return;
+
+    _navigateToMainAndCategory(
+      Navigator.of(context),
+      _resolveCategoryForProducts(_selectedProducts),
+    );
+  }
+
   Future<void> _handlePurchaseTap({Map<String, dynamic>? only}) async {
     final products = only != null
         ? [only]
@@ -249,25 +304,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         BcdCache.instance.invalidate();
         await BcdCache.instance.ensureLoaded();
         if (!mounted) return;
-        final navigator = Navigator.of(context);
-        navigator.pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
-        final categoryBcdIds = products.first['category_bcd_ids'] as List<dynamic>?;
-        final targetBcdId = categoryBcdIds?.firstOrNull;
-        if (targetBcdId != null) {
-          final targetBcdIdStr = targetBcdId.toString();
-          final targetCategory = BcdCache.instance.categories.firstWhereOrNull(
-            (c) => c['bcd_id']?.toString() == targetBcdIdStr,
-          );
-          if (targetCategory != null) {
-            final hasChildren = targetCategory['has_children'] == true;
-            navigator.push(hasChildren
-                ? AppPageRoute(builder: (_) => BCDSubCategoryScreen(parentCategory: Map<String, dynamic>.from(targetCategory)..['is_subscribed'] = true))
-                : AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: Map<String, dynamic>.from(targetCategory)..['is_subscribed'] = true)));
-          }
-        }
+        final rawCategory = _resolveCategoryForProducts(products);
+        final targetCategory = rawCategory != null
+            ? (Map<String, dynamic>.from(rawCategory)..['is_subscribed'] = true)
+            : null;
+        _navigateToMainAndCategory(Navigator.of(context), targetCategory);
         return;
       }
     } // end if (widget.isLoggedIn())
+
+    // Auto-renewing subscriptions are account-based — require login before purchase
+    // so the subscription can be tracked and restored across devices.
+    if (!widget.isLoggedIn()) {
+      final t = Translations.of(context);
+      final authed = await widget.showAuthSheet(
+        context,
+        title: t.onb_signin_to_purchase_title,
+        subtitle: t.onb_signin_to_purchase_subtitle,
+        required: false,
+      );
+      if (!mounted) return;
+      if (!authed) {
+        setState(() => _purchaseInFlight = false);
+        return;
+      }
+    }
 
     await _saveProgressPrefs();
     if (!mounted) return;
@@ -279,20 +340,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         return;
       }
 
-      // Payment succeeded. If not logged in, prompt account creation now.
-      if (!widget.isLoggedIn()) {
-        final authed = await widget.showAuthSheet(
-          context,
-          title: 'Create Your Drive Test Pro Account',
-          subtitle: 'A free account links your subscription to your profile so you can access it on any device.',
-        );
-        if (!authed || !mounted) {
-          if (mounted) setState(() => _purchaseInFlight = false);
-          return;
+      // Payment succeeded. If backend verify was deferred during the purchase
+      // (e.g. transient network error), retry it now so the subscription
+      // activates before navigating to the main screen.
+      if (await IAPService.instance.hasDeferredReceipt()) {
+        try {
+          await IAPService.instance.verifyDeferredReceipt();
+        } catch (e) {
+          debugPrint('[Onboarding] deferred receipt retry failed: $e');
         }
-        // Verify the deferred receipt now that we have auth
-        await IAPService.instance.verifyDeferredReceipt();
-        if (!mounted) return;
       }
 
       await _markOnboardingComplete();
@@ -304,99 +360,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       if (!mounted) return;
 
-      final navigator = Navigator.of(context);
-      Map<String, dynamic>? targetCategory;
-      if (result == SubscriptionSuccessResult.startTests) {
-        for (final p in products) {
-          final categoryBcdIds = p['category_bcd_ids'] as List<dynamic>?;
-          final targetBcdId = categoryBcdIds?.firstOrNull;
-          if (targetBcdId != null) {
-            final targetBcdIdStr = targetBcdId.toString();
-            targetCategory = BcdCache.instance.categories.firstWhereOrNull(
-              (c) => c['bcd_id']?.toString() == targetBcdIdStr,
-            );
-            if (targetCategory != null) break;
-          }
-        }
-      }
-
-      navigator
-          .pushReplacement(AppPageRoute(builder: (_) => const MainScreen()));
-
-      if (targetCategory != null) {
-        final hasChildren = targetCategory['has_children'] == true;
-        final route = hasChildren
-            ? AppPageRoute(
-                builder: (_) =>
-                    BCDSubCategoryScreen(parentCategory: targetCategory!),
-              )
-            : AppPageRoute(
-                builder: (_) => BCDCategoryHubScreen(category: targetCategory!),
-              );
-        navigator.push(route);
-      }
+      final targetCategory = result == SubscriptionSuccessResult.startTests
+          ? _resolveCategoryForProducts(products)
+          : null;
+      _navigateToMainAndCategory(Navigator.of(context), targetCategory);
     } finally {
       if (mounted) setState(() => _purchaseInFlight = false);
-    }
-  }
-
-  Future<void> _handleRestore() async {
-    if (_restoreInFlight) return;
-    setState(() => _restoreInFlight = true);
-
-    try {
-      // Tell StoreKit to re-deliver past transactions so the backend can
-      // record them. Then we query the backend directly — this is more
-      // reliable than listening on the purchase stream, which can miss events
-      // when internalProductId is null during restore.
-      await IAPService.instance.restore();
-
-      // Give StoreKit a few seconds to deliver the restored transactions and
-      // let the backend process them before we query.
-      await Future.delayed(const Duration(seconds: 5));
-      if (!mounted) return;
-
-      // If not logged in yet, prompt sign-in to activate restored subscription
-      if (!widget.isLoggedIn()) {
-        if (!mounted) return;
-        final authed = await widget.showAuthSheet(
-          context,
-          title: 'Sign In to Restore',
-          subtitle: 'Sign in to your Drive Test Pro account — not your Apple ID — to activate your restored subscription.',
-        );
-        if (!authed || !mounted) {
-          setState(() => _restoreInFlight = false);
-          return;
-        }
-        // Verify the saved receipt now that we have auth
-        await IAPService.instance.verifyDeferredReceipt();
-        if (!mounted) return;
-      }
-
-      final subs = await ApiService().fetchMyBCDSubscriptions(forceRefresh: true);
-      if (!mounted) return;
-
-      final hasActive = subs.any((s) => s['status'] == 'paid');
-      if (hasActive) {
-        await _saveProgressPrefs();
-        await _markOnboardingComplete();
-        if (!mounted) return;
-        await DioClient().clearCache();
-        BcdCache.instance.invalidate();
-        await BcdCache.instance.ensureLoaded();
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          AppPageRoute(builder: (_) => const MainScreen()),
-        );
-      } else {
-        if (mounted) showAppSnackBar(Translations.of(context).onb_restore_initiated);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(Translations.of(context).bcd_payment_failed,
-          type: SnackBarType.error);
-    } finally {
-      if (mounted) setState(() => _restoreInFlight = false);
     }
   }
 
@@ -466,7 +435,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onBack: _goBack,
                     onNext: _goNext,
                   ),
-                  // Step 4: Choose Your Plan
+                  // Step 4: Pricing + "Start for free" guest path (all platforms).
                   _PlanPage(
                     products: _selectedProducts,
                     purchasing: _purchaseInFlight,
@@ -479,8 +448,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ? null
                             : () => _handlePurchaseTap(),
                     onBack: _goBack,
-                    onRestore: _handleRestore,
-                    restoring: _restoreInFlight,
+                    onStartFree: _purchaseInFlight ? null : _handleStartFree,
                   ),
                 ],
               ),
@@ -1331,7 +1299,7 @@ class _CategoryShimmer extends StatelessWidget {
   }
 }
 
-// ─── Step 2: Choose Your Plan (pricing tiers) ─────────────────────────────────
+// ─── Step 4: Choose Your Plan (pricing tiers + guest path) ───────────────────
 
 class _PlanPage extends StatelessWidget {
   const _PlanPage({
@@ -1341,8 +1309,7 @@ class _PlanPage extends StatelessWidget {
     required this.onPurchaseOne,
     required this.onPurchaseAll,
     required this.onBack,
-    required this.onRestore,
-    required this.restoring,
+    required this.onStartFree,
   });
 
   final List<Map<String, dynamic>> products;
@@ -1351,8 +1318,7 @@ class _PlanPage extends StatelessWidget {
   final void Function(Map<String, dynamic>)? onPurchaseOne;
   final VoidCallback? onPurchaseAll;
   final VoidCallback onBack;
-  final VoidCallback onRestore;
-  final bool restoring;
+  final VoidCallback? onStartFree;
 
   @override
   Widget build(BuildContext context) {
@@ -1439,42 +1405,54 @@ class _PlanPage extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: cs.outlineVariant)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'or',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: cs.outline,
+                        ),
+                      ),
+                    ),
+                    Expanded(child: Divider(color: cs.outlineVariant)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: TextButton(
+                    onPressed: purchasing ? null : onStartFree,
+                    style: TextButton.styleFrom(
+                      foregroundColor: cs.onSurfaceVariant,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: Text(
+                      t.onb_start_free,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
           child: _NavRow(
             onBack: onBack,
             onNext: null,
             nextLabel: t.onb_continue,
           ),
         ),
-        if (!kIsWeb && Platform.isIOS)
-          Center(
-            child: TextButton(
-              onPressed: restoring ? null : onRestore,
-              child: restoring
-                  ? SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: cs.outline,
-                      ),
-                    )
-                  : Text(
-                      t.onb_restore_purchases,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: cs.outline,
-                            letterSpacing: 1.5,
-                          ),
-                    ),
-            ),
-          )
-        else
-          const SizedBox(height: 32),
       ],
     );
   }

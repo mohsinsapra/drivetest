@@ -1,7 +1,12 @@
+import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'dart:io' show Platform;
+import 'package:google_fonts/google_fonts.dart';
+
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -13,6 +18,8 @@ import 'package:taxi_exam_app/features/streak/streak_settings_screen.dart';
 import 'package:taxi_exam_app/features/payment/receipt_screen.dart';
 import 'package:taxi_exam_app/features/support/help_screen.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -168,6 +175,118 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
+  Future<void> _showGuestConvertSheet(BuildContext context) async {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final usernameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final passwordCtrl = TextEditingController();
+    String? error;
+    bool loading = false;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: cs.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.fromLTRB(
+              24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(t.guest_convert_title,
+                  style: GoogleFonts.lexend(
+                      fontSize: 22, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 6),
+              Text(t.guest_convert_subtitle,
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14, color: cs.onSurfaceVariant)),
+              const SizedBox(height: 20),
+              TextField(
+                controller: usernameCtrl,
+                decoration: InputDecoration(
+                  hintText: t.guest_username_hint,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  hintText: t.guest_email_hint,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: passwordCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: t.guest_password_hint,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 8),
+                Text(error!,
+                    style: TextStyle(color: cs.error, fontSize: 13)),
+              ],
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: loading
+                      ? null
+                      : () async {
+                          setSheetState(() {
+                            loading = true;
+                            error = null;
+                          });
+                          try {
+                            await ApiService().convertGuest(
+                              username: usernameCtrl.text.trim(),
+                              email: emailCtrl.text.trim(),
+                              password: passwordCtrl.text,
+                            );
+                            await _profile.loadProfile();
+                            if (ctx.mounted) Navigator.of(ctx).pop();
+                          } catch (e) {
+                            setSheetState(() {
+                              loading = false;
+                              error = e.toString().replaceAll('Exception: ', '');
+                            });
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: cs.primary,
+                    foregroundColor: cs.onPrimary,
+                    shape: const StadiumBorder(),
+                  ),
+                  child: loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2.5, color: Colors.white))
+                      : Text(t.guest_convert_cta,
+                          style: GoogleFonts.lexend(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _handlePrimaryMenuTap(int index) async {
     try {
       final nav = NavigationService.navigatorKey.currentState;
@@ -239,25 +358,38 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
     ];
     final secondaryItems = [
+      if (!kIsWeb && Platform.isIOS && !_profile.isGuest)
+        (
+          icon: Icons.subscriptions_rounded,
+          color: const Color(0xFFE8F5E9),
+          title: t.profile_manage_subscription,
+        ),
+      if (!_profile.isGuest)
+        (
+          icon: Icons.receipt_long_outlined,
+          color: const Color(0xFFDCEEFB),
+          title: t.profile_purchase_history,
+        ),
       (
-        icon: Icons.receipt_long_outlined,
-        color: const Color(0xFFDCEEFB),
-        title: 'Purchase History'
+        icon: Icons.tour_rounded,
+        color: const Color(0xFFE8EAF6),
+        title: t.profile_revisit_setup,
       ),
-      (
-        icon: Icons.person_add_alt,
-        color: const Color(0xFFE0E0E0),
-        title: t.profile_invite
-      ),
+      if (!_profile.isGuest)
+        (
+          icon: Icons.person_add_alt,
+          color: const Color(0xFFE0E0E0),
+          title: t.profile_invite,
+        ),
       (
         icon: Icons.help_outline,
         color: const Color(0xFFE0E0E0),
-        title: t.profile_help
+        title: t.profile_help,
       ),
       (
         icon: Icons.feedback_outlined,
         color: const Color(0xFFE0E0E0),
-        title: 'Send Feedback'
+        title: t.profile_send_feedback,
       ),
     ];
 
@@ -313,45 +445,61 @@ class _ProfileScreenState extends State<ProfileScreen>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.pinkAccent.shade100,
+                        color: _profile.isGuest
+                            ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08)
+                            : Colors.pinkAccent.shade100,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        t.profile_student,
+                        _profile.isGuest ? t.guest_banner_cta : t.profile_student,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: _profile.isGuest
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      _profile.username ?? t.loading,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      _profile.email ?? '',
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
+                    if (!_profile.isGuest) ...[
+                      Text(
+                        _profile.username ?? t.loading,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        _profile.email ?? '',
+                        style:
+                            const TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
 
+            // ── Guest banner ───────────────────────────────────────────
+            if (_profile.isGuest)
+              _ProfileTile(
+                index: 0,
+                child: _GuestBanner(onConvert: () => _showGuestConvertSheet(context)),
+              ),
+
             // ── Staggered menu tiles ───────────────────────────────────
-            ...menuItems.asMap().entries.map((e) => _ProfileTile(
-                  index: e.key,
-                  child: _buildMenuTile(
-                    context,
-                    icon: e.value.icon,
-                    iconColor: e.value.color,
-                    title: e.value.title,
-                    onTap: () => _handlePrimaryMenuTap(e.key),
-                  ),
-                )),
+            ...menuItems.asMap().entries
+                .where((e) => !_profile.isGuest || e.key != 0)
+                .map((e) => _ProfileTile(
+                      index: e.key,
+                      child: _buildMenuTile(
+                        context,
+                        icon: e.value.icon,
+                        iconColor: e.value.color,
+                        title: e.value.title,
+                        onTap: () => _handlePrimaryMenuTap(e.key),
+                      ),
+                    )),
 
             _ProfileTile(
               index: menuItems.length,
@@ -365,15 +513,30 @@ class _ProfileScreenState extends State<ProfileScreen>
                     icon: e.value.icon,
                     iconColor: e.value.color,
                     title: e.value.title,
-                    onTap: e.value.title == 'Send Feedback'
-                        ? _showAppFeedbackDialog
-                        : e.value.title == 'Help'
-                            ? () => Navigator.push(context,
-                                AppPageRoute(builder: (_) => const HelpScreen()))
-                            : e.value.title == 'Purchase History'
+                    onTap: e.value.title == 'Manage Subscription'
+                        ? () => launchUrl(
+                              Uri.parse('https://apps.apple.com/account/subscriptions'),
+                              mode: LaunchMode.externalApplication,
+                            )
+                        : e.value.title == 'Send Feedback'
+                            ? _showAppFeedbackDialog
+                            : e.value.title == 'Help'
                                 ? () => Navigator.push(context,
-                                    AppPageRoute(builder: (_) => const PurchaseHistoryScreen()))
-                                : () {},
+                                    AppPageRoute(builder: (_) => const HelpScreen()))
+                                : e.value.title == 'Purchase History'
+                                    ? () => Navigator.push(context,
+                                        AppPageRoute(builder: (_) => const PurchaseHistoryScreen()))
+                                    : e.value.title == 'Revisit Setup'
+                                        ? () async {
+                                            final prefs = await SharedPreferences.getInstance();
+                                            await prefs.remove('onboarding_complete');
+                                            if (!context.mounted) return;
+                                            Navigator.of(context).pushAndRemoveUntil(
+                                              AppPageRoute(builder: (_) => const OnboardingScreen()),
+                                              (_) => false,
+                                            );
+                                          }
+                                        : () {},
                   ),
                 )),
 
@@ -382,8 +545,8 @@ class _ProfileScreenState extends State<ProfileScreen>
               child: const Divider(thickness: 0.5, color: Color(0xFFE0E0E0)),
             ),
 
-            // ── Debug: Sentry test (debug builds only) ─────────────────
-            if (kDebugMode)
+            // ── Debug: Sentry test + reset onboarding (debug builds only) ──
+            if (kDebugMode) ...[
               _ProfileTile(
                 index: menuItems.length + secondaryItems.length + 2,
                 child: Padding(
@@ -396,7 +559,26 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ),
               ),
-
+              _ProfileTile(
+                index: menuItems.length + secondaryItems.length + 3,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove('onboarding_complete');
+                      if (!context.mounted) return;
+                      Navigator.of(context).pushAndRemoveUntil(
+                        AppPageRoute(builder: (_) => const OnboardingScreen()),
+                        (_) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                    child: const Text('Reset Onboarding'),
+                  ),
+                ),
+              ),
+            ],
             // ── Logout ─────────────────────────────────────────────────
             _ProfileTile(
               index: menuItems.length + secondaryItems.length + 2,
@@ -526,14 +708,16 @@ class _LogoutSheetState extends State<_LogoutSheet> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed:
                         _isLoading ? null : () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Theme.of(context).primaryColor,
-                      side:
-                          BorderSide(color: Theme.of(context).primaryColor),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      side: BorderSide(
+                          color: Theme.of(context).colorScheme.outlineVariant),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     child: Text(t.cancel),
                   ),
@@ -542,8 +726,13 @@ class _LogoutSheetState extends State<_LogoutSheet> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _doLogout,
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 18,
@@ -585,4 +774,73 @@ Widget _buildMenuTile(
     trailing: const Icon(Icons.chevron_right),
     onTap: onTap,
   );
+}
+
+class _GuestBanner extends StatelessWidget {
+  const _GuestBanner({required this.onConvert});
+  final VoidCallback onConvert;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        color: cs.onSurface.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.person_outline_rounded,
+                  color: cs.onSurfaceVariant, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                t.guest_banner_title,
+                style: GoogleFonts.lexend(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            t.guest_banner_subtitle,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              color: cs.onSurfaceVariant,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 40,
+            child: ElevatedButton(
+              onPressed: onConvert,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cs.primary.withValues(alpha: 0.9),
+                foregroundColor: cs.onPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              child: Text(
+                t.guest_banner_cta,
+                style: GoogleFonts.lexend(
+                    fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

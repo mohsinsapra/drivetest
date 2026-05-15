@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -10,9 +11,16 @@ import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_test_screen.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_licences_screen.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_traffic_signs_screen.dart';
 import 'package:taxi_exam_app/features/notifications/notifications_screen.dart';
+import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
+import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import '../helpers/dashboard_helpers.dart';
 import '../models/dashboard_stats.dart';
 import '../models/exam_node.dart';
@@ -278,11 +286,27 @@ class _ExamCarouselSection extends StatelessWidget {
                 ),
           ),
         ),
-        if (exams.isEmpty)
+        if (exams.isEmpty) ...[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _SubscribeCTACard(onSubscribe: onSubscribe),
-          )
+            child: Column(
+              children: [
+                _FreeBCDHubCard(),
+                const SizedBox(height: 12),
+                _FreeVagmarkesCard(
+                  onTap: () => Navigator.push(
+                    context,
+                    AppPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
+                  ),
+                ),
+                if (!ProfileProvider().isGuest) ...[
+                  const SizedBox(height: 12),
+                  _SubscribeCTACard(onSubscribe: onSubscribe),
+                ],
+              ],
+            ),
+          ),
+        ]
         else
           SizedBox(
             height: 190,
@@ -329,6 +353,280 @@ class _ExamCarouselSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Free BCD hub card — finds the free "Vägmärkestest" category by name and
+// navigates directly to its hub screen.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _FreeBCDHubCard extends StatefulWidget {
+  const _FreeBCDHubCard();
+
+  @override
+  State<_FreeBCDHubCard> createState() => _FreeBCDHubCardState();
+}
+
+class _FreeBCDHubCardState extends State<_FreeBCDHubCard> {
+  Map<String, dynamic>? _category;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveCategory();
+  }
+
+  Future<void> _resolveCategory() async {
+    await BcdCache.instance.ensureLoaded();
+    if (!mounted) return;
+    final match = _findFreeCategory();
+    if (match != null) setState(() => _category = match);
+  }
+
+  /// Finds a free (no subscription required) category, preferring one whose
+  /// name contains "Vägmärkestest". Falls back to the first free category, then
+  /// the first category in the list.
+  Map<String, dynamic>? _findFreeCategory() {
+    final cats = BcdCache.instance.categories;
+    if (cats.isEmpty) return null;
+
+    final match = cats.firstWhereOrNull(
+          (c) => (c['name']?.toString() ?? '').toLowerCase().contains('vägmärk'),
+        ) ??
+        cats.firstWhereOrNull((c) => c['subscription_product'] == null) ??
+        cats.first;
+    return Map<String, dynamic>.from(match);
+  }
+
+  void _handleTap() {
+    final cat = _category;
+    if (cat == null) {
+      Navigator.push(
+        context,
+        AppPageRoute(builder: (_) => const BCDLicencesScreen()),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      AppPageRoute(builder: (_) => BCDCategoryHubScreen(category: cat)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = Translations.of(context);
+
+    final catName = _category?['name']?.toString();
+    final displayTitle = catName ?? t.dash_free_hub_title;
+    final accent = catName != null
+        ? categoryColor(catName)
+        : const Color(0xFF4F46E5);
+    final icon = catName != null
+        ? categoryIcon(catName)
+        : Icons.menu_book_rounded;
+
+    return InkWell(
+      onTap: _handleTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: cs.onSurface.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: accent, size: 26),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          displayTitle,
+                          style: GoogleFonts.lexend(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: cs.onSurface,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF059669).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          t.dash_free_hub_badge,
+                          style: GoogleFonts.lexend(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF059669),
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    t.dash_free_hub_subtitle,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: cs.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Text(
+                        t.free_trial_banner_cta,
+                        style: GoogleFonts.lexend(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: cs.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_rounded,
+                          size: 14, color: cs.primary),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Free Vägmärkestest card — shown when the user has no subscribed exams
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _FreeVagmarkesCard extends StatelessWidget {
+  const _FreeVagmarkesCard({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = Translations.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: cs.onSurface.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(LucideIcons.alertTriangle,
+                  color: Color(0xFFD97706), size: 26),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          t.free_trial_banner_title,
+                          style: GoogleFonts.lexend(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: cs.onSurface,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF059669).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          t.free_trial_banner_badge,
+                          style: GoogleFonts.lexend(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF059669),
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    t.free_trial_banner_subtitle,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: cs.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Text(
+                        t.free_trial_banner_cta,
+                        style: GoogleFonts.lexend(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: cs.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(LucideIcons.arrowRight,
+                          size: 14, color: cs.primary),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Subscribe CTA — shown when the user has no subscribed exams
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -344,9 +642,9 @@ class _SubscribeCTACard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: cs.primaryContainer.withValues(alpha: 0.35),
+        color: cs.onSurface.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: cs.primary.withValues(alpha: 0.15)),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,6 +671,8 @@ class _SubscribeCTACard extends StatelessWidget {
               icon: const Icon(Icons.shopping_cart_outlined, size: 18),
               label: Text(t.bcd_buy_subscription),
               style: FilledButton.styleFrom(
+                backgroundColor: cs.primary.withValues(alpha: 0.85),
+                foregroundColor: cs.onPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
@@ -861,30 +1161,6 @@ class _FocusCategoriesSectionState extends State<_FocusCategoriesSection> {
     }
   }
 
-  Color _colorForIndex(int i) {
-    const colors = [
-      Color(0xFF1976D2),
-      Color(0xFFF9A825),
-      Color(0xFFE65100),
-      Color(0xFF43A047),
-      Color(0xFF8E24AA),
-      Color(0xFF00897B),
-    ];
-    return colors[i % colors.length];
-  }
-
-  IconData _iconForIndex(int i) {
-    const icons = [
-      Icons.security_rounded,
-      Icons.payments_rounded,
-      Icons.library_books_rounded,
-      Icons.directions_car_rounded,
-      Icons.gavel_rounded,
-      Icons.health_and_safety_rounded,
-    ];
-    return icons[i % icons.length];
-  }
-
   @override
   Widget build(BuildContext context) {
     final stats = widget.stats;
@@ -893,15 +1169,14 @@ class _FocusCategoriesSectionState extends State<_FocusCategoriesSection> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: stats.categoryStats!.asMap().entries.map((entry) {
-            final i = entry.key;
             final cat = entry.value;
             final isExpanded = _expanded.contains(cat.node.id);
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: _CategoryListItem(
                 cat: cat,
-                icon: _iconForIndex(i),
-                color: _colorForIndex(i),
+                icon: categoryIcon(cat.node.name),
+                color: categoryColor(cat.node.name),
                 isExpanded: isExpanded,
                 onToggle: () => setState(() {
                   if (isExpanded) {

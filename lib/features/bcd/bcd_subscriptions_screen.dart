@@ -5,6 +5,7 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'bcd_category_hub_screen.dart';
 import 'bcd_sub_category_screen.dart';
@@ -361,29 +362,34 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     final name = product['name']?.toString() ?? 'Plan';
     final price = product['price']?.toString() ?? '';
     final currency = product['currency']?.toString() ?? 'SEK';
     final durationDays = product['duration_days'] as int? ?? 0;
+    final durationLabel = durationDays > 0 ? _formatDuration(durationDays) : null;
 
-    // Owned/active uses secondary (green); unowned accent uses primary (brand blue)
-    final accentColor = (owned || isFree) ? cs.secondary : cs.primary;
+    final accentColor = (owned || isFree) ? cs.secondary : categoryColor(name);
+    final iconData = owned ? LucideIcons.checkCircle : categoryIcon(name);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: owned
+              ? cs.secondary.withValues(alpha: 0.5)
+              : cs.outlineVariant.withValues(alpha: 0.4),
+          width: owned ? 1.5 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
-        border: owned
-            ? Border.all(color: cs.secondary.withValues(alpha: 0.6), width: 2)
-            : null,
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -391,43 +397,23 @@ class _ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: accentColor.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(
-                    owned ? LucideIcons.checkCircle : LucideIcons.creditCard,
-                    color: accentColor,
-                    size: 22,
-                  ),
+                  child: Icon(iconData, color: accentColor, size: 24),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(name,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
-                      if (durationDays > 0)
-                        Text(
-                          _formatDuration(durationDays),
-                          style: TextStyle(
-                              fontSize: 12, color: cs.onSurfaceVariant),
-                        ),
-                    ],
-                  ),
-                ),
+                const Spacer(),
                 if (isFree || owned)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: cs.secondary.withValues(alpha: 0.12),
+                      color: cs.secondary.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -435,29 +421,59 @@ class _ProductCard extends StatelessWidget {
                           ? Translations.of(context).bcd_free_label
                           : Translations.of(context).bcd_active_label,
                       style: TextStyle(
-                          fontSize: 12,
-                          color: cs.secondary,
-                          fontWeight: FontWeight.w600),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: cs.secondary,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  )
+                else if (durationLabel != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: cs.onSurface.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      durationLabel,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                   ),
               ],
             ),
+
             const SizedBox(height: 16),
-            Divider(height: 1, color: cs.outlineVariant),
+            Text(
+              name,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: cs.onSurface,
+                height: 1.2,
+              ),
+            ),
+
             const SizedBox(height: 16),
+            Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
+            const SizedBox(height: 16),
+
             if (isFree || owned)
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
+                child: FilledButton.icon(
                   onPressed: isFree ? onFreeAccess : onStartPractice,
                   icon: const Icon(LucideIcons.bookOpenCheck, size: 16),
                   label: Text(Translations.of(context).bcd_start_practice),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: cs.secondary,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: cs.secondary.withValues(alpha: 0.85),
                     foregroundColor: cs.onSecondary,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
@@ -465,24 +481,25 @@ class _ProductCard extends StatelessWidget {
             else
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (price.isNotEmpty)
                     Text(
                       '$price $currency',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: cs.onSurface),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: cs.onSurface,
+                      ),
                     ),
-                  ElevatedButton(
+                  FilledButton(
                     onPressed: disabled ? null : onBuy,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cs.primary,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: cs.primary.withValues(alpha: 0.9),
                       foregroundColor: cs.onPrimary,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
+                          horizontal: 24, vertical: 13),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: buying
@@ -491,7 +508,10 @@ class _ProductCard extends StatelessWidget {
                             height: 16,
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: cs.onPrimary))
-                        : Text(Translations.of(context).bcd_subscribe_btn),
+                        : Text(
+                            Translations.of(context).bcd_subscribe_btn,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                   ),
                 ],
               ),

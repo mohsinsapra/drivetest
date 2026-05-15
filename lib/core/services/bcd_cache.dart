@@ -85,6 +85,9 @@ class BcdCache {
   /// end_date ISO string for a subscribed category by its bcd_id, or null.
   String? endDateFor(int bcdId) => _endDateByBcdId[bcdId];
 
+  /// True if the user has at least one active paid subscription.
+  bool get hasAnyActiveSubscription => _endDateByBcdId.isNotEmpty;
+
   /// Wipe the cache so the next [ensureLoaded] re-fetches.
   /// Call after subscription purchase or on logout.
   void invalidate() {

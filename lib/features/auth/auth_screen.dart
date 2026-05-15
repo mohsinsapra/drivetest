@@ -16,8 +16,11 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/auth/debug_credentials.dart';
 import 'package:taxi_exam_app/features/auth/forgot_password_screen.dart';
+import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
+import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 enum _AuthView { landing, login, signup }
@@ -77,6 +80,9 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() {
       _viewForward = view != _AuthView.landing;
       _view = view;
+      _loginError = null;
+      _loginErrors = {};
+      _signupErrors = {};
     });
   }
 
@@ -94,6 +100,7 @@ class _AuthScreenState extends State<AuthScreen> {
     required bool isFirstLogin,
     String? displayName,
   }) async {
+    IAPService.instance.verifyDeferredReceipt().ignore();
     // Welcome message uses the name from Google/Apple — no extra self/ call needed.
     // MainScreen._loadTabFlags() will fetch self/ for feature flags on its own.
     if (displayName != null || isFirstLogin) {
@@ -281,8 +288,8 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _loginAsDemo() async {
-    _loginUsernameCtrl.text = 'demo';
-    _loginPasswordCtrl.text = 'Demo@123';
+    _loginUsernameCtrl.text = kDebugUsername;
+    _loginPasswordCtrl.text = kDebugPassword;
     await _login();
   }
 
@@ -367,6 +374,22 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: kDebugMode
+          ? FloatingActionButton.small(
+              backgroundColor: Colors.orange,
+              tooltip: 'Reset Onboarding',
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('onboarding_complete');
+                if (!context.mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  AppPageRoute(builder: (_) => const OnboardingScreen()),
+                  (_) => false,
+                );
+              },
+              child: const Icon(Icons.refresh, size: 18),
+            )
+          : null,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 320),
         switchInCurve: Curves.easeOutCubic,
@@ -438,12 +461,14 @@ class _GradientButton extends StatelessWidget {
     required this.onPressed,
     this.loading = false,
     this.icon,
+    this.loadingLabel,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool loading;
   final Widget? icon;
+  final String? loadingLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -472,27 +497,31 @@ class _GradientButton extends StatelessWidget {
             ],
           ),
           child: Center(
-            child: loading
-                ? SizedBox(
-                    width: 22,
-                    height: 22,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (loading) ...[
+                  SizedBox(
+                    width: 18,
+                    height: 18,
                     child: CircularProgressIndicator(
                         color: cs.onPrimary, strokeWidth: 2.5),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (icon != null) ...[icon!, const SizedBox(width: 12)],
-                      Text(
-                        label,
-                        style: GoogleFonts.lexend(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: cs.onPrimary,
-                        ),
-                      ),
-                    ],
                   ),
+                  const SizedBox(width: 10),
+                ] else if (icon != null) ...[
+                  icon!,
+                  const SizedBox(width: 12),
+                ],
+                Text(
+                  loading ? (loadingLabel ?? label) : label,
+                  style: GoogleFonts.lexend(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: cs.onPrimary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1039,15 +1068,13 @@ class _LandingView extends StatelessWidget {
                           label: Translations.of(context).auth_express_apple,
                           loading: isAppleLoading,
                           onPressed: isGoogleLoading ? null : onApple,
-                          icon: isAppleLoading
-                              ? null
-                              : SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: FaIcon(FontAwesomeIcons.apple,
-                                      size: 20,
-                                      color: cs.onPrimary),
-                                ),
+                          icon: SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: FaIcon(FontAwesomeIcons.apple,
+                                size: 20,
+                                color: cs.onPrimary),
+                          ),
                         ),
                         const SizedBox(height: 10),
                       ],
@@ -1055,29 +1082,16 @@ class _LandingView extends StatelessWidget {
                       _GradientButton(
                         label: Translations.of(context).auth_express_google,
                         loading: isGoogleLoading,
+                        loadingLabel: googleLoadingStep.isNotEmpty ? googleLoadingStep : null,
                         onPressed: isAppleLoading ? null : onGoogle,
-                        icon: isGoogleLoading
-                            ? null
-                            : SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: FaIcon(FontAwesomeIcons.google,
-                                    size: 18,
-                                    color: cs.onPrimary),
-                              ),
-                      ),
-                      if (isGoogleLoading && googleLoadingStep.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            googleLoadingStep,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: cs.onSurfaceVariant,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                        icon: SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: FaIcon(FontAwesomeIcons.google,
+                              size: 18,
+                              color: cs.onPrimary),
                         ),
+                      ),
                       const SizedBox(height: 14),
                       // Login button
                       SizedBox(
@@ -1309,23 +1323,25 @@ class _LoginView extends StatelessWidget {
                     _GradientButton(
                       label: t.auth_login_title,
                       loading: isLoading,
+                      loadingLabel: t.auth_signing_in,
                       onPressed: onLogin,
                     ),
                     const SizedBox(height: 16),
 
-                    // Demo login
-                    Center(
-                      child: TextButton(
-                        onPressed: isLoading ? null : onDemoLogin,
-                        child: Text(
-                          t.auth_skip_demo_short,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: cs.outline,
+                    // Demo login (debug only)
+                    if (kDebugMode)
+                      Center(
+                        child: TextButton(
+                          onPressed: isLoading ? null : onDemoLogin,
+                          child: Text(
+                            t.auth_skip_demo_short,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: cs.outline,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                     const SizedBox(height: 32),
 
                     // Switch to signup
@@ -1511,6 +1527,7 @@ class _SignupView extends StatelessWidget {
                     _GradientButton(
                       label: t.auth_sign_up_btn,
                       loading: isLoading,
+                      loadingLabel: t.auth_signing_in,
                       onPressed: onSignup,
                     ),
                     const SizedBox(height: 40),

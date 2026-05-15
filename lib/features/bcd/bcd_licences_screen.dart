@@ -8,6 +8,7 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
+import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import 'package:taxi_exam_app/core/utils/category_sort_utils.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
@@ -275,18 +276,41 @@ class _CategoryCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: accent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                      child: Icon(
-                        (subscribed || isFree) ? LucideIcons.bookOpenCheck : LucideIcons.lock,
-                        color: accent,
-                        size: 21,
-                      ),
+                    Stack(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                          child: Icon(
+                            categoryIcon(name),
+                            color: accent.withValues(
+                                alpha: (subscribed || isFree) ? 1.0 : 0.45),
+                            size: 21,
+                          ),
+                        ),
+                        if (!subscribed && !isFree)
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: cs.surface,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.lock_rounded,
+                                size: 10,
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(width: 13),
                     Expanded(

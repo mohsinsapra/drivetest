@@ -6,6 +6,9 @@
 .env
 .env.*
 
+# Debug credentials (dummy values, not for version control)
+lib/features/auth/debug_credentials.dart
+
 # Firebase config files (contain API keys)
 ios/Runner/GoogleService-Info.plist
 android/app/google-services.json
@@ -158,3 +161,4 @@ graphify-out/cache/
 # ====================================================================
 # END OF .gitignore
 # ====================================================================
+.gstack/

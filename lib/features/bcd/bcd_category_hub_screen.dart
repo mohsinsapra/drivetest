@@ -557,10 +557,16 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
       await BcdCache.instance.ensureLoaded();
       final data = BcdCache.instance.testsOf(widget.categoryBcdId);
       if (mounted) {
+        final filtered = widget.practiceOnly
+            ? data.where((t) => t['is_free'] == true).toList()
+            : List<dynamic>.from(data);
+        filtered.sort((a, b) {
+          final aName = (a['name']?.toString() ?? '').toLowerCase();
+          final bName = (b['name']?.toString() ?? '').toLowerCase();
+          return aName.compareTo(bName);
+        });
         setState(() {
-          _tests = widget.practiceOnly
-              ? data.where((t) => t['is_free'] == true).toList()
-              : data;
+          _tests = filtered;
           _loading = false;
         });
       }
@@ -623,7 +629,6 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
                         padding: const EdgeInsets.all(16),
                         itemCount: _tests.length,
                         itemBuilder: (_, i) => _TestCard(
-                          index: i + 1,
                           test: _tests[i],
                           forceUnsubscribed: !_subscribed && !widget.isCategoryFree,
                           onTap: () => _onTap(_tests[i]),
@@ -892,11 +897,9 @@ class _TestCard extends StatelessWidget {
   final dynamic test;
   final VoidCallback onTap;
   final bool forceUnsubscribed;
-  final int index;
   const _TestCard({
     required this.test,
     required this.onTap,
-    required this.index,
     this.forceUnsubscribed = false,
   });
 
@@ -950,19 +953,6 @@ class _TestCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              // Index number
-              SizedBox(
-                width: 26,
-                child: Text(
-                  index.toString().padLeft(2, '0'),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: accent.withValues(alpha: 0.5),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
               // Content
               Expanded(
                 child: Padding(

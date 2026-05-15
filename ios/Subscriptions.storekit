@@ -1,0 +1,801 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "FD2B3946",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6765940954",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "MBWC2B7V68",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 800525038.91384101,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "22090089",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "B Driving Licence Arabic",
+          "locale" : "sv"
+        },
+        {
+          "description" : "",
+          "displayName" : "B Driving Licence Arabic",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "B Driving Licence Arabic",
+          "locale" : "en_GB"
+        }
+      ],
+      "name" : "B korkort arabiska",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "19.99",
+              "displayPrice" : "19.99",
+              "internalID" : "6769586635_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586635",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "B-körkortsprovet på arabiska (månadsabonnemang)",
+              "displayName" : "B körkort arabiska",
+              "locale" : "sv"
+            },
+            {
+              "description" : "B driving licence test in Arabic – monthly subscription",
+              "displayName" : "B Driving Licence (Arabic)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.bkorkortarabiska",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "B korkot arabiska",
+          "subscriptionGroupID" : "22090089",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090307",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "B Driving Licence",
+          "locale" : "sv"
+        },
+        {
+          "description" : "",
+          "displayName" : "B Driving Licence",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "B Driving Licence",
+          "locale" : "en_GB"
+        }
+      ],
+      "name" : "B korkot",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "19.99",
+              "displayPrice" : "19.99",
+              "internalID" : "6769675319_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769675319",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "B-körkortsteoriprov – 2 månaders abonnemang",
+              "displayName" : "B körkort",
+              "locale" : "sv"
+            },
+            {
+              "description" : "B driving licence theory test – 2 month subscription",
+              "displayName" : "B Driving Licence",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.bkorkot",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "B korkot",
+          "subscriptionGroupID" : "22090307",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090005",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "B Driving Licence English",
+          "locale" : "sv"
+        },
+        {
+          "description" : "",
+          "displayName" : "B Driving Licence English",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "B Driving Licence English",
+          "locale" : "en_GB"
+        }
+      ],
+      "name" : "B korkot En",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "19.99",
+              "displayPrice" : "19.99",
+              "internalID" : "6769586683_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586683",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "B-körkortsprovet på engelska (månadsabonnemang)",
+              "displayName" : "B körkort engelska",
+              "locale" : "sv"
+            },
+            {
+              "description" : "B licence theory test in English – monthly",
+              "displayName" : "B Driving Licence (English)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.b_korkot_en",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "B korkot En",
+          "subscriptionGroupID" : "22090005",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090309",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Bus",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "Buss",
+          "locale" : "sv"
+        }
+      ],
+      "name" : "Buss",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "39.99",
+              "displayPrice" : "39.99",
+              "internalID" : "6769586603_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586603",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Teoriprovet för busskörning (månadsabonnemang)",
+              "displayName" : "Buss",
+              "locale" : "sv"
+            },
+            {
+              "description" : "Bus driving theory test – monthly subscription",
+              "displayName" : "Bus",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.buss",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "Buss",
+          "subscriptionGroupID" : "22090309",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090337",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "CE Truck with Trailer",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "CE lastbil med släp",
+          "locale" : "sv"
+        }
+      ],
+      "name" : "CE",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "39.99",
+              "displayPrice" : "39.99",
+              "internalID" : "6769586652_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586652",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "CE driving licence theory test – monthly subscription",
+              "displayName" : "CE Truck with Trailer",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "Teoriprovet för CE-körkort (månadsabonnemang)",
+              "displayName" : "CE lastbil med släp",
+              "locale" : "sv"
+            }
+          ],
+          "productID" : "co.drivetest.ce",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "CE",
+          "subscriptionGroupID" : "22090337",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090150",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Freight Transport",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "Godsåkeri",
+          "locale" : "sv"
+        }
+      ],
+      "name" : "Godsakeri",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "69.99",
+              "displayPrice" : "69.99",
+              "internalID" : "6769586653_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "69.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586653",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Provet för godsåkeri (månadsabonnemang)",
+              "displayName" : "Godsåkeri",
+              "locale" : "sv"
+            },
+            {
+              "description" : "Freight transport theory test – monthly subscription",
+              "displayName" : "Freight Transport",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.godsakeri",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "Godsakeri",
+          "subscriptionGroupID" : "22090150",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090338",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Lastbil",
+          "locale" : "sv"
+        },
+        {
+          "description" : "",
+          "displayName" : "Truck",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "Lastbil",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "39.99",
+              "displayPrice" : "39.99",
+              "internalID" : "6769587045_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769587045",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Teoriprovet för lastbilskörning (månadsabonnemang)",
+              "displayName" : "Lastbil",
+              "locale" : "sv"
+            },
+            {
+              "description" : "Truck driving theory test – monthly subscription",
+              "displayName" : "Truck",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.lastbil",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "Lastbil",
+          "subscriptionGroupID" : "22090338",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090168",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Motorcycle",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "Motorcykel",
+          "locale" : "sv"
+        }
+      ],
+      "name" : "Motorcykel",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "17.99",
+              "displayPrice" : "17.99",
+              "internalID" : "6769586936_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "17.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586936",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Teoriprovet för motorcykel (månadsabonnemang)",
+              "displayName" : "Motorcykel",
+              "locale" : "sv"
+            },
+            {
+              "description" : "Motorcycle theory test – monthly subscription",
+              "displayName" : "Motorcycle",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.motorcykel",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "Motorcykel",
+          "subscriptionGroupID" : "22090168",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090308",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Taxi Business",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "Taxiåkeri",
+          "locale" : "sv"
+        }
+      ],
+      "name" : "Taxiakeri",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "69.99",
+              "displayPrice" : "69.99",
+              "internalID" : "6769586755_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "69.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586755",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Provet för taxiåkeri (månadsabonnemang)",
+              "displayName" : "Taxiåkeri",
+              "locale" : "sv"
+            },
+            {
+              "description" : "Taxi business theory test – monthly subscription",
+              "displayName" : "Taxi Business",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.taxiakeri",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "Taxiakeri",
+          "subscriptionGroupID" : "22090308",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090006",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Taxi Driver Licence",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "Taxiförarlegitimation",
+          "locale" : "sv"
+        }
+      ],
+      "name" : "Taxiforarlegitimation",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "69.99",
+              "displayPrice" : "69.99",
+              "internalID" : "6769586447_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "69.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586447",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Provet för taxiförarlegitimation (månadsabonnemang)",
+              "displayName" : "Taxiförarlegitimation",
+              "locale" : "sv"
+            },
+            {
+              "description" : "Taxi driver licence theory test – monthly subscription",
+              "displayName" : "Taxi Driver Licence",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.taxiforarlegitimation",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "Taxiforarlegitimation",
+          "subscriptionGroupID" : "22090006",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090248",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "YKB",
+          "locale" : "sv"
+        },
+        {
+          "description" : "",
+          "displayName" : "YKB",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "YKB",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "39.99",
+              "displayPrice" : "39.99",
+              "internalID" : "6769586719_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586719",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "YKB-provet för yrkeskompetens (månadsabonnemang)",
+              "displayName" : "YKB",
+              "locale" : "sv"
+            },
+            {
+              "description" : "YKB professional competence test – monthly subscription",
+              "displayName" : "YKB",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "co.drivetest.ykb",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "YKB",
+          "subscriptionGroupID" : "22090248",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    },
+    {
+      "id" : "22090278",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "YKB Bus",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "",
+          "displayName" : "YKB buss",
+          "locale" : "sv"
+        }
+      ],
+      "name" : "YKB buss",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "39.99",
+              "displayPrice" : "39.99",
+              "internalID" : "6769586655_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6769586655",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "YKB bus competence test – monthly subscription",
+              "displayName" : "YKB Bus",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "YKB-bussprovet för yrkeskompetens (månadsabonnemang)",
+              "displayName" : "YKB buss",
+              "locale" : "sv"
+            }
+          ],
+          "productID" : "co.drivetest.ykbbuss",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "YKB buss",
+          "subscriptionGroupID" : "22090278",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 5,
+    "minor" : 0
+  }
+}

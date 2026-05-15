@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,23 +8,31 @@ import 'package:taxi_exam_app/core/auth/apple_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/auth/google_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
+import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/auth/debug_credentials.dart';
 
 /// Shows a modal bottom sheet with login / sign-up tabs.
 /// Returns `true` when the user successfully authenticates, `false`/null if dismissed.
 ///
 /// Optional [title] and [subtitle] override the default localized header text.
+/// Set [required] to true to prevent dismissal by tapping outside — use this
+/// post-purchase so the user cannot leave without activating their subscription.
 Future<bool> showAuthBottomSheet(
   BuildContext context, {
   String? title,
   String? subtitle,
+  bool required = false,
+  bool allowDemo = true,
 }) async {
   final result = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _AuthSheet(title: title, subtitle: subtitle),
+    isDismissible: !required,
+    enableDrag: !required,
+    builder: (_) => _AuthSheet(title: title, subtitle: subtitle, allowDemo: allowDemo),
   );
   return result == true;
 }
@@ -31,10 +40,11 @@ Future<bool> showAuthBottomSheet(
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _AuthSheet extends StatefulWidget {
-  const _AuthSheet({this.title, this.subtitle});
+  const _AuthSheet({this.title, this.subtitle, this.allowDemo = true});
 
   final String? title;
   final String? subtitle;
+  final bool allowDemo;
 
   @override
   State<_AuthSheet> createState() => _AuthSheetState();
@@ -44,7 +54,9 @@ class _AuthSheetState extends State<_AuthSheet>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs;
   final _api = ApiService();
-  bool _loading = false;
+  bool _appleLoading = false;
+  bool _googleLoading = false;
+  bool _formLoading = false;
 
   // Login
   final _loginUser = TextEditingController();
@@ -81,6 +93,7 @@ class _AuthSheetState extends State<_AuthSheet>
 
   Future<void> _onSuccess() async {
     BcdCache.instance.invalidate();
+    IAPService.instance.verifyDeferredReceipt().ignore();
     try {
       await NotificationService.init(ApiService())
           .timeout(const Duration(seconds: 6));
@@ -92,14 +105,14 @@ class _AuthSheetState extends State<_AuthSheet>
 
   Future<void> _googleSignIn() async {
     setState(() {
-      _loading = true;
+      _googleLoading = true;
       _loginError = null;
     });
     try {
       final helper = GoogleSignInHelper.create();
       final user = await helper.signIn();
       if (user == null) {
-        setState(() => _loading = false);
+        setState(() => _googleLoading = false);
         return;
       }
       final auth = await user.authentication;
@@ -111,7 +124,7 @@ class _AuthSheetState extends State<_AuthSheet>
       if (!mounted) return;
       setState(() {
         _loginError = GoogleSignInHelper.userMessage(e);
-        _loading = false;
+        _googleLoading = false;
       });
     }
   }
@@ -120,7 +133,7 @@ class _AuthSheetState extends State<_AuthSheet>
 
   Future<void> _appleSignIn() async {
     setState(() {
-      _loading = true;
+      _appleLoading = true;
       _loginError = null;
     });
     try {
@@ -138,12 +151,12 @@ class _AuthSheetState extends State<_AuthSheet>
       if (!mounted) return;
       final msg = e.toString();
       if (msg.contains('AuthorizationErrorCode.canceled')) {
-        setState(() => _loading = false);
+        setState(() => _appleLoading = false);
         return;
       }
       setState(() {
         _loginError = Translations.of(context).auth_generic_error;
-        _loading = false;
+        _appleLoading = false;
       });
     }
   }
@@ -162,7 +175,7 @@ class _AuthSheetState extends State<_AuthSheet>
     setState(() {
       _loginFieldErrors = {};
       _loginError = null;
-      _loading = true;
+      _formLoading = true;
     });
     try {
       await _api.authenticate(
@@ -173,13 +186,13 @@ class _AuthSheetState extends State<_AuthSheet>
       if (!mounted) return;
       setState(() {
         _loginError = t.auth_invalid_credentials;
-        _loading = false;
+        _formLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _loginError = Translations.of(context).auth_generic_error;
-        _loading = false;
+        _formLoading = false;
       });
     }
   }
@@ -198,7 +211,7 @@ class _AuthSheetState extends State<_AuthSheet>
     }
     setState(() {
       _signupFieldErrors = {};
-      _loading = true;
+      _formLoading = true;
     });
     try {
       final resp = await _api.signup(
@@ -212,16 +225,24 @@ class _AuthSheetState extends State<_AuthSheet>
         if (!mounted) return;
         await _onSuccess();
       } else {
-        setState(() => _loading = false);
+        setState(() => _formLoading = false);
         showAppSnackBar(t.auth_signup_failed, type: SnackBarType.error);
       }
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() => _formLoading = false);
       showAppSnackBar(
           Translations.of(context).auth_generic_error,
           type: SnackBarType.error);
     }
+  }
+
+  // ── Demo login ───────────────────────────────────────────────────────────────
+
+  Future<void> _loginAsDemo() async {
+    _loginUser.text = kDebugUsername;
+    _loginPass.text = kDebugPassword;
+    await _login();
   }
 
   // ── UI helpers ───────────────────────────────────────────────────────────────
@@ -311,11 +332,15 @@ class _AuthSheetState extends State<_AuthSheet>
     );
   }
 
+  bool get _anyLoading => _appleLoading || _googleLoading || _formLoading;
+
   Widget _submitButton(String label, VoidCallback onPressed) {
+    final t = Translations.of(context);
     return _SheetGradientButton(
       label: label,
-      loading: _loading,
-      onPressed: _loading ? null : onPressed,
+      loading: _formLoading,
+      loadingLabel: t.auth_signing_in,
+      onPressed: _anyLoading ? null : onPressed,
     );
   }
 
@@ -378,8 +403,9 @@ class _AuthSheetState extends State<_AuthSheet>
           if (AppleSignInHelper.isAvailable()) ...[
             _SheetGradientButton(
               label: t.auth_express_apple,
-              loading: _loading,
-              onPressed: _loading ? null : _appleSignIn,
+              loading: _appleLoading,
+              loadingLabel: t.auth_signing_in,
+              onPressed: _anyLoading ? null : _appleSignIn,
               icon: FaIcon(FontAwesomeIcons.apple, size: 20, color: theme.colorScheme.onPrimary),
             ),
             const SizedBox(height: 10),
@@ -388,8 +414,9 @@ class _AuthSheetState extends State<_AuthSheet>
           // Google button
           _SheetGradientButton(
             label: t.auth_express_google,
-            loading: _loading,
-            onPressed: _loading ? null : _googleSignIn,
+            loading: _googleLoading,
+            loadingLabel: t.auth_signing_in,
+            onPressed: _anyLoading ? null : _googleSignIn,
             icon: FaIcon(FontAwesomeIcons.google, size: 18, color: theme.colorScheme.onPrimary),
           ),
           const SizedBox(height: 14),
@@ -528,6 +555,24 @@ class _AuthSheetState extends State<_AuthSheet>
               _tabs.index == 0 ? _login : _signup,
             ),
           ),
+
+          // Demo login (debug only, hidden when called from onboarding)
+          if (kDebugMode && widget.allowDemo) ...[
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(
+                onPressed: _anyLoading ? null : _loginAsDemo,
+                child: Text(
+                  t.auth_skip_demo_short,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+              ),
+            ),
+          ],
+
         ],
       ),
     );
@@ -544,12 +589,14 @@ class _SheetGradientButton extends StatelessWidget {
     required this.onPressed,
     this.loading = false,
     this.icon,
+    this.loadingLabel,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool loading;
   final Widget? icon;
+  final String? loadingLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -578,27 +625,31 @@ class _SheetGradientButton extends StatelessWidget {
             ],
           ),
           child: Center(
-            child: loading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (loading) ...[
+                  SizedBox(
+                    width: 16,
+                    height: 16,
                     child: CircularProgressIndicator(
                         color: cs.onPrimary, strokeWidth: 2.5),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (icon != null) ...[icon!, const SizedBox(width: 10)],
-                      Text(
-                        label,
-                        style: GoogleFonts.lexend(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: cs.onPrimary,
-                        ),
-                      ),
-                    ],
                   ),
+                  const SizedBox(width: 10),
+                ] else if (icon != null) ...[
+                  icon!,
+                  const SizedBox(width: 10),
+                ],
+                Text(
+                  loading ? (loadingLabel ?? label) : label,
+                  style: GoogleFonts.lexend(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: cs.onPrimary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

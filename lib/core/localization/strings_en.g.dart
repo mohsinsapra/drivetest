@@ -82,6 +82,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get profile_settings => 'Settings';
 	String get profile_invite => 'Invite a friend';
 	String get profile_help => 'Help';
+	String get profile_manage_subscription => 'Manage Subscription';
+	String get profile_purchase_history => 'Purchase History';
+	String get profile_revisit_setup => 'Revisit Setup';
+	String get profile_send_feedback => 'Send Feedback';
 	String get profile_logout_confirm => 'Are you sure you want to log out?';
 	String get profile_yes_logout => 'Yes, Logout';
 	String get home_dashboard => 'Dashboard';
@@ -159,6 +163,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get auth_google_label => 'Google';
 	String get auth_express_apple => 'Sign in with Apple';
 	String get auth_apple_label => 'Apple';
+	String get auth_signing_in => 'Signing in...';
 	String get auth_tab_login => 'Log in';
 	String get auth_tab_signup => 'Sign up';
 	String get auth_show_password => 'Show';
@@ -445,8 +450,13 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get onb_step4_subtitle => 'Accelerate your learning with personalised study tools.';
 	String get onb_no_plan_selected => 'No plan selected.';
 	String get onb_buy_bundle => 'Buy bundle — {price}';
-	String get onb_restore_purchases => 'RESTORE PURCHASES';
-	String get onb_restore_initiated => 'Restore initiated. Previous purchases will be applied shortly.';
+	String get onb_signin_to_purchase_title => 'Sign In to Subscribe';
+	String get onb_signin_to_purchase_subtitle => 'Create a free account or sign in to start your subscription. Your progress and subscription will sync across all your devices.';
+	String get onb_create_account_title => 'Create Your Free Account';
+	String get onb_create_account_subtitle => 'Save your study plan and track your progress across all your devices.';
+	String get onb_start_practicing => 'Start Practicing';
+	String get onb_your_plan_badge => 'YOUR PLAN';
+	String get onb_days_per_week => 'days/week';
 	String get onb_most_popular => 'MOST POPULAR';
 	String get onb_feature_mock_exams => 'Full mock exam library';
 	String get onb_feature_progress_tracking => 'Smart progress tracking';
@@ -458,6 +468,23 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get onb_bundle_saving => 'Saving {amount}';
 	String get onb_price_unavailable => 'Price unavailable';
 	String get onb_free_trial => '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
+	String get onb_start_free => 'Continue as Guest';
+	String get free_trial_banner_badge => 'FREE';
+	String get free_trial_banner_title => 'Try road signs — no subscription needed';
+	String get free_trial_banner_subtitle => 'Vägmärkestest is completely free. Practise at your own pace and get a feel for the app before subscribing.';
+	String get free_trial_banner_cta => 'Start Practising';
+	String get guest_banner_title => 'You\'re browsing as a guest';
+	String get guest_banner_subtitle => 'Create a free account to save your progress and sync across all your devices.';
+	String get guest_banner_cta => 'Create Account';
+	String get guest_convert_title => 'Save Your Progress';
+	String get guest_convert_subtitle => 'Create a free account to keep everything you\'ve practised.';
+	String get guest_username_hint => 'Choose a username';
+	String get guest_email_hint => 'Email address';
+	String get guest_password_hint => 'Password (min. 8 characters)';
+	String get guest_convert_cta => 'Create Account';
+	String get dash_free_hub_title => 'Full Exam Practice — Free Content';
+	String get dash_free_hub_subtitle => 'Practice questions, theory documents, checklists and statistics — no subscription needed.';
+	String get dash_free_hub_badge => 'FREE';
 }
 
 /// Flat map(s) containing all translations.
@@ -508,6 +535,10 @@ extension on Translations {
 			case 'profile_settings': return 'Settings';
 			case 'profile_invite': return 'Invite a friend';
 			case 'profile_help': return 'Help';
+			case 'profile_manage_subscription': return 'Manage Subscription';
+			case 'profile_purchase_history': return 'Purchase History';
+			case 'profile_revisit_setup': return 'Revisit Setup';
+			case 'profile_send_feedback': return 'Send Feedback';
 			case 'profile_logout_confirm': return 'Are you sure you want to log out?';
 			case 'profile_yes_logout': return 'Yes, Logout';
 			case 'home_dashboard': return 'Dashboard';
@@ -585,6 +616,7 @@ extension on Translations {
 			case 'auth_google_label': return 'Google';
 			case 'auth_express_apple': return 'Sign in with Apple';
 			case 'auth_apple_label': return 'Apple';
+			case 'auth_signing_in': return 'Signing in...';
 			case 'auth_tab_login': return 'Log in';
 			case 'auth_tab_signup': return 'Sign up';
 			case 'auth_show_password': return 'Show';
@@ -871,8 +903,13 @@ extension on Translations {
 			case 'onb_step4_subtitle': return 'Accelerate your learning with personalised study tools.';
 			case 'onb_no_plan_selected': return 'No plan selected.';
 			case 'onb_buy_bundle': return 'Buy bundle — {price}';
-			case 'onb_restore_purchases': return 'RESTORE PURCHASES';
-			case 'onb_restore_initiated': return 'Restore initiated. Previous purchases will be applied shortly.';
+			case 'onb_signin_to_purchase_title': return 'Sign In to Subscribe';
+			case 'onb_signin_to_purchase_subtitle': return 'Create a free account or sign in to start your subscription. Your progress and subscription will sync across all your devices.';
+			case 'onb_create_account_title': return 'Create Your Free Account';
+			case 'onb_create_account_subtitle': return 'Save your study plan and track your progress across all your devices.';
+			case 'onb_start_practicing': return 'Start Practicing';
+			case 'onb_your_plan_badge': return 'YOUR PLAN';
+			case 'onb_days_per_week': return 'days/week';
 			case 'onb_most_popular': return 'MOST POPULAR';
 			case 'onb_feature_mock_exams': return 'Full mock exam library';
 			case 'onb_feature_progress_tracking': return 'Smart progress tracking';
@@ -884,6 +921,23 @@ extension on Translations {
 			case 'onb_bundle_saving': return 'Saving {amount}';
 			case 'onb_price_unavailable': return 'Price unavailable';
 			case 'onb_free_trial': return '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
+			case 'onb_start_free': return 'Continue as Guest';
+			case 'free_trial_banner_badge': return 'FREE';
+			case 'free_trial_banner_title': return 'Try road signs — no subscription needed';
+			case 'free_trial_banner_subtitle': return 'Vägmärkestest is completely free. Practise at your own pace and get a feel for the app before subscribing.';
+			case 'free_trial_banner_cta': return 'Start Practising';
+			case 'guest_banner_title': return 'You\'re browsing as a guest';
+			case 'guest_banner_subtitle': return 'Create a free account to save your progress and sync across all your devices.';
+			case 'guest_banner_cta': return 'Create Account';
+			case 'guest_convert_title': return 'Save Your Progress';
+			case 'guest_convert_subtitle': return 'Create a free account to keep everything you\'ve practised.';
+			case 'guest_username_hint': return 'Choose a username';
+			case 'guest_email_hint': return 'Email address';
+			case 'guest_password_hint': return 'Password (min. 8 characters)';
+			case 'guest_convert_cta': return 'Create Account';
+			case 'dash_free_hub_title': return 'Full Exam Practice — Free Content';
+			case 'dash_free_hub_subtitle': return 'Practice questions, theory documents, checklists and statistics — no subscription needed.';
+			case 'dash_free_hub_badge': return 'FREE';
 			default: return null;
 		}
 	}

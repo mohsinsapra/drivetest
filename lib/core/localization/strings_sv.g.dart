@@ -79,6 +79,10 @@ class TranslationsSv implements Translations {
 	@override String get profile_settings => 'Inställningar';
 	@override String get profile_invite => 'Bjud in en vän';
 	@override String get profile_help => 'Hjälp';
+	@override String get profile_manage_subscription => 'Hantera prenumeration';
+	@override String get profile_purchase_history => 'Köphistorik';
+	@override String get profile_revisit_setup => 'Gör om inställningar';
+	@override String get profile_send_feedback => 'Skicka feedback';
 	@override String get profile_logout_confirm => 'Är du säker på att du vill logga ut?';
 	@override String get profile_yes_logout => 'Ja, logga ut';
 	@override String get home_dashboard => 'Instrumentpanel';
@@ -156,6 +160,7 @@ class TranslationsSv implements Translations {
 	@override String get auth_google_label => 'Google';
 	@override String get auth_express_apple => 'Logga in med Apple';
 	@override String get auth_apple_label => 'Apple';
+	@override String get auth_signing_in => 'Loggar in...';
 	@override String get auth_tab_login => 'Logga in';
 	@override String get auth_tab_signup => 'Registrera dig';
 	@override String get auth_show_password => 'Visa';
@@ -442,8 +447,13 @@ class TranslationsSv implements Translations {
 	@override String get onb_step4_subtitle => 'Accelerera ditt lärande med personliga studieverktyg.';
 	@override String get onb_no_plan_selected => 'Ingen plan vald.';
 	@override String get onb_buy_bundle => 'Köp paket — {price}';
-	@override String get onb_restore_purchases => 'ÅTERSTÄLL KÖP';
-	@override String get onb_restore_initiated => 'Återställning påbörjad. Tidigare köp tillämpas inom kort.';
+	@override String get onb_signin_to_purchase_title => 'Logga in för att prenumerera';
+	@override String get onb_signin_to_purchase_subtitle => 'Skapa ett gratis konto eller logga in för att starta din prenumeration. Dina framsteg och prenumeration synkas på alla dina enheter.';
+	@override String get onb_create_account_title => 'Skapa ditt gratis konto';
+	@override String get onb_create_account_subtitle => 'Spara din studieplan och följ dina framsteg på alla dina enheter.';
+	@override String get onb_start_practicing => 'Börja öva';
+	@override String get onb_your_plan_badge => 'DIN PLAN';
+	@override String get onb_days_per_week => 'dagar/vecka';
 	@override String get onb_most_popular => 'MEST POPULÄR';
 	@override String get onb_feature_mock_exams => 'Fullständigt provbibliotek';
 	@override String get onb_feature_progress_tracking => 'Smart framstegsspårning';
@@ -455,6 +465,23 @@ class TranslationsSv implements Translations {
 	@override String get onb_bundle_saving => 'Sparar {amount}';
 	@override String get onb_price_unavailable => 'Pris ej tillgängligt';
 	@override String get onb_free_trial => '7 DAGARS GRATIS PROVPERIOD. AVBRYT NÄR SOM HELST.';
+	@override String get onb_start_free => 'Fortsätt som gäst';
+	@override String get free_trial_banner_badge => 'GRATIS';
+	@override String get free_trial_banner_title => 'Testa vägmärken — ingen prenumeration krävs';
+	@override String get free_trial_banner_subtitle => 'Vägmärkestest är helt gratis. Öva i din egen takt och känn på appen innan du prenumererar.';
+	@override String get free_trial_banner_cta => 'Börja öva';
+	@override String get guest_banner_title => 'Du surfar som gäst';
+	@override String get guest_banner_subtitle => 'Skapa ett gratis konto för att spara dina framsteg och synka på alla dina enheter.';
+	@override String get guest_banner_cta => 'Skapa konto';
+	@override String get guest_convert_title => 'Spara dina framsteg';
+	@override String get guest_convert_subtitle => 'Skapa ett gratis konto för att behålla allt du har övat på.';
+	@override String get guest_username_hint => 'Välj ett användarnamn';
+	@override String get guest_email_hint => 'E-postadress';
+	@override String get guest_password_hint => 'Lösenord (min. 8 tecken)';
+	@override String get guest_convert_cta => 'Skapa konto';
+	@override String get dash_free_hub_title => 'Fullständig övning — gratis innehåll';
+	@override String get dash_free_hub_subtitle => 'Övningsfrågor, teoridokument, checklistor och statistik — ingen prenumeration krävs.';
+	@override String get dash_free_hub_badge => 'GRATIS';
 }
 
 /// Flat map(s) containing all translations.
@@ -505,6 +532,10 @@ extension on TranslationsSv {
 			case 'profile_settings': return 'Inställningar';
 			case 'profile_invite': return 'Bjud in en vän';
 			case 'profile_help': return 'Hjälp';
+			case 'profile_manage_subscription': return 'Hantera prenumeration';
+			case 'profile_purchase_history': return 'Köphistorik';
+			case 'profile_revisit_setup': return 'Gör om inställningar';
+			case 'profile_send_feedback': return 'Skicka feedback';
 			case 'profile_logout_confirm': return 'Är du säker på att du vill logga ut?';
 			case 'profile_yes_logout': return 'Ja, logga ut';
 			case 'home_dashboard': return 'Instrumentpanel';
@@ -582,6 +613,7 @@ extension on TranslationsSv {
 			case 'auth_google_label': return 'Google';
 			case 'auth_express_apple': return 'Logga in med Apple';
 			case 'auth_apple_label': return 'Apple';
+			case 'auth_signing_in': return 'Loggar in...';
 			case 'auth_tab_login': return 'Logga in';
 			case 'auth_tab_signup': return 'Registrera dig';
 			case 'auth_show_password': return 'Visa';
@@ -868,8 +900,13 @@ extension on TranslationsSv {
 			case 'onb_step4_subtitle': return 'Accelerera ditt lärande med personliga studieverktyg.';
 			case 'onb_no_plan_selected': return 'Ingen plan vald.';
 			case 'onb_buy_bundle': return 'Köp paket — {price}';
-			case 'onb_restore_purchases': return 'ÅTERSTÄLL KÖP';
-			case 'onb_restore_initiated': return 'Återställning påbörjad. Tidigare köp tillämpas inom kort.';
+			case 'onb_signin_to_purchase_title': return 'Logga in för att prenumerera';
+			case 'onb_signin_to_purchase_subtitle': return 'Skapa ett gratis konto eller logga in för att starta din prenumeration. Dina framsteg och prenumeration synkas på alla dina enheter.';
+			case 'onb_create_account_title': return 'Skapa ditt gratis konto';
+			case 'onb_create_account_subtitle': return 'Spara din studieplan och följ dina framsteg på alla dina enheter.';
+			case 'onb_start_practicing': return 'Börja öva';
+			case 'onb_your_plan_badge': return 'DIN PLAN';
+			case 'onb_days_per_week': return 'dagar/vecka';
 			case 'onb_most_popular': return 'MEST POPULÄR';
 			case 'onb_feature_mock_exams': return 'Fullständigt provbibliotek';
 			case 'onb_feature_progress_tracking': return 'Smart framstegsspårning';
@@ -881,6 +918,23 @@ extension on TranslationsSv {
 			case 'onb_bundle_saving': return 'Sparar {amount}';
 			case 'onb_price_unavailable': return 'Pris ej tillgängligt';
 			case 'onb_free_trial': return '7 DAGARS GRATIS PROVPERIOD. AVBRYT NÄR SOM HELST.';
+			case 'onb_start_free': return 'Fortsätt som gäst';
+			case 'free_trial_banner_badge': return 'GRATIS';
+			case 'free_trial_banner_title': return 'Testa vägmärken — ingen prenumeration krävs';
+			case 'free_trial_banner_subtitle': return 'Vägmärkestest är helt gratis. Öva i din egen takt och känn på appen innan du prenumererar.';
+			case 'free_trial_banner_cta': return 'Börja öva';
+			case 'guest_banner_title': return 'Du surfar som gäst';
+			case 'guest_banner_subtitle': return 'Skapa ett gratis konto för att spara dina framsteg och synka på alla dina enheter.';
+			case 'guest_banner_cta': return 'Skapa konto';
+			case 'guest_convert_title': return 'Spara dina framsteg';
+			case 'guest_convert_subtitle': return 'Skapa ett gratis konto för att behålla allt du har övat på.';
+			case 'guest_username_hint': return 'Välj ett användarnamn';
+			case 'guest_email_hint': return 'E-postadress';
+			case 'guest_password_hint': return 'Lösenord (min. 8 tecken)';
+			case 'guest_convert_cta': return 'Skapa konto';
+			case 'dash_free_hub_title': return 'Fullständig övning — gratis innehåll';
+			case 'dash_free_hub_subtitle': return 'Övningsfrågor, teoridokument, checklistor och statistik — ingen prenumeration krävs.';
+			case 'dash_free_hub_badge': return 'GRATIS';
 			default: return null;
 		}
 	}

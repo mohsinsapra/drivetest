@@ -1,5 +1,5 @@
 {
-  "identifier" : "75BEA080",
+  "identifier" : "D12E4578-A1B2-4C3D-8E5F-6A7B8C9D0E1F",
   "nonRenewingSubscriptions" : [],
   "products" : [],
   "settings" : {
@@ -8,7 +8,7 @@
     "_developerTeamID" : "MBWC2B7V68",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_locale" : "en_US",
+    "_locale" : "sv_SE",
     "_storefront" : "SWE",
     "_storeKitErrors" : [],
     "_timeRate" : 0
@@ -20,26 +20,26 @@
       "referenceName" : "B Korkot",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000001",
+          "internalID" : "3000000001",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "Öva inför teoriprovet för B-körkort (månadsabonnemang)",
               "displayName" : "B körkort",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "B driving licence theory test – monthly subscription",
               "displayName" : "B Driving Licence",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.bkorkot",
           "recurringSubscriptionPeriod" : "P2M",
-          "referenceName" : "B korkot",
+          "referenceName" : "B Korkot",
           "subscriptionGroupID" : "GRP_B_KORKOT"
         }
       ]
@@ -50,26 +50,26 @@
       "referenceName" : "B Korkot En",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000002",
+          "internalID" : "3000000002",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "B-körkortsprovet på engelska (månadsabonnemang)",
               "displayName" : "B körkort engelska",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "B driving licence test in English – monthly subscription",
               "displayName" : "B Driving Licence (English)",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.b_korkot_en",
           "recurringSubscriptionPeriod" : "P2M",
-          "referenceName" : "B korkot En",
+          "referenceName" : "B Korkot En",
           "subscriptionGroupID" : "GRP_B_KORKOT_EN"
         }
       ]
@@ -80,21 +80,21 @@
       "referenceName" : "Taxiforarlegitimation",
       "subscriptions" : [
         {
-          "displayPrice" : "899.0",
+          "displayPrice" : "899.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000003",
+          "internalID" : "3000000003",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "Provet för taxiförarlegitimation (månadsabonnemang)",
               "displayName" : "Taxiförarlegitimation",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "Taxi driver licence theory test – monthly subscription",
               "displayName" : "Taxi Driver Licence",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.taxiforarlegitimation",
@@ -110,21 +110,21 @@
       "referenceName" : "Taxiakeri",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000004",
+          "internalID" : "3000000004",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "Provet för taxiåkeri (månadsabonnemang)",
               "displayName" : "Taxiåkeri",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "Taxi business theory test – monthly subscription",
               "displayName" : "Taxi Business",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.taxiakeri",
@@ -140,26 +140,26 @@
       "referenceName" : "B Korkot Arabiska",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000005",
+          "internalID" : "3000000005",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "B-körkortsprovet på arabiska (månadsabonnemang)",
               "displayName" : "B körkort arabiska",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "B driving licence test in Arabic – monthly subscription",
               "displayName" : "B Driving Licence (Arabic)",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.bkorkortarabiska",
           "recurringSubscriptionPeriod" : "P2M",
-          "referenceName" : "B korkot arabiska",
+          "referenceName" : "B Korkot Arabiska",
           "subscriptionGroupID" : "GRP_B_ARABISKA"
         }
       ]
@@ -170,21 +170,21 @@
       "referenceName" : "Buss",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000006",
+          "internalID" : "3000000006",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "Teoriprovet för busskörning (månadsabonnemang)",
               "displayName" : "Buss",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "Bus driving theory test – monthly subscription",
               "displayName" : "Bus",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.buss",
@@ -200,21 +200,21 @@
       "referenceName" : "CE",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000007",
+          "internalID" : "3000000007",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "Teoriprovet för CE-körkort (månadsabonnemang)",
               "displayName" : "CE lastbil med släp",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "CE driving licence theory test – monthly subscription",
               "displayName" : "CE Truck with Trailer",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.ce",
@@ -230,21 +230,21 @@
       "referenceName" : "Godsakeri",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000008",
+          "internalID" : "3000000008",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "Provet för godsåkeri (månadsabonnemang)",
               "displayName" : "Godsåkeri",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "Freight transport theory test – monthly subscription",
               "displayName" : "Freight Transport",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.godsakeri",
@@ -260,21 +260,21 @@
       "referenceName" : "Lastbil",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000009",
+          "internalID" : "3000000009",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "Teoriprovet för lastbilskörning (månadsabonnemang)",
               "displayName" : "Lastbil",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "Truck driving theory test – monthly subscription",
               "displayName" : "Truck",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.lastbil",
@@ -290,21 +290,21 @@
       "referenceName" : "Motorcykel",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000010",
+          "internalID" : "3000000010",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "Teoriprovet för motorcykel (månadsabonnemang)",
               "displayName" : "Motorcykel",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "Motorcycle theory test – monthly subscription",
               "displayName" : "Motorcycle",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.motorcykel",
@@ -320,21 +320,21 @@
       "referenceName" : "YKB",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000011",
+          "internalID" : "3000000011",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "YKB-provet för yrkeskompetens (månadsabonnemang)",
               "displayName" : "YKB",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "YKB professional competence test – monthly subscription",
               "displayName" : "YKB",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.ykb",
@@ -350,26 +350,26 @@
       "referenceName" : "YKB Buss",
       "subscriptions" : [
         {
-          "displayPrice" : "249.0",
+          "displayPrice" : "249.00",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "2000000012",
+          "internalID" : "3000000012",
           "introductoryOffers" : [],
           "localizations" : [
             {
               "description" : "YKB-bussprovet för yrkeskompetens (månadsabonnemang)",
               "displayName" : "YKB buss",
-              "locale" : "sv"
+              "locale" : "sv_SE"
             },
             {
               "description" : "YKB bus competence test – monthly subscription",
               "displayName" : "YKB Bus",
-              "locale" : "en_GB"
+              "locale" : "en_US"
             }
           ],
           "productID" : "co.drivetest.ykbbuss",
           "recurringSubscriptionPeriod" : "P2M",
-          "referenceName" : "YKB buss",
+          "referenceName" : "YKB Buss",
           "subscriptionGroupID" : "GRP_YKB_BUSS"
         }
       ]

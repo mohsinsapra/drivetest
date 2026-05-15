@@ -111,6 +111,7 @@ class ApiService {
               : {};
           if (data['username'] != null) merged['username'] = data['username'];
           if (data['email'] != null) merged['email'] = data['email'];
+          if (data['is_guest'] != null) merged['is_guest'] = data['is_guest'];
           await prefs.setString(AppStorage.kUserJson, jsonEncode(merged));
         } catch (e) {
           debugPrint('[ApiService] failed to cache user fields: $e');
@@ -142,6 +143,29 @@ class ApiService {
     } catch (e) {
       throw Exception('Authentication failed: $e');
     }
+  }
+
+  Future<void> guestLogin() async {
+    final response = await _dio.post('api/user/guest/');
+    await _dioClient.setTokens(
+      access: response.data['access'],
+      refresh: response.data['refresh'],
+    );
+  }
+
+  Future<void> convertGuest({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
+    final response = await _dio.post(
+      'api/user/guest/convert/',
+      data: {'username': username, 'email': email, 'password': password},
+    );
+    await _dioClient.setTokens(
+      access: response.data['access'],
+      refresh: response.data['refresh'],
+    );
   }
 
   Future<List<dynamic>> fetchLicenses() async {

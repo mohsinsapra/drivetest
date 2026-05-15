@@ -51,7 +51,7 @@ class BCDScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         itemCount: sections.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, i) => _SectionCard(section: sections[i]),
+        itemBuilder: (_, i) => _SectionCard(section: sections[i]),
       ),
     );
   }

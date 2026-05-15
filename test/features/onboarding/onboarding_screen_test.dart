@@ -194,7 +194,7 @@ void main() {
                   },
                 ],
                 isLoggedIn: () => false,
-                showAuthSheet: (_) async {
+                showAuthSheet: (_, {String? title, String? subtitle, bool required = false}) async {
                   authSheetShown = true;
                   return true;
                 },
@@ -250,7 +250,7 @@ void main() {
                   },
                 ],
                 isLoggedIn: () => false,
-                showAuthSheet: (_) async {
+                showAuthSheet: (_, {String? title, String? subtitle, bool required = false}) async {
                   authSheetShown = true;
                   return false;
                 },
@@ -474,7 +474,7 @@ void main() {
                   },
                 ],
                 isLoggedIn: () => true,
-                showAuthSheet: (_) async {
+                showAuthSheet: (_, {String? title, String? subtitle, bool required = false}) async {
                   authSheetShown = true;
                   return true;
                 },
