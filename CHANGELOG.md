@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Fixed
--
+- "Continue as a guest" on the onboarding pricing screen no longer overwrites the session of an already-logged-in user; `guestLogin()` is now skipped when a valid token is already present, so authenticated users proceed directly to the main screen with their own credentials intact
 
 ---
 ---

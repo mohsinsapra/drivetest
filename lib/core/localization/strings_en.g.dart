@@ -540,6 +540,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get onb_price_unavailable => 'Price unavailable';
   String get onb_free_trial => '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
   String get onb_start_free => 'Continue as Guest';
+  String get onb_skip_for_now => 'Skip for now';
   String get free_trial_banner_badge => 'FREE';
   String get free_trial_banner_title =>
       'Try road signs — no subscription needed';

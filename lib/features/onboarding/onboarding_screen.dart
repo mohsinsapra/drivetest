@@ -319,11 +319,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _handleStartFree() async {
     if (_purchaseInFlight || !mounted) return;
     setState(() => _purchaseInFlight = true);
-    try {
-      await ApiService().guestLogin();
-    } catch (e) {
-      if (mounted) setState(() => _purchaseInFlight = false);
-      return;
+
+    // Only create a guest session when the user is not already logged in.
+    // If they are authenticated, calling guestLogin() would overwrite their
+    // tokens with guest credentials, effectively logging them out.
+    if (!widget.isLoggedIn()) {
+      try {
+        await ApiService().guestLogin();
+      } catch (e) {
+        if (mounted) setState(() => _purchaseInFlight = false);
+        return;
+      }
     }
 
     await BcdCache.instance.ensureLoaded();
@@ -499,6 +505,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     products: _selectedProducts,
                     purchasing: _purchaseInFlight,
                     isOwnedFn: _isOwned,
+                    isLoggedIn: widget.isLoggedIn(),
                     onPurchaseOne: _purchaseInFlight
                         ? null
                         : (p) => _handlePurchaseTap(only: p),
@@ -1367,6 +1374,7 @@ class _PlanPage extends StatelessWidget {
     required this.products,
     required this.purchasing,
     required this.isOwnedFn,
+    required this.isLoggedIn,
     required this.onPurchaseOne,
     required this.onPurchaseAll,
     required this.onBack,
@@ -1376,6 +1384,7 @@ class _PlanPage extends StatelessWidget {
   final List<Map<String, dynamic>> products;
   final bool purchasing;
   final bool Function(Map<String, dynamic>) isOwnedFn;
+  final bool isLoggedIn;
   final void Function(Map<String, dynamic>)? onPurchaseOne;
   final VoidCallback? onPurchaseAll;
   final VoidCallback onBack;
@@ -1493,7 +1502,7 @@ class _PlanPage extends StatelessWidget {
                           horizontal: 24, vertical: 12),
                     ),
                     child: Text(
-                      t.onb_start_free,
+                      isLoggedIn ? t.onb_skip_for_now : t.onb_start_free,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,

@@ -971,6 +971,8 @@ class TranslationsSv implements Translations {
   @override
   String get onb_start_free => 'Fortsätt som gäst';
   @override
+  String get onb_skip_for_now => 'Hoppa över för nu';
+  @override
   String get free_trial_banner_badge => 'GRATIS';
   @override
   String get free_trial_banner_title =>
