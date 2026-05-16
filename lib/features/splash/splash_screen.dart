@@ -280,15 +280,38 @@ class _SplashScreenState extends State<SplashScreen>
                       children: [
                         Column(
                           children: [
-                            Text(
-                              'DRIVE TEST',
-                              style: GoogleFonts.lexend(
-                                fontSize: 58,
-                                fontWeight: FontWeight.w900,
-                                fontStyle: FontStyle.italic,
-                                letterSpacing: -1.5,
-                                color: cs.primary,
-                                height: 1.0,
+                            Padding(
+                              padding: const EdgeInsets.only(right: 52),
+                              child: Hero(
+                                tag: 'brand-title',
+                                child: Material(
+                                  type: MaterialType.transparency,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: RichText(
+                                      maxLines: 1,
+                                      text: TextSpan(
+                                        style: GoogleFonts.lexend(
+                                          fontSize: 58,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: -2,
+                                          height: 1.0,
+                                          color: cs.onSurface,
+                                        ),
+                                        children: [
+                                          const TextSpan(text: 'DRIVE '),
+                                          TextSpan(
+                                            text: 'TEST',
+                                            style: GoogleFonts.lexend(
+                                              fontStyle: FontStyle.italic,
+                                              color: cs.primary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(height: 10),
@@ -327,25 +350,31 @@ class _SplashScreenState extends State<SplashScreen>
                               child: child!,
                             ),
                           ),
-                          child: Transform.rotate(
-                            angle: 12 * math.pi / 180,
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: cs.secondaryContainer,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: cs.onSurface.withValues(alpha: 0.08),
-                                    blurRadius: 32,
-                                    offset: const Offset(0, 12),
+                          child: Hero(
+                            tag: 'brand-bolt',
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: Transform.rotate(
+                                angle: 12 * math.pi / 180,
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: cs.secondaryContainer,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: cs.onSurface.withValues(alpha: 0.08),
+                                        blurRadius: 32,
+                                        offset: const Offset(0, 12),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              child: Icon(
-                                Icons.bolt,
-                                color: cs.onSecondaryContainer,
-                                size: 28,
+                                  child: Icon(
+                                    Icons.bolt,
+                                    color: cs.onSecondaryContainer,
+                                    size: 28,
+                                  ),
+                                ),
                               ),
                             ),
                           ),

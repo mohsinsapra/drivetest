@@ -20,12 +20,9 @@ import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/debug_credentials.dart';
 import 'package:taxi_exam_app/features/auth/forgot_password_screen.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
-import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
-
-enum _AuthView { landing, login, signup }
 
 class AuthScreen extends StatefulWidget {
   final void Function(NavigatorState nav)? onAfterAuth;
@@ -36,49 +33,24 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  _AuthView _view = _AuthView.landing;
-  bool _viewForward = true; // tracks slide direction
-
   final ApiService _apiService = ApiService();
-  bool _isLoading = false;
   bool _isGoogleLoading = false;
   bool _isAppleLoading = false;
   String _googleLoadingStep = '';
-
-  // Login state
-  final _loginUsernameCtrl = TextEditingController();
-  final _loginPasswordCtrl = TextEditingController();
-  bool _obscureLoginPw = true;
-  String? _loginError;
-  Map<String, String?> _loginErrors = {};
-
-  // Signup state
-  final _signupUsernameCtrl = TextEditingController();
-  final _signupEmailCtrl = TextEditingController();
-  final _signupPasswordCtrl = TextEditingController();
-  bool _obscureSignupPw = true;
-  Map<String, String?> _signupErrors = {};
+  String? _landingError;
 
   // Guest session state
-  bool _hasSavedGuestSession = false;
   bool _isGuestLoading = false;
 
   @override
   void initState() {
     super.initState();
-    if (kDebugMode) {
-      _loginUsernameCtrl.text = 'abc';
-      _loginPasswordCtrl.text = 'abc';
-    }
-    _checkSavedGuestSession();
+    _preloadGuestSession();
   }
 
-  Future<void> _checkSavedGuestSession() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final hasToken = prefs.getString(AppStorage.kGuestRefreshToken) != null;
-      if (mounted) setState(() => _hasSavedGuestSession = hasToken);
-    } catch (_) {}
+  Future<void> _preloadGuestSession() async {
+    // Warm up SharedPreferences; no-op here — guest is always shown.
+    await SharedPreferences.getInstance();
   }
 
   Future<void> _continueAsGuest() async {
@@ -87,10 +59,7 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       await _apiService.guestLogin();
       if (!mounted) return;
-      // Pre-seed BcdCache so MainScreen doesn't show a loading spinner while
-      // waiting for /self. Errors are non-fatal — MainScreen will retry.
       _apiService.fetchCurrentUser().ignore();
-      // Retry any IAP receipt — best-effort, do not block navigation.
       IAPService.instance.hasDeferredReceipt().then((has) {
         if (has) {
           IAPService.instance.verifyDeferredReceipt().catchError((_) => null);
@@ -111,26 +80,6 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _loginUsernameCtrl.dispose();
-    _loginPasswordCtrl.dispose();
-    _signupUsernameCtrl.dispose();
-    _signupEmailCtrl.dispose();
-    _signupPasswordCtrl.dispose();
-    super.dispose();
-  }
-
-  void _navigate(_AuthView view) {
-    setState(() {
-      _viewForward = view != _AuthView.landing;
-      _view = view;
-      _loginError = null;
-      _loginErrors = {};
-      _signupErrors = {};
-    });
-  }
-
   // ── Locale ────────────────────────────────────────────────────────────────
 
   Future<void> _setLocale(AppLocale locale) async {
@@ -146,14 +95,13 @@ class _AuthScreenState extends State<AuthScreen> {
     String? displayName,
   }) async {
     IAPService.instance.verifyDeferredReceipt().ignore();
-    // Welcome message uses the name from Google/Apple — no extra self/ call needed.
-    // MainScreen._loadTabFlags() will fetch self/ for feature flags on its own.
     if (displayName != null || isFirstLogin) {
-      _showWelcomeMessage({'first_name': displayName ?? ''},
-          isFirstLogin: isFirstLogin);
+      final t = Translations.of(context);
+      showAppSnackBar(
+        isFirstLogin ? t.auth_welcome_first_login : t.auth_welcome_returning,
+        type: SnackBarType.success,
+      );
     }
-    // NotificationService.init is called in MainScreen.initState — skip here
-    // to avoid a duplicate register-token/ call.
     if (!mounted) return;
     final navigator = Navigator.of(context);
     final afterAuth = widget.onAfterAuth;
@@ -166,22 +114,13 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  void _showWelcomeMessage(Map<String, dynamic> user,
-      {required bool isFirstLogin}) {
-    final t = Translations.of(context);
-    showAppSnackBar(
-      isFirstLogin ? t.auth_welcome_first_login : t.auth_welcome_returning,
-      type: SnackBarType.success,
-    );
-  }
-
   // ── Google Sign In ────────────────────────────────────────────────────────
 
   Future<void> _signInWithGoogle() async {
     setState(() {
       _isGoogleLoading = true;
       _googleLoadingStep = Translations.of(context).auth_google_connecting;
-      _loginError = null;
+      _landingError = null;
     });
     try {
       await Sentry.addBreadcrumb(
@@ -201,9 +140,6 @@ class _AuthScreenState extends State<AuthScreen> {
         setState(() => _googleLoadingStep =
             Translations.of(context).auth_google_verifying);
       }
-      await Sentry.addBreadcrumb(Breadcrumb(
-          message: 'Google Sign-In: user obtained, fetching auth tokens',
-          category: 'auth'));
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
       final accessToken = googleAuth.accessToken;
@@ -214,16 +150,8 @@ class _AuthScreenState extends State<AuthScreen> {
         setState(() => _googleLoadingStep =
             Translations.of(context).auth_google_signing_in);
       }
-      await Sentry.addBreadcrumb(Breadcrumb(
-          message:
-              'Google Sign-In: tokens received, calling backend googleAuth',
-          category: 'auth'));
       final isFirstLogin = await _apiService.googleAuth(
           idToken: idToken, accessToken: accessToken);
-      await Sentry.addBreadcrumb(Breadcrumb(
-          message:
-              'Google Sign-In: backend googleAuth succeeded, isFirstLogin=$isFirstLogin',
-          category: 'auth'));
       if (mounted) {
         setState(() => _googleLoadingStep = isFirstLogin
             ? Translations.of(context).auth_google_creating
@@ -231,29 +159,12 @@ class _AuthScreenState extends State<AuthScreen> {
       }
       if (!mounted) return;
       vibrateLoginLogout();
-      try {
-        await _navigateToMain(
-            isFirstLogin: isFirstLogin, displayName: googleUser.displayName);
-      } catch (navError) {
-        debugPrint(
-            'AuthScreen: navigation error after Google login — $navError');
-        if (mounted) {
-          final navigator = Navigator.of(context);
-          final afterAuth = widget.onAfterAuth;
-          navigator.pushAndRemoveUntil(
-            AppPageRoute(builder: (_) => const MainScreen()),
-            (route) => false,
-          );
-          if (afterAuth != null) {
-            WidgetsBinding.instance
-                .addPostFrameCallback((_) => afterAuth(navigator));
-          }
-        }
-      }
+      await _navigateToMain(
+          isFirstLogin: isFirstLogin, displayName: googleUser.displayName);
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _loginError = _isDeletedAccountError(e)
+        _landingError = _isDeletedAccountError(e)
             ? Translations.of(context).auth_deleted_account_welcome_back
             : GoogleSignInHelper.userMessage(e);
       });
@@ -272,7 +183,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _signInWithApple() async {
     setState(() {
       _isAppleLoading = true;
-      _loginError = null;
+      _landingError = null;
     });
     try {
       await Sentry.addBreadcrumb(
@@ -280,17 +191,11 @@ class _AuthScreenState extends State<AuthScreen> {
       final credential = await AppleSignInHelper.signIn();
       final identityToken = credential.identityToken;
       if (identityToken == null) throw Exception('No identity token received');
-      await Sentry.addBreadcrumb(Breadcrumb(
-          message: 'Apple Sign-In: credential obtained', category: 'auth'));
       final isFirstLogin = await _apiService.appleAuth(
         identityToken: identityToken,
         firstName: credential.givenName,
         lastName: credential.familyName,
       );
-      await Sentry.addBreadcrumb(Breadcrumb(
-          message:
-              'Apple Sign-In: backend succeeded, isFirstLogin=$isFirstLogin',
-          category: 'auth'));
       if (!mounted) return;
       vibrateLoginLogout();
       await _navigateToMain(isFirstLogin: isFirstLogin);
@@ -302,134 +207,10 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
       setState(() {
-        _loginError = Translations.of(context).auth_generic_error;
+        _landingError = Translations.of(context).auth_generic_error;
       });
     } finally {
       if (mounted) setState(() => _isAppleLoading = false);
-    }
-  }
-
-  // ── Login ─────────────────────────────────────────────────────────────────
-
-  Future<void> _login() async {
-    final t = Translations.of(context);
-    final errors = <String, String?>{};
-    if (_loginUsernameCtrl.text.trim().isEmpty) {
-      errors['username'] = t.auth_val_username_required;
-    }
-    if (_loginPasswordCtrl.text.isEmpty) {
-      errors['password'] = t.auth_val_password_required;
-    }
-    if (errors.isNotEmpty) {
-      setState(() => _loginErrors = errors);
-      return;
-    }
-    setState(() {
-      _loginErrors = {};
-      _isLoading = true;
-      _loginError = null;
-    });
-    try {
-      final isFirstLogin = await _apiService.authenticate(
-        _loginUsernameCtrl.text.trim(),
-        _loginPasswordCtrl.text,
-      );
-      if (!mounted) return;
-      vibrateLoginLogout();
-      try {
-        await _navigateToMain(isFirstLogin: isFirstLogin);
-      } catch (navError) {
-        if (!mounted) return;
-        debugPrint('AuthScreen: navigation error after login — $navError');
-        if (mounted) {
-          final navigator = Navigator.of(context);
-          final afterAuth = widget.onAfterAuth;
-          navigator.pushAndRemoveUntil(
-            AppPageRoute(builder: (_) => const MainScreen()),
-            (route) => false,
-          );
-          if (afterAuth != null) {
-            WidgetsBinding.instance
-                .addPostFrameCallback((_) => afterAuth(navigator));
-          }
-        }
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loginError = _isDeletedAccountError(e)
-            ? Translations.of(context).auth_deleted_account_welcome_back
-            : Translations.of(context).auth_invalid_credentials;
-      });
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _loginAsDemo() async {
-    _loginUsernameCtrl.text = kDebugUsername;
-    _loginPasswordCtrl.text = kDebugPassword;
-    await _login();
-  }
-
-  // ── Signup ────────────────────────────────────────────────────────────────
-
-  Future<void> _signup() async {
-    final t = Translations.of(context);
-    final errors = <String, String?>{};
-    if (_signupUsernameCtrl.text.trim().isEmpty) {
-      errors['username'] = t.auth_val_username_required;
-    } else if (_signupUsernameCtrl.text.trim().length < 4) {
-      errors['username'] = t.auth_val_username_length;
-    }
-    if (_signupEmailCtrl.text.trim().isEmpty) {
-      errors['email'] = t.auth_val_email_required;
-    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
-        .hasMatch(_signupEmailCtrl.text.trim())) {
-      errors['email'] = t.auth_val_email_invalid;
-    }
-    if (_signupPasswordCtrl.text.isEmpty) {
-      errors['password'] = t.auth_val_password_required;
-    } else if (_signupPasswordCtrl.text.length < 6) {
-      errors['password'] = t.auth_val_password_length;
-    }
-    if (errors.isNotEmpty) {
-      setState(() => _signupErrors = errors);
-      return;
-    }
-    setState(() {
-      _signupErrors = {};
-      _isLoading = true;
-    });
-    try {
-      final response = await _apiService.signup(
-        _signupEmailCtrl.text,
-        _signupUsernameCtrl.text,
-        _signupPasswordCtrl.text,
-      );
-      if (!mounted) return;
-      if (response.statusCode == 201) {
-        showAppSnackBar(t.auth_signup_success, type: SnackBarType.success);
-        _navigate(_AuthView.login);
-      } else {
-        final errorData = json.decode(response.body) as Map<String, dynamic>;
-        final serverErrors = <String, String?>{};
-        errorData.forEach((key, value) {
-          if (value is List && value.isNotEmpty) {
-            serverErrors[key] = value.first as String;
-          } else if (value is String) {
-            serverErrors[key] = value;
-          }
-        });
-        setState(() => _signupErrors = serverErrors);
-        showAppSnackBar(t.auth_signup_failed, type: SnackBarType.error);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(Translations.of(context).auth_generic_error,
-          type: SnackBarType.error);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -445,6 +226,39 @@ class _AuthScreenState extends State<AuthScreen> {
     }
     return false;
   }
+
+  // ── Route factories for login / signup ────────────────────────────────────
+
+  PageRoute _makeLoginRoute() => PageRouteBuilder(
+        pageBuilder: (_, __, ___) => _LoginPage(
+          apiService: _apiService,
+          onAfterAuth: widget.onAfterAuth,
+          signupRoute: _makeSignupRoute,
+        ),
+        transitionsBuilder: (_, anim, __, child) => SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+          child: child,
+        ),
+        transitionDuration: const Duration(milliseconds: 320),
+      );
+
+  PageRoute _makeSignupRoute() => PageRouteBuilder(
+        pageBuilder: (_, __, ___) => _SignupPage(
+          apiService: _apiService,
+          loginRoute: _makeLoginRoute,
+        ),
+        transitionsBuilder: (_, anim, __, child) => SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+          child: child,
+        ),
+        transitionDuration: const Duration(milliseconds: 320),
+      );
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
@@ -468,67 +282,18 @@ class _AuthScreenState extends State<AuthScreen> {
               child: const Icon(Icons.refresh, size: 18),
             )
           : null,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 320),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, anim) {
-          final forward = _viewForward;
-          final slide = Tween<Offset>(
-            begin: Offset(forward ? 1.0 : -1.0, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic));
-          return SlideTransition(position: slide, child: child);
-        },
-        child: switch (_view) {
-          _AuthView.landing => _LandingView(
-              key: const ValueKey('landing'),
-              isGoogleLoading: _isGoogleLoading,
-              googleLoadingStep: _googleLoadingStep,
-              isAppleLoading: _isAppleLoading,
-              isGuestLoading: _isGuestLoading,
-              hasSavedGuestSession: _hasSavedGuestSession,
-              loginError: _loginError,
-              onGoogle: _signInWithGoogle,
-              onApple: _signInWithApple,
-              onLogin: () => _navigate(_AuthView.login),
-              onSignup: () => _navigate(_AuthView.signup),
-              onSetLocale: _setLocale,
-              onContinueAsGuest: _continueAsGuest,
-            ),
-          _AuthView.login => _LoginView(
-              key: const ValueKey('login'),
-              isLoading: _isLoading,
-              usernameCtrl: _loginUsernameCtrl,
-              passwordCtrl: _loginPasswordCtrl,
-              obscurePassword: _obscureLoginPw,
-              onToggleObscure: () =>
-                  setState(() => _obscureLoginPw = !_obscureLoginPw),
-              loginError: _loginError,
-              fieldErrors: _loginErrors,
-              onLogin: _login,
-              onDemoLogin: _loginAsDemo,
-              onBack: () => _navigate(_AuthView.landing),
-              onGoSignup: () => _navigate(_AuthView.signup),
-              onForgotPassword: () => Navigator.of(context).push(
-                AppPageRoute(builder: (_) => const ForgotPasswordScreen()),
-              ),
-            ),
-          _AuthView.signup => _SignupView(
-              key: const ValueKey('signup'),
-              isLoading: _isLoading,
-              usernameCtrl: _signupUsernameCtrl,
-              emailCtrl: _signupEmailCtrl,
-              passwordCtrl: _signupPasswordCtrl,
-              obscurePassword: _obscureSignupPw,
-              onToggleObscure: () =>
-                  setState(() => _obscureSignupPw = !_obscureSignupPw),
-              fieldErrors: _signupErrors,
-              onSignup: _signup,
-              onBack: () => _navigate(_AuthView.landing),
-              onGoLogin: () => _navigate(_AuthView.login),
-            ),
-        },
+      body: _LandingView(
+        isGoogleLoading: _isGoogleLoading,
+        googleLoadingStep: _googleLoadingStep,
+        isAppleLoading: _isAppleLoading,
+        isGuestLoading: _isGuestLoading,
+        loginError: _landingError,
+        onGoogle: _signInWithGoogle,
+        onApple: _signInWithApple,
+        onLogin: () => Navigator.of(context).push(_makeLoginRoute()),
+        onSignup: () => Navigator.of(context).push(_makeSignupRoute()),
+        onSetLocale: _setLocale,
+        onContinueAsGuest: _continueAsGuest,
       ),
     );
   }
@@ -664,13 +429,19 @@ class _AuthAppBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            Text(
-              'DRIVE TEST',
-              style: GoogleFonts.lexend(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-                color: cs.primary,
+            Hero(
+              tag: 'brand-title',
+              child: Material(
+                type: MaterialType.transparency,
+                child: Text(
+                  'DRIVE TEST',
+                  style: GoogleFonts.lexend(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    color: cs.primary,
+                  ),
+                ),
               ),
             ),
           ],
@@ -1074,12 +845,10 @@ class _AnimatedAuthBgState extends State<_AnimatedAuthBg>
 
 class _LandingView extends StatelessWidget {
   const _LandingView({
-    super.key,
     required this.isGoogleLoading,
     required this.googleLoadingStep,
     required this.isAppleLoading,
     required this.isGuestLoading,
-    required this.hasSavedGuestSession,
     required this.loginError,
     required this.onGoogle,
     required this.onApple,
@@ -1093,7 +862,6 @@ class _LandingView extends StatelessWidget {
   final String googleLoadingStep;
   final bool isAppleLoading;
   final bool isGuestLoading;
-  final bool hasSavedGuestSession;
   final String? loginError;
   final VoidCallback onGoogle;
   final VoidCallback onApple;
@@ -1189,29 +957,35 @@ class _LandingView extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: RichText(
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            text: TextSpan(
-                              style: GoogleFonts.lexend(
-                                fontSize: 56,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -2,
-                                height: 1.0,
-                                color: cs.onSurface,
-                              ),
-                              children: [
-                                const TextSpan(text: 'DRIVE '),
-                                TextSpan(
-                                  text: 'TEST',
+                        Hero(
+                          tag: 'brand-title',
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: RichText(
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                text: TextSpan(
                                   style: GoogleFonts.lexend(
-                                    fontStyle: FontStyle.italic,
-                                    color: cs.primary,
+                                    fontSize: 56,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -2,
+                                    height: 1.0,
+                                    color: cs.onSurface,
                                   ),
+                                  children: [
+                                    const TextSpan(text: 'DRIVE '),
+                                    TextSpan(
+                                      text: 'TEST',
+                                      style: GoogleFonts.lexend(
+                                        fontStyle: FontStyle.italic,
+                                        color: cs.primary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
@@ -1270,32 +1044,47 @@ class _LandingView extends StatelessWidget {
                         onPressed: onLogin,
                       ),
                       const SizedBox(height: 10),
-                      // Social sign-in icons — row below login button
-                      SizedBox(
-                        height: 54,
-                        child: Row(
-                          children: [
-                            if (AppleSignInHelper.isAvailable()) ...[
+                      // Social sign-in buttons — platform-adaptive layout
+                      if (AppleSignInHelper.isAvailable()) ...[
+                        // iOS: Apple + Google icon pair
+                        SizedBox(
+                          height: 54,
+                          child: Row(
+                            children: [
                               AppSocialButton(
                                 icon: FontAwesomeIcons.apple,
                                 iconSize: 22,
+                                iconColor: Colors.black,
                                 loading: isAppleLoading,
                                 onPressed: isGoogleLoading ? null : onApple,
                               ),
                               const SizedBox(width: 10),
+                              AppSocialButton(
+                                icon: FontAwesomeIcons.google,
+                                iconSize: 18,
+                                iconColor: const Color(0xFF4285F4),
+                                loading: isGoogleLoading,
+                                loadingLabel: googleLoadingStep.isNotEmpty
+                                    ? googleLoadingStep
+                                    : null,
+                                onPressed: isAppleLoading ? null : onGoogle,
+                              ),
                             ],
-                            AppSocialButton(
-                              icon: FontAwesomeIcons.google,
-                              iconSize: 18,
-                              loading: isGoogleLoading,
-                              loadingLabel: googleLoadingStep.isNotEmpty
-                                  ? googleLoadingStep
-                                  : null,
-                              onPressed: isAppleLoading ? null : onGoogle,
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                      ] else ...[
+                        // Android / Web: full-width Express Google button
+                        AppButton(
+                          label: Translations.of(context).auth_express_google,
+                          icon: FaIcon(FontAwesomeIcons.google,
+                              size: 18, color: cs.onPrimary),
+                          loading: isGoogleLoading,
+                          loadingLabel: googleLoadingStep.isNotEmpty
+                              ? googleLoadingStep
+                              : null,
+                          onPressed: onGoogle,
+                        ),
+                      ],
                       const SizedBox(height: 20),
                       // Sign-up footer text
                       Row(
@@ -1321,30 +1110,27 @@ class _LandingView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      // Continue as guest — light text link (only if prior session exists)
-                      if (hasSavedGuestSession) ...[
-                        const SizedBox(height: 12),
-                        isGuestLoading
-                            ? SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: cs.onSurfaceVariant),
-                              )
-                            : GestureDetector(
-                                onTap: onContinueAsGuest,
-                                child: Text(
-                                  Translations.of(context)
-                                      .auth_continue_as_guest,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: cs.onSurfaceVariant
-                                        .withValues(alpha: 0.7),
-                                  ),
+                      // Continue as guest — always visible
+                      const SizedBox(height: 12),
+                      isGuestLoading
+                          ? SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: cs.onSurfaceVariant),
+                            )
+                          : GestureDetector(
+                              onTap: onContinueAsGuest,
+                              child: Text(
+                                Translations.of(context).auth_continue_as_guest,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color:
+                                      cs.onSurfaceVariant.withValues(alpha: 0.7),
                                 ),
                               ),
-                      ],
+                            ),
                     ],
                   ),
                 ),
@@ -1357,190 +1143,216 @@ class _LandingView extends StatelessWidget {
   }
 }
 
-// ─── View 2: Login form ───────────────────────────────────────────────────────
+// ─── Login page (pushed route) ────────────────────────────────────────────────
 
-class _LoginView extends StatelessWidget {
-  const _LoginView({
-    super.key,
-    required this.isLoading,
-    required this.usernameCtrl,
-    required this.passwordCtrl,
-    required this.obscurePassword,
-    required this.onToggleObscure,
-    required this.loginError,
-    required this.fieldErrors,
-    required this.onLogin,
-    required this.onDemoLogin,
-    required this.onBack,
-    required this.onGoSignup,
-    required this.onForgotPassword,
+class _LoginPage extends StatefulWidget {
+  const _LoginPage({
+    required this.apiService,
+    required this.signupRoute,
+    this.onAfterAuth,
   });
 
-  final bool isLoading;
-  final TextEditingController usernameCtrl;
-  final TextEditingController passwordCtrl;
-  final bool obscurePassword;
-  final VoidCallback onToggleObscure;
-  final String? loginError;
-  final Map<String, String?> fieldErrors;
-  final VoidCallback onLogin;
-  final VoidCallback onDemoLogin;
-  final VoidCallback onBack;
-  final VoidCallback onGoSignup;
-  final VoidCallback onForgotPassword;
+  final ApiService apiService;
+  final PageRoute Function() signupRoute;
+  final void Function(NavigatorState nav)? onAfterAuth;
+
+  @override
+  State<_LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<_LoginPage> {
+  final _usernameCtrl =
+      TextEditingController(text: kDebugMode ? kDebugUsername : '');
+  final _passwordCtrl =
+      TextEditingController(text: kDebugMode ? kDebugPassword : '');
+  bool _isLoading = false;
+  bool _obscure = true;
+  String? _error;
+  Map<String, String?> _fieldErrors = {};
+
+  @override
+  void dispose() {
+    _usernameCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  bool _isDeletedAccountError(Object error) {
+    if (error is! DioException) return false;
+    final data = error.response?.data;
+    if (data is Map) {
+      final map = Map<String, dynamic>.from(data);
+      final code = (map['code'] ?? '').toString();
+      final detail = (map['detail'] ?? '').toString().toLowerCase();
+      if (code == 'account_deleted') return true;
+      if (detail.contains('account has been deleted')) return true;
+    }
+    return false;
+  }
+
+  Future<void> _login() async {
+    final t = Translations.of(context);
+    final errors = <String, String?>{};
+    if (_usernameCtrl.text.trim().isEmpty) {
+      errors['username'] = t.auth_val_username_required;
+    }
+    if (_passwordCtrl.text.isEmpty) {
+      errors['password'] = t.auth_val_password_required;
+    }
+    if (errors.isNotEmpty) {
+      setState(() => _fieldErrors = errors);
+      return;
+    }
+    setState(() {
+      _fieldErrors = {};
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final isFirstLogin = await widget.apiService.authenticate(
+        _usernameCtrl.text.trim(),
+        _passwordCtrl.text,
+      );
+      if (!mounted) return;
+      vibrateLoginLogout();
+      IAPService.instance.verifyDeferredReceipt().ignore();
+      final t2 = Translations.of(context);
+      showAppSnackBar(
+        isFirstLogin ? t2.auth_welcome_first_login : t2.auth_welcome_returning,
+        type: SnackBarType.success,
+      );
+      if (!mounted) return;
+      final navigator = Navigator.of(context);
+      navigator.pushAndRemoveUntil(
+        AppPageRoute(builder: (_) => const MainScreen()),
+        (route) => false,
+      );
+      final afterAuth = widget.onAfterAuth;
+      if (afterAuth != null) {
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => afterAuth(navigator));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = _isDeletedAccountError(e)
+            ? Translations.of(context).auth_deleted_account_welcome_back
+            : Translations.of(context).auth_invalid_credentials;
+      });
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final t = Translations.of(context);
 
-    return Stack(
-      children: [
-        const _AnimatedAuthBg(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _AuthAppBar(onBack: onBack),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Editorial headline
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          top: -24,
-                          left: -16,
-                          child: Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  cs.secondaryContainer.withValues(alpha: 0.2),
+    return Scaffold(
+      backgroundColor: cs.surface,
+      body: Stack(
+        children: [
+          const _AnimatedAuthBg(),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _AuthAppBar(onBack: () => Navigator.of(context).pop()),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            top: -24,
+                            left: -16,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: cs.secondaryContainer
+                                    .withValues(alpha: 0.2),
+                              ),
                             ),
                           ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              Translations.of(context).auth_login_heading,
-                              style: GoogleFonts.lexend(
-                                fontSize: 46,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -1.5,
-                                height: 1.0,
-                                color: cs.onSurface,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                t.auth_login_heading,
+                                style: GoogleFonts.lexend(
+                                  fontSize: 46,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -1.5,
+                                  height: 1.0,
+                                  color: cs.onSurface,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              Translations.of(context).auth_login_subtitle,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 16,
-                                color: cs.onSurfaceVariant,
+                              const SizedBox(height: 8),
+                              Text(
+                                t.auth_login_subtitle,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 16,
+                                  color: cs.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+
+                      if (_error != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: cs.error.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline,
+                                  color: cs.error, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(_error!,
+                                    style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13, color: cs.error)),
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(height: 16),
                       ],
-                    ),
-                    const SizedBox(height: 40),
 
-                    // Error banner
-                    if (loginError != null) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: cs.error.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.error_outline,
-                                color: cs.error, size: 16),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(loginError!,
-                                  style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 13, color: cs.error)),
-                            ),
-                          ],
-                        ),
+                      _AuthField(
+                        label: t.auth_username,
+                        controller: _usernameCtrl,
+                        hint: t.auth_username_hint,
+                        keyboardType: TextInputType.emailAddress,
+                        error: _fieldErrors['username'],
                       ),
-                      const SizedBox(height: 16),
-                    ],
+                      const SizedBox(height: 18),
 
-                    // Username or Email
-                    _AuthField(
-                      label: t.auth_username,
-                      controller: usernameCtrl,
-                      hint: t.auth_username_hint,
-                      keyboardType: TextInputType.emailAddress,
-                      error: fieldErrors['username'],
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Password
-                    _AuthField(
-                      label: t.auth_password,
-                      controller: passwordCtrl,
-                      hint: '••••••••',
-                      obscureText: obscurePassword,
-                      error: fieldErrors['password'],
-                      suffixIcon: TextButton(
-                        onPressed: onToggleObscure,
-                        child: Text(
-                          obscurePassword
-                              ? t.auth_show_password
-                              : t.auth_hide_password,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: cs.outline,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Forgot password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: onForgotPassword,
-                        child: Text(
-                          t.auth_forgot_password,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: cs.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Sign In button
-                    AppButton(
-                      label: t.auth_login_title,
-                      loading: isLoading,
-                      loadingLabel: t.auth_signing_in,
-                      onPressed: onLogin,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Demo login (debug only)
-                    if (kDebugMode)
-                      Center(
-                        child: TextButton(
-                          onPressed: isLoading ? null : onDemoLogin,
+                      _AuthField(
+                        label: t.auth_password,
+                        controller: _passwordCtrl,
+                        hint: '••••••••',
+                        obscureText: _obscure,
+                        error: _fieldErrors['password'],
+                        suffixIcon: TextButton(
+                          onPressed: () =>
+                              setState(() => _obscure = !_obscure),
                           child: Text(
-                            t.auth_skip_demo_short,
+                            _obscure
+                                ? t.auth_show_password
+                                : t.auth_hide_password,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               color: cs.outline,
@@ -1548,232 +1360,341 @@ class _LoginView extends StatelessWidget {
                           ),
                         ),
                       ),
-                    const SizedBox(height: 32),
+                      const SizedBox(height: 12),
 
-                    // Switch to signup
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '${t.auth_no_account} ',
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(context).push(
+                            AppPageRoute(
+                                builder: (_) => const ForgotPasswordScreen()),
+                          ),
+                          child: Text(
+                            t.auth_forgot_password,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              color: cs.onSurfaceVariant,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: cs.primary,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: onGoSignup,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      AppButton(
+                        label: t.auth_login_title,
+                        loading: _isLoading,
+                        loadingLabel: t.auth_signing_in,
+                        onPressed: _login,
+                      ),
+                      const SizedBox(height: 16),
+
+                      if (kDebugMode)
+                        Center(
+                          child: TextButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () async {
+                                    _usernameCtrl.text = kDebugUsername;
+                                    _passwordCtrl.text = kDebugPassword;
+                                    await _login();
+                                  },
                             child: Text(
-                              t.auth_tab_signup,
+                              t.auth_skip_demo_short,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: cs.primary,
+                                fontSize: 12,
+                                color: cs.outline,
                               ),
                             ),
                           ),
-                        ],
+                        ),
+                      const SizedBox(height: 32),
+
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${t.auth_no_account} ',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => Navigator.of(context)
+                                  .pushReplacement(widget.signupRoute()),
+                              child: Text(
+                                t.auth_tab_signup,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: cs.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ─── View 3: Sign Up form ─────────────────────────────────────────────────────
+// ─── Signup page (pushed route) ───────────────────────────────────────────────
 
-class _SignupView extends StatelessWidget {
-  const _SignupView({
-    super.key,
-    required this.isLoading,
-    required this.usernameCtrl,
-    required this.emailCtrl,
-    required this.passwordCtrl,
-    required this.obscurePassword,
-    required this.onToggleObscure,
-    required this.fieldErrors,
-    required this.onSignup,
-    required this.onBack,
-    required this.onGoLogin,
+class _SignupPage extends StatefulWidget {
+  const _SignupPage({
+    required this.apiService,
+    required this.loginRoute,
   });
 
-  final bool isLoading;
-  final TextEditingController usernameCtrl;
-  final TextEditingController emailCtrl;
-  final TextEditingController passwordCtrl;
-  final bool obscurePassword;
-  final VoidCallback onToggleObscure;
-  final Map<String, String?> fieldErrors;
-  final VoidCallback onSignup;
-  final VoidCallback onBack;
-  final VoidCallback onGoLogin;
+  final ApiService apiService;
+  final PageRoute Function() loginRoute;
+
+  @override
+  State<_SignupPage> createState() => _SignupPageState();
+}
+
+class _SignupPageState extends State<_SignupPage> {
+  final _usernameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  bool _isLoading = false;
+  bool _obscure = true;
+  Map<String, String?> _fieldErrors = {};
+
+  @override
+  void dispose() {
+    _usernameCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _signup() async {
+    final t = Translations.of(context);
+    final errors = <String, String?>{};
+    if (_usernameCtrl.text.trim().isEmpty) {
+      errors['username'] = t.auth_val_username_required;
+    } else if (_usernameCtrl.text.trim().length < 4) {
+      errors['username'] = t.auth_val_username_length;
+    }
+    if (_emailCtrl.text.trim().isEmpty) {
+      errors['email'] = t.auth_val_email_required;
+    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+        .hasMatch(_emailCtrl.text.trim())) {
+      errors['email'] = t.auth_val_email_invalid;
+    }
+    if (_passwordCtrl.text.isEmpty) {
+      errors['password'] = t.auth_val_password_required;
+    } else if (_passwordCtrl.text.length < 6) {
+      errors['password'] = t.auth_val_password_length;
+    }
+    if (errors.isNotEmpty) {
+      setState(() => _fieldErrors = errors);
+      return;
+    }
+    setState(() {
+      _fieldErrors = {};
+      _isLoading = true;
+    });
+    try {
+      final response = await widget.apiService.signup(
+        _emailCtrl.text,
+        _usernameCtrl.text,
+        _passwordCtrl.text,
+      );
+      if (!mounted) return;
+      if (response.statusCode == 201) {
+        showAppSnackBar(t.auth_signup_success, type: SnackBarType.success);
+        Navigator.of(context).pushReplacement(widget.loginRoute());
+      } else {
+        final errorData = json.decode(response.body) as Map<String, dynamic>;
+        final serverErrors = <String, String?>{};
+        errorData.forEach((key, value) {
+          if (value is List && value.isNotEmpty) {
+            serverErrors[key] = value.first as String;
+          } else if (value is String) {
+            serverErrors[key] = value;
+          }
+        });
+        setState(() => _fieldErrors = serverErrors);
+        showAppSnackBar(t.auth_signup_failed, type: SnackBarType.error);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(Translations.of(context).auth_generic_error,
+          type: SnackBarType.error);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final t = Translations.of(context);
 
-    return Stack(
-      children: [
-        const _AnimatedAuthBg(),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _AuthAppBar(onBack: onBack),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Editorial headline
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          top: -20,
-                          left: -16,
-                          child: Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  cs.secondaryContainer.withValues(alpha: 0.22),
+    return Scaffold(
+      backgroundColor: cs.surface,
+      body: Stack(
+        children: [
+          const _AnimatedAuthBg(),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _AuthAppBar(onBack: () => Navigator.of(context).pop()),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            top: -20,
+                            left: -16,
+                            child: Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: cs.secondaryContainer
+                                    .withValues(alpha: 0.22),
+                              ),
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              RichText(
+                                text: TextSpan(
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 46,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -1.5,
+                                    height: 1.1,
+                                    color: cs.onSurface,
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                        text:
+                                            '${t.auth_signup_heading_plain}\n'),
+                                    TextSpan(
+                                      text: t.auth_signup_heading_italic,
+                                      style: GoogleFonts.lexend(
+                                        fontStyle: FontStyle.italic,
+                                        color: cs.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                t.auth_signup_subtitle,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 15,
+                                  color: cs.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+
+                      _AuthField(
+                        label: t.auth_username,
+                        controller: _usernameCtrl,
+                        hint: t.auth_signup_username_hint,
+                        error: _fieldErrors['username'],
+                      ),
+                      const SizedBox(height: 18),
+
+                      _AuthField(
+                        label: t.auth_email,
+                        controller: _emailCtrl,
+                        hint: t.auth_signup_email_hint,
+                        keyboardType: TextInputType.emailAddress,
+                        error: _fieldErrors['email'],
+                      ),
+                      const SizedBox(height: 18),
+
+                      _AuthField(
+                        label: t.auth_password,
+                        controller: _passwordCtrl,
+                        hint: '••••••••',
+                        obscureText: _obscure,
+                        error: _fieldErrors['password'],
+                        suffixIcon: TextButton(
+                          onPressed: () =>
+                              setState(() => _obscure = !_obscure),
+                          child: Text(
+                            _obscure
+                                ? t.auth_show_password
+                                : t.auth_hide_password,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: cs.outline,
                             ),
                           ),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+                      const SizedBox(height: 36),
+
+                      AppButton(
+                        label: t.auth_sign_up_btn,
+                        loading: _isLoading,
+                        loadingLabel: t.auth_signing_in,
+                        onPressed: _signup,
+                      ),
+                      const SizedBox(height: 40),
+
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            RichText(
-                              text: TextSpan(
-                                style: GoogleFonts.lexend(
-                                  fontSize: 46,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -1.5,
-                                  height: 1.1,
-                                  color: cs.onSurface,
-                                ),
-                                children: [
-                                  TextSpan(
-                                      text:
-                                          '${Translations.of(context).auth_signup_heading_plain}\n'),
-                                  TextSpan(
-                                    text: Translations.of(context)
-                                        .auth_signup_heading_italic,
-                                    style: GoogleFonts.lexend(
-                                      fontStyle: FontStyle.italic,
-                                      color: cs.primary,
-                                    ),
-                                  ),
-                                ],
+                            Text(
+                              '${t.auth_have_account}  ',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                color: cs.onSurfaceVariant,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              Translations.of(context).auth_signup_subtitle,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 15,
-                                color: cs.onSurfaceVariant,
+                            GestureDetector(
+                              onTap: () => Navigator.of(context)
+                                  .pushReplacement(widget.loginRoute()),
+                              child: Text(
+                                t.auth_tab_login,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: cs.primary,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-
-                    // Username
-                    _AuthField(
-                      label: t.auth_username,
-                      controller: usernameCtrl,
-                      hint: t.auth_signup_username_hint,
-                      error: fieldErrors['username'],
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Email
-                    _AuthField(
-                      label: t.auth_email,
-                      controller: emailCtrl,
-                      hint: t.auth_signup_email_hint,
-                      keyboardType: TextInputType.emailAddress,
-                      error: fieldErrors['email'],
-                    ),
-                    const SizedBox(height: 18),
-
-                    // Password
-                    _AuthField(
-                      label: t.auth_password,
-                      controller: passwordCtrl,
-                      hint: '••••••••',
-                      obscureText: obscurePassword,
-                      error: fieldErrors['password'],
-                      suffixIcon: TextButton(
-                        onPressed: onToggleObscure,
-                        child: Text(
-                          obscurePassword
-                              ? t.auth_show_password
-                              : t.auth_hide_password,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: cs.outline,
-                          ),
-                        ),
                       ),
-                    ),
-                    const SizedBox(height: 36),
-
-                    // Create Account button
-                    AppButton(
-                      label: t.auth_sign_up_btn,
-                      loading: isLoading,
-                      loadingLabel: t.auth_signing_in,
-                      onPressed: onSignup,
-                    ),
-                    const SizedBox(height: 40),
-
-                    // Switch to login
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '${t.auth_have_account}  ',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              color: cs.onSurfaceVariant,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: onGoLogin,
-                            child: Text(
-                              t.auth_tab_login,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: cs.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

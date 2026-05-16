@@ -170,6 +170,7 @@ class AppSocialButton extends StatelessWidget {
     this.label,
     this.loading = false,
     this.loadingLabel,
+    this.iconColor,
   });
 
   final IconData icon;
@@ -177,21 +178,21 @@ class AppSocialButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String? label;
   final bool loading;
-
-  /// Short text shown next to spinner while loading.
   final String? loadingLabel;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final effectiveIconColor = iconColor ?? cs.primary;
 
     return Expanded(
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(9999),
         child: InkWell(
           onTap: loading ? null : onPressed,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(9999),
           child: Ink(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -202,7 +203,7 @@ class AppSocialButton extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(9999),
             ),
             child: Center(
               child: Row(
@@ -215,7 +216,7 @@ class AppSocialButton extends StatelessWidget {
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: cs.primary),
                         )
-                      : FaIcon(icon, size: iconSize, color: cs.primary),
+                      : FaIcon(icon, size: iconSize, color: effectiveIconColor),
                   if (loading && loadingLabel != null) ...[
                     const SizedBox(width: 8),
                     Text(

@@ -10,13 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Hero animations across splash, auth, and onboarding** — "DRIVE TEST" title flies from the splash screen into the auth landing view; the yellow bolt icon flies from splash into the onboarding top bar; "DRIVE TEST" in the auth app bar is a Hero so it also animates when navigating to login/signup
+- **Express login with Google on Android & Web** — landing screen now shows a full-width "Express login via Google" `AppButton` on non-iOS platforms instead of the icon-only social button row
+- **"Continue as Guest" always visible** — removed the saved-session guard so the button appears for all users on the landing screen, not only returning guests
 
 ### Changed
--
+- **Login and signup are now pushed routes** — `_LoginPage` and `_SignupPage` are independent `StatefulWidget` screens pushed via `Navigator.push`/`pushReplacement`; this enables Hero animations and gives each form its own lifecycle (controllers, loading state, errors all managed locally)
+- **Social button icon colours fixed** — Apple icon is now `Colors.black`, Google icon is Google brand blue (`#4285F4`) instead of the theme primary colour
+- **Social button border radius** — changed from `BorderRadius.circular(16)` to pill shape (`9999`) to match the primary login button
+- **Splash screen "DRIVE TEST" branding** — matches the auth screen style: "DRIVE" in `onSurface`, "TEST" in italic primary blue (was all-italic primary)
+- **`AppSocialButton`** — accepts an optional `iconColor` parameter; border radius updated to pill
 
 ### Fixed
--
+- **"DRIVE TEST" wrapping on splash** — wrapped in `FittedBox(fit: BoxFit.scaleDown)` so it always stays on one line regardless of screen width
 
 ---
 

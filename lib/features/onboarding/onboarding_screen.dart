@@ -588,9 +588,28 @@ class _TopBar extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Row(
         children: [
+          Hero(
+            tag: 'brand-bolt',
+            child: Material(
+              type: MaterialType.transparency,
+              child: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: cs.secondaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.bolt,
+                  color: cs.onSecondaryContainer,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
           Text(
             t.onb_top_bar_title,
             style: GoogleFonts.lexend(
