@@ -339,9 +339,9 @@ class ApiService {
     }
   }
 
-  /// Push one attempt to the backend (fire-and-forget — never throws).
+  /// Push one attempt to the backend.
   /// Only stores IDs and selections — not full question data.
-  Future<void> syncTestAttempt(TestAttempt attempt) async {
+  Future<bool> syncTestAttempt(TestAttempt attempt) async {
     try {
       final selections =
           attempt.userSelections.map((k, v) => MapEntry(k.toString(), v));
@@ -367,9 +367,11 @@ class ApiService {
         'question_ids': questionIds,
         'duration_seconds': attempt.durationSeconds ?? 0,
       });
+      return true;
     } catch (e) {
       debugPrint('[syncTestAttempt] backend sync failed: $e');
-      // Local Hive is the primary store — backend sync is best-effort
+      // Local Hive is the primary store — caller decides how to handle sync failure.
+      return false;
     }
   }
 

@@ -152,11 +152,12 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _deleteAllTests() async {
     final box = await AppStorage.testAttemptsBox();
     await box.clear();
+    if (!mounted) return;
     setState(() {
       _previousAttempts.clear();
       _pausedAttempts.clear();
     });
-    showAppSnackBar('All tests have been deleted.');
+    showAppSnackBar(Translations.of(context).home_all_tests_deleted);
     ApiService().deleteAllTestAttempts();
   }
 
@@ -165,8 +166,8 @@ class _HomeScreenState extends State<HomeScreen>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Progress'),
-        content: const Text('Are you sure you want to delete this saved test?'),
+        title: Text(t.home_delete_progress_title),
+        content: Text(t.home_delete_progress_body),
         actions: [
           AppTextButton(
             label: t.cancel,
@@ -194,9 +195,8 @@ class _HomeScreenState extends State<HomeScreen>
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete All Tests'),
-        content:
-            const Text('Are you sure you want to delete all test attempts?'),
+        title: Text(t.home_delete_all_tests_title),
+        content: Text(t.home_delete_all_tests_body),
         actions: [
           AppTextButton(
             label: t.cancel,

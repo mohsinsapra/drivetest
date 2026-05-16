@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
@@ -62,6 +63,7 @@ class _ResultScreenState extends State<ResultScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final isPassed = widget.hasPassed;
     final primaryColor =
         isPassed ? const Color(0xFF16A34A) : const Color(0xFFDC2626);
@@ -73,7 +75,9 @@ class _ResultScreenState extends State<ResultScreen>
       appBar: AppBar(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        title: Text(isPassed ? 'Test Passed' : 'Test Failed'),
+        title: Text(isPassed
+            ? t.test_result_screen_passed_title
+            : t.test_result_screen_failed_title),
         elevation: 0,
         centerTitle: true,
       ),
@@ -112,7 +116,7 @@ class _ResultScreenState extends State<ResultScreen>
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
               sliver: SliverToBoxAdapter(
                 child: Text(
-                  'Question Review',
+                  t.test_result_question_review,
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -187,6 +191,7 @@ class _ScoreHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: primaryColor,
@@ -228,7 +233,7 @@ class _ScoreHeader extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Score',
+                          t.test_result_score_label,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.white.withValues(alpha: 0.8),
@@ -250,7 +255,9 @@ class _ScoreHeader extends StatelessWidget {
               border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
             ),
             child: Text(
-              isPassed ? 'PASSED' : 'FAILED',
+              isPassed
+                  ? t.test_result_passed_badge
+                  : t.test_result_failed_badge,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -262,8 +269,9 @@ class _ScoreHeader extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             isPassed
-                ? 'Great job! You passed the test.'
-                : 'Keep practicing. You need ${passScorePercent.toInt()}% to pass.',
+                ? t.test_result_passed_message
+                : t.test_result_need_to_pass
+                    .replaceAll('{score}', '${passScorePercent.toInt()}'),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
@@ -275,7 +283,7 @@ class _ScoreHeader extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatChip(
-                  label: 'Correct',
+                  label: t.test_result_correct,
                   value: '$correct',
                   icon: Icons.check_circle_outline_rounded,
                 ),
@@ -283,7 +291,7 @@ class _ScoreHeader extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _StatChip(
-                  label: 'Wrong',
+                  label: t.test_result_wrong,
                   value: '$wrong',
                   icon: Icons.cancel_outlined,
                 ),
@@ -291,7 +299,7 @@ class _ScoreHeader extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _StatChip(
-                  label: 'Skipped',
+                  label: t.test_result_skipped,
                   value: '$unanswered',
                   icon: Icons.remove_circle_outline_rounded,
                 ),
@@ -373,11 +381,14 @@ class _StatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
     final gap = scorePercent - passScorePercent;
     final gapLabel = gap >= 0
-        ? '+${gap.toStringAsFixed(1)}% above pass mark'
-        : '${gap.toStringAsFixed(1)}% below pass mark';
+        ? t.test_result_above_pass_mark
+            .replaceAll('{gap}', '+${gap.toStringAsFixed(1)}')
+        : t.test_result_below_pass_mark
+            .replaceAll('{gap}', gap.toStringAsFixed(1));
     final gapColor = gap >= 0 ? Colors.green.shade600 : Colors.red.shade500;
 
     return Container(
@@ -397,7 +408,7 @@ class _StatsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Your Results',
+            t.test_result_your_results,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
@@ -408,7 +419,7 @@ class _StatsCard extends StatelessWidget {
 
           // Score vs pass mark bar
           _ScoreBarRow(
-            label: 'Your score',
+            label: t.test_result_your_score,
             value: scorePercent,
             max: 100,
             color: primaryColor,
@@ -416,7 +427,7 @@ class _StatsCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _ScoreBarRow(
-            label: 'Pass mark',
+            label: t.test_result_pass_mark,
             value: passScorePercent,
             max: 100,
             color: Colors.grey.shade400,
@@ -461,7 +472,7 @@ class _StatsCard extends StatelessWidget {
 
           // Breakdown rows
           _BreakdownRow(
-            label: 'Correct answers',
+            label: t.test_result_correct_answers,
             value: '$correct / $total',
             valueColor: Colors.green.shade600,
             icon: Icons.check_circle_outline_rounded,
@@ -469,7 +480,7 @@ class _StatsCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _BreakdownRow(
-            label: 'Wrong answers',
+            label: t.test_result_wrong_answers,
             value: '$wrong / $total',
             valueColor: Colors.red.shade500,
             icon: Icons.cancel_outlined,
@@ -478,7 +489,7 @@ class _StatsCard extends StatelessWidget {
           if (unanswered > 0) ...[
             const SizedBox(height: 10),
             _BreakdownRow(
-              label: 'Skipped',
+              label: t.test_result_skipped,
               value: '$unanswered / $total',
               valueColor: Colors.grey.shade500,
               icon: Icons.remove_circle_outline_rounded,
@@ -609,6 +620,7 @@ class _QuestionReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final color = isCorrect ? Colors.green.shade500 : Colors.red.shade400;
     final bgColor = isCorrect ? Colors.green.shade50 : Colors.red.shade50;
 
@@ -648,7 +660,9 @@ class _QuestionReviewCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Q${index + 1}: ${question.text}',
+                    t.test_result_question_row
+                        .replaceAll('{n}', '${index + 1}')
+                        .replaceAll('{text}', question.text),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -657,11 +671,12 @@ class _QuestionReviewCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   userAnswer != null
                       ? Text(
-                          'Your answer: $userAnswer',
+                          t.test_result_your_answer
+                              .replaceAll('{answer}', userAnswer!),
                           style: TextStyle(fontSize: 12, color: color),
                         )
                       : Text(
-                          'Not answered',
+                          t.test_not_answered,
                           style: TextStyle(
                               fontSize: 12, color: Colors.grey.shade500),
                         ),

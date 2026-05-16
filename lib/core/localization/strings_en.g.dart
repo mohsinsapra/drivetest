@@ -620,6 +620,83 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get btn_start_saved_test => 'Start Saved Questions Test';
   String get btn_buy_now => 'Buy Now';
   String get btn_pay_now => 'Pay Now';
+  String get home_all_tests_deleted => 'All tests have been deleted.';
+  String get home_delete_progress_title => 'Delete Progress';
+  String get home_delete_progress_body =>
+      'Are you sure you want to delete this saved test?';
+  String get home_delete_all_tests_title => 'Delete All Tests';
+  String get home_delete_all_tests_body =>
+      'Are you sure you want to delete all test attempts?';
+  String get test_time_up_submitting => 'Time is up! Submitting your test.';
+  String get test_first_question => 'This is the first question!';
+  String get test_exit_title => 'Exit Test';
+  String get test_exit_save_prompt => 'Would you like to save your progress?';
+  String get test_save_backend_failed =>
+      'Progress was saved on this device, but sync to your account failed. Please try again.';
+  String get test_feedback_unavailable =>
+      'Feedback is unavailable for this question.';
+  String get test_feedback_title => 'Feedback';
+  String get test_feedback_type => 'Type';
+  String get test_feedback_question_issue => 'Question issue';
+  String get test_feedback_wrong_answer => 'Wrong answer';
+  String get test_feedback_typo => 'Typo/text issue';
+  String get test_feedback_image_issue => 'Image issue';
+  String get test_feedback_other => 'Other';
+  String get test_feedback_hint =>
+      'Tell us what is wrong with this question...';
+  String get test_feedback_submitted => 'Thanks! Your feedback was submitted.';
+  String get test_feedback_failed =>
+      'Could not submit feedback. Please try again.';
+  String get test_translation_failed => 'Translation failed. Please try again.';
+  String get test_language_english => 'English';
+  String get test_language_swedish => 'Svenska';
+  String get test_turn_off_timer => 'Turn off timer';
+  String get test_turn_on_timer => 'Turn on timer';
+  String get test_turn_off_instant_marking => 'Turn off instant marking';
+  String get test_turn_on_instant_marking => 'Turn on instant marking';
+  String get test_question_saved => 'Question saved';
+  String get test_question_removed => 'Question removed from saved';
+  String get test_saved => 'Saved';
+  String get test_save_question => 'Save question';
+  String get test_questions_title => 'Questions';
+  String get test_question_progress => '{current} of {total}';
+  String get test_question_label => 'Question {n}';
+  String get test_answered => 'Answered';
+  String get test_not_answered => 'Not answered';
+  String get test_finish_title => 'Finish Test';
+  String get test_finish_unanswered_prompt =>
+      'You have {count} unanswered question(s). Do you still want to finish the test?';
+  String get test_finish_prompt => 'Do you want to finish the test?';
+  String get test_finish_no => 'No';
+  String get test_finish_yes => 'Yes';
+  String get test_result_congratulations => 'Congratulations!';
+  String get test_result_not_quite_there => 'Not Quite There';
+  String get test_result_passed_badge => 'PASSED';
+  String get test_result_failed_badge => 'FAILED';
+  String get test_result_pass_message => 'You have passed the test. Well done!';
+  String get test_result_fail_message =>
+      'Keep practicing and try again. You can do it!';
+  String get test_result_go_back => 'Go Back';
+  String get test_result_see_results => 'See Results';
+  String get test_result_screen_passed_title => 'Test Passed';
+  String get test_result_screen_failed_title => 'Test Failed';
+  String get test_result_question_review => 'Question Review';
+  String get test_result_score_label => 'Score';
+  String get test_result_passed_message => 'Great job! You passed the test.';
+  String get test_result_need_to_pass =>
+      'Keep practicing. You need {score}% to pass.';
+  String get test_result_correct => 'Correct';
+  String get test_result_wrong => 'Wrong';
+  String get test_result_skipped => 'Skipped';
+  String get test_result_above_pass_mark => '{gap}% above pass mark';
+  String get test_result_below_pass_mark => '{gap}% below pass mark';
+  String get test_result_your_results => 'Your Results';
+  String get test_result_your_score => 'Your score';
+  String get test_result_pass_mark => 'Pass mark';
+  String get test_result_correct_answers => 'Correct answers';
+  String get test_result_wrong_answers => 'Wrong answers';
+  String get test_result_question_row => 'Q{n}: {text}';
+  String get test_result_your_answer => 'Your answer: {answer}';
 }
 
 /// Flat map(s) containing all translations.
@@ -1625,6 +1702,142 @@ extension on Translations {
         return 'Buy Now';
       case 'btn_pay_now':
         return 'Pay Now';
+      case 'home_all_tests_deleted':
+        return 'All tests have been deleted.';
+      case 'home_delete_progress_title':
+        return 'Delete Progress';
+      case 'home_delete_progress_body':
+        return 'Are you sure you want to delete this saved test?';
+      case 'home_delete_all_tests_title':
+        return 'Delete All Tests';
+      case 'home_delete_all_tests_body':
+        return 'Are you sure you want to delete all test attempts?';
+      case 'test_time_up_submitting':
+        return 'Time is up! Submitting your test.';
+      case 'test_first_question':
+        return 'This is the first question!';
+      case 'test_exit_title':
+        return 'Exit Test';
+      case 'test_exit_save_prompt':
+        return 'Would you like to save your progress?';
+      case 'test_save_backend_failed':
+        return 'Progress was saved on this device, but sync to your account failed. Please try again.';
+      case 'test_feedback_unavailable':
+        return 'Feedback is unavailable for this question.';
+      case 'test_feedback_title':
+        return 'Feedback';
+      case 'test_feedback_type':
+        return 'Type';
+      case 'test_feedback_question_issue':
+        return 'Question issue';
+      case 'test_feedback_wrong_answer':
+        return 'Wrong answer';
+      case 'test_feedback_typo':
+        return 'Typo/text issue';
+      case 'test_feedback_image_issue':
+        return 'Image issue';
+      case 'test_feedback_other':
+        return 'Other';
+      case 'test_feedback_hint':
+        return 'Tell us what is wrong with this question...';
+      case 'test_feedback_submitted':
+        return 'Thanks! Your feedback was submitted.';
+      case 'test_feedback_failed':
+        return 'Could not submit feedback. Please try again.';
+      case 'test_translation_failed':
+        return 'Translation failed. Please try again.';
+      case 'test_language_english':
+        return 'English';
+      case 'test_language_swedish':
+        return 'Svenska';
+      case 'test_turn_off_timer':
+        return 'Turn off timer';
+      case 'test_turn_on_timer':
+        return 'Turn on timer';
+      case 'test_turn_off_instant_marking':
+        return 'Turn off instant marking';
+      case 'test_turn_on_instant_marking':
+        return 'Turn on instant marking';
+      case 'test_question_saved':
+        return 'Question saved';
+      case 'test_question_removed':
+        return 'Question removed from saved';
+      case 'test_saved':
+        return 'Saved';
+      case 'test_save_question':
+        return 'Save question';
+      case 'test_questions_title':
+        return 'Questions';
+      case 'test_question_progress':
+        return '{current} of {total}';
+      case 'test_question_label':
+        return 'Question {n}';
+      case 'test_answered':
+        return 'Answered';
+      case 'test_not_answered':
+        return 'Not answered';
+      case 'test_finish_title':
+        return 'Finish Test';
+      case 'test_finish_unanswered_prompt':
+        return 'You have {count} unanswered question(s). Do you still want to finish the test?';
+      case 'test_finish_prompt':
+        return 'Do you want to finish the test?';
+      case 'test_finish_no':
+        return 'No';
+      case 'test_finish_yes':
+        return 'Yes';
+      case 'test_result_congratulations':
+        return 'Congratulations!';
+      case 'test_result_not_quite_there':
+        return 'Not Quite There';
+      case 'test_result_passed_badge':
+        return 'PASSED';
+      case 'test_result_failed_badge':
+        return 'FAILED';
+      case 'test_result_pass_message':
+        return 'You have passed the test. Well done!';
+      case 'test_result_fail_message':
+        return 'Keep practicing and try again. You can do it!';
+      case 'test_result_go_back':
+        return 'Go Back';
+      case 'test_result_see_results':
+        return 'See Results';
+      case 'test_result_screen_passed_title':
+        return 'Test Passed';
+      case 'test_result_screen_failed_title':
+        return 'Test Failed';
+      case 'test_result_question_review':
+        return 'Question Review';
+      case 'test_result_score_label':
+        return 'Score';
+      case 'test_result_passed_message':
+        return 'Great job! You passed the test.';
+      case 'test_result_need_to_pass':
+        return 'Keep practicing. You need {score}% to pass.';
+      case 'test_result_correct':
+        return 'Correct';
+      case 'test_result_wrong':
+        return 'Wrong';
+      case 'test_result_skipped':
+        return 'Skipped';
+      case 'test_result_above_pass_mark':
+        return '{gap}% above pass mark';
+      case 'test_result_below_pass_mark':
+        return '{gap}% below pass mark';
+      case 'test_result_your_results':
+        return 'Your Results';
+      case 'test_result_your_score':
+        return 'Your score';
+      case 'test_result_pass_mark':
+        return 'Pass mark';
+      case 'test_result_correct_answers':
+        return 'Correct answers';
+      case 'test_result_wrong_answers':
+        return 'Wrong answers';
+      case 'test_result_question_row':
+        return 'Q{n}: {text}';
+      case 'test_result_your_answer':
+        return 'Your answer: {answer}';
       default:
         return null;
     }

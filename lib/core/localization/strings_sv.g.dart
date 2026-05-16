@@ -1120,6 +1120,151 @@ class TranslationsSv implements Translations {
   String get btn_buy_now => 'Köp nu';
   @override
   String get btn_pay_now => 'Betala nu';
+  @override
+  String get home_all_tests_deleted => 'Alla tester har tagits bort.';
+  @override
+  String get home_delete_progress_title => 'Ta bort framsteg';
+  @override
+  String get home_delete_progress_body =>
+      'Är du säker på att du vill ta bort det här sparade testet?';
+  @override
+  String get home_delete_all_tests_title => 'Ta bort alla tester';
+  @override
+  String get home_delete_all_tests_body =>
+      'Är du säker på att du vill ta bort alla testförsök?';
+  @override
+  String get test_time_up_submitting => 'Tiden är ute! Skickar in ditt test.';
+  @override
+  String get test_first_question => 'Det här är den första frågan!';
+  @override
+  String get test_exit_title => 'Avsluta test';
+  @override
+  String get test_exit_save_prompt => 'Vill du spara dina framsteg?';
+  @override
+  String get test_save_backend_failed =>
+      'Framstegen sparades på den här enheten, men synkronisering till ditt konto misslyckades. Försök igen.';
+  @override
+  String get test_feedback_unavailable =>
+      'Feedback är inte tillgänglig för den här frågan.';
+  @override
+  String get test_feedback_title => 'Feedback';
+  @override
+  String get test_feedback_type => 'Typ';
+  @override
+  String get test_feedback_question_issue => 'Problem med frågan';
+  @override
+  String get test_feedback_wrong_answer => 'Fel svar';
+  @override
+  String get test_feedback_typo => 'Stavfel/textproblem';
+  @override
+  String get test_feedback_image_issue => 'Bildproblem';
+  @override
+  String get test_feedback_other => 'Övrigt';
+  @override
+  String get test_feedback_hint =>
+      'Berätta vad som är fel med den här frågan...';
+  @override
+  String get test_feedback_submitted => 'Tack! Din feedback skickades.';
+  @override
+  String get test_feedback_failed => 'Kunde inte skicka feedback. Försök igen.';
+  @override
+  String get test_translation_failed =>
+      'Översättningen misslyckades. Försök igen.';
+  @override
+  String get test_language_english => 'English';
+  @override
+  String get test_language_swedish => 'Svenska';
+  @override
+  String get test_turn_off_timer => 'Stäng av timer';
+  @override
+  String get test_turn_on_timer => 'Slå på timer';
+  @override
+  String get test_turn_off_instant_marking => 'Stäng av direkt rättning';
+  @override
+  String get test_turn_on_instant_marking => 'Slå på direkt rättning';
+  @override
+  String get test_question_saved => 'Frågan sparades';
+  @override
+  String get test_question_removed => 'Frågan togs bort från sparade';
+  @override
+  String get test_saved => 'Sparad';
+  @override
+  String get test_save_question => 'Spara fråga';
+  @override
+  String get test_questions_title => 'Frågor';
+  @override
+  String get test_question_progress => '{current} av {total}';
+  @override
+  String get test_question_label => 'Fråga {n}';
+  @override
+  String get test_answered => 'Besvarad';
+  @override
+  String get test_not_answered => 'Inte besvarad';
+  @override
+  String get test_finish_title => 'Avsluta test';
+  @override
+  String get test_finish_unanswered_prompt =>
+      'Du har {count} obesvarade frågor. Vill du ändå avsluta testet?';
+  @override
+  String get test_finish_prompt => 'Vill du avsluta testet?';
+  @override
+  String get test_finish_no => 'Nej';
+  @override
+  String get test_finish_yes => 'Ja';
+  @override
+  String get test_result_congratulations => 'Grattis!';
+  @override
+  String get test_result_not_quite_there => 'Inte riktigt där än';
+  @override
+  String get test_result_passed_badge => 'GODKÄND';
+  @override
+  String get test_result_failed_badge => 'UNDERKÄND';
+  @override
+  String get test_result_pass_message => 'Du klarade testet. Bra jobbat!';
+  @override
+  String get test_result_fail_message =>
+      'Fortsätt öva och försök igen. Du klarar det!';
+  @override
+  String get test_result_go_back => 'Gå tillbaka';
+  @override
+  String get test_result_see_results => 'Se resultat';
+  @override
+  String get test_result_screen_passed_title => 'Test godkänt';
+  @override
+  String get test_result_screen_failed_title => 'Test underkänt';
+  @override
+  String get test_result_question_review => 'Frågegranskning';
+  @override
+  String get test_result_score_label => 'Poäng';
+  @override
+  String get test_result_passed_message => 'Bra jobbat! Du klarade testet.';
+  @override
+  String get test_result_need_to_pass =>
+      'Fortsätt öva. Du behöver {score}% för att bli godkänd.';
+  @override
+  String get test_result_correct => 'Rätt';
+  @override
+  String get test_result_wrong => 'Fel';
+  @override
+  String get test_result_skipped => 'Hoppade över';
+  @override
+  String get test_result_above_pass_mark => '{gap}% över godkäntgränsen';
+  @override
+  String get test_result_below_pass_mark => '{gap}% under godkäntgränsen';
+  @override
+  String get test_result_your_results => 'Dina resultat';
+  @override
+  String get test_result_your_score => 'Din poäng';
+  @override
+  String get test_result_pass_mark => 'Godkäntgräns';
+  @override
+  String get test_result_correct_answers => 'Rätta svar';
+  @override
+  String get test_result_wrong_answers => 'Felaktiga svar';
+  @override
+  String get test_result_question_row => 'F{n}: {text}';
+  @override
+  String get test_result_your_answer => 'Ditt svar: {answer}';
 }
 
 /// Flat map(s) containing all translations.
@@ -2125,6 +2270,142 @@ extension on TranslationsSv {
         return 'Köp nu';
       case 'btn_pay_now':
         return 'Betala nu';
+      case 'home_all_tests_deleted':
+        return 'Alla tester har tagits bort.';
+      case 'home_delete_progress_title':
+        return 'Ta bort framsteg';
+      case 'home_delete_progress_body':
+        return 'Är du säker på att du vill ta bort det här sparade testet?';
+      case 'home_delete_all_tests_title':
+        return 'Ta bort alla tester';
+      case 'home_delete_all_tests_body':
+        return 'Är du säker på att du vill ta bort alla testförsök?';
+      case 'test_time_up_submitting':
+        return 'Tiden är ute! Skickar in ditt test.';
+      case 'test_first_question':
+        return 'Det här är den första frågan!';
+      case 'test_exit_title':
+        return 'Avsluta test';
+      case 'test_exit_save_prompt':
+        return 'Vill du spara dina framsteg?';
+      case 'test_save_backend_failed':
+        return 'Framstegen sparades på den här enheten, men synkronisering till ditt konto misslyckades. Försök igen.';
+      case 'test_feedback_unavailable':
+        return 'Feedback är inte tillgänglig för den här frågan.';
+      case 'test_feedback_title':
+        return 'Feedback';
+      case 'test_feedback_type':
+        return 'Typ';
+      case 'test_feedback_question_issue':
+        return 'Problem med frågan';
+      case 'test_feedback_wrong_answer':
+        return 'Fel svar';
+      case 'test_feedback_typo':
+        return 'Stavfel/textproblem';
+      case 'test_feedback_image_issue':
+        return 'Bildproblem';
+      case 'test_feedback_other':
+        return 'Övrigt';
+      case 'test_feedback_hint':
+        return 'Berätta vad som är fel med den här frågan...';
+      case 'test_feedback_submitted':
+        return 'Tack! Din feedback skickades.';
+      case 'test_feedback_failed':
+        return 'Kunde inte skicka feedback. Försök igen.';
+      case 'test_translation_failed':
+        return 'Översättningen misslyckades. Försök igen.';
+      case 'test_language_english':
+        return 'English';
+      case 'test_language_swedish':
+        return 'Svenska';
+      case 'test_turn_off_timer':
+        return 'Stäng av timer';
+      case 'test_turn_on_timer':
+        return 'Slå på timer';
+      case 'test_turn_off_instant_marking':
+        return 'Stäng av direkt rättning';
+      case 'test_turn_on_instant_marking':
+        return 'Slå på direkt rättning';
+      case 'test_question_saved':
+        return 'Frågan sparades';
+      case 'test_question_removed':
+        return 'Frågan togs bort från sparade';
+      case 'test_saved':
+        return 'Sparad';
+      case 'test_save_question':
+        return 'Spara fråga';
+      case 'test_questions_title':
+        return 'Frågor';
+      case 'test_question_progress':
+        return '{current} av {total}';
+      case 'test_question_label':
+        return 'Fråga {n}';
+      case 'test_answered':
+        return 'Besvarad';
+      case 'test_not_answered':
+        return 'Inte besvarad';
+      case 'test_finish_title':
+        return 'Avsluta test';
+      case 'test_finish_unanswered_prompt':
+        return 'Du har {count} obesvarade frågor. Vill du ändå avsluta testet?';
+      case 'test_finish_prompt':
+        return 'Vill du avsluta testet?';
+      case 'test_finish_no':
+        return 'Nej';
+      case 'test_finish_yes':
+        return 'Ja';
+      case 'test_result_congratulations':
+        return 'Grattis!';
+      case 'test_result_not_quite_there':
+        return 'Inte riktigt där än';
+      case 'test_result_passed_badge':
+        return 'GODKÄND';
+      case 'test_result_failed_badge':
+        return 'UNDERKÄND';
+      case 'test_result_pass_message':
+        return 'Du klarade testet. Bra jobbat!';
+      case 'test_result_fail_message':
+        return 'Fortsätt öva och försök igen. Du klarar det!';
+      case 'test_result_go_back':
+        return 'Gå tillbaka';
+      case 'test_result_see_results':
+        return 'Se resultat';
+      case 'test_result_screen_passed_title':
+        return 'Test godkänt';
+      case 'test_result_screen_failed_title':
+        return 'Test underkänt';
+      case 'test_result_question_review':
+        return 'Frågegranskning';
+      case 'test_result_score_label':
+        return 'Poäng';
+      case 'test_result_passed_message':
+        return 'Bra jobbat! Du klarade testet.';
+      case 'test_result_need_to_pass':
+        return 'Fortsätt öva. Du behöver {score}% för att bli godkänd.';
+      case 'test_result_correct':
+        return 'Rätt';
+      case 'test_result_wrong':
+        return 'Fel';
+      case 'test_result_skipped':
+        return 'Hoppade över';
+      case 'test_result_above_pass_mark':
+        return '{gap}% över godkäntgränsen';
+      case 'test_result_below_pass_mark':
+        return '{gap}% under godkäntgränsen';
+      case 'test_result_your_results':
+        return 'Dina resultat';
+      case 'test_result_your_score':
+        return 'Din poäng';
+      case 'test_result_pass_mark':
+        return 'Godkäntgräns';
+      case 'test_result_correct_answers':
+        return 'Rätta svar';
+      case 'test_result_wrong_answers':
+        return 'Felaktiga svar';
+      case 'test_result_question_row':
+        return 'F{n}: {text}';
+      case 'test_result_your_answer':
+        return 'Ditt svar: {answer}';
       default:
         return null;
     }

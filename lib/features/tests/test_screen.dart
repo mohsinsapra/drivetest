@@ -23,6 +23,8 @@ import 'package:taxi_exam_app/core/widgets/option_tile.dart';
 import 'package:taxi_exam_app/core/widgets/question_progress_header.dart';
 import 'package:taxi_exam_app/core/widgets/test_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
+import 'package:taxi_exam_app/features/tests/test_attempt_save_service.dart';
+import 'package:taxi_exam_app/features/tests/test_progress_guard.dart';
 
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -82,6 +84,11 @@ class _TestscreenState extends State<Testscreen> {
   int currentQuestionIndex = 0;
   Map<int, String> userSelections = {};
   final ApiService _apiService = ApiService();
+  late final TestAttemptSaveService _attemptSaveService =
+      TestAttemptSaveService(
+    saveLocal: _persistAttemptLocal,
+    syncRemote: _apiService.syncTestAttempt,
+  );
 
   // GlobalKeys for the translation tutorial.
   final _langMenuKey = GlobalKey<PopupMenuButtonState<String>>();
@@ -127,6 +134,7 @@ class _TestscreenState extends State<Testscreen> {
 
   // Snapshot of selections at load time — used to detect changes on resume
   late final Map<int, String> _initialSelections;
+  late final int _initialQuestionIndex;
 
   final _noScreenshot = kIsWeb ? null : NoScreenshot.instance;
 
@@ -136,6 +144,7 @@ class _TestscreenState extends State<Testscreen> {
     currentQuestionIndex = widget.initialQuestionIndex;
     userSelections = Map<int, String>.from(widget.userSelections ?? {});
     _initialSelections = Map<int, String>.from(userSelections);
+    _initialQuestionIndex = currentQuestionIndex;
     _pageController = PageController(initialPage: currentQuestionIndex);
     _testId =
         widget.resumeTestId ?? DateTime.now().millisecondsSinceEpoch.toString();
@@ -449,9 +458,13 @@ class _TestscreenState extends State<Testscreen> {
     });
   }
 
-  void _onTimerExpired() {
-    showAppSnackBar('Time is up! Submitting your test.');
-    _saveTestAttempt();
+  Future<void> _onTimerExpired() async {
+    showAppSnackBar(Translations.of(context).test_time_up_submitting);
+    final saveResult = await _saveTestAttempt();
+    if (!mounted) return;
+    if (!saveResult.backendSynced) {
+      showAppSnackBar(Translations.of(context).test_save_backend_failed);
+    }
     final passed = _calculateResult();
     if (passed) {
       vibratePass();
@@ -613,8 +626,9 @@ class _TestscreenState extends State<Testscreen> {
         context: context,
         unansweredCount: widget.questions.length - userSelections.length,
         onCancel: () {}, // nothing extra to do
-        onConfirm: () {
-          _saveTestAttempt();
+        onConfirm: () async {
+          await _saveTestAttempt();
+          if (!mounted) return;
           final passed = _calculateResult();
           if (passed) {
             vibratePass();
@@ -643,7 +657,7 @@ class _TestscreenState extends State<Testscreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      showAppSnackBar('This is the first question!');
+      showAppSnackBar(Translations.of(context).test_first_question);
     }
   }
 
@@ -663,7 +677,7 @@ class _TestscreenState extends State<Testscreen> {
     return (correctAnswers / widget.questions.length) * 100;
   }
 
-  void _saveTestAttempt() async {
+  Future<TestAttemptSaveResult> _saveTestAttempt() async {
     int correctAnswers = 0;
 
     for (int i = 0; i < widget.questions.length; i++) {
@@ -696,14 +710,12 @@ class _TestscreenState extends State<Testscreen> {
       bcdCategoryId: widget.bcdCategoryId,
     );
 
-    final box = await AppStorage.testAttemptsBox();
-    await box.put(
-        _testId, attempt); // put by testId overwrites any paused version
-    _apiService.syncTestAttempt(attempt); // best-effort backend sync
+    final result = await _attemptSaveService.save(attempt);
     HomeDataCache.invalidate(); // force home to re-sync on next visit
+    return result;
   }
 
-  Future<void> _savePausedTest() async {
+  Future<TestAttemptSaveResult> _savePausedTest() async {
     final attempt = TestAttempt(
       testId: _testId,
       dateTime: _startTime,
@@ -721,18 +733,26 @@ class _TestscreenState extends State<Testscreen> {
       bcdCategoryId: widget.bcdCategoryId,
     );
 
-    final box = await AppStorage.testAttemptsBox();
+    final result = await _attemptSaveService.save(attempt);
+    HomeDataCache.invalidate();
+    return result;
+  }
 
-    await box.put(_testId, attempt);
-    _apiService.syncTestAttempt(attempt); // best-effort backend sync
+  Future<void> _persistAttemptLocal(TestAttempt attempt) async {
+    final box = await AppStorage.testAttemptsBox();
+    await box.put(
+      attempt.testId,
+      attempt,
+    ); // put by testId overwrites any paused version
   }
 
   bool get _hasChanges {
-    if (userSelections.length != _initialSelections.length) return true;
-    for (final entry in userSelections.entries) {
-      if (_initialSelections[entry.key] != entry.value) return true;
-    }
-    return false;
+    return hasResumableProgressChanges(
+      initialSelections: _initialSelections,
+      currentSelections: userSelections,
+      initialQuestionIndex: _initialQuestionIndex,
+      currentQuestionIndex: currentQuestionIndex,
+    );
   }
 
   Future<void> _showExitDialog() async {
@@ -745,8 +765,8 @@ class _TestscreenState extends State<Testscreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Exit Test'),
-        content: const Text('Would you like to save your progress?'),
+        title: Text(t.test_exit_title),
+        content: Text(t.test_exit_save_prompt),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
           Row(
@@ -783,12 +803,21 @@ class _TestscreenState extends State<Testscreen> {
         builder: (_) => const Center(child: AppLoadingIndicator()),
       );
       try {
-        await _savePausedTest().timeout(const Duration(seconds: 5));
+        final saveResult =
+            await _savePausedTest().timeout(const Duration(seconds: 5));
+        if (!mounted) return;
+        Navigator.of(context).pop(); // close loading
+        if (saveResult.fullySynced) {
+          Navigator.of(context).pop(); // close test screen
+        } else {
+          showAppSnackBar(t.test_save_backend_failed);
+        }
       } catch (e) {
         debugPrint('Save failed: $e');
-      } finally {
-        if (mounted) Navigator.of(context).pop(); // close loading
-        if (mounted) Navigator.of(context).pop(); // close test screen
+        if (mounted) {
+          Navigator.of(context).pop(); // close loading
+          showAppSnackBar(t.test_save_backend_failed);
+        }
       }
     } else if (result == 'exit') {
       Navigator.of(context).pop();
@@ -799,7 +828,7 @@ class _TestscreenState extends State<Testscreen> {
     final t = Translations.of(context);
     final q = widget.questions[currentQuestionIndex];
     if (q.questionId.isEmpty) {
-      showAppSnackBar('Feedback is unavailable for this question.');
+      showAppSnackBar(t.test_feedback_unavailable);
       return;
     }
     final controller = TextEditingController();
@@ -809,23 +838,29 @@ class _TestscreenState extends State<Testscreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Feedback'),
+          title: Text(t.test_feedback_title),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
                 initialValue: feedbackType,
-                decoration: const InputDecoration(labelText: 'Type'),
-                items: const [
+                decoration: InputDecoration(labelText: t.test_feedback_type),
+                items: [
                   DropdownMenuItem(
-                      value: 'question_issue', child: Text('Question issue')),
+                      value: 'question_issue',
+                      child: Text(t.test_feedback_question_issue)),
                   DropdownMenuItem(
-                      value: 'wrong_answer', child: Text('Wrong answer')),
+                      value: 'wrong_answer',
+                      child: Text(t.test_feedback_wrong_answer)),
                   DropdownMenuItem(
-                      value: 'typo', child: Text('Typo/text issue')),
+                      value: 'typo', child: Text(t.test_feedback_typo)),
                   DropdownMenuItem(
-                      value: 'image_issue', child: Text('Image issue')),
-                  DropdownMenuItem(value: 'other', child: Text('Other')),
+                      value: 'image_issue',
+                      child: Text(t.test_feedback_image_issue)),
+                  DropdownMenuItem(
+                    value: 'other',
+                    child: Text(t.test_feedback_other),
+                  ),
                 ],
                 onChanged: (v) {
                   if (v == null) return;
@@ -837,9 +872,9 @@ class _TestscreenState extends State<Testscreen> {
                 controller: controller,
                 minLines: 3,
                 maxLines: 6,
-                decoration: const InputDecoration(
-                  hintText: 'Tell us what is wrong with this question...',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: t.test_feedback_hint,
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
@@ -888,9 +923,7 @@ class _TestscreenState extends State<Testscreen> {
 
     if (!mounted) return;
     Navigator.of(context).pop();
-    showAppSnackBar(ok
-        ? 'Thanks! Your feedback was submitted.'
-        : 'Could not submit feedback. Please try again.');
+    showAppSnackBar(ok ? t.test_feedback_submitted : t.test_feedback_failed);
   }
 
   /// Returns true if [s] is translatable text (not an image URL/path).
@@ -1028,7 +1061,9 @@ class _TestscreenState extends State<Testscreen> {
         isEnglish = targetLang == 'en';
       });
     } catch (e) {
-      showAppSnackBar('Translation failed. Please try again.');
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).test_translation_failed);
+      }
     } finally {
       if (mounted) Navigator.of(context).pop();
     }
@@ -1256,7 +1291,7 @@ class _TestscreenState extends State<Testscreen> {
                     value: 'lang_en',
                     child: Row(
                       children: [
-                        const Text('🇬🇧 English'),
+                        Text('🇬🇧 ${t.test_language_english}'),
                         const Spacer(),
                         if (currentLanguageCode.toLowerCase() == 'en')
                           const Icon(Icons.check, size: 16),
@@ -1268,7 +1303,7 @@ class _TestscreenState extends State<Testscreen> {
                     value: 'lang_sv',
                     child: Row(
                       children: [
-                        const Text('🇸🇪 Svenska'),
+                        Text('🇸🇪 ${t.test_language_swedish}'),
                         const Spacer(),
                         if (currentLanguageCode.toLowerCase() == 'sv')
                           const Icon(Icons.check, size: 16),
@@ -1294,7 +1329,9 @@ class _TestscreenState extends State<Testscreen> {
                                 : Icons.timer_outlined,
                             size: 18),
                         const SizedBox(width: 8),
-                        Text(_isTimed ? 'Turn off timer' : 'Turn on timer'),
+                        Text(_isTimed
+                            ? t.test_turn_off_timer
+                            : t.test_turn_on_timer),
                         const Spacer(),
                         if (_isTimed) const Icon(Icons.check, size: 16),
                       ],
@@ -1312,8 +1349,8 @@ class _TestscreenState extends State<Testscreen> {
                             size: 18),
                         const SizedBox(width: 8),
                         Text(_instantMarking
-                            ? 'Turn off instant marking'
-                            : 'Turn on instant marking'),
+                            ? t.test_turn_off_instant_marking
+                            : t.test_turn_on_instant_marking),
                         const Spacer(),
                         if (_instantMarking) const Icon(Icons.check, size: 16),
                       ],
@@ -1327,13 +1364,13 @@ class _TestscreenState extends State<Testscreen> {
                     child: Divider(
                         color: Theme.of(context).dividerColor, height: 1),
                   ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'feedback',
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, size: 18),
-                      SizedBox(width: 8),
-                      Text('Feedback'),
+                      const Icon(Icons.error_outline, size: 18),
+                      const SizedBox(width: 8),
+                      Text(t.test_feedback_title),
                     ],
                   ),
                 ),
@@ -1489,8 +1526,8 @@ class _TestscreenState extends State<Testscreen> {
                               if (mounted) {
                                 setState(() => _savedQuestionIds = ids);
                                 showAppSnackBar(isSaved
-                                    ? 'Question saved'
-                                    : 'Question removed from saved');
+                                    ? t.test_question_saved
+                                    : t.test_question_removed);
                               }
                             },
                             child: Padding(
@@ -1514,8 +1551,8 @@ class _TestscreenState extends State<Testscreen> {
                                   Text(
                                     _savedQuestionIds.contains(
                                             widget.questions[index].questionId)
-                                        ? 'Saved'
-                                        : 'Save question',
+                                        ? t.test_saved
+                                        : t.test_save_question,
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: _savedQuestionIds.contains(widget
@@ -1586,8 +1623,12 @@ class _TestscreenState extends State<Testscreen> {
               context: context,
               unansweredCount: widget.questions.length - userSelections.length,
               onCancel: () {}, // nothing extra on “No”
-              onConfirm: () {
-                _saveTestAttempt(); // store Hive record
+              onConfirm: () async {
+                final saveResult = await _saveTestAttempt();
+                if (!mounted) return;
+                if (!saveResult.backendSynced) {
+                  showAppSnackBar(t.test_save_backend_failed);
+                }
                 final passed = _calculateResult();
                 if (passed) {
                   vibratePass();
@@ -1595,7 +1636,7 @@ class _TestscreenState extends State<Testscreen> {
                   vibrateFail();
                 }
                 showResultDialog(
-                  context: context,
+                  context: this.context,
                   hasPassed: passed,
                   score: _computeScorePercent(),
                   passScorePercent: widget.passScorePercent,
@@ -1645,16 +1686,19 @@ class _TestscreenState extends State<Testscreen> {
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    const Text(
-                      'Questions',
-                      style: TextStyle(
+                    Text(
+                      t.test_questions_title,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const Spacer(),
                     Text(
-                      '${currentQuestionIndex + 1} of ${widget.questions.length}',
+                      t.test_question_progress
+                          .replaceAll(
+                              '{current}', '${currentQuestionIndex + 1}')
+                          .replaceAll('{total}', '${widget.questions.length}'),
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey[600],
@@ -1748,7 +1792,8 @@ class _TestscreenState extends State<Testscreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Question ${index + 1}',
+                                        t.test_question_label
+                                            .replaceAll('{n}', '${index + 1}'),
                                         style: TextStyle(
                                           fontWeight: FontWeight.w600,
                                           color: isCurrent
@@ -1763,8 +1808,8 @@ class _TestscreenState extends State<Testscreen> {
                                       const SizedBox(height: 4),
                                       Text(
                                         isAnswered
-                                            ? 'Answered'
-                                            : 'Not answered',
+                                            ? t.test_answered
+                                            : t.test_not_answered,
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: isAnswered

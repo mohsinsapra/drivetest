@@ -1,5 +1,7 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import '../../features/tests/result_screen.dart';
 import '../models/question.dart';
 
@@ -9,9 +11,10 @@ import '../models/question.dart';
 Future<void> showFinishConfirmationDialog({
   required BuildContext context,
   required int unansweredCount,
-  required VoidCallback onCancel,
-  required VoidCallback onConfirm,
+  required FutureOr<void> Function() onCancel,
+  required FutureOr<void> Function() onConfirm,
 }) {
+  final t = Translations.of(context);
   return showDialog(
     context: context,
     barrierDismissible: false,
@@ -19,7 +22,7 @@ Future<void> showFinishConfirmationDialog({
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Finish Test'),
+          Text(t.test_finish_title),
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(ctx).pop(), // close
@@ -28,23 +31,23 @@ Future<void> showFinishConfirmationDialog({
       ),
       content: Text(
         unansweredCount > 0
-            ? 'You have $unansweredCount unanswered question(s). '
-                'Do you still want to finish the test?'
-            : 'Do you want to finish the test?',
+            ? t.test_finish_unanswered_prompt
+                .replaceAll('{count}', '$unansweredCount')
+            : t.test_finish_prompt,
       ),
       actions: [
         TextButton(
-          child: const Text('No'),
-          onPressed: () {
+          child: Text(t.test_finish_no),
+          onPressed: () async {
             Navigator.of(ctx).pop(); // close
-            onCancel();
+            await onCancel();
           },
         ),
         ElevatedButton(
-          child: const Text('Yes'),
-          onPressed: () {
+          child: Text(t.test_finish_yes),
+          onPressed: () async {
             Navigator.of(ctx).pop(); // close
-            onConfirm();
+            await onConfirm();
           },
         ),
       ],
@@ -65,6 +68,7 @@ Future<void> showResultDialog({
   double score = 0,
   double passScorePercent = 70,
 }) {
+  final t = Translations.of(context);
   final Color primaryColor =
       hasPassed ? const Color(0xFF16A34A) : const Color(0xFFDC2626);
 
@@ -101,7 +105,9 @@ Future<void> showResultDialog({
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  hasPassed ? 'Congratulations!' : 'Not Quite There',
+                  hasPassed
+                      ? t.test_result_congratulations
+                      : t.test_result_not_quite_there,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -130,7 +136,9 @@ Future<void> showResultDialog({
                         Border.all(color: Colors.white.withValues(alpha: 0.4)),
                   ),
                   child: Text(
-                    hasPassed ? 'PASSED' : 'FAILED',
+                    hasPassed
+                        ? t.test_result_passed_badge
+                        : t.test_result_failed_badge,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -147,8 +155,8 @@ Future<void> showResultDialog({
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
             child: Text(
               hasPassed
-                  ? 'You have passed the test. Well done!'
-                  : 'Keep practicing and try again. You can do it!',
+                  ? t.test_result_pass_message
+                  : t.test_result_fail_message,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -173,7 +181,7 @@ Future<void> showResultDialog({
                       Navigator.of(ctx).pop(); // close dialog
                       Navigator.of(ctx).pop(); // pop TestScreen
                     },
-                    child: const Text('Go Back'),
+                    child: Text(t.test_result_go_back),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -204,7 +212,7 @@ Future<void> showResultDialog({
                         (route) => route.isFirst,
                       );
                     },
-                    child: const Text('See Results'),
+                    child: Text(t.test_result_see_results),
                   ),
                 ),
               ],

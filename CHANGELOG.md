@@ -10,13 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- `hasResumableProgressChanges` helper and targeted regression test coverage for resumed test progress detection
+- `TestAttemptSaveService` and regression tests covering local-first save order and backend sync failure handling
 
 ### Changed
--
+- Moved test/save/resume UI copy in the test screen, result screen, finish/result dialogs, and saved-progress deletion prompts to the existing i18n translation files
+- Added new EN/SV translation keys for test flow feedback, result summaries, exit/save prompts, navigation labels, saved-progress prompts, and backend sync failure messaging
+- `syncTestAttempt` now returns an explicit backend sync result so the test screen can distinguish local persistence from remote sync success
 
 ### Fixed
--
+- "Save & Exit" on resumed tests now treats question-position changes as progress, so leaving from a different question no longer drops the paused state
+- Paused and completed test saves now await the backend sync attempt before the screen closes or the flow continues
+- Test attempts are now always written to local storage first, and `Save & Exit` keeps the user on the test screen with an error message if backend sync fails instead of silently closing
 
 ---
 
