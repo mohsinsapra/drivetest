@@ -1038,15 +1038,14 @@ class _LandingView extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // Log in — full-width gradient button
-                      AppButton(
-                        label: Translations.of(context).auth_tab_login,
-                        onPressed: onLogin,
-                      ),
-                      const SizedBox(height: 10),
-                      // Social sign-in buttons — platform-adaptive layout
+                      // Platform-adaptive button layout
                       if (AppleSignInHelper.isAvailable()) ...[
-                        // iOS: Apple + Google icon pair
+                        // iOS: Login first, then Apple + Google icon pair
+                        AppButton(
+                          label: Translations.of(context).auth_tab_login,
+                          onPressed: onLogin,
+                        ),
+                        const SizedBox(height: 10),
                         SizedBox(
                           height: 54,
                           child: Row(
@@ -1073,7 +1072,7 @@ class _LandingView extends StatelessWidget {
                           ),
                         ),
                       ] else ...[
-                        // Android / Web: full-width Express Google button
+                        // Android / Web: Google first, then Login (secondary style)
                         AppButton(
                           label: Translations.of(context).auth_express_google,
                           icon: FaIcon(FontAwesomeIcons.google,
@@ -1083,6 +1082,12 @@ class _LandingView extends StatelessWidget {
                               ? googleLoadingStep
                               : null,
                           onPressed: onGoogle,
+                        ),
+                        const SizedBox(height: 10),
+                        AppSecondaryButton(
+                          label: Translations.of(context).auth_tab_login,
+                          onPressed: onLogin,
+                          height: 58,
                         ),
                       ],
                       const SizedBox(height: 20),
