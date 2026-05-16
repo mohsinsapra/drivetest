@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -88,9 +89,9 @@ class PaywallSheet extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 8),
-            TextButton(
+            AppTextButton(
+              label: t.bcd_not_now,
               onPressed: () => Navigator.pop(context),
-              child: Text(t.bcd_not_now),
             ),
           ],
         ),

@@ -1,4 +1,4 @@
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -208,33 +208,11 @@ class _GdprConsentSheetState extends State<_GdprConsentSheet> {
               const SizedBox(height: 28),
 
               // Accept button
-              SizedBox(
-                width: double.infinity,
+              AppButton(
+                label: sv ? 'Godkänn och fortsätt' : 'Accept & Continue',
+                onPressed: _accept,
+                loading: _accepting,
                 height: 56,
-                child: ElevatedButton(
-                  onPressed: _accepting ? null : _accept,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: cs.primary,
-                    foregroundColor: cs.onPrimary,
-                    disabledBackgroundColor: cs.primary.withValues(alpha: 0.3),
-                    shape: const StadiumBorder(),
-                    elevation: 0,
-                  ),
-                  child: _accepting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: AppLoadingIndicator(
-                              strokeWidth: 2.5, color: Colors.white),
-                        )
-                      : Text(
-                          sv ? 'Godkänn och fortsätt' : 'Accept & Continue',
-                          style: GoogleFonts.lexend(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                ),
               ),
             ],
           ),

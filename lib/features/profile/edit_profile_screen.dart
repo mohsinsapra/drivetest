@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -114,14 +115,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'This action is permanent and will remove your account data. Are you sure?',
         ),
         actions: [
-          TextButton(
+          AppTextButton(
+            label: t.cancel,
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          AppDangerButton(
+            label: t.btn_delete_account,
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
           ),
         ],
       ),
@@ -142,6 +142,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     if (_profile.profileLoading) {
       return const Scaffold(body: Center(child: AppLoadingIndicator()));
     }
@@ -203,17 +204,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
+          AppFilledButton(
+            label: t.btn_save_changes,
             onPressed: (_profile.savingProfile || _profile.isDemo)
                 ? null
                 : _saveProfile,
-            child: _profile.savingProfile
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: AppLoadingIndicator(strokeWidth: 2),
-                  )
-                : const Text('Save Changes'),
+            loading: _profile.savingProfile,
           ),
           if (_profile.isGoogleAccount) ...[
             const SizedBox(height: 28),
@@ -277,25 +273,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            ElevatedButton(
+            AppFilledButton(
+              label: t.btn_set_password,
               onPressed: _profile.settingPassword ? null : _setPassword,
-              child: _profile.settingPassword
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: AppLoadingIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Set Password'),
+              loading: _profile.settingPassword,
             ),
           ],
           const SizedBox(height: 28),
           const Divider(thickness: 0.6, color: Color(0xFFE6E6E6)),
           const SizedBox(height: 12),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-            ),
+          AppOutlinedButton(
+            label: _profile.deletingAccount
+                ? t.btn_deleting
+                : t.btn_delete_account,
             onPressed: _profile.deletingAccount ? null : _deleteAccount,
             icon: _profile.deletingAccount
                 ? const SizedBox(
@@ -304,8 +294,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: AppLoadingIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.delete_forever),
-            label: Text(
-                _profile.deletingAccount ? 'Deleting...' : 'Delete Account'),
+            foregroundColor: Colors.red,
+            borderColor: Colors.red,
           ),
         ],
       ),

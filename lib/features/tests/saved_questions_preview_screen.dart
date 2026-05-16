@@ -1,4 +1,6 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
@@ -239,7 +241,8 @@ class _SavedQuestionsPreviewScreenState
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: ElevatedButton.icon(
+        child: AppFilledButton(
+          label: Translations.of(context).btn_start_saved_test,
           onPressed: _questions.isEmpty
               ? null
               : () {
@@ -263,7 +266,6 @@ class _SavedQuestionsPreviewScreenState
                   );
                 },
           icon: const Icon(Icons.play_arrow),
-          label: const Text('Start Saved Questions Test'),
         ),
       ),
     );

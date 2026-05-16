@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/purchase_receipt.dart';
 import 'package:taxi_exam_app/features/payment/receipt_screen.dart';
@@ -230,7 +231,8 @@ class _PurchaseSuccessScreenState extends State<_PurchaseSuccessScreen>
 
                       // View receipt
                       if (widget.receipt != null)
-                        TextButton.icon(
+                        AppTextButton(
+                          label: widget.receipt!.receiptNumber,
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) =>
@@ -239,41 +241,17 @@ class _PurchaseSuccessScreenState extends State<_PurchaseSuccessScreen>
                           ),
                           icon:
                               const Icon(Icons.receipt_long_outlined, size: 16),
-                          label: Text(
-                            widget.receipt!.receiptNumber,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          style: TextButton.styleFrom(
-                            foregroundColor:
-                                cs.onSurface.withValues(alpha: 0.5),
-                          ),
+                          foregroundColor: cs.onSurface.withValues(alpha: 0.5),
                         ),
 
                       const SizedBox(height: 12),
 
                       // Primary action button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _handleStartTests,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: cs.primary,
-                            foregroundColor: cs.onPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: Text(
-                            t.purchase_success_start_tests,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
+                      AppFilledButton(
+                        label: t.purchase_success_start_tests,
+                        onPressed: _handleStartTests,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        borderRadius: 16,
                       ),
 
                       const SizedBox(height: 16),

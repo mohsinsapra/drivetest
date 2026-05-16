@@ -262,10 +262,6 @@ class _CategoryCard extends StatelessWidget {
           : t.bcd_tap_to_subscribe;
     }
 
-    final progress =
-        testCount > 0 ? (attemptCount / testCount).clamp(0.0, 1.0) : 0.0;
-    final complete = testCount > 0 && attemptCount >= testCount;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -373,31 +369,6 @@ class _CategoryCard extends StatelessWidget {
                     Icon(LucideIcons.chevronRight, size: 18, color: cs.outline),
                   ],
                 ),
-                if ((subscribed || isFree) && testCount > 0) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 5,
-                            backgroundColor: cs.surfaceContainerHighest,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              complete ? successGreen : accent,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (complete) ...[
-                        const SizedBox(width: 8),
-                        const Icon(LucideIcons.checkCircle,
-                            size: 14, color: successGreen),
-                      ],
-                    ],
-                  ),
-                ],
               ],
             ),
           ),

@@ -1,4 +1,4 @@
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -82,7 +82,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ),
           content: Text(Translations.of(context).auth_reset_success_body),
           actions: [
-            ElevatedButton(
+            AppFilledButton(
+              label: Translations.of(context).auth_reset_go_to_login,
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushAndRemoveUntil(
@@ -90,7 +91,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   (route) => false,
                 );
               },
-              child: Text(Translations.of(context).auth_reset_go_to_login),
             ),
           ],
         ),
@@ -227,40 +227,22 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               const SizedBox(height: 24),
 
               // Reset button
-              _isLoading
-                  ? const AppLoadingIndicator()
-                  : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _resetPassword,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          Translations.of(context).auth_reset_title,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
+              AppFilledButton(
+                label: Translations.of(context).auth_reset_title,
+                onPressed: _resetPassword,
+                loading: _isLoading,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
               const SizedBox(height: 16),
 
               // Back to login
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    AppPageRoute(builder: (_) => const AuthScreen()),
-                    (route) => false,
-                  );
-                },
-                child: Text(
-                  Translations.of(context).auth_forgot_back_login,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+              AppTextButton(
+                label: Translations.of(context).auth_forgot_back_login,
+                onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+                  AppPageRoute(builder: (_) => const AuthScreen()),
+                  (route) => false,
                 ),
+                foregroundColor: Theme.of(context).colorScheme.primary,
               ),
             ],
           ),

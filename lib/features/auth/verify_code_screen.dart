@@ -1,4 +1,5 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/features/auth/reset_password_screen.dart';
@@ -117,35 +118,18 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
               const SizedBox(height: 24),
 
               // Verify button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _verifyCode,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    Translations.of(context).auth_verify_title,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
+              AppFilledButton(
+                label: Translations.of(context).auth_verify_title,
+                onPressed: _verifyCode,
+                padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               const SizedBox(height: 16),
 
               // Resend code
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text(
-                  Translations.of(context).auth_verify_resend,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
+              AppTextButton(
+                label: Translations.of(context).auth_verify_resend,
+                onPressed: () => Navigator.of(context).pop(),
+                foregroundColor: Theme.of(context).colorScheme.primary,
               ),
             ],
           ),

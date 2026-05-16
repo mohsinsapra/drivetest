@@ -40,7 +40,10 @@ class AppButton extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [cs.primary, cs.primaryContainer],
+              colors: [
+                cs.primary.withValues(alpha: 0.82),
+                cs.primaryContainer.withValues(alpha: 0.88),
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -155,6 +158,185 @@ class AppSecondaryButton extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ── AppFilledButton ───────────────────────────────────────────────────────────
+// Solid-colour filled button — replaces FilledButton / ElevatedButton with an
+// explicit primary background in cards and sheets.
+// Defaults to cs.primary (0.9 alpha), cs.onPrimary, borderRadius 12.
+
+class AppFilledButton extends StatelessWidget {
+  const AppFilledButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.loading = false,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderRadius = 9999,
+    this.padding = const EdgeInsets.symmetric(vertical: 13),
+    this.minimumWidth = double.infinity,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final Widget? icon;
+  final bool loading;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final double borderRadius;
+  final EdgeInsetsGeometry padding;
+  final double minimumWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final bg = backgroundColor ?? cs.primary.withValues(alpha: 0.78);
+    final fg = foregroundColor ?? cs.onPrimary;
+    final shape = RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(borderRadius));
+    final style = ElevatedButton.styleFrom(
+      backgroundColor: bg,
+      foregroundColor: fg,
+      padding: padding,
+      minimumSize: Size(minimumWidth, 0),
+      shape: shape,
+    );
+    final child = loading
+        ? SizedBox(
+            width: 18,
+            height: 18,
+            child: AppLoadingIndicator(strokeWidth: 2, color: fg))
+        : Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: fg));
+
+    if (icon != null && !loading) {
+      return ElevatedButton.icon(
+          onPressed: onPressed, icon: icon!, label: Text(label), style: style);
+    }
+    return ElevatedButton(onPressed: onPressed, style: style, child: child);
+  }
+}
+
+// ── AppOutlinedButton ─────────────────────────────────────────────────────────
+// Outlined button — replaces OutlinedButton / OutlinedButton.icon.
+
+class AppOutlinedButton extends StatelessWidget {
+  const AppOutlinedButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.foregroundColor,
+    this.borderColor,
+    this.borderRadius = 9999,
+    this.padding,
+    this.minimumWidth,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final Widget? icon;
+  final Color? foregroundColor;
+  final Color? borderColor;
+  final double borderRadius;
+  final EdgeInsetsGeometry? padding;
+  final double? minimumWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final shape = RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(borderRadius));
+    final style = OutlinedButton.styleFrom(
+      foregroundColor: foregroundColor,
+      side: borderColor != null ? BorderSide(color: borderColor!) : null,
+      padding: padding,
+      minimumSize: minimumWidth != null ? Size(minimumWidth!, 0) : null,
+      shape: shape,
+    );
+    if (icon != null) {
+      return OutlinedButton.icon(
+          onPressed: onPressed, icon: icon!, label: Text(label), style: style);
+    }
+    return OutlinedButton(
+        onPressed: onPressed, style: style, child: Text(label));
+  }
+}
+
+// ── AppDangerButton ───────────────────────────────────────────────────────────
+// Destructive filled button — red background, white text.
+// Use for logout, delete, and irreversible actions.
+
+class AppDangerButton extends StatelessWidget {
+  const AppDangerButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.loading = false,
+    this.height = 50,
+    this.borderRadius = 9999,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final bool loading;
+  final double height;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: loading ? null : onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red.shade400,
+        foregroundColor: Colors.white,
+        minimumSize: Size(double.infinity, height),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius)),
+      ),
+      child: loading
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.white))
+          : Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+    );
+  }
+}
+
+// ── AppTextButton ─────────────────────────────────────────────────────────────
+// Text-only button — replaces TextButton / TextButton.icon used as CTA,
+// cancel, or secondary actions (not TextField suffixIcon).
+
+class AppTextButton extends StatelessWidget {
+  const AppTextButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+    this.foregroundColor,
+    this.fontSize,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+  final Widget? icon;
+  final Color? foregroundColor;
+  final double? fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextButton.styleFrom(
+      foregroundColor: foregroundColor,
+      textStyle: fontSize != null ? TextStyle(fontSize: fontSize) : null,
+    );
+    if (icon != null) {
+      return TextButton.icon(
+          onPressed: onPressed, icon: icon!, label: Text(label), style: style);
+    }
+    return TextButton(onPressed: onPressed, style: style, child: Text(label));
   }
 }
 

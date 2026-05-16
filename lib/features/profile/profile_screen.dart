@@ -1,4 +1,4 @@
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -142,17 +142,17 @@ class _ProfileScreenState extends State<ProfileScreen>
             ],
           ),
           actions: [
-            TextButton(
+            AppTextButton(
+              label: t.cancel,
               onPressed: () => Navigator.pop(ctx),
-              child: Text(t.cancel),
             ),
-            ElevatedButton(
+            AppFilledButton(
+              label: t.auth_submit,
               onPressed: () => Navigator.pop(ctx, {
                 'subject': subjectCtrl.text.trim(),
                 'message': messageCtrl.text.trim(),
                 'type': feedbackType,
               }),
-              child: Text(t.auth_submit),
             ),
           ],
         ),
@@ -238,48 +238,32 @@ class _ProfileScreenState extends State<ProfileScreen>
                 Text(error!, style: TextStyle(color: cs.error, fontSize: 13)),
               ],
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: loading
-                      ? null
-                      : () async {
+              AppButton(
+                label: t.guest_convert_cta,
+                onPressed: loading
+                    ? null
+                    : () async {
+                        setSheetState(() {
+                          loading = true;
+                          error = null;
+                        });
+                        try {
+                          await ApiService().convertGuest(
+                            username: usernameCtrl.text.trim(),
+                            email: emailCtrl.text.trim(),
+                            password: passwordCtrl.text,
+                          );
+                          await _profile.loadProfile();
+                          if (ctx.mounted) Navigator.of(ctx).pop();
+                        } catch (e) {
                           setSheetState(() {
-                            loading = true;
-                            error = null;
+                            loading = false;
+                            error = e.toString().replaceAll('Exception: ', '');
                           });
-                          try {
-                            await ApiService().convertGuest(
-                              username: usernameCtrl.text.trim(),
-                              email: emailCtrl.text.trim(),
-                              password: passwordCtrl.text,
-                            );
-                            await _profile.loadProfile();
-                            if (ctx.mounted) Navigator.of(ctx).pop();
-                          } catch (e) {
-                            setSheetState(() {
-                              loading = false;
-                              error =
-                                  e.toString().replaceAll('Exception: ', '');
-                            });
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: cs.primary,
-                    foregroundColor: cs.onPrimary,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: AppLoadingIndicator(
-                              strokeWidth: 2.5, color: Colors.white))
-                      : Text(t.guest_convert_cta,
-                          style: GoogleFonts.lexend(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
-                ),
+                        }
+                      },
+                loading: loading,
+                height: 52,
               ),
             ],
           ),
@@ -560,11 +544,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: ElevatedButton(
+                  child: AppFilledButton(
+                    label: 'Verify Sentry Setup',
                     onPressed: () {
                       throw StateError('This is test exception');
                     },
-                    child: const Text('Verify Sentry Setup'),
                   ),
                 ),
               ),
@@ -573,7 +557,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: ElevatedButton(
+                  child: AppFilledButton(
+                    label: 'Reset Onboarding',
                     onPressed: () async {
                       final prefs = await SharedPreferences.getInstance();
                       await prefs.remove('onboarding_complete');
@@ -583,9 +568,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         (_) => false,
                       );
                     },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange),
-                    child: const Text('Reset Onboarding'),
+                    backgroundColor: Colors.orange,
                   ),
                 ),
               ),
@@ -598,7 +581,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
+                  child: AppTextButton(
+                    label: t.logout,
                     onPressed: () {
                       showModalBottomSheet(
                         context: context,
@@ -610,15 +594,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                         builder: (sheetContext) => const _LogoutSheet(),
                       );
                     },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red.shade700,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                    ),
                     icon: const Icon(Icons.logout, size: 20),
-                    label: Text(t.logout, style: const TextStyle(fontSize: 15)),
+                    foregroundColor: Colors.red.shade700,
+                    fontSize: 15,
                   ),
                 ),
               ),
@@ -719,40 +697,20 @@ class _LogoutSheetState extends State<_LogoutSheet> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: AppOutlinedButton(
+                    label: t.cancel,
                     onPressed: _isLoading ? null : () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.onSurface,
-                      side: BorderSide(
-                          color: Theme.of(context).colorScheme.outlineVariant),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(t.cancel),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _doLogout,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: AppLoadingIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(t.profile_yes_logout),
+                  child: AppDangerButton(
+                    label: t.profile_yes_logout,
+                    onPressed: _doLogout,
+                    loading: _isLoading,
+                    height: 48,
                   ),
                 ),
               ],
@@ -798,9 +756,15 @@ class _GuestBanner extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
-        color: cs.onSurface.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
+        gradient: LinearGradient(
+          colors: [
+            cs.primaryContainer.withValues(alpha: 0.18),
+            cs.primary.withValues(alpha: 0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -808,13 +772,13 @@ class _GuestBanner extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.person_outline_rounded,
-                  color: cs.onSurfaceVariant, size: 18),
+                  color: cs.primary.withValues(alpha: 0.7), size: 18),
               const SizedBox(width: 6),
               Text(
                 t.guest_banner_title,
                 style: GoogleFonts.lexend(
                   fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: cs.onSurface,
                 ),
               ),
@@ -830,24 +794,11 @@ class _GuestBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 40,
-            child: ElevatedButton(
-              onPressed: onConvert,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: cs.primary.withValues(alpha: 0.9),
-                foregroundColor: cs.onPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-              ),
-              child: Text(
-                t.guest_banner_cta,
-                style: GoogleFonts.lexend(
-                    fontSize: 13, fontWeight: FontWeight.w600),
-              ),
-            ),
+          AppButton(
+            label: t.guest_banner_cta,
+            onPressed: onConvert,
+            height: 44,
+            fontSize: 14,
           ),
         ],
       ),

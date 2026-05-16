@@ -143,12 +143,14 @@ web-run:
 		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
 		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)"
 
-## web-tunnel: Run web app + Cloudflare tunnel (no hot-reload; restart to pick up changes)
+## web-tunnel: Run web app + Cloudflare tunnel with auto hot-reload on file save
 web-tunnel:
 	@command -v cloudflared >/dev/null 2>&1 || (echo "$(COLOR_YELLOW)Installing cloudflared...$(COLOR_RESET)" && brew install cloudflared)
+	@command -v fswatch >/dev/null 2>&1 || (echo "$(COLOR_YELLOW)Installing fswatch...$(COLOR_RESET)" && brew install fswatch)
 	@lsof -ti:$(WEB_PORT) | xargs kill -9 2>/dev/null; true
-	@echo "$(COLOR_GREEN)Starting Flutter web server on port $(WEB_PORT)...$(COLOR_RESET)"
-	@flutter run -d web-server --web-port=$(WEB_PORT) \
+	@rm -f /tmp/flutter_tunnel_pipe; mkfifo /tmp/flutter_tunnel_pipe; \
+	cloudflared tunnel --config $(HOME)/.cloudflared/drivetest-flutter.yml run & CF_PID=$$!; \
+	flutter run -d web-server --web-port=$(WEB_PORT) \
 		--dart-define=API_BASE_URL="https://dev-dashboard.drivetest.se/" \
 		--dart-define=FIREBASE_API_KEY="$(FIREBASE_API_KEY)" \
 		--dart-define=FIREBASE_AUTH_DOMAIN="$(FIREBASE_AUTH_DOMAIN)" \
@@ -166,15 +168,16 @@ web-tunnel:
 		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
 		--dart-define=GIT_SHORT_HASH="$(GIT_SHORT_HASH)" \
 		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
-		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)" & \
-	FLUTTER_PID=$$!; \
-	trap "echo '$(COLOR_YELLOW)Shutting down...$(COLOR_RESET)'; kill $$FLUTTER_PID 2>/dev/null; exit" INT TERM; \
-	echo "$(COLOR_YELLOW)Waiting for Flutter web server to be ready...$(COLOR_RESET)"; \
-	until nc -z localhost $(WEB_PORT) 2>/dev/null; do sleep 1; done; \
-	echo "$(COLOR_GREEN)Flutter ready! Starting Cloudflare tunnel...$(COLOR_RESET)"; \
+		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)" \
+		< /tmp/flutter_tunnel_pipe & FLUTTER_PID=$$!; \
+	exec 3>/tmp/flutter_tunnel_pipe; \
+	trap "echo '$(COLOR_YELLOW)Shutting down...$(COLOR_RESET)'; kill $$CF_PID $$FLUTTER_PID 2>/dev/null; exec 3>&-; rm -f /tmp/flutter_tunnel_pipe; exit" INT TERM; \
 	echo "$(COLOR_GREEN)Live at: https://dev-app.drivetest.se$(COLOR_RESET)"; \
-	cloudflared tunnel --config $(HOME)/.cloudflared/drivetest-flutter.yml run; \
-	kill $$FLUTTER_PID 2>/dev/null
+	echo "$(COLOR_YELLOW)Watching lib/ — hot reload fires automatically on every save$(COLOR_RESET)"; \
+	fswatch -o lib/ | while read; do \
+		echo "$(COLOR_BLUE)Change detected — hot restarting...$(COLOR_RESET)"; \
+		echo R >&3; \
+	done
 
 ## tunnel: Start backend + Flutter web app tunnels (same as make tunnel in the backend dir)
 tunnel:

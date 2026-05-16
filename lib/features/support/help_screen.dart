@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -272,31 +273,11 @@ class _HelpScreenState extends State<HelpScreen> {
                   const SizedBox(height: 32),
 
                   // Submit
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _submitReport,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : Text(
-                              t.help_submit,
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                    ),
+                  AppFilledButton(
+                    label: t.help_submit,
+                    onPressed: _isSubmitting ? null : _submitReport,
+                    loading: _isSubmitting,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
 
                   const SizedBox(height: 16),

@@ -504,5 +504,16 @@
   "guest_convert_cta": "Skapa konto",
   "dash_free_hub_title": "Fullständig övning — gratis innehåll",
   "dash_free_hub_subtitle": "Övningsfrågor, teoridokument, checklistor och statistik — ingen prenumeration krävs.",
-  "dash_free_hub_badge": "GRATIS"
+  "dash_free_hub_badge": "GRATIS",
+  "btn_save_changes": "Spara ändringar",
+  "btn_set_password": "Ange lösenord",
+  "btn_delete_account": "Ta bort konto",
+  "btn_deleting": "Tar bort...",
+  "btn_keep_going": "Fortsätt",
+  "btn_exit": "Avsluta",
+  "btn_save_and_exit": "Spara & Avsluta",
+  "btn_submit": "Skicka",
+  "btn_start_saved_test": "Starta test med sparade frågor",
+  "btn_buy_now": "Köp nu",
+  "btn_pay_now": "Betala nu"
 }

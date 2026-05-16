@@ -1000,31 +1000,6 @@ class _LandingView extends StatelessWidget {
                             height: 1.5,
                           ),
                         ),
-                        if (loginError != null) ...[
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: cs.error.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.error_outline,
-                                    color: cs.error, size: 16),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    loginError!,
-                                    style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 13, color: cs.error),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
@@ -1039,6 +1014,31 @@ class _LandingView extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      if (loginError != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: cs.error.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline,
+                                  color: cs.error, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  loginError!,
+                                  style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13, color: cs.error),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
                       // Platform-adaptive button layout
                       if (AppleSignInHelper.isAvailable()) ...[
                         // iOS: Login first, then Apple + Google icon pair
@@ -1114,7 +1114,8 @@ class _LandingView extends StatelessWidget {
                             child: GestureDetector(
                               onTap: onSignup,
                               child: Text(
-                                Translations.of(context).auth_create_account_link,
+                                Translations.of(context)
+                                    .auth_create_account_link,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -1321,29 +1322,6 @@ class _LoginPageState extends State<_LoginPage> {
                         ],
                       ),
                       const SizedBox(height: 40),
-                      if (_error != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: cs.error.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.error_outline,
-                                  color: cs.error, size: 16),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(_error!,
-                                    style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 13, color: cs.error)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
                       _AuthField(
                         label: t.auth_username,
                         controller: _usernameCtrl,
@@ -1389,7 +1367,30 @@ class _LoginPageState extends State<_LoginPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
+                      if (_error != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: cs.error.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline,
+                                  color: cs.error, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(_error!,
+                                    style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13, color: cs.error)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
                       Hero(
                         tag: 'auth_login_btn',
                         child: AppButton(

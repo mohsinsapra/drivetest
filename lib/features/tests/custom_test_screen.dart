@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async'; // Import for TimeoutException
@@ -232,12 +233,10 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
         ),
         title: Text(widget.categoryName),
         actions: [
-          TextButton(
+          AppTextButton(
+            label: 'Start Test',
             onPressed: _onStartTest,
-            child: const Text(
-              'Start Test',
-              style: TextStyle(color: Colors.white),
-            ),
+            foregroundColor: Colors.white,
           ),
         ],
         centerTitle: true,
@@ -419,9 +418,9 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
             ),
             const Divider(),
             const SizedBox(height: 16),
-            ElevatedButton(
+            AppFilledButton(
+              label: 'Start Test',
               onPressed: _onStartTest,
-              child: const Text('Start Test'),
             ),
           ],
         ),

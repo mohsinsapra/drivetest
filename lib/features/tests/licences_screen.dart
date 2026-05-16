@@ -1,4 +1,6 @@
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:convert';
 import 'dart:math';
@@ -270,8 +272,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
           content: const Text(
               'You do not have an active subscription for this category. Please purchase a one-month subscription for 100 kr to proceed.'),
           actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
+            AppTextButton(
+              label: Translations.of(context).cancel,
               onPressed: () {
                 // Track when user cancels purchase
                 _analyticsService.logPurchaseCancelled(
@@ -281,8 +283,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
                 Navigator.of(context).pop(); // Dismiss the dialog
               },
             ),
-            ElevatedButton(
-              child: const Text('Buy Now'),
+            AppFilledButton(
+              label: Translations.of(context).btn_buy_now,
               onPressed: () {
                 // Track Buy Now button click
                 _analyticsService.logBuyNowClick(

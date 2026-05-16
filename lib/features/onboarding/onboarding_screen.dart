@@ -611,16 +611,22 @@ class _TopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Text(
-            t.onb_top_bar_title,
-            style: GoogleFonts.lexend(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-              color: cs.primary,
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                t.onb_top_bar_title,
+                style: GoogleFonts.lexend(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                  color: cs.primary,
+                ),
+              ),
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           // Step progress dots
           Row(
             children: List.generate(totalSteps + 1, (i) {

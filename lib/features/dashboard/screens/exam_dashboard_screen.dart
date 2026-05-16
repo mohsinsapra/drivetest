@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -667,20 +668,13 @@ class _SubscribeCTACard extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: onSubscribe,
-              icon: const Icon(Icons.shopping_cart_outlined, size: 18),
-              label: Text(t.bcd_buy_subscription),
-              style: FilledButton.styleFrom(
-                backgroundColor: cs.primary.withValues(alpha: 0.85),
-                foregroundColor: cs.onPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-              ),
-            ),
+          AppFilledButton(
+            label: t.bcd_buy_subscription,
+            onPressed: onSubscribe,
+            icon: const Icon(Icons.shopping_cart_outlined, size: 18),
+            backgroundColor: cs.primary.withValues(alpha: 0.85),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            borderRadius: 14,
           ),
         ],
       ),
@@ -1776,14 +1770,11 @@ class _BatchAttemptHistory extends StatelessWidget {
               children: [
                 if (onNewTest != null)
                   Expanded(
-                    child: OutlinedButton.icon(
+                    child: AppSecondaryButton(
+                      label: '+ New Test',
                       onPressed: onNewTest,
-                      icon: const Icon(Icons.add_rounded, size: 16),
-                      label: const Text('New Test'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        textStyle: const TextStyle(fontSize: 13),
-                      ),
+                      height: 40,
+                      fontSize: 14,
                     ),
                   ),
               ],
@@ -2044,10 +2035,10 @@ class _ErrorView extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 24),
-            FilledButton.icon(
+            AppFilledButton(
+              label: t.dash_retry,
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: Text(t.dash_retry),
             ),
           ],
         ),

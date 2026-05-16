@@ -10,13 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- `AppFilledButton`, `AppOutlinedButton`, `AppDangerButton`, `AppTextButton` — four new centralised button variants in `lib/core/widgets/app_button.dart`; all button styling now lives in one file
+- 11 new translation keys (`btn_save_changes`, `btn_set_password`, `btn_delete_account`, `btn_deleting`, `btn_keep_going`, `btn_exit`, `btn_save_and_exit`, `btn_submit`, `btn_start_saved_test`, `btn_buy_now`, `btn_pay_now`) in EN and SV
+- `make web-tunnel` now auto hot-restarts the Flutter web server on every `lib/` file save via `fswatch` + named pipe — changes appear on the tunnel URL without any manual action
 
 ### Changed
--
+- Migrated all raw `ElevatedButton`, `FilledButton`, `OutlinedButton`, and `TextButton` usages across 20 screens to the new centralised `App*Button` widgets
+- All buttons now use a pill shape (borderRadius: 9999) matching the auth screen style
+- Softened button colours: primary gradient reduced to 82 % / 88 % alpha, filled buttons to 78 % alpha, danger buttons use `Colors.red.shade400` instead of full red
+- Auth screen: login error banner moved from below the heading to just above the action buttons on both the landing screen and the login sub-screen
+- Guest banner card on profile screen replaced harsh outlined card with a soft gradient background (no border) and switched to gradient pill `AppButton`
+- "New Test" button in Focus Areas changed from outlined to soft gradient (`AppSecondaryButton`) — no harsh border
+- "Start practicing!" onboarding completion button changed to gradient pill `AppButton`
+- Exit Test dialog: "Keep Going" and "Exit" text buttons now laid out in a row instead of stacked
+- Onboarding top bar title wrapped in `Flexible` + `FittedBox` to prevent overflow on small screens
+- `AppLoadingIndicator` replaced `dart:io` `Platform.isIOS` with `kIsWeb` + `defaultTargetPlatform` — fixes crash on Android and Web
 
 ### Fixed
--
+- `AppLoadingIndicator` threw "Unsupported operation" on Android and Web due to `dart:io` usage; now uses `flutter/foundation` APIs safe on all platforms
+- Progress bar removed from BCD licence cards (Categories screen)
 
 ---
 

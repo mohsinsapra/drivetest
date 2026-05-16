@@ -1,4 +1,4 @@
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -213,36 +213,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Submit button — uses theme ElevatedButton
-              SizedBox(
-                height: 52,
-                child: _isLoading
-                    ? const Center(child: AppLoadingIndicator())
-                    : ElevatedButton(
-                        onPressed: _requestPasswordReset,
-                        child: Text(
-                          t.auth_forgot_send_btn,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+              // Submit button
+              AppFilledButton(
+                label: t.auth_forgot_send_btn,
+                onPressed: _requestPasswordReset,
+                loading: _isLoading,
+                padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               const SizedBox(height: 20),
 
               // Back to login
               Center(
-                child: TextButton(
+                child: AppTextButton(
+                  label: t.auth_forgot_back_login,
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
-                    t.auth_forgot_back_login,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
+                  foregroundColor: theme.colorScheme.onSurface,
+                  fontSize: 15,
                 ),
               ),
               const SizedBox(height: 24),

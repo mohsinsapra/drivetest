@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -735,6 +736,7 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   Future<void> _showExitDialog() async {
+    final t = Translations.of(context);
     // Resumed test with no answer changes — nothing new to save, just exit
     if (widget.resumeTestId != null && !_hasChanges) {
       Navigator.of(context).pop();
@@ -745,18 +747,27 @@ class _TestscreenState extends State<Testscreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Exit Test'),
         content: const Text('Would you like to save your progress?'),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, 'cancel'),
-            child: const Text('Keep Going'),
+          Row(
+            children: [
+              Expanded(
+                child: AppTextButton(
+                  label: t.btn_keep_going,
+                  onPressed: () => Navigator.pop(ctx, 'cancel'),
+                ),
+              ),
+              Expanded(
+                child: AppTextButton(
+                  label: t.btn_exit,
+                  onPressed: () => Navigator.pop(ctx, 'exit'),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, 'exit'),
-            child: const Text('Exit'),
-          ),
-          ElevatedButton(
+          AppFilledButton(
+            label: t.btn_save_and_exit,
             onPressed: () => Navigator.pop(ctx, 'save'),
-            child: const Text('Save & Exit'),
           ),
         ],
       ),
@@ -785,6 +796,7 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   Future<void> _showFeedbackDialog() async {
+    final t = Translations.of(context);
     final q = widget.questions[currentQuestionIndex];
     if (q.questionId.isEmpty) {
       showAppSnackBar('Feedback is unavailable for this question.');
@@ -833,16 +845,16 @@ class _TestscreenState extends State<Testscreen> {
             ],
           ),
           actions: [
-            TextButton(
+            AppTextButton(
+              label: t.cancel,
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
             ),
-            ElevatedButton(
+            AppFilledButton(
+              label: t.btn_submit,
               onPressed: () => Navigator.pop(ctx, {
                 'text': controller.text.trim(),
                 'type': feedbackType,
               }),
-              child: const Text('Submit'),
             ),
           ],
         ),
@@ -2070,25 +2082,10 @@ class _TutorialCompleteOverlayState extends State<_TutorialCompleteOverlay>
                   _staggered(
                     fade: _buttonFade,
                     slide: _buttonSlide,
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _dismiss,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: Text(
-                          t.tut_start_practicing,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.none,
-                          ),
-                        ),
-                      ),
+                    child: AppButton(
+                      label: t.tut_start_practicing,
+                      onPressed: _dismiss,
+                      height: 58,
                     ),
                   ),
                 ],

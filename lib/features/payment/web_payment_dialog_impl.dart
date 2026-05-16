@@ -1,5 +1,6 @@
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:flutter_stripe_web/flutter_stripe_web.dart' show WebStripe;
@@ -199,26 +200,12 @@ class _WebPaymentPageState extends State<_WebPaymentPage> {
                   ),
                 ],
                 const SizedBox(height: 24),
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: (_cardComplete && !_processing) ? _pay : null,
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: _processing
-                        ? const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: AppLoadingIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text('Pay Now',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
-                  ),
+                AppFilledButton(
+                  label: Translations.of(context).btn_pay_now,
+                  onPressed: (_cardComplete && !_processing) ? _pay : null,
+                  loading: _processing,
+                  borderRadius: 10,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
               ],
             ),

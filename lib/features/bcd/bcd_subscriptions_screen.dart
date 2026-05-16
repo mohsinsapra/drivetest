@@ -1,4 +1,4 @@
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -467,21 +467,10 @@ class _ProductCard extends StatelessWidget {
             Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             if (isFree || owned)
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: isFree ? onFreeAccess : onStartPractice,
-                  icon: const Icon(LucideIcons.bookOpenCheck, size: 16),
-                  label: Text(Translations.of(context).bcd_start_practice),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: cs.primary.withValues(alpha: 0.9),
-                    foregroundColor: cs.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+              AppFilledButton(
+                label: Translations.of(context).bcd_start_practice,
+                onPressed: isFree ? onFreeAccess : onStartPractice,
+                icon: const Icon(LucideIcons.bookOpenCheck, size: 16),
               )
             else
               Row(
@@ -496,27 +485,13 @@ class _ProductCard extends StatelessWidget {
                         color: cs.onSurface,
                       ),
                     ),
-                  FilledButton(
+                  AppFilledButton(
+                    label: Translations.of(context).bcd_subscribe_btn,
                     onPressed: disabled ? null : onBuy,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: cs.primary.withValues(alpha: 0.9),
-                      foregroundColor: cs.onPrimary,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 13),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: buying
-                        ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: AppLoadingIndicator(
-                                strokeWidth: 2, color: cs.onPrimary))
-                        : Text(
-                            Translations.of(context).bcd_subscribe_btn,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
+                    loading: buying,
+                    minimumWidth: 0,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 13),
                   ),
                 ],
               ),

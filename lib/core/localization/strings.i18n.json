@@ -504,5 +504,16 @@
   "guest_convert_cta": "Create Account",
   "dash_free_hub_title": "Full Exam Practice — Free Content",
   "dash_free_hub_subtitle": "Practice questions, theory documents, checklists and statistics — no subscription needed.",
-  "dash_free_hub_badge": "FREE"
+  "dash_free_hub_badge": "FREE",
+  "btn_save_changes": "Save Changes",
+  "btn_set_password": "Set Password",
+  "btn_delete_account": "Delete Account",
+  "btn_deleting": "Deleting...",
+  "btn_keep_going": "Keep Going",
+  "btn_exit": "Exit",
+  "btn_save_and_exit": "Save & Exit",
+  "btn_submit": "Submit",
+  "btn_start_saved_test": "Start Saved Questions Test",
+  "btn_buy_now": "Buy Now",
+  "btn_pay_now": "Pay Now"
 }

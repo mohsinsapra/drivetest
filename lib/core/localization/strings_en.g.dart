@@ -609,6 +609,17 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get dash_free_hub_subtitle =>
       'Practice questions, theory documents, checklists and statistics — no subscription needed.';
   String get dash_free_hub_badge => 'FREE';
+  String get btn_save_changes => 'Save Changes';
+  String get btn_set_password => 'Set Password';
+  String get btn_delete_account => 'Delete Account';
+  String get btn_deleting => 'Deleting...';
+  String get btn_keep_going => 'Keep Going';
+  String get btn_exit => 'Exit';
+  String get btn_save_and_exit => 'Save & Exit';
+  String get btn_submit => 'Submit';
+  String get btn_start_saved_test => 'Start Saved Questions Test';
+  String get btn_buy_now => 'Buy Now';
+  String get btn_pay_now => 'Pay Now';
 }
 
 /// Flat map(s) containing all translations.
@@ -1592,6 +1603,28 @@ extension on Translations {
         return 'Practice questions, theory documents, checklists and statistics — no subscription needed.';
       case 'dash_free_hub_badge':
         return 'FREE';
+      case 'btn_save_changes':
+        return 'Save Changes';
+      case 'btn_set_password':
+        return 'Set Password';
+      case 'btn_delete_account':
+        return 'Delete Account';
+      case 'btn_deleting':
+        return 'Deleting...';
+      case 'btn_keep_going':
+        return 'Keep Going';
+      case 'btn_exit':
+        return 'Exit';
+      case 'btn_save_and_exit':
+        return 'Save & Exit';
+      case 'btn_submit':
+        return 'Submit';
+      case 'btn_start_saved_test':
+        return 'Start Saved Questions Test';
+      case 'btn_buy_now':
+        return 'Buy Now';
+      case 'btn_pay_now':
+        return 'Pay Now';
       default:
         return null;
     }

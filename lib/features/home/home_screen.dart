@@ -1,4 +1,5 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -158,18 +159,19 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _confirmDeletePausedTest(TestAttempt attempt) {
+    final t = Translations.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Progress'),
         content: const Text('Are you sure you want to delete this saved test?'),
         actions: [
-          TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(ctx).pop()),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          AppTextButton(
+            label: t.cancel,
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+          AppDangerButton(
+            label: t.delete,
             onPressed: () async {
               Navigator.of(ctx).pop();
               setState(() => _pausedAttempts
@@ -185,6 +187,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _confirmDeleteAllTests() {
+    final t = Translations.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -193,11 +196,12 @@ class _HomeScreenState extends State<HomeScreen>
         content:
             const Text('Are you sure you want to delete all test attempts?'),
         actions: [
-          TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(ctx).pop()),
-          ElevatedButton(
-            child: const Text('Delete'),
+          AppTextButton(
+            label: t.cancel,
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+          AppFilledButton(
+            label: t.delete,
             onPressed: () {
               Navigator.of(ctx).pop();
               _deleteAllTests();
@@ -867,22 +871,15 @@ class _HomeScreenState extends State<HomeScreen>
               style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _kHeroEnd,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
+            AppFilledButton(
+              label: t.home_take_quiz,
               onPressed: () =>
                   Provider.of<MainScreenProvider>(context, listen: false)
                       .setIndex(1),
-              child: Text(t.home_take_quiz,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white)),
+              backgroundColor: _kHeroEnd,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+              minimumWidth: 0,
             ),
           ],
         ),

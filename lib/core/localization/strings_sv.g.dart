@@ -1098,6 +1098,28 @@ class TranslationsSv implements Translations {
       'Övningsfrågor, teoridokument, checklistor och statistik — ingen prenumeration krävs.';
   @override
   String get dash_free_hub_badge => 'GRATIS';
+  @override
+  String get btn_save_changes => 'Spara ändringar';
+  @override
+  String get btn_set_password => 'Ange lösenord';
+  @override
+  String get btn_delete_account => 'Ta bort konto';
+  @override
+  String get btn_deleting => 'Tar bort...';
+  @override
+  String get btn_keep_going => 'Fortsätt';
+  @override
+  String get btn_exit => 'Avsluta';
+  @override
+  String get btn_save_and_exit => 'Spara & Avsluta';
+  @override
+  String get btn_submit => 'Skicka';
+  @override
+  String get btn_start_saved_test => 'Starta test med sparade frågor';
+  @override
+  String get btn_buy_now => 'Köp nu';
+  @override
+  String get btn_pay_now => 'Betala nu';
 }
 
 /// Flat map(s) containing all translations.
@@ -2081,6 +2103,28 @@ extension on TranslationsSv {
         return 'Övningsfrågor, teoridokument, checklistor och statistik — ingen prenumeration krävs.';
       case 'dash_free_hub_badge':
         return 'GRATIS';
+      case 'btn_save_changes':
+        return 'Spara ändringar';
+      case 'btn_set_password':
+        return 'Ange lösenord';
+      case 'btn_delete_account':
+        return 'Ta bort konto';
+      case 'btn_deleting':
+        return 'Tar bort...';
+      case 'btn_keep_going':
+        return 'Fortsätt';
+      case 'btn_exit':
+        return 'Avsluta';
+      case 'btn_save_and_exit':
+        return 'Spara & Avsluta';
+      case 'btn_submit':
+        return 'Skicka';
+      case 'btn_start_saved_test':
+        return 'Starta test med sparade frågor';
+      case 'btn_buy_now':
+        return 'Köp nu';
+      case 'btn_pay_now':
+        return 'Betala nu';
       default:
         return null;
     }

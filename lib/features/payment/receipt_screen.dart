@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,7 +38,8 @@ class ReceiptScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // ── Copy receipt number ─────────────────────────────────────────
-            OutlinedButton.icon(
+            AppOutlinedButton(
+              label: 'Copy receipt number',
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: receipt.receiptNumber));
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -49,12 +51,8 @@ class ReceiptScreen extends StatelessWidget {
                 );
               },
               icon: const Icon(Icons.copy_rounded, size: 16),
-              label: const Text('Copy receipt number'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              minimumWidth: double.infinity,
             ),
           ],
         ),

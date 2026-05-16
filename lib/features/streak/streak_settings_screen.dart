@@ -1,4 +1,4 @@
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -115,33 +115,11 @@ class _StreakSettingsScreenState extends State<StreakSettingsScreen> {
               ),
             ),
             const SizedBox(height: 36),
-            SizedBox(
-              width: double.infinity,
+            AppButton(
+              label: t.sg_save,
+              onPressed: _save,
+              loading: _saving,
               height: 56,
-              child: ElevatedButton(
-                onPressed: _saving ? null : _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: cs.primary,
-                  foregroundColor: cs.onPrimary,
-                  disabledBackgroundColor: cs.primary.withValues(alpha: 0.3),
-                  shape: const StadiumBorder(),
-                  elevation: 0,
-                ),
-                child: _saving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: AppLoadingIndicator(
-                            strokeWidth: 2.5, color: Colors.white),
-                      )
-                    : Text(
-                        t.sg_save,
-                        style: GoogleFonts.lexend(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-              ),
             ),
             const SizedBox(height: 16),
             const _NotificationNote(),

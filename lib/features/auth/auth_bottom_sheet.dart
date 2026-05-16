@@ -575,15 +575,11 @@ class _AuthSheetState extends State<_AuthSheet>
           if (kDebugMode && widget.allowDemo) ...[
             const SizedBox(height: 8),
             Center(
-              child: TextButton(
+              child: AppTextButton(
+                label: t.auth_skip_demo_short,
                 onPressed: _anyLoading ? null : _loginAsDemo,
-                child: Text(
-                  t.auth_skip_demo_short,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
+                foregroundColor: Theme.of(context).colorScheme.outline,
+                fontSize: 12,
               ),
             ),
           ],
