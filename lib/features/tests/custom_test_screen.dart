@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async'; // Import for TimeoutException
 import 'dart:math';
@@ -103,7 +104,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => const Center(
-        child: CircularProgressIndicator(),
+        child: AppLoadingIndicator(),
       ),
     );
 

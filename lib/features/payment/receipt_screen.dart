@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -377,7 +378,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Purchase History')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AppLoadingIndicator())
           : _receipts.isEmpty
               ? Center(
                   child: Text(

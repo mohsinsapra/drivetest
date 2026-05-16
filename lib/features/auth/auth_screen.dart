@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
@@ -1041,9 +1042,12 @@ class _LandingView extends StatelessWidget {
                       // Platform-adaptive button layout
                       if (AppleSignInHelper.isAvailable()) ...[
                         // iOS: Login first, then Apple + Google icon pair
-                        AppButton(
-                          label: Translations.of(context).auth_tab_login,
-                          onPressed: onLogin,
+                        Hero(
+                          tag: 'auth_login_btn',
+                          child: AppButton(
+                            label: Translations.of(context).auth_tab_login,
+                            onPressed: onLogin,
+                          ),
                         ),
                         const SizedBox(height: 10),
                         SizedBox(
@@ -1084,10 +1088,13 @@ class _LandingView extends StatelessWidget {
                           onPressed: onGoogle,
                         ),
                         const SizedBox(height: 10),
-                        AppSecondaryButton(
-                          label: Translations.of(context).auth_tab_login,
-                          onPressed: onLogin,
-                          height: 58,
+                        Hero(
+                          tag: 'auth_login_btn',
+                          child: AppSecondaryButton(
+                            label: Translations.of(context).auth_tab_login,
+                            onPressed: onLogin,
+                            height: 58,
+                          ),
                         ),
                       ],
                       const SizedBox(height: 20),
@@ -1102,14 +1109,17 @@ class _LandingView extends StatelessWidget {
                               color: cs.onSurfaceVariant,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: onSignup,
-                            child: Text(
-                              Translations.of(context).auth_create_account_link,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: cs.primary,
+                          Hero(
+                            tag: 'auth_signup_btn',
+                            child: GestureDetector(
+                              onTap: onSignup,
+                              child: Text(
+                                Translations.of(context).auth_create_account_link,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: cs.primary,
+                                ),
                               ),
                             ),
                           ),
@@ -1121,7 +1131,7 @@ class _LandingView extends StatelessWidget {
                           ? SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(
+                              child: AppLoadingIndicator(
                                   strokeWidth: 2, color: cs.onSurfaceVariant),
                             )
                           : GestureDetector(
@@ -1380,11 +1390,14 @@ class _LoginPageState extends State<_LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      AppButton(
-                        label: t.auth_login_title,
-                        loading: _isLoading,
-                        loadingLabel: t.auth_signing_in,
-                        onPressed: _login,
+                      Hero(
+                        tag: 'auth_login_btn',
+                        child: AppButton(
+                          label: t.auth_login_title,
+                          loading: _isLoading,
+                          loadingLabel: t.auth_signing_in,
+                          onPressed: _login,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       if (kDebugMode)
@@ -1645,11 +1658,14 @@ class _SignupPageState extends State<_SignupPage> {
                         ),
                       ),
                       const SizedBox(height: 36),
-                      AppButton(
-                        label: t.auth_sign_up_btn,
-                        loading: _isLoading,
-                        loadingLabel: t.auth_signing_in,
-                        onPressed: _signup,
+                      Hero(
+                        tag: 'auth_signup_btn',
+                        child: AppButton(
+                          label: t.auth_sign_up_btn,
+                          loading: _isLoading,
+                          loadingLabel: t.auth_signing_in,
+                          onPressed: _signup,
+                        ),
                       ),
                       const SizedBox(height: 40),
                       Center(

@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
@@ -768,7 +769,7 @@ class _TestscreenState extends State<Testscreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
+        builder: (_) => const Center(child: AppLoadingIndicator()),
       );
       try {
         await _savePausedTest().timeout(const Duration(seconds: 5));
@@ -855,7 +856,7 @@ class _TestscreenState extends State<Testscreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+      builder: (_) => const Center(child: AppLoadingIndicator()),
     );
 
     final isBcd = widget.bcdCategoryId != null;
@@ -998,7 +999,7 @@ class _TestscreenState extends State<Testscreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => const Center(child: AppLoadingIndicator()),
     );
 
     try {

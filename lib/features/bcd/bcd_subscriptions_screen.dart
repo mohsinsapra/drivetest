@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -510,7 +511,7 @@ class _ProductCard extends StatelessWidget {
                         ? SizedBox(
                             width: 16,
                             height: 16,
-                            child: CircularProgressIndicator(
+                            child: AppLoadingIndicator(
                                 strokeWidth: 2, color: cs.onPrimary))
                         : Text(
                             Translations.of(context).bcd_subscribe_btn,

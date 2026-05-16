@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -555,7 +556,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                     const Center(
                       child: Padding(
                         padding: EdgeInsets.all(16),
-                        child: CircularProgressIndicator(),
+                        child: AppLoadingIndicator(),
                       ),
                     ),
 
@@ -566,7 +567,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       const Center(
                         child: Padding(
                           padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(),
+                          child: AppLoadingIndicator(),
                         ),
                       )
                     else

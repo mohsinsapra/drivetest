@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -227,7 +228,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
               // Reset button
               _isLoading
-                  ? const CircularProgressIndicator()
+                  ? const AppLoadingIndicator()
                   : SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

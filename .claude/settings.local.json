@@ -225,7 +225,15 @@
       "Bash(wait)",
       "Bash(sed -n '144,156p' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/api/api_service.dart)",
       "Bash(sed -n '241,252p' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/api/api_service.dart)",
-      "Bash(grep -v \"^$\\\\|A new version\\\\|To update\\\\|flutter upgrade\\\\|────\")"
+      "Bash(grep -v \"^$\\\\|A new version\\\\|To update\\\\|flutter upgrade\\\\|────\")",
+      "Bash(make deploy-web-android *)",
+      "Bash(docker info *)",
+      "Bash(grep -r \"CircularProgressIndicator\" lib --include=\"*.dart\" ! -path \"*/splash*\")",
+      "Bash(sed -n '110,125p' lib/core/models/image_viewer.dart)",
+      "Bash(sed -n '78,92p' lib/core/widgets/attempt_entry_card.dart)",
+      "Bash(sed -n '33,45p' lib/core/widgets/progress_card.dart)",
+      "Bash(sed -n '57,70p' lib/features/dashboard/screens/widgets/exam_overview_card.dart)",
+      "Bash(sed -n '222,232p' lib/core/widgets/option_tile.dart)"
     ],
     "deny": [],
     "ask": []

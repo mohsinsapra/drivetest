@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -86,7 +87,7 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
               child: SizedBox(
                 width: 18,
                 height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: AppLoadingIndicator(strokeWidth: 2),
               ),
             )
           else
@@ -121,7 +122,7 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
       body: switch (provider.status) {
         DashboardStatus.idle ||
         DashboardStatus.loading =>
-          const Center(child: CircularProgressIndicator()),
+          const Center(child: AppLoadingIndicator()),
         DashboardStatus.error => _ErrorView(
             errorKind: provider.errorKind,
             onRetry: () => context.read<DashboardProvider>().init(),

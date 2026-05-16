@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -223,7 +224,7 @@ class _GdprConsentSheetState extends State<_GdprConsentSheet> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(
+                          child: AppLoadingIndicator(
                               strokeWidth: 2.5, color: Colors.white),
                         )
                       : Text(

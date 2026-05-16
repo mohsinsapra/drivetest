@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
@@ -211,7 +212,7 @@ class _WebPaymentPageState extends State<_WebPaymentPage> {
                         ? const SizedBox(
                             height: 22,
                             width: 22,
-                            child: CircularProgressIndicator(
+                            child: AppLoadingIndicator(
                                 strokeWidth: 2, color: Colors.white),
                           )
                         : const Text('Pay Now',

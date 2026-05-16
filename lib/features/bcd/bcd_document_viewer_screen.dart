@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +79,7 @@ class _BCDDocumentViewerScreenState extends State<BCDDocumentViewerScreen> {
       // Web keeps the browser-native handling path.
       return Scaffold(
         appBar: AppBar(title: Text(widget.title)),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(child: AppLoadingIndicator()),
       );
     }
 
@@ -88,7 +89,7 @@ class _BCDDocumentViewerScreenState extends State<BCDDocumentViewerScreen> {
         future: _pdfBytesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AppLoadingIndicator());
           }
 
           if (snapshot.hasError || !snapshot.hasData) {

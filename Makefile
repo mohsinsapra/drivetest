@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge
+.PHONY: help fmt lint check web-build web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge _web-build-docker _android-build-docker
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -61,6 +61,9 @@ SENTRY_DSN                    ?= https://32d4a7e8f8033e788074ecf90ad55f2a@o45110
 
 # Set default base href if not provided in .env
 WEB_BASE_HREF ?= /
+
+# Docker image for isolated Flutter builds (includes Android SDK)
+FLUTTER_DOCKER_IMAGE ?= ghcr.io/cirruslabs/flutter:stable
 
 ## help: Show this help message
 help:
@@ -253,6 +256,73 @@ _cloudflare-purge:
 		echo "$(COLOR_YELLOW)⚠️  Skipping Cloudflare purge — CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN not set$(COLOR_RESET)"; \
 	fi
 
+## _web-build-docker: Build web app inside Docker (isolated, parallel-safe)
+_web-build-docker:
+	@echo "$(COLOR_GREEN)Building web app in Docker...$(COLOR_RESET)"
+	@if [ -d "$(WEB_BUILD_DIR)/.git" ]; then \
+		rm -rf /tmp/build_web_git_backup; \
+		mv $(WEB_BUILD_DIR)/.git /tmp/build_web_git_backup; \
+	fi
+	@docker run --rm \
+		-v $(shell pwd):/app \
+		-v /tmp/flutter-web-dart-tool:/app/.dart_tool \
+		-w /app \
+		$(FLUTTER_DOCKER_IMAGE) \
+		sh -c "flutter pub get && flutter build web --release \
+			--base-href=$(WEB_BASE_HREF) \
+			--dart-define=FIREBASE_API_KEY='$(FIREBASE_API_KEY)' \
+			--dart-define=FIREBASE_AUTH_DOMAIN='$(FIREBASE_AUTH_DOMAIN)' \
+			--dart-define=FIREBASE_PROJECT_ID='$(FIREBASE_PROJECT_ID)' \
+			--dart-define=FIREBASE_STORAGE_BUCKET='$(FIREBASE_STORAGE_BUCKET)' \
+			--dart-define=FIREBASE_MESSAGING_SENDER_ID='$(FIREBASE_MESSAGING_SENDER_ID)' \
+			--dart-define=FIREBASE_APP_ID='$(FIREBASE_APP_ID)' \
+			--dart-define=FIREBASE_MEASUREMENT_ID='$(FIREBASE_MEASUREMENT_ID)' \
+			--dart-define=STRIPE_PUBLISHABLE_KEY='$(LIVE_STRIPE_PUBLISHABLE_KEY)' \
+			--dart-define=GOOGLE_WEB_CLIENT_ID='$(GOOGLE_CLIENT_ID)' \
+			--dart-define=GOOGLE_SERVER_CLIENT_ID='$(GOOGLE_SERVER_CLIENT_ID)' \
+			--dart-define=SENTRY_DSN='$(SENTRY_DSN)' \
+			--dart-define=APP_VERSION='$(APP_VERSION)' \
+			--dart-define=BUILD_NUMBER='$(APP_BUILD_NUMBER)' \
+			--dart-define=GIT_COMMIT_HASH='$(GIT_COMMIT_HASH)' \
+			--dart-define=GIT_SHORT_HASH='$(GIT_SHORT_HASH)' \
+			--dart-define=GIT_BRANCH='$(GIT_BRANCH)' \
+			--dart-define=GIT_COMMIT_DATE='$(GIT_COMMIT_DATE)'"
+	@$(MAKE) -s _write-web-version-file
+	@if [ -d "/tmp/build_web_git_backup" ]; then \
+		mv /tmp/build_web_git_backup $(WEB_BUILD_DIR)/.git; \
+	fi
+	@echo "$(COLOR_GREEN)✅ Web Docker build completed!$(COLOR_RESET)"
+
+## _android-build-docker: Build Android app bundle inside Docker (isolated, parallel-safe)
+_android-build-docker:
+	@echo "$(COLOR_GREEN)Building Android app bundle in Docker...$(COLOR_RESET)"
+	@printf 'org.gradle.jvmargs=-Xmx2g -Dorg.gradle.daemon=false -Djdk.lang.Process.launchMechanism=posix_spawn\nandroid.useAndroidX=true\nandroid.enableJetifier=true\n' > /tmp/docker-gradle.properties
+	@docker run --rm \
+		-v $(shell pwd):/app \
+		-v /tmp/flutter-android-dart-tool:/app/.dart_tool \
+		-v /tmp/docker-gradle.properties:/app/android/gradle.properties:ro \
+		-w /app \
+		$(FLUTTER_DOCKER_IMAGE) \
+		sh -c "flutter pub get && flutter build appbundle --release \
+			--dart-define=FIREBASE_API_KEY='$(FIREBASE_API_KEY)' \
+			--dart-define=FIREBASE_AUTH_DOMAIN='$(FIREBASE_AUTH_DOMAIN)' \
+			--dart-define=FIREBASE_PROJECT_ID='$(FIREBASE_PROJECT_ID)' \
+			--dart-define=FIREBASE_STORAGE_BUCKET='$(FIREBASE_STORAGE_BUCKET)' \
+			--dart-define=FIREBASE_MESSAGING_SENDER_ID='$(FIREBASE_MESSAGING_SENDER_ID)' \
+			--dart-define=FIREBASE_APP_ID='$(FIREBASE_APP_ID)' \
+			--dart-define=FIREBASE_MEASUREMENT_ID='$(FIREBASE_MEASUREMENT_ID)' \
+			--dart-define=STRIPE_PUBLISHABLE_KEY='$(LIVE_STRIPE_PUBLISHABLE_KEY)' \
+			--dart-define=GOOGLE_WEB_CLIENT_ID='$(GOOGLE_CLIENT_ID)' \
+			--dart-define=GOOGLE_SERVER_CLIENT_ID='$(GOOGLE_SERVER_CLIENT_ID)' \
+			--dart-define=SENTRY_DSN='$(SENTRY_DSN)' \
+			--dart-define=APP_VERSION='$(APP_VERSION)' \
+			--dart-define=BUILD_NUMBER='$(APP_BUILD_NUMBER)' \
+			--dart-define=GIT_COMMIT_HASH='$(GIT_COMMIT_HASH)' \
+			--dart-define=GIT_SHORT_HASH='$(GIT_SHORT_HASH)' \
+			--dart-define=GIT_BRANCH='$(GIT_BRANCH)' \
+			--dart-define=GIT_COMMIT_DATE='$(GIT_COMMIT_DATE)'"
+	@echo "$(COLOR_GREEN)✅ Android Docker build completed!$(COLOR_RESET)"
+
 ## _web-deploy-core: Build web and push to web repo (no version bump, no git commit)
 _web-deploy-core: web-build
 	@echo "$(COLOR_BLUE)Deploying web app to repository...$(COLOR_RESET)"
@@ -356,12 +426,26 @@ release-all: check
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
 
-## deploy-all: Bump patch, deploy web + Android production + iOS TestFlight, single commit at the end
+## deploy-web-android: Bump patch, deploy web + Android natively in parallel, single commit
+deploy-web-android: check
+	@$(MAKE) -s _bump-version BUMP=$(BUMP)
+	@$(MAKE) -s _web-deploy-core & WEB_PID=$$!; \
+	$(MAKE) -s _android-deploy-core & AND_PID=$$!; \
+	wait $$WEB_PID; WEB_EXIT=$$?; \
+	wait $$AND_PID; AND_EXIT=$$?; \
+	[ $$WEB_EXIT -eq 0 ] && [ $$AND_EXIT -eq 0 ]
+	@$(MAKE) -s _commit-and-push
+
+## deploy-all: Bump patch, deploy web + Android + iOS all in parallel, single commit at the end
 deploy-all: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
-	@$(MAKE) -s _web-deploy-core
-	@$(MAKE) -s _android-deploy-core
-	@$(MAKE) -s _ios-beta-core
+	@$(MAKE) -s _web-deploy-core & WEB_PID=$$!; \
+	$(MAKE) -s _android-deploy-core & AND_PID=$$!; \
+	$(MAKE) -s _ios-beta-core & IOS_PID=$$!; \
+	wait $$WEB_PID; WEB_EXIT=$$?; \
+	wait $$AND_PID; AND_EXIT=$$?; \
+	wait $$IOS_PID; IOS_EXIT=$$?; \
+	[ $$WEB_EXIT -eq 0 ] && [ $$AND_EXIT -eq 0 ] && [ $$IOS_EXIT -eq 0 ]
 	@$(MAKE) -s _commit-and-push
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)

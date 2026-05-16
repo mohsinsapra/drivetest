@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -273,7 +274,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(
+                          child: AppLoadingIndicator(
                               strokeWidth: 2.5, color: Colors.white))
                       : Text(t.guest_convert_cta,
                           style: GoogleFonts.lexend(
@@ -746,7 +747,7 @@ class _LogoutSheetState extends State<_LogoutSheet> {
                         ? const SizedBox(
                             height: 18,
                             width: 18,
-                            child: CircularProgressIndicator(
+                            child: AppLoadingIndicator(
                               strokeWidth: 2,
                               color: Colors.white,
                             ),

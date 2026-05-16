@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -86,7 +87,7 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.testName)),
-      body: const Center(child: CircularProgressIndicator()),
+      body: const Center(child: AppLoadingIndicator()),
     );
   }
 }

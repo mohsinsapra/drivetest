@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -130,7 +131,7 @@ class _StreakSettingsScreenState extends State<StreakSettingsScreen> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(
+                        child: AppLoadingIndicator(
                             strokeWidth: 2.5, color: Colors.white),
                       )
                     : Text(

@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -142,7 +143,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (_profile.profileLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: AppLoadingIndicator()));
     }
 
     return Scaffold(
@@ -210,7 +211,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: AppLoadingIndicator(strokeWidth: 2),
                   )
                 : const Text('Save Changes'),
           ),
@@ -282,7 +283,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: AppLoadingIndicator(strokeWidth: 2),
                     )
                   : const Text('Set Password'),
             ),
@@ -300,7 +301,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: AppLoadingIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.delete_forever),
             label: Text(

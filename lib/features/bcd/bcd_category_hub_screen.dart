@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -477,7 +478,7 @@ class _HubTile extends StatelessWidget {
                         ? SizedBox(
                             width: 22,
                             height: 22,
-                            child: CircularProgressIndicator(
+                            child: AppLoadingIndicator(
                                 strokeWidth: 2, color: color),
                           )
                         : Icon(icon, color: color, size: 24),
@@ -764,7 +765,7 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Theory Documents – ${widget.categoryName}')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AppLoadingIndicator())
           : _docs.isEmpty
               ? Center(
                   child: Text(Translations.of(context).bcd_no_documents,
@@ -860,7 +861,7 @@ class _BCDChecklistsScreenState extends State<_BCDChecklistsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Checklist – ${widget.categoryName}')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AppLoadingIndicator())
           : _items.isEmpty
               ? Center(
                   child: Text(Translations.of(context).bcd_no_checklists,

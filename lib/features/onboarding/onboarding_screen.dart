@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -1704,7 +1705,7 @@ class _PlanTierCard extends StatelessWidget {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(
+                            child: AppLoadingIndicator(
                               strokeWidth: 2.5,
                               color: Colors.white,
                             ),
@@ -1827,7 +1828,7 @@ class _PlanTierCard extends StatelessWidget {
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(
+                            child: AppLoadingIndicator(
                                 strokeWidth: 2, color: Colors.white),
                           )
                         : Text(
@@ -1847,7 +1848,7 @@ class _PlanTierCard extends StatelessWidget {
                         ? SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(
+                            child: AppLoadingIndicator(
                               strokeWidth: 2,
                               color: cs.primary,
                             ),

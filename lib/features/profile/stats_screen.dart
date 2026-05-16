@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -412,7 +413,7 @@ class _StatsScreenState extends State<StatsScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AppLoadingIndicator())
           : _attempts.isEmpty
               ? const Center(
                   child: Column(

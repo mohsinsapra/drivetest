@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -60,7 +61,7 @@ class AppButton extends StatelessWidget {
                   SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(
+                    child: AppLoadingIndicator(
                         color: cs.onPrimary, strokeWidth: 2.5),
                   ),
                   const SizedBox(width: 10),
@@ -135,8 +136,8 @@ class AppSecondaryButton extends StatelessWidget {
                   SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: cs.primary),
+                    child:
+                        AppLoadingIndicator(strokeWidth: 2, color: cs.primary),
                   ),
                   const SizedBox(width: 10),
                 ],
@@ -213,7 +214,7 @@ class AppSocialButton extends StatelessWidget {
                       ? SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(
+                          child: AppLoadingIndicator(
                               strokeWidth: 2, color: cs.primary),
                         )
                       : FaIcon(icon, size: iconSize, color: effectiveIconColor),
