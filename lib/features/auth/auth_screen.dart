@@ -1057,7 +1057,10 @@ class _LandingView extends StatelessWidget {
                               AppSocialButton(
                                 icon: FontAwesomeIcons.apple,
                                 iconSize: 22,
-                                iconColor: Colors.black,
+                                iconColor: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? cs.primary
+                                    : cs.onSurface,
                                 loading: isAppleLoading,
                                 onPressed: isGoogleLoading ? null : onApple,
                               ),
