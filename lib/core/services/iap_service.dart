@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 
 /// Wraps [InAppPurchase] and wires purchases through backend validation.
 ///
@@ -30,7 +31,7 @@ class IAPService {
 
   bool _initialized = false;
 
-  static const _kDeferredKey = 'iap_deferred_receipt';
+  static const _kDeferredKey = AppStorage.kIapDeferredReceipt;
 
   Future<bool> get isAvailable => _iap.isAvailable();
 

@@ -215,7 +215,17 @@
       "Bash(make dev-tunnel *)",
       "Bash(make web-tunnel *)",
       "Bash(lsof -ti:8010)",
-      "Bash(xargs kill -9)"
+      "Bash(xargs kill -9)",
+      "Bash(lsof -ti:5005)",
+      "Bash(pkill -f \"cloudflared tunnel\")",
+      "Bash(pkill -f \"manage.py runserver\")",
+      "Bash(pkill -f \"stripe listen\")",
+      "Bash(lsof -ti:8010,5005)",
+      "Bash(make tunnel *)",
+      "Bash(wait)",
+      "Bash(sed -n '144,156p' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/api/api_service.dart)",
+      "Bash(sed -n '241,252p' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/api/api_service.dart)",
+      "Bash(grep -v \"^$\\\\|A new version\\\\|To update\\\\|flutter upgrade\\\\|────\")"
     ],
     "deny": [],
     "ask": []

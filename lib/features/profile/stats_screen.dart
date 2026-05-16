@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 
 class StatsScreen extends StatefulWidget {
   /// Optional subtitle shown below "Statistics" in the AppBar.
@@ -31,9 +31,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Future<void> _loadAttempts() async {
     try {
-      final box = Hive.isBoxOpen('testAttempts')
-          ? Hive.box<TestAttempt>('testAttempts')
-          : await Hive.openBox<TestAttempt>('testAttempts');
+      final box = await AppStorage.testAttemptsBox();
       final filter = widget.licenceNameFilter;
       final all = box.values.where((a) {
         if (!a.isCompleted) return false;

@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:hive/hive.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 
@@ -13,8 +12,6 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   static bool get isInitialized => _instance != null;
-
-  static const _boxName = AppStorage.kNotifications;
 
   List<LocalNotification> _notifications = [];
 
@@ -39,7 +36,7 @@ class NotificationProvider extends ChangeNotifier {
 
   /// Open the Hive box, load persisted notifications, and register the instance.
   static Future<NotificationProvider> create() async {
-    final box = await Hive.openBox<LocalNotification>(_boxName);
+    final box = await AppStorage.notificationsBox();
     final provider = NotificationProvider._();
     // Most-recent first
     provider._notifications = box.values.toList().reversed.toList();
@@ -64,7 +61,6 @@ class NotificationProvider extends ChangeNotifier {
         now.difference(n.receivedAt).inSeconds < 10);
     if (isDuplicate) return;
 
-    final box = Hive.box<LocalNotification>(_boxName);
     final n = LocalNotification(
       title: title,
       body: body,
@@ -72,6 +68,7 @@ class NotificationProvider extends ChangeNotifier {
       type: type,
     );
     try {
+      final box = await AppStorage.notificationsBox();
       await box.add(n);
     } catch (e) {
       debugPrint('[NotificationProvider] Hive persist failed: $e');
@@ -88,15 +85,13 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> markAllRead() async {
-    bool changed = false;
-    for (final n in _notifications) {
-      if (!n.isRead) {
-        n.isRead = true;
-        await n.save();
-        changed = true;
-      }
+    final unread = _notifications.where((n) => !n.isRead).toList();
+    if (unread.isEmpty) return;
+    for (final n in unread) {
+      n.isRead = true;
     }
-    if (changed) notifyListeners();
+    await Future.wait(unread.map((n) => n.save()));
+    notifyListeners();
   }
 
   /// Whether any notification with [type] exists.
@@ -115,8 +110,12 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> clearAll() async {
-    final box = Hive.box<LocalNotification>(_boxName);
-    await box.clear();
+    try {
+      final box = await AppStorage.notificationsBox();
+      await box.clear();
+    } catch (e) {
+      debugPrint('[NotificationProvider] clearAll box error: $e');
+    }
     _notifications.clear();
     notifyListeners();
   }

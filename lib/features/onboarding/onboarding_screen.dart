@@ -13,6 +13,7 @@ import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/features/auth/auth_bottom_sheet.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
@@ -163,9 +164,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _purchaseInFlight = false;
   List<Map<String, dynamic>> _mySubscriptions = [];
 
-  // Step 0 — exam date
-  DateTime? _examDeadline;
-  _DateOption? _selectedDateOption;
+  // Step 0 — exam date (default: 3 months from today)
+  DateTime _examDeadline = DateTime(
+    DateTime.now().year,
+    DateTime.now().month + 3,
+    DateTime.now().day,
+  );
+  _DateOption _selectedDateOption = _DateOption.threeMonths;
 
   // Step 0 — weekday study schedule (0=Mon … 6=Sun), default Mon–Fri
   Set<int> _selectedWeekdays = {0, 1, 2, 3, 4};
@@ -222,10 +227,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _saveProgressPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (_examDeadline != null) {
-        await prefs.setString(
-            'exam_deadline', _examDeadline!.toIso8601String());
-      }
+      await prefs.setString(
+          'exam_deadline', _examDeadline.toIso8601String());
       await prefs.setInt('practice_days_per_week', _selectedWeekdays.length);
     } catch (_) {}
   }
@@ -345,6 +348,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  Future<_PrePurchaseChoice?> _showPrePurchaseSheet() =>
+      showModalBottomSheet<_PrePurchaseChoice>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const _PrePurchaseSheet(),
+      );
+
   Future<void> _handlePurchaseTap({Map<String, dynamic>? only}) async {
     final products = only != null
         ? [only]
@@ -382,21 +392,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
     } // end if (widget.isLoggedIn())
 
-    // Auto-renewing subscriptions are account-based — require login before purchase
-    // so the subscription can be tracked and restored across devices.
+    // If not logged in, ask whether the user wants to sign in or buy as a guest.
+    // Either way the purchase proceeds — registration is never mandatory.
     if (!widget.isLoggedIn()) {
-      final t = Translations.of(context);
-      final authed = await widget.showAuthSheet(
-        context,
-        title: t.onb_signin_to_purchase_title,
-        subtitle: t.onb_signin_to_purchase_subtitle,
-        required: false,
-      );
+      final choice = await _showPrePurchaseSheet();
       if (!mounted) return;
-      if (!authed) {
+
+      if (choice == null) {
+        // User dismissed — cancel purchase.
         setState(() => _purchaseInFlight = false);
         return;
       }
+
+      if (choice == _PrePurchaseChoice.signIn) {
+        final authed = await widget.showAuthSheet(
+          context,
+          title: Translations.of(context).onb_signin_to_purchase_title,
+          subtitle: Translations.of(context).onb_signin_to_purchase_subtitle,
+          required: false,
+        );
+        if (!mounted) return;
+        if (!authed) {
+          // User explicitly chose "Sign In" but dismissed without logging in.
+          // Cancel the purchase — do not silently fall back to guest.
+          setState(() => _purchaseInFlight = false);
+          return;
+        }
+      } else {
+        // Guest path — create a silent guest session.
+        try {
+          await ApiService().guestLogin();
+        } catch (e) {
+          debugPrint('[Onboarding] guest login before purchase failed: $e');
+          if (mounted) setState(() => _purchaseInFlight = false);
+          return;
+        }
+      }
+
+      if (!mounted) return;
     }
 
     await _saveProgressPrefs();
@@ -741,8 +774,8 @@ class _ExamDatePage extends StatelessWidget {
     required this.onNext,
   });
 
-  final _DateOption? selectedDateOption;
-  final DateTime? examDeadline;
+  final _DateOption selectedDateOption;
+  final DateTime examDeadline;
   final void Function(_DateOption, DateTime) onDateSelect;
   final VoidCallback onCustomDate;
   final VoidCallback? onBack;
@@ -851,9 +884,8 @@ class _ExamDatePage extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          selectedDateOption == _DateOption.custom &&
-                                  examDeadline != null
-                              ? '${examDeadline!.day}/${examDeadline!.month}/${examDeadline!.year}'
+                          selectedDateOption == _DateOption.custom
+                              ? '${examDeadline.day}/${examDeadline.month}/${examDeadline.year}'
                               : t.onb_custom_date,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14,
@@ -867,10 +899,8 @@ class _ExamDatePage extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (examDeadline != null) ...[
-                  const SizedBox(height: 16),
-                  _DeadlineBanner(deadline: examDeadline!),
-                ],
+                const SizedBox(height: 16),
+                _DeadlineBanner(deadline: examDeadline),
               ],
             ),
           ),
@@ -1978,4 +2008,88 @@ String? _formatProductDuration(Map<String, dynamic> product) {
   if (days >= 365) return '${(days / 365).round()} year access';
   if (days >= 30) return '${(days / 30).round()} months access';
   return days == 1 ? '1 day' : '$days days';
+}
+
+// ─── Pre-purchase account choice ─────────────────────────────────────────────
+
+enum _PrePurchaseChoice { signIn, guest }
+
+class _PrePurchaseSheet extends StatelessWidget {
+  const _PrePurchaseSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final sheetBg = isDark ? cs.surface : theme.scaffoldBackgroundColor;
+    final t = Translations.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+          24, 0, 24, 24 + MediaQuery.of(context).viewInsets.bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: cs.onSurface.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          // Title
+          Text(
+            t.onb_pre_purchase_title,
+            style: GoogleFonts.lexend(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+              color: cs.onSurface,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            t.onb_pre_purchase_subtitle,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: cs.onSurfaceVariant,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          // Sign In — gradient button
+          AppButton(
+            label: t.onb_pre_purchase_sign_in,
+            height: 54,
+            onPressed: () => Navigator.pop(context, _PrePurchaseChoice.signIn),
+          ),
+          const SizedBox(height: 16),
+          // Continue as Guest — text link
+          GestureDetector(
+            onTap: () => Navigator.pop(context, _PrePurchaseChoice.guest),
+            child: Text(
+              t.onb_pre_purchase_guest,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
 }

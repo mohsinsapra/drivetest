@@ -9,6 +9,7 @@ import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/services/user_cache_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:flutter/material.dart';
@@ -95,6 +96,12 @@ class DioClient {
       }
     }
 
+    // Scope Hive boxes to the returning user before any box is opened.
+    if (accessToken != null) {
+      final userId = _userIdFromJwt(accessToken!);
+      if (userId != null) AppStorage.setCurrentUser(userId);
+    }
+
     _key = utf8.encode(keyString);
     _cryptoService = CryptoService(Uint8List.fromList(_key!));
 
@@ -152,10 +159,11 @@ class DioClient {
       await applyPinning(_dio!);
     }
 
-    _dio!.interceptors.add(DioCacheInterceptor(options: options));
-    // Adds automatic HTTP breadcrumbs and performance tracing to every request.
-    // Sentry will show the full sequence: which calls succeeded, failed, and timing.
-    _dio!.addSentry(captureFailedRequests: true);
+    // Auth/error interceptor runs FIRST so the Authorization header is set
+    // before the cache interceptor builds its key. This ensures each user's
+    // responses are cached under a unique key (URL + auth hash) and that 401s
+    // trigger a token refresh before the cache's hitCacheOnErrorCodes fallback
+    // can serve another user's stale response.
     _dio!.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
         final skipAuth = options.extra['skipAuth'] == true;
@@ -259,6 +267,11 @@ class DioClient {
         return handler.next(error);
       },
     ));
+
+    // Sentry and cache run AFTER the auth interceptor so the Authorization
+    // header is already set when the cache key is built.
+    _dio!.addSentry(captureFailedRequests: true);
+    _dio!.interceptors.add(DioCacheInterceptor(options: options));
 
     _initialized = true;
   }
@@ -402,10 +415,29 @@ class DioClient {
     }
   }
 
+  /// Extracts the `user_id` claim from a JWT access token without a network
+  /// call. Returns null if the token is malformed or the claim is absent.
+  static String? _userIdFromJwt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      final normalized = base64Url.normalize(parts[1]);
+      final payload =
+          jsonDecode(utf8.decode(base64Url.decode(normalized))) as Map;
+      return payload['user_id']?.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> setTokens(
       {required String access, required String refresh}) async {
     accessToken = access;
     refreshToken = refresh;
+
+    // Scope Hive boxes to this user before any box is opened.
+    final userId = _userIdFromJwt(access);
+    if (userId != null) AppStorage.setCurrentUser(userId);
 
     // Save both tokens securely.
     // Wrapped in try/catch: on iOS web flutter_secure_storage can throw,
@@ -429,10 +461,14 @@ class DioClient {
     _initialized =
         false; // Force full re-init on next login (fresh Dio + cache)
 
+    // Purge every cached HTTP response so the next user cannot receive another
+    // user's data from the in-memory cache store.
+    await _cacheStore?.clean();
+
     // Wipe all secure storage
     await _secureStorage.deleteAll();
 
-    // Remove tokens from SharedPreferences (rest is cleared by the caller)
+    // User scope is reset in AppStorage.clearUserData() which is called after this.
   }
 
   List<Question> _decryptQuestions(List<dynamic> data) {

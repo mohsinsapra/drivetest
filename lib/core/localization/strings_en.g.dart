@@ -580,6 +580,14 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get onb_free_trial => '7-DAY FREE TRIAL INCLUDED. CANCEL ANYTIME.';
   String get onb_start_free => 'Continue as Guest';
   String get onb_skip_for_now => 'Skip for now';
+  String get onb_pre_purchase_title => 'One quick step';
+  String get onb_pre_purchase_subtitle =>
+      'Create a free account to access your subscription on all your devices, or continue as a guest — you can always create one later.';
+  String get onb_pre_purchase_sign_in => 'Sign In / Create Account';
+  String get onb_pre_purchase_guest => 'Continue as Guest';
+  String get auth_continue_as_guest => 'Continue as Guest';
+  String get auth_guest_session_error =>
+      'Could not restore your session. Please try again.';
   String get free_trial_banner_badge => 'FREE';
   String get free_trial_banner_title =>
       'Try road signs — no subscription needed';
@@ -1540,6 +1548,18 @@ extension on Translations {
         return 'Continue as Guest';
       case 'onb_skip_for_now':
         return 'Skip for now';
+      case 'onb_pre_purchase_title':
+        return 'One quick step';
+      case 'onb_pre_purchase_subtitle':
+        return 'Create a free account to access your subscription on all your devices, or continue as a guest — you can always create one later.';
+      case 'onb_pre_purchase_sign_in':
+        return 'Sign In / Create Account';
+      case 'onb_pre_purchase_guest':
+        return 'Continue as Guest';
+      case 'auth_continue_as_guest':
+        return 'Continue as Guest';
+      case 'auth_guest_session_error':
+        return 'Could not restore your session. Please try again.';
       case 'free_trial_banner_badge':
         return 'FREE';
       case 'free_trial_banner_title':

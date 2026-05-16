@@ -10,13 +10,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Guest session persistence** — guest refresh token is saved to `SharedPreferences` on logout so the same guest account can be restored on the next visit without creating a new one; restoration uses a bare Dio instance (no interceptors) so a stale token never triggers `logoutAndRedirect`
+- **"Continue as Guest" button on auth screen** — shown only when a saved guest session exists on the device; restores the session silently with a spinner and navigates to `MainScreen`
+- **Pre-purchase account choice sheet** (`_PrePurchaseSheet`) — replaces the mandatory auth gate before purchasing; users can now choose "Sign In / Create Account" or "Continue as Guest" before the payment sheet; purchase is never blocked by registration
+- **Per-user Hive box isolation** — every Hive box is now suffixed with the backend user ID extracted from the JWT (e.g. `testAttempts_42`); users on shared devices never see each other's test attempts, subscribed exams, or notifications across sessions
+- `AppStorage.kIapDeferredReceipt` and `AppStorage.kGuestRefreshToken` — centralized `SharedPreferences` key constants; no more bare string literals scattered across services
+- `ProfileProvider.reset()` — clears all in-memory user fields on logout so the singleton never leaks stale username / email / `isGuest` to the next session
+- New localization strings (EN + SV): `onb_pre_purchase_title`, `onb_pre_purchase_subtitle`, `onb_pre_purchase_sign_in`, `onb_pre_purchase_guest`, `auth_continue_as_guest`, `auth_guest_session_error`
+- **Purchase History visible to guest users** — "Purchase History" menu item on the Profile screen is now shown for all users including guests; a guest who purchased before creating an account can view their receipt immediately
 
 ### Changed
--
+- **Interceptor order in `DioClient`** — auth interceptor now runs first (sets `Authorization` header), then Sentry, then the cache interceptor; previously the cache could build its key before the auth header was set, causing cross-user cache hits on shared devices
+- **HTTP cache purged on logout** — `DioClient.logout()` now calls `_cacheStore?.clean()` to evict all in-memory cached responses so the next user cannot receive a previous user's API data from cache
+- **`AppStorage` box accessors refactored** — all four typed box accessors (`testAttemptsBox`, `subscribedExamsBox`, `notificationsBox`, `receiptsBox`) now delegate to a single private `_openBox<T>` helper, eliminating six copies of the `isBoxOpen ? box() : openBox()` pattern; `notificationsBox` is now properly async
+- **Safety-net clears in `clearUserData` run in parallel** — `_clearTestAttemptsBox` and `_clearSubscribedExamsBox` (invoked only when JWT parsing failed) now run concurrently via `Future.wait`, halving logout latency on the fallback path
+- **`markAllRead` saves run in parallel** — `NotificationProvider.markAllRead()` now marks all items in memory first, then flushes all Hive writes concurrently via `Future.wait` instead of awaiting each save in a loop
+- **`_PrePurchaseSheet` owns its own translations** — strings are read directly from `Translations.of(context)` inside `build`; the four pre-translated parameters have been removed from the constructor
+- **IAP deferred-receipt retry in `_continueAsGuest` is fire-and-forget** — the check no longer blocks navigation to `MainScreen`; the receipt is still retried asynchronously in the background
+- **Raw `Hive.openBox` calls replaced with `AppStorage` accessors** — `home_screen.dart` (×3), `stats_screen.dart` (×1), `test_screen.dart` (×3), and `profile_provider.dart` (×1) now all go through `AppStorage.testAttemptsBox()` instead of calling Hive directly
+- `ProfileProvider.loadUserFromPrefs()` now always calls `notifyListeners()` and resets all fields to defaults when no stored user JSON is found, preventing stale data from a previous session from persisting in memory
+- `AppStorage.clearCurrentUser()` doc comment corrected — removed misleading "legacy" wording
 
 ### Fixed
--
+- **In-flight `/self` future cleared on logout** — `_inFlightSelf` is set to `null` during logout so the next session never receives a previous user's profile data from a pending network call that resolves after the session ends
+- **Guest flag written to cached user JSON** — `_persistGuestFlag()` merges `is_guest: true` into `AppStorage.kUserJson` immediately after guest login so `_isCurrentUserGuest()` works reliably at logout time even if `ProfileProvider.loadProfile` was never called
+- **`kIapDeferredReceipt` cleared on logout** — prevents a subsequent user on the same device from accidentally claiming a previous user's deferred Apple purchase receipt
 
 ---
 

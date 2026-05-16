@@ -10,6 +10,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/debug_credentials.dart';
 
@@ -343,7 +344,7 @@ class _AuthSheetState extends State<_AuthSheet>
 
   Widget _submitButton(String label, VoidCallback onPressed) {
     final t = Translations.of(context);
-    return _SheetGradientButton(
+    return AppButton(height: 54,
       label: label,
       loading: _formLoading,
       loadingLabel: t.auth_signing_in,
@@ -409,7 +410,7 @@ class _AuthSheetState extends State<_AuthSheet>
 
           // Apple button (iOS/macOS only — must appear before Google per Guideline 4.8)
           if (AppleSignInHelper.isAvailable()) ...[
-            _SheetGradientButton(
+            AppButton(height: 54,
               label: t.auth_express_apple,
               loading: _appleLoading,
               loadingLabel: t.auth_signing_in,
@@ -421,7 +422,7 @@ class _AuthSheetState extends State<_AuthSheet>
           ],
 
           // Google button
-          _SheetGradientButton(
+          AppButton(height: 54,
             label: t.auth_express_google,
             loading: _googleLoading,
             loadingLabel: t.auth_signing_in,
@@ -584,84 +585,6 @@ class _AuthSheetState extends State<_AuthSheet>
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Gradient button matching auth_screen._GradientButton
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _SheetGradientButton extends StatelessWidget {
-  const _SheetGradientButton({
-    required this.label,
-    required this.onPressed,
-    this.loading = false,
-    this.icon,
-    this.loadingLabel,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-  final bool loading;
-  final Widget? icon;
-  final String? loadingLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(9999),
-      child: InkWell(
-        onTap: loading ? null : onPressed,
-        borderRadius: BorderRadius.circular(9999),
-        child: Ink(
-          height: 54,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [cs.primary, cs.primaryContainer],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(9999),
-            boxShadow: [
-              BoxShadow(
-                color: cs.primary.withValues(alpha: 0.18),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (loading) ...[
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                        color: cs.onPrimary, strokeWidth: 2.5),
-                  ),
-                  const SizedBox(width: 10),
-                ] else if (icon != null) ...[
-                  icon!,
-                  const SizedBox(width: 10),
-                ],
-                Text(
-                  loading ? (loadingLabel ?? label) : label,
-                  style: GoogleFonts.lexend(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: cs.onPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

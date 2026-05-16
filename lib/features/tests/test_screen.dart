@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
-import 'package:hive/hive.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/constants/language_options.dart';
 import 'package:taxi_exam_app/core/models/image_viewer.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -153,7 +153,7 @@ class _TestscreenState extends State<Testscreen> {
 
     _loadSavedQuestionIds();
     // Pre-open the Hive box so saves never hang waiting for it to open
-    Hive.openBox<TestAttempt>('testAttempts');
+    AppStorage.testAttemptsBox();
 
     if (!widget.isReviewMode) {
       WidgetsBinding.instance
@@ -694,9 +694,7 @@ class _TestscreenState extends State<Testscreen> {
       bcdCategoryId: widget.bcdCategoryId,
     );
 
-    final box = Hive.isBoxOpen('testAttempts')
-        ? Hive.box<TestAttempt>('testAttempts')
-        : await Hive.openBox<TestAttempt>('testAttempts');
+    final box = await AppStorage.testAttemptsBox();
     await box.put(
         _testId, attempt); // put by testId overwrites any paused version
     _apiService.syncTestAttempt(attempt); // best-effort backend sync
@@ -721,10 +719,7 @@ class _TestscreenState extends State<Testscreen> {
       bcdCategoryId: widget.bcdCategoryId,
     );
 
-    // Use already-open box if available to avoid potential deadlock
-    final box = Hive.isBoxOpen('testAttempts')
-        ? Hive.box<TestAttempt>('testAttempts')
-        : await Hive.openBox<TestAttempt>('testAttempts');
+    final box = await AppStorage.testAttemptsBox();
 
     await box.put(_testId, attempt);
     _apiService.syncTestAttempt(attempt); // best-effort backend sync

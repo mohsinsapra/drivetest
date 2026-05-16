@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
@@ -43,8 +43,13 @@ class ProfileProvider extends ChangeNotifier {
       username = map['username']?.toString() ?? 'Unknown';
       email = map['email']?.toString() ?? '';
       isGuest = map['is_guest'] == true;
-      notifyListeners();
+    } else {
+      // No stored user — clear stale in-memory state from a previous session.
+      username = null;
+      email = null;
+      isGuest = false;
     }
+    notifyListeners();
   }
 
   // ── API: load full profile ────────────────────────────────────────────────
@@ -134,6 +139,19 @@ class ProfileProvider extends ChangeNotifier {
     );
   }
 
+  /// Clears all in-memory user fields. Called on logout so the singleton does
+  /// not expose stale data to the next session before a fresh API load.
+  void reset() {
+    username = null;
+    email = null;
+    hasPassword = true;
+    isGoogleAccount = false;
+    isDemo = false;
+    isGuest = false;
+    profileLoading = true;
+    notifyListeners();
+  }
+
   // ── API: logout ───────────────────────────────────────────────────────────
 
   Future<void> logout() async {
@@ -170,7 +188,7 @@ class ProfileProvider extends ChangeNotifier {
       } catch (_) {}
 
       try {
-        final attemptsBox = await Hive.openBox<TestAttempt>('testAttempts');
+        final attemptsBox = await AppStorage.testAttemptsBox();
         await attemptsBox.clear();
         await Hive.close();
         await Hive.deleteFromDisk();

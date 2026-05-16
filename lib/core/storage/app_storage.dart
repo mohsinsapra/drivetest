@@ -10,25 +10,46 @@ import 'package:taxi_exam_app/features/dashboard/models/subscribed_exam.dart';
 
 /// Single source of truth for ALL local storage in the app.
 ///
-/// ## Box names
-/// All Hive box name strings live here as constants — never write bare strings
-/// elsewhere. Reference [kTestAttempts], [kSubscribedExams], [kNotifications].
+/// ## Per-user Hive isolation
+/// Each user gets their own Hive boxes, suffixed with their backend user ID
+/// (e.g. `testAttempts_42`). Call [setCurrentUser] immediately after tokens
+/// are set so every subsequent box accessor uses the right suffix.
+/// Call [clearCurrentUser] on logout.
 ///
 /// ## Session isolation
 /// Call [clearUserData] on every session end (explicit logout OR 401 redirect).
-/// It clears every piece of user-specific state in one shot:
-///   • Hive boxes (test attempts, subscribed exams, notifications)
-///   • SharedPreferences: saved-question bookmarks + cached user JSON
-///   • In-memory service caches (BcdCache, SavedQuestionsService)
+/// Hive boxes are NOT cleared — per-user naming provides isolation and data
+/// persists for the same user across logins. Only SharedPreferences keys and
+/// in-memory caches are wiped.
 class AppStorage {
   AppStorage._();
 
-  // ── Hive box names ──────────────────────────────────────────────────────────
+  // ── Current user scope ──────────────────────────────────────────────────────
+
+  static String _userId = '';
+
+  /// Set immediately after tokens are written (call from [DioClient.setTokens]
+  /// and [DioClient.init]). Scopes all Hive box accessors to this user.
+  static void setCurrentUser(String userId) => _userId = userId;
+
+  /// Reset on logout so box name getters return the unsuffixed fallback name.
+  static void clearCurrentUser() => _userId = '';
+
+  static String get _suffix => _userId.isNotEmpty ? '_$_userId' : '';
+
+  // ── Hive box base names (constants) ────────────────────────────────────────
 
   static const String kTestAttempts = 'testAttempts';
   static const String kSubscribedExams = 'subscribed_exams';
   static const String kNotifications = 'notifications';
   static const String kReceipts = 'purchase_receipts';
+
+  // ── Hive box runtime names (user-scoped) ───────────────────────────────────
+
+  static String get testAttemptsBoxName => '$kTestAttempts$_suffix';
+  static String get subscribedExamsBoxName => '$kSubscribedExams$_suffix';
+  static String get notificationsBoxName => '$kNotifications$_suffix';
+  static String get receiptsBoxName => '$kReceipts$_suffix';
 
   // ── SharedPreferences keys (user-specific) ──────────────────────────────────
 
@@ -38,51 +59,71 @@ class AppStorage {
   /// Prefix for saved-question bookmark keys — e.g. `saved_question_ids_bcd:5`.
   static const String kSavedQuestionsPrefix = 'saved_question_ids_';
 
+  /// SharedPreferences key for a deferred IAP receipt that failed backend
+  /// verification. Cleared on every logout so a subsequent user cannot
+  /// accidentally claim a previous user's Apple purchase.
+  static const String kIapDeferredReceipt = 'iap_deferred_receipt';
+
+  /// Persisted guest refresh token — survives explicit logout so the same guest
+  /// account can be restored on the same device without creating a new one.
+  /// Stored in SharedPreferences (not secure storage) so it is NOT wiped by
+  /// [DioClient.logout]'s secureStorage.deleteAll(). Cleared only when the
+  /// guest converts to a real account via [ApiService.convertGuest].
+  static const String kGuestRefreshToken = 'guest_refresh_token';
+
   // ── Typed box accessors ─────────────────────────────────────────────────────
 
-  /// Returns the testAttempts box, opening it if necessary.
-  static Future<Box<TestAttempt>> testAttemptsBox() async =>
-      Hive.isBoxOpen(kTestAttempts)
-          ? Hive.box<TestAttempt>(kTestAttempts)
-          : await Hive.openBox<TestAttempt>(kTestAttempts);
+  /// Returns the current user's testAttempts box, opening it if necessary.
+  static Future<Box<TestAttempt>> testAttemptsBox() =>
+      _openBox<TestAttempt>(testAttemptsBoxName);
 
-  /// Returns the subscribed_exams box, opening it if necessary.
-  static Future<Box<SubscribedExam>> subscribedExamsBox() async =>
-      Hive.isBoxOpen(kSubscribedExams)
-          ? Hive.box<SubscribedExam>(kSubscribedExams)
-          : await Hive.openBox<SubscribedExam>(kSubscribedExams);
+  /// Returns the current user's subscribed_exams box, opening it if necessary.
+  static Future<Box<SubscribedExam>> subscribedExamsBox() =>
+      _openBox<SubscribedExam>(subscribedExamsBoxName);
 
-  /// Returns the notifications box (must already be open — opened during app init).
-  static Box<LocalNotification> notificationsBox() =>
-      Hive.box<LocalNotification>(kNotifications);
+  /// Returns the current user's notifications box, opening it if necessary.
+  static Future<Box<LocalNotification>> notificationsBox() =>
+      _openBox<LocalNotification>(notificationsBoxName);
 
-  /// Returns the purchase receipts box (JSON strings keyed by receipt number).
-  static Future<Box<String>> receiptsBox() async => Hive.isBoxOpen(kReceipts)
-      ? Hive.box<String>(kReceipts)
-      : await Hive.openBox<String>(kReceipts);
+  /// Returns the current user's purchase receipts box, opening it if necessary.
+  static Future<Box<String>> receiptsBox() =>
+      _openBox<String>(receiptsBoxName);
 
   // ── User-data wipe ──────────────────────────────────────────────────────────
 
-  /// Clears every user-specific storage layer.
+  /// Clears user-specific state on logout.
+  ///
+  /// Per-user Hive box naming provides isolation for normal logins. As a safety
+  /// net, testAttempts and subscribedExams boxes are also cleared when [_userId]
+  /// is empty — that means JWT parsing failed and all users share the unsuffixed
+  /// box name, so we must wipe it to prevent cross-user leakage.
   ///
   /// Covers:
-  ///   1. Hive boxes: test attempts, subscribed exams, notifications
-  ///   2. SharedPreferences: saved-question bookmarks + user JSON
-  ///   3. In-memory caches: [BcdCache], [SavedQuestionsService]
+  ///   1. Notifications Hive box (ephemeral — no need to persist across sessions)
+  ///   2. Safety net: testAttempts + subscribedExams if user ID was not resolved
+  ///   3. SharedPreferences: user JSON, IAP deferred receipt, bookmarks
+  ///   4. In-memory service caches: [BcdCache], [SavedQuestionsService]
+  ///   5. Resets [_userId] so the next session starts clean
   ///
   /// Does NOT touch app-wide preferences (language, theme, font, onboarding).
   static Future<void> clearUserData() async {
-    // 1. Hive boxes
-    await _clearTestAttemptsBox();
-    await _clearSubscribedExamsBox();
+    // 1. Notifications box (ephemeral — cleared per session)
     await _clearNotificationsBox();
-    // Receipts are intentionally NOT cleared on logout so purchase history
-    // remains accessible after re-login and for expired subscriptions.
 
-    // 2. SharedPreferences — user-specific keys only
+    // 2. Safety net: if JWT parsing failed (_userId is empty), all users share
+    // the same unsuffixed box — clear it to prevent cross-user data leakage.
+    if (_userId.isEmpty) {
+      await Future.wait([
+        _clearTestAttemptsBox(),
+        _clearSubscribedExamsBox(),
+      ]);
+    }
+
+    // 3. SharedPreferences — user-specific keys only
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(kUserJson);
+      await prefs.remove(kIapDeferredReceipt);
       final staleKeys = prefs
           .getKeys()
           .where((k) => k.startsWith(kSavedQuestionsPrefix))
@@ -94,44 +135,44 @@ class AppStorage {
       debugPrint('[AppStorage] SharedPreferences clear failed: $e');
     }
 
-    // 3. In-memory service caches
+    // 4. In-memory service caches
     _invalidateBcdCacheIfAvailable();
     SavedQuestionsService.clearMemoryCache();
     HomeDataCache.invalidate();
+
+    // 5. Reset user scope
+    clearCurrentUser();
   }
 
   // ── Internal helpers ────────────────────────────────────────────────────────
 
+  static Future<Box<T>> _openBox<T>(String name) async =>
+      Hive.isBoxOpen(name) ? Hive.box<T>(name) : await Hive.openBox<T>(name);
+
   static Future<void> _clearTestAttemptsBox() async {
+    final name = testAttemptsBoxName;
     try {
-      final box = Hive.isBoxOpen(kTestAttempts)
-          ? Hive.box<TestAttempt>(kTestAttempts)
-          : await Hive.openBox<TestAttempt>(kTestAttempts);
-      await box.clear();
+      await (await _openBox<TestAttempt>(name)).clear();
     } catch (e) {
-      debugPrint('[AppStorage] failed to clear box "$kTestAttempts": $e');
+      debugPrint('[AppStorage] failed to clear box "$name": $e');
     }
   }
 
   static Future<void> _clearSubscribedExamsBox() async {
+    final name = subscribedExamsBoxName;
     try {
-      final box = Hive.isBoxOpen(kSubscribedExams)
-          ? Hive.box<SubscribedExam>(kSubscribedExams)
-          : await Hive.openBox<SubscribedExam>(kSubscribedExams);
-      await box.clear();
+      await (await _openBox<SubscribedExam>(name)).clear();
     } catch (e) {
-      debugPrint('[AppStorage] failed to clear box "$kSubscribedExams": $e');
+      debugPrint('[AppStorage] failed to clear box "$name": $e');
     }
   }
 
   static Future<void> _clearNotificationsBox() async {
+    final name = notificationsBoxName;
     try {
-      final box = Hive.isBoxOpen(kNotifications)
-          ? Hive.box<LocalNotification>(kNotifications)
-          : await Hive.openBox<LocalNotification>(kNotifications);
-      await box.clear();
+      await (await _openBox<LocalNotification>(name)).clear();
     } catch (e) {
-      debugPrint('[AppStorage] failed to clear box "$kNotifications": $e');
+      debugPrint('[AppStorage] failed to clear box "$name": $e');
     }
   }
 

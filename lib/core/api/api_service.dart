@@ -12,6 +12,7 @@ import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
+import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
 import 'dio_client.dart';
 
 class ApiService {
@@ -50,8 +51,21 @@ class ApiService {
     // indefinitely if Firebase is slow, so we never await it on the logout path.
     NotificationService.deregister(this).ignore();
     final refreshToken = _dioClient.refreshToken;
-    // Best-effort: blacklist the refresh token on the server
-    if (refreshToken != null) {
+
+    // For guest accounts: save the refresh token before clearing so the same
+    // guest session can be restored on the next visit. Skip the server-side
+    // blacklist so the token stays valid for restoration.
+    final isGuest = await _isCurrentUserGuest();
+    if (isGuest && refreshToken != null) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(AppStorage.kGuestRefreshToken, refreshToken);
+        debugPrint('[ApiService] guest refresh token saved for session restore');
+      } catch (e) {
+        debugPrint('[ApiService] failed to save guest token (non-fatal): $e');
+      }
+    } else if (!isGuest && refreshToken != null) {
+      // Best-effort: blacklist the refresh token on the server for real accounts.
       try {
         await _dio.post(
           'api/user/logout/',
@@ -61,14 +75,39 @@ class ApiService {
         debugPrint('Server logout error (non-fatal): $e');
       }
     }
-    // Always clear local tokens regardless of server response
+
+    // Discard any in-flight fetchCurrentUser future so the next session
+    // never receives the previous user's data from a pending network call.
+    _inFlightSelf = null;
+
+    // Always clear local tokens regardless of server response.
     try {
       await _dioClient.logout();
     } catch (e) {
       debugPrint('Local logout error (non-fatal): $e');
     }
+    // Reset the ProfileProvider singleton so the next session never sees stale
+    // username/email/isGuest from the previous user.
+    ProfileProvider().reset();
+
     // Wipe all user-specific cached data (BcdCache, Hive boxes).
     await UserCacheService.clearAll();
+  }
+
+  Future<bool> _isCurrentUserGuest() async {
+    // Check in-memory provider first (always up-to-date after profile load).
+    if (ProfileProvider().isGuest) return true;
+    // Fallback: read SharedPreferences — populated by guestLogin() and
+    // fetchCurrentUser() even when the provider was never initialised.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final stored = prefs.getString(AppStorage.kUserJson);
+      if (stored == null) return false;
+      final map = jsonDecode(stored) as Map<String, dynamic>;
+      return map['is_guest'] == true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<dynamic> fetchCurrentUser({bool forceRefresh = false}) {
@@ -145,12 +184,71 @@ class ApiService {
     }
   }
 
+  /// Single entry point for all guest login flows (onboarding free path,
+  /// pre-purchase sheet, AuthScreen restore button).
+  ///
+  /// Decision tree:
+  ///   1. Saved guest refresh token on device → try to exchange it for a fresh
+  ///      access token using a bare Dio (no interceptors) so a blacklisted or
+  ///      expired token is just an exception — it never triggers logoutAndRedirect.
+  ///   2. Token exchange succeeds → restore session, done.
+  ///   3. Token exchange fails → discard saved token, create new guest account.
+  ///   4. No saved token → create new guest account.
   Future<void> guestLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedRefresh = prefs.getString(AppStorage.kGuestRefreshToken);
+
+    if (savedRefresh != null) {
+      // Use a bare Dio with no interceptors so failure is a plain exception
+      // and never triggers DioClient.logoutAndRedirect().
+      final bareDio = Dio(BaseOptions(baseUrl: _dio.options.baseUrl));
+      try {
+        final refreshResponse = await bareDio.post(
+          'api/token/refresh/',
+          data: {'refresh': savedRefresh},
+        );
+        final newAccess = refreshResponse.data['access'] as String;
+        // Some backends rotate the refresh token on each use.
+        final newRefresh =
+            (refreshResponse.data['refresh'] as String?) ?? savedRefresh;
+        await _dioClient.setTokens(access: newAccess, refresh: newRefresh);
+        await prefs.setString(AppStorage.kGuestRefreshToken, newRefresh);
+        await _persistGuestFlag(prefs);
+        debugPrint('[ApiService] guest session restored');
+        return;
+      } catch (e) {
+        debugPrint('[ApiService] guest token restore failed, creating new: $e');
+        await prefs.remove(AppStorage.kGuestRefreshToken);
+      }
+    }
+
+    // No saved token, or restoration failed — create a fresh guest account.
     final response = await _dio.post('api/user/guest/');
-    await _dioClient.setTokens(
-      access: response.data['access'],
-      refresh: response.data['refresh'],
-    );
+    final access = response.data['access'] as String;
+    final refresh = response.data['refresh'] as String;
+    await _dioClient.setTokens(access: access, refresh: refresh);
+    await _persistGuestFlag(prefs);
+    try {
+      await prefs.setString(AppStorage.kGuestRefreshToken, refresh);
+    } catch (e) {
+      debugPrint('[ApiService] failed to persist guest token: $e');
+    }
+  }
+
+  /// Writes `is_guest: true` into the cached user JSON so that
+  /// [_isCurrentUserGuest] works reliably at logout time even when
+  /// [ProfileProvider.loadProfile] has never been called.
+  Future<void> _persistGuestFlag(SharedPreferences prefs) async {
+    try {
+      final existing = prefs.getString(AppStorage.kUserJson);
+      final map = existing != null
+          ? Map<String, dynamic>.from(jsonDecode(existing) as Map)
+          : <String, dynamic>{};
+      map['is_guest'] = true;
+      await prefs.setString(AppStorage.kUserJson, jsonEncode(map));
+    } catch (e) {
+      debugPrint('[ApiService] failed to write guest flag: $e');
+    }
   }
 
   Future<void> convertGuest({
@@ -166,6 +264,12 @@ class ApiService {
       access: response.data['access'],
       refresh: response.data['refresh'],
     );
+    // Guest account is now a real account — the saved guest token is no longer
+    // needed (and should not restore the old guest session on future logouts).
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(AppStorage.kGuestRefreshToken);
+    } catch (_) {}
   }
 
   Future<List<dynamic>> fetchLicenses() async {

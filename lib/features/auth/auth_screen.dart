@@ -15,10 +15,12 @@ import 'package:taxi_exam_app/core/auth/google_sign_in_helper.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/debug_credentials.dart';
 import 'package:taxi_exam_app/features/auth/forgot_password_screen.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
 import 'package:taxi_exam_app/main_screen.dart';
@@ -57,12 +59,54 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _obscureSignupPw = true;
   Map<String, String?> _signupErrors = {};
 
+  // Guest session state
+  bool _hasSavedGuestSession = false;
+  bool _isGuestLoading = false;
+
   @override
   void initState() {
     super.initState();
     if (kDebugMode) {
       _loginUsernameCtrl.text = 'abc';
       _loginPasswordCtrl.text = 'abc';
+    }
+    _checkSavedGuestSession();
+  }
+
+  Future<void> _checkSavedGuestSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hasToken =
+          prefs.getString(AppStorage.kGuestRefreshToken) != null;
+      if (mounted) setState(() => _hasSavedGuestSession = hasToken);
+    } catch (_) {}
+  }
+
+  Future<void> _continueAsGuest() async {
+    if (_isGuestLoading) return;
+    setState(() => _isGuestLoading = true);
+    try {
+      await _apiService.guestLogin();
+      if (!mounted) return;
+      // Pre-seed BcdCache so MainScreen doesn't show a loading spinner while
+      // waiting for /self. Errors are non-fatal — MainScreen will retry.
+      _apiService.fetchCurrentUser().ignore();
+      // Retry any IAP receipt — best-effort, do not block navigation.
+      IAPService.instance.hasDeferredReceipt().then((has) {
+        if (has) IAPService.instance.verifyDeferredReceipt().catchError((_) => null);
+      });
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        AppPageRoute(builder: (_) => const MainScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).auth_guest_session_error,
+            type: SnackBarType.error);
+      }
+    } finally {
+      if (mounted) setState(() => _isGuestLoading = false);
     }
   }
 
@@ -441,12 +485,15 @@ class _AuthScreenState extends State<AuthScreen> {
               isGoogleLoading: _isGoogleLoading,
               googleLoadingStep: _googleLoadingStep,
               isAppleLoading: _isAppleLoading,
+              isGuestLoading: _isGuestLoading,
+              hasSavedGuestSession: _hasSavedGuestSession,
               loginError: _loginError,
               onGoogle: _signInWithGoogle,
               onApple: _signInWithApple,
               onLogin: () => _navigate(_AuthView.login),
               onSignup: () => _navigate(_AuthView.signup),
               onSetLocale: _setLocale,
+              onContinueAsGuest: _continueAsGuest,
             ),
           _AuthView.login => _LoginView(
               key: const ValueKey('login'),
@@ -481,82 +528,6 @@ class _AuthScreenState extends State<AuthScreen> {
               onGoLogin: () => _navigate(_AuthView.login),
             ),
         },
-      ),
-    );
-  }
-}
-
-// ─── Shared: Gradient CTA button ─────────────────────────────────────────────
-
-class _GradientButton extends StatelessWidget {
-  const _GradientButton({
-    required this.label,
-    required this.onPressed,
-    this.loading = false,
-    this.icon,
-    this.loadingLabel,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-  final bool loading;
-  final Widget? icon;
-  final String? loadingLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(9999),
-      child: InkWell(
-        onTap: loading ? null : onPressed,
-        borderRadius: BorderRadius.circular(9999),
-        child: Ink(
-          height: 58,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [cs.primary, cs.primaryContainer],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(9999),
-            boxShadow: [
-              BoxShadow(
-                color: cs.primary.withValues(alpha: 0.18),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (loading) ...[
-                  SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                        color: cs.onPrimary, strokeWidth: 2.5),
-                  ),
-                  const SizedBox(width: 10),
-                ] else if (icon != null) ...[
-                  icon!,
-                  const SizedBox(width: 12),
-                ],
-                Text(
-                  loading ? (loadingLabel ?? label) : label,
-                  style: GoogleFonts.lexend(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: cs.onPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -1106,23 +1077,29 @@ class _LandingView extends StatelessWidget {
     required this.isGoogleLoading,
     required this.googleLoadingStep,
     required this.isAppleLoading,
+    required this.isGuestLoading,
+    required this.hasSavedGuestSession,
     required this.loginError,
     required this.onGoogle,
     required this.onApple,
     required this.onLogin,
     required this.onSignup,
     required this.onSetLocale,
+    required this.onContinueAsGuest,
   });
 
   final bool isGoogleLoading;
   final String googleLoadingStep;
   final bool isAppleLoading;
+  final bool isGuestLoading;
+  final bool hasSavedGuestSession;
   final String? loginError;
   final VoidCallback onGoogle;
   final VoidCallback onApple;
   final VoidCallback onLogin;
   final VoidCallback onSignup;
   final Future<void> Function(AppLocale) onSetLocale;
+  final VoidCallback onContinueAsGuest;
 
   @override
   Widget build(BuildContext context) {
@@ -1286,67 +1263,47 @@ class _LandingView extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // Apple button (iOS/macOS only — Guideline 4.8)
-                      if (AppleSignInHelper.isAvailable()) ...[
-                        _GradientButton(
-                          label: Translations.of(context).auth_express_apple,
-                          loading: isAppleLoading,
-                          onPressed: isGoogleLoading ? null : onApple,
-                          icon: SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: FaIcon(FontAwesomeIcons.apple,
-                                size: 20, color: cs.onPrimary),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                      // Google button
-                      _GradientButton(
-                        label: Translations.of(context).auth_express_google,
-                        loading: isGoogleLoading,
-                        loadingLabel: googleLoadingStep.isNotEmpty
-                            ? googleLoadingStep
-                            : null,
-                        onPressed: isAppleLoading ? null : onGoogle,
-                        icon: SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: FaIcon(FontAwesomeIcons.google,
-                              size: 18, color: cs.onPrimary),
-                        ),
+                      // Log in — full-width gradient button
+                      AppButton(
+                        label: Translations.of(context).auth_tab_login,
+                        onPressed: onLogin,
                       ),
-                      const SizedBox(height: 14),
-                      // Login button
+                      const SizedBox(height: 10),
+                      // Social sign-in icons — row below login button
                       SizedBox(
-                        width: double.infinity,
-                        height: 58,
-                        child: ElevatedButton(
-                          onPressed: onLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: cs.surfaceContainerHighest,
-                            foregroundColor: cs.primary,
-                            elevation: 0,
-                            shape: const StadiumBorder(),
-                          ),
-                          child: Text(
-                            Translations.of(context).auth_tab_login,
-                            style: GoogleFonts.lexend(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
+                        height: 54,
+                        child: Row(
+                          children: [
+                            if (AppleSignInHelper.isAvailable()) ...[
+                              AppSocialButton(
+                                icon: FontAwesomeIcons.apple,
+                                iconSize: 22,
+                                loading: isAppleLoading,
+                                onPressed: isGoogleLoading ? null : onApple,
+                              ),
+                              const SizedBox(width: 10),
+                            ],
+                            AppSocialButton(
+                              icon: FontAwesomeIcons.google,
+                              iconSize: 18,
+                              loading: isGoogleLoading,
+                              loadingLabel: googleLoadingStep.isNotEmpty
+                                  ? googleLoadingStep
+                                  : null,
+                              onPressed: isAppleLoading ? null : onGoogle,
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      // Sign up link
+                      const SizedBox(height: 20),
+                      // Sign-up footer text
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            '${Translations.of(context).auth_landing_new_here}  ',
+                            '${Translations.of(context).auth_landing_new_here} ',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 15,
+                              fontSize: 14,
                               color: cs.onSurfaceVariant,
                             ),
                           ),
@@ -1355,7 +1312,7 @@ class _LandingView extends StatelessWidget {
                             child: Text(
                               Translations.of(context).auth_create_account_link,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 15,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w700,
                                 color: cs.primary,
                               ),
@@ -1363,6 +1320,29 @@ class _LandingView extends StatelessWidget {
                           ),
                         ],
                       ),
+                      // Continue as guest — light text link (only if prior session exists)
+                      if (hasSavedGuestSession) ...[
+                        const SizedBox(height: 12),
+                        isGuestLoading
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: cs.onSurfaceVariant),
+                              )
+                            : GestureDetector(
+                                onTap: onContinueAsGuest,
+                                child: Text(
+                                  Translations.of(context).auth_continue_as_guest,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: cs.onSurfaceVariant.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ),
+                      ],
                     ],
                   ),
                 ),
@@ -1544,7 +1524,7 @@ class _LoginView extends StatelessWidget {
                     const SizedBox(height: 32),
 
                     // Sign In button
-                    _GradientButton(
+                    AppButton(
                       label: t.auth_login_title,
                       loading: isLoading,
                       loadingLabel: t.auth_signing_in,
@@ -1751,7 +1731,7 @@ class _SignupView extends StatelessWidget {
                     const SizedBox(height: 36),
 
                     // Create Account button
-                    _GradientButton(
+                    AppButton(
                       label: t.auth_sign_up_btn,
                       loading: isLoading,
                       loadingLabel: t.auth_signing_in,

@@ -1048,6 +1048,20 @@ class TranslationsSv implements Translations {
   @override
   String get onb_skip_for_now => 'Hoppa över för nu';
   @override
+  String get onb_pre_purchase_title => 'Ett snabbt steg';
+  @override
+  String get onb_pre_purchase_subtitle =>
+      'Skapa ett gratis konto för att komma åt din prenumeration på alla dina enheter, eller fortsätt som gäst — du kan alltid skapa ett konto senare.';
+  @override
+  String get onb_pre_purchase_sign_in => 'Logga in / Skapa konto';
+  @override
+  String get onb_pre_purchase_guest => 'Fortsätt som gäst';
+  @override
+  String get auth_continue_as_guest => 'Fortsätt som gäst';
+  @override
+  String get auth_guest_session_error =>
+      'Det gick inte att återställa din session. Försök igen.';
+  @override
   String get free_trial_banner_badge => 'GRATIS';
   @override
   String get free_trial_banner_title =>
@@ -2023,6 +2037,18 @@ extension on TranslationsSv {
         return 'Fortsätt som gäst';
       case 'onb_skip_for_now':
         return 'Hoppa över för nu';
+      case 'onb_pre_purchase_title':
+        return 'Ett snabbt steg';
+      case 'onb_pre_purchase_subtitle':
+        return 'Skapa ett gratis konto för att komma åt din prenumeration på alla dina enheter, eller fortsätt som gäst — du kan alltid skapa ett konto senare.';
+      case 'onb_pre_purchase_sign_in':
+        return 'Logga in / Skapa konto';
+      case 'onb_pre_purchase_guest':
+        return 'Fortsätt som gäst';
+      case 'auth_continue_as_guest':
+        return 'Fortsätt som gäst';
+      case 'auth_guest_session_error':
+        return 'Det gick inte att återställa din session. Försök igen.';
       case 'free_trial_banner_badge':
         return 'GRATIS';
       case 'free_trial_banner_title':

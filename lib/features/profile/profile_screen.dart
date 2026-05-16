@@ -70,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     _profile.addListener(_onProfileChanged);
     _profile.loadUserFromPrefs().then((_) {
-      if (_profile.username == null && mounted) {
+      if (mounted) {
         _profile.loadProfile().catchError((_) {});
       }
     });
@@ -368,16 +368,15 @@ class _ProfileScreenState extends State<ProfileScreen>
                 mode: LaunchMode.externalApplication,
               ),
         ),
-      if (!_profile.isGuest)
-        (
-          icon: Icons.receipt_long_outlined,
-          color: const Color(0xFFDCEEFB),
-          title: t.profile_purchase_history,
-          onTap: () => Navigator.push(
-                context,
-                AppPageRoute(builder: (_) => const PurchaseHistoryScreen()),
-              ),
-        ),
+      (
+        icon: Icons.receipt_long_outlined,
+        color: const Color(0xFFDCEEFB),
+        title: t.profile_purchase_history,
+        onTap: () => Navigator.push(
+              context,
+              AppPageRoute(builder: (_) => const PurchaseHistoryScreen()),
+            ),
+      ),
       (
         icon: Icons.tour_rounded,
         color: const Color(0xFFE8EAF6),

@@ -12,6 +12,7 @@ import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/utils/calculate_stats.dart';
 import 'package:taxi_exam_app/core/widgets/attempt_spark_widget.dart';
 import 'package:taxi_exam_app/core/widgets/category_pie_chart_widget.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/home/attempt_detail_screen.dart';
 import 'package:taxi_exam_app/core/services/home_data_cache.dart';
@@ -98,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _loadPreviousAttempts({bool forceSync = false}) async {
     try {
-      final box = await Hive.openBox<TestAttempt>('testAttempts');
+      final box = await AppStorage.testAttemptsBox();
       _refreshFromBox(box); // Always instant — reads local Hive only
 
       if (forceSync || HomeDataCache.isStale) {
@@ -146,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _deleteAllTests() async {
-    final box = await Hive.openBox<TestAttempt>('testAttempts');
+    final box = await AppStorage.testAttemptsBox();
     await box.clear();
     setState(() {
       _previousAttempts.clear();
@@ -173,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen>
               Navigator.of(ctx).pop();
               setState(() => _pausedAttempts
                   .removeWhere((a) => a.testId == attempt.testId));
-              final box = await Hive.openBox<TestAttempt>('testAttempts');
+              final box = await AppStorage.testAttemptsBox();
               await box.delete(attempt.testId);
               ApiService().deleteTestAttempt(attempt.testId);
             },
