@@ -5,47 +5,82 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000233">
+      <testcase classname="fastlane.lanes" name="00: default_platform" time="0.000249">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: Switch to android beta lane" time="9.1e-05">
+      <testcase classname="fastlane.lanes" name="01: Switch to android beta lane" time="9.6e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: Switch to android resolve_play_store_json_key lane" time="6.1e-05">
+      <testcase classname="fastlane.lanes" name="02: Switch to android resolve_play_store_json_key lane" time="5.8e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: Switch to android load_root_env lane" time="5.7e-05">
+      <testcase classname="fastlane.lanes" name="03: Switch to android load_root_env lane" time="7.2e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: google_play_track_version_codes" time="2.121171">
+      <testcase classname="fastlane.lanes" name="04: google_play_track_version_codes" time="1.504668">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="5: Switch to android get_latest_changelog_entry lane" time="9.4e-05">
+      <testcase classname="fastlane.lanes" name="05: Switch to android get_latest_changelog_entry lane" time="9.8e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="6: Switch to android resolve_flutter_dart_defines lane" time="8.4e-05">
+      <testcase classname="fastlane.lanes" name="06: Switch to android resolve_flutter_dart_defines lane" time="6.7e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="7: Switch to android load_root_env lane" time="6.8e-05">
+      <testcase classname="fastlane.lanes" name="07: Switch to android load_root_env lane" time="6.1e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="8: cd .. &amp;&amp; flutter build appbundle --release --build-number=151 --dart-define=GOOGLE_SERVER_CLIENT_ID=640394192831-e6hi0ho85923epa77ir6402ggl8pgrff.apps.googleusercontent.com --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_51QSEQxLdbibfvPzFVwe3hE5seqcH1wQigVXOW60o9KWurHg8ewRFtpekd0c4R16UaiAa51mDZ3MDJFCmIzIRX56i00rZyQBtdD --dart-define=BUILD_VARIANT=alpha" time="37.936244">
+      <testcase classname="fastlane.lanes" name="08: cd .. &amp;&amp; flutter build appbundle --release --build-number=151 --dart-define=GOOGLE_SERVER_CLIENT_ID=640394192831-e6hi0ho85923epa77ir6402ggl8pgrff.apps.googleusercontent.com --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_51QSEQxLdbibfvPzFVwe3hE5seqcH1wQigVXOW60o9KWurHg8ewRFtpekd0c4R16UaiAa51mDZ3MDJFCmIzIRX56i00rZyQBtdD --dart-define=BUILD_VARIANT=alpha" time="179.60147">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="09: upload_to_play_store" time="77.053951">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="10: Switch to android tag_release lane" time="0.000117">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="11: git tag v1.1.3-151" time="0.013115">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="12: Switch to android production lane" time="0.000113">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="13: Switch to android resolve_play_store_json_key lane" time="8.3e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="14: Switch to android load_root_env lane" time="7.1e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="15: upload_to_play_store" time="5.717635">
         
       </testcase>
     
