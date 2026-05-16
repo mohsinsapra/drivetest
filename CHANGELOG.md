@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.21+187] - 2026-05-16
+
+### Added
 - **Guest session persistence** — guest refresh token is saved to `SharedPreferences` on logout so the same guest account can be restored on the next visit without creating a new one; restoration uses a bare Dio instance (no interceptors) so a stale token never triggers `logoutAndRedirect`
 - **"Continue as Guest" button on auth screen** — shown only when a saved guest session exists on the device; restores the session silently with a spinner and navigates to `MainScreen`
 - **Pre-purchase account choice sheet** (`_PrePurchaseSheet`) — replaces the mandatory auth gate before purchasing; users can now choose "Sign In / Create Account" or "Continue as Guest" before the payment sheet; purchase is never blocked by registration
@@ -36,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Guest flag written to cached user JSON** — `_persistGuestFlag()` merges `is_guest: true` into `AppStorage.kUserJson` immediately after guest login so `_isCurrentUserGuest()` works reliably at logout time even if `ProfileProvider.loadProfile` was never called
 - **`kIapDeferredReceipt` cleared on logout** — prevents a subsequent user on the same device from accidentally claiming a previous user's deferred Apple purchase receipt
 
+---
 ---
 
 ## [1.0.20+186] - 2026-05-15

@@ -1,0 +1,4 @@
+Added
+• **Guest session persistence** — guest refresh token is saved to `SharedPreferences` on logout so the same guest account can be restored on the next visit without creating a new one; restoration uses a bare Dio instance (no interceptors) so a stale token never triggers `logoutAndRedirect`
+• **"Continue as Guest" button on auth screen** — shown only when a saved guest session exists on the device; restores the session silently with a spinner and navigates to `MainScreen`
+• **Pre-purchas...
