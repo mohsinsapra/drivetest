@@ -118,7 +118,7 @@ lint:
 check: fmt lint
 	@echo "$(COLOR_GREEN)✅ Project checks passed!$(COLOR_RESET)"
 
-WEB_PORT ?= 5005
+WEB_PORT ?= 58432
 
 ## web-run: Run web app in development mode
 web-run:
@@ -143,13 +143,12 @@ web-run:
 		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
 		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)"
 
-## web-tunnel: Run web app + Cloudflare tunnel with auto hot-reload on file save
+## web-tunnel: Run web app + Cloudflare tunnel with auto hot-restart on file save
 web-tunnel:
 	@command -v cloudflared >/dev/null 2>&1 || (echo "$(COLOR_YELLOW)Installing cloudflared...$(COLOR_RESET)" && brew install cloudflared)
 	@command -v fswatch >/dev/null 2>&1 || (echo "$(COLOR_YELLOW)Installing fswatch...$(COLOR_RESET)" && brew install fswatch)
 	@lsof -ti:$(WEB_PORT) | xargs kill -9 2>/dev/null; true
 	@rm -f /tmp/flutter_tunnel_pipe; mkfifo /tmp/flutter_tunnel_pipe; \
-	cloudflared tunnel --config $(HOME)/.cloudflared/drivetest-flutter.yml run & CF_PID=$$!; \
 	flutter run -d web-server --web-port=$(WEB_PORT) \
 		--dart-define=API_BASE_URL="https://dev-dashboard.drivetest.se/" \
 		--dart-define=FIREBASE_API_KEY="$(FIREBASE_API_KEY)" \
@@ -171,9 +170,25 @@ web-tunnel:
 		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)" \
 		< /tmp/flutter_tunnel_pipe & FLUTTER_PID=$$!; \
 	exec 3>/tmp/flutter_tunnel_pipe; \
-	trap "echo '$(COLOR_YELLOW)Shutting down...$(COLOR_RESET)'; kill $$CF_PID $$FLUTTER_PID 2>/dev/null; exec 3>&-; rm -f /tmp/flutter_tunnel_pipe; exit" INT TERM; \
-	echo "$(COLOR_GREEN)Live at: https://dev-app.drivetest.se$(COLOR_RESET)"; \
-	echo "$(COLOR_YELLOW)Watching lib/ — hot reload fires automatically on every save$(COLOR_RESET)"; \
+	trap "echo '$(COLOR_YELLOW)Shutting down...$(COLOR_RESET)'; kill $$CF_PID 2>/dev/null; kill $$FLUTTER_PID 2>/dev/null; exec 3>&-; rm -f /tmp/flutter_tunnel_pipe; exit" INT TERM; \
+	echo "$(COLOR_YELLOW)Waiting for Flutter to be ready on port $(WEB_PORT)...$(COLOR_RESET)"; \
+	until nc -z localhost $(WEB_PORT) 2>/dev/null; do sleep 1; done; \
+	echo "$(COLOR_GREEN)Flutter ready! Starting Cloudflare tunnel...$(COLOR_RESET)"; \
+	cloudflared tunnel --config $(HOME)/.cloudflared/drivetest-flutter.yml run & CF_PID=$$!; \
+	echo "$(COLOR_YELLOW)Waiting for tunnel to be reachable...$(COLOR_RESET)"; \
+	TUNNEL_UP=0; \
+	for i in $$(seq 1 30); do \
+		if curl -sf --max-time 3 https://dev-app.drivetest.se >/dev/null 2>&1; then \
+			TUNNEL_UP=1; break; \
+		fi; \
+		sleep 2; \
+	done; \
+	if [ $$TUNNEL_UP -eq 1 ]; then \
+		echo "$(COLOR_GREEN)✅ Tunnel is up — https://dev-app.drivetest.se$(COLOR_RESET)"; \
+	else \
+		echo "$(COLOR_YELLOW)⚠️  Tunnel did not respond after 60s — check cloudflared config$(COLOR_RESET)"; \
+	fi; \
+	echo "$(COLOR_YELLOW)Watching lib/ — hot restart fires automatically on every save$(COLOR_RESET)"; \
 	fswatch -o lib/ | while read; do \
 		echo "$(COLOR_BLUE)Change detected — hot restarting...$(COLOR_RESET)"; \
 		echo R >&3; \

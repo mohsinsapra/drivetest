@@ -233,7 +233,11 @@
       "Bash(sed -n '78,92p' lib/core/widgets/attempt_entry_card.dart)",
       "Bash(sed -n '33,45p' lib/core/widgets/progress_card.dart)",
       "Bash(sed -n '57,70p' lib/features/dashboard/screens/widgets/exam_overview_card.dart)",
-      "Bash(sed -n '222,232p' lib/core/widgets/option_tile.dart)"
+      "Bash(sed -n '222,232p' lib/core/widgets/option_tile.dart)",
+      "Bash(awk '{print $2, $11, $12}')",
+      "Bash(awk '{print $2, $11, $12, $13}')",
+      "Bash(pkill -f \"fswatch\")",
+      "Bash(kill 52357)"
     ],
     "deny": [],
     "ask": []
