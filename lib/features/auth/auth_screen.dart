@@ -76,8 +76,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _checkSavedGuestSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final hasToken =
-          prefs.getString(AppStorage.kGuestRefreshToken) != null;
+      final hasToken = prefs.getString(AppStorage.kGuestRefreshToken) != null;
       if (mounted) setState(() => _hasSavedGuestSession = hasToken);
     } catch (_) {}
   }
@@ -93,7 +92,9 @@ class _AuthScreenState extends State<AuthScreen> {
       _apiService.fetchCurrentUser().ignore();
       // Retry any IAP receipt — best-effort, do not block navigation.
       IAPService.instance.hasDeferredReceipt().then((has) {
-        if (has) IAPService.instance.verifyDeferredReceipt().catchError((_) => null);
+        if (has) {
+          IAPService.instance.verifyDeferredReceipt().catchError((_) => null);
+        }
       });
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
@@ -1328,17 +1329,18 @@ class _LandingView extends StatelessWidget {
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: cs.onSurfaceVariant),
+                                    strokeWidth: 2, color: cs.onSurfaceVariant),
                               )
                             : GestureDetector(
                                 onTap: onContinueAsGuest,
                                 child: Text(
-                                  Translations.of(context).auth_continue_as_guest,
+                                  Translations.of(context)
+                                      .auth_continue_as_guest,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
-                                    color: cs.onSurfaceVariant.withValues(alpha: 0.7),
+                                    color: cs.onSurfaceVariant
+                                        .withValues(alpha: 0.7),
                                   ),
                                 ),
                               ),

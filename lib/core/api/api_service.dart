@@ -60,7 +60,8 @@ class ApiService {
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(AppStorage.kGuestRefreshToken, refreshToken);
-        debugPrint('[ApiService] guest refresh token saved for session restore');
+        debugPrint(
+            '[ApiService] guest refresh token saved for session restore');
       } catch (e) {
         debugPrint('[ApiService] failed to save guest token (non-fatal): $e');
       }

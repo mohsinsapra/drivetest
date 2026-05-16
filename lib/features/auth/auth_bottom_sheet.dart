@@ -344,7 +344,8 @@ class _AuthSheetState extends State<_AuthSheet>
 
   Widget _submitButton(String label, VoidCallback onPressed) {
     final t = Translations.of(context);
-    return AppButton(height: 54,
+    return AppButton(
+      height: 54,
       label: label,
       loading: _formLoading,
       loadingLabel: t.auth_signing_in,
@@ -410,7 +411,8 @@ class _AuthSheetState extends State<_AuthSheet>
 
           // Apple button (iOS/macOS only — must appear before Google per Guideline 4.8)
           if (AppleSignInHelper.isAvailable()) ...[
-            AppButton(height: 54,
+            AppButton(
+              height: 54,
               label: t.auth_express_apple,
               loading: _appleLoading,
               loadingLabel: t.auth_signing_in,
@@ -422,7 +424,8 @@ class _AuthSheetState extends State<_AuthSheet>
           ],
 
           // Google button
-          AppButton(height: 54,
+          AppButton(
+            height: 54,
             label: t.auth_express_google,
             loading: _googleLoading,
             loadingLabel: t.auth_signing_in,

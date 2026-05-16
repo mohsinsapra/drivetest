@@ -86,8 +86,7 @@ class AppStorage {
       _openBox<LocalNotification>(notificationsBoxName);
 
   /// Returns the current user's purchase receipts box, opening it if necessary.
-  static Future<Box<String>> receiptsBox() =>
-      _openBox<String>(receiptsBoxName);
+  static Future<Box<String>> receiptsBox() => _openBox<String>(receiptsBoxName);
 
   // ── User-data wipe ──────────────────────────────────────────────────────────
 

@@ -227,8 +227,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _saveProgressPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-          'exam_deadline', _examDeadline.toIso8601String());
+      await prefs.setString('exam_deadline', _examDeadline.toIso8601String());
       await prefs.setInt('practice_days_per_week', _selectedWeekdays.length);
     } catch (_) {}
   }
