@@ -1126,8 +1126,8 @@ class _LandingView extends StatelessWidget {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
-                                  color:
-                                      cs.onSurfaceVariant.withValues(alpha: 0.7),
+                                  color: cs.onSurfaceVariant
+                                      .withValues(alpha: 0.7),
                                 ),
                               ),
                             ),
@@ -1306,7 +1306,6 @@ class _LoginPageState extends State<_LoginPage> {
                         ],
                       ),
                       const SizedBox(height: 40),
-
                       if (_error != null) ...[
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -1330,7 +1329,6 @@ class _LoginPageState extends State<_LoginPage> {
                         ),
                         const SizedBox(height: 16),
                       ],
-
                       _AuthField(
                         label: t.auth_username,
                         controller: _usernameCtrl,
@@ -1339,7 +1337,6 @@ class _LoginPageState extends State<_LoginPage> {
                         error: _fieldErrors['username'],
                       ),
                       const SizedBox(height: 18),
-
                       _AuthField(
                         label: t.auth_password,
                         controller: _passwordCtrl,
@@ -1347,8 +1344,7 @@ class _LoginPageState extends State<_LoginPage> {
                         obscureText: _obscure,
                         error: _fieldErrors['password'],
                         suffixIcon: TextButton(
-                          onPressed: () =>
-                              setState(() => _obscure = !_obscure),
+                          onPressed: () => setState(() => _obscure = !_obscure),
                           child: Text(
                             _obscure
                                 ? t.auth_show_password
@@ -1361,7 +1357,6 @@ class _LoginPageState extends State<_LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
                       Align(
                         alignment: Alignment.centerRight,
                         child: GestureDetector(
@@ -1380,7 +1375,6 @@ class _LoginPageState extends State<_LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 32),
-
                       AppButton(
                         label: t.auth_login_title,
                         loading: _isLoading,
@@ -1388,7 +1382,6 @@ class _LoginPageState extends State<_LoginPage> {
                         onPressed: _login,
                       ),
                       const SizedBox(height: 16),
-
                       if (kDebugMode)
                         Center(
                           child: TextButton(
@@ -1409,7 +1402,6 @@ class _LoginPageState extends State<_LoginPage> {
                           ),
                         ),
                       const SizedBox(height: 32),
-
                       Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -1613,7 +1605,6 @@ class _SignupPageState extends State<_SignupPage> {
                         ],
                       ),
                       const SizedBox(height: 40),
-
                       _AuthField(
                         label: t.auth_username,
                         controller: _usernameCtrl,
@@ -1621,7 +1612,6 @@ class _SignupPageState extends State<_SignupPage> {
                         error: _fieldErrors['username'],
                       ),
                       const SizedBox(height: 18),
-
                       _AuthField(
                         label: t.auth_email,
                         controller: _emailCtrl,
@@ -1630,7 +1620,6 @@ class _SignupPageState extends State<_SignupPage> {
                         error: _fieldErrors['email'],
                       ),
                       const SizedBox(height: 18),
-
                       _AuthField(
                         label: t.auth_password,
                         controller: _passwordCtrl,
@@ -1638,8 +1627,7 @@ class _SignupPageState extends State<_SignupPage> {
                         obscureText: _obscure,
                         error: _fieldErrors['password'],
                         suffixIcon: TextButton(
-                          onPressed: () =>
-                              setState(() => _obscure = !_obscure),
+                          onPressed: () => setState(() => _obscure = !_obscure),
                           child: Text(
                             _obscure
                                 ? t.auth_show_password
@@ -1652,7 +1640,6 @@ class _SignupPageState extends State<_SignupPage> {
                         ),
                       ),
                       const SizedBox(height: 36),
-
                       AppButton(
                         label: t.auth_sign_up_btn,
                         loading: _isLoading,
@@ -1660,7 +1647,6 @@ class _SignupPageState extends State<_SignupPage> {
                         onPressed: _signup,
                       ),
                       const SizedBox(height: 40),
-
                       Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,

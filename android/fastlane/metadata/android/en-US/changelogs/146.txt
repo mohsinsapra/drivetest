@@ -1,0 +1,4 @@
+Added
+• **Hero animations across splash, auth, and onboarding** — "DRIVE TEST" title flies from the splash screen into the auth landing view; the yellow bolt icon flies from splash into the onboarding top bar; "DRIVE TEST" in the auth app bar is a Hero so it also animates when navigating to login/signup
+• **Express login with Google on Android & Web** — landing screen now shows a full-width "Express login via Google" `AppButton` on non-iOS platforms instead of the icon-only social button row
+...

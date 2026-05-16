@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.0.22+188] - 2026-05-16
+
+### Added
 - **Hero animations across splash, auth, and onboarding** — "DRIVE TEST" title flies from the splash screen into the auth landing view; the yellow bolt icon flies from splash into the onboarding top bar; "DRIVE TEST" in the auth app bar is a Hero so it also animates when navigating to login/signup
 - **Express login with Google on Android & Web** — landing screen now shows a full-width "Express login via Google" `AppButton` on non-iOS platforms instead of the icon-only social button row
 - **"Continue as Guest" always visible** — removed the saved-session guard so the button appears for all users on the landing screen, not only returning guests
@@ -24,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **"DRIVE TEST" wrapping on splash** — wrapped in `FittedBox(fit: BoxFit.scaleDown)` so it always stays on one line regardless of screen width
 
+---
 ---
 
 ## [1.0.21+187] - 2026-05-16
