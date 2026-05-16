@@ -1046,9 +1046,12 @@ class _LandingView extends StatelessWidget {
                         // iOS: Login first, then Apple + Google icon pair
                         Hero(
                           tag: 'auth_login_btn',
-                          child: AppButton(
-                            label: Translations.of(context).auth_tab_login,
-                            onPressed: onLogin,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(9999),
+                            child: AppButton(
+                              label: Translations.of(context).auth_tab_login,
+                              onPressed: onLogin,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -1095,10 +1098,13 @@ class _LandingView extends StatelessWidget {
                         const SizedBox(height: 10),
                         Hero(
                           tag: 'auth_login_btn',
-                          child: AppSecondaryButton(
-                            label: Translations.of(context).auth_tab_login,
-                            onPressed: onLogin,
-                            height: 58,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(9999),
+                            child: AppSecondaryButton(
+                              label: Translations.of(context).auth_tab_login,
+                              onPressed: onLogin,
+                              height: 58,
+                            ),
                           ),
                         ),
                       ],
@@ -1400,11 +1406,14 @@ class _LoginPageState extends State<_LoginPage> {
                       ],
                       Hero(
                         tag: 'auth_login_btn',
-                        child: AppButton(
-                          label: t.auth_tab_login,
-                          loading: _isLoading,
-                          loadingLabel: t.auth_signing_in,
-                          onPressed: _login,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(9999),
+                          child: AppButton(
+                            label: t.auth_tab_login,
+                            loading: _isLoading,
+                            loadingLabel: t.auth_signing_in,
+                            onPressed: _login,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
