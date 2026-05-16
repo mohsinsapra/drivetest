@@ -463,8 +463,7 @@ class _StatsScreenState extends State<StatsScreen> {
                                   value: '${_bestScore.round()}%',
                                   label: 'Best score',
                                   icon: Icons.emoji_events_outlined,
-                                  iconBg:
-                                      Colors.orange.withValues(alpha: 0.15),
+                                  iconBg: Colors.orange.withValues(alpha: 0.15),
                                   iconColor: const Color(0xFFF57C00),
                                 ),
                                 _statCard(
@@ -478,8 +477,7 @@ class _StatsScreenState extends State<StatsScreen> {
                                   value: _fmtDuration(_totalSeconds),
                                   label: 'Total study time',
                                   icon: Icons.access_time,
-                                  iconBg:
-                                      Colors.purple.withValues(alpha: 0.15),
+                                  iconBg: Colors.purple.withValues(alpha: 0.15),
                                   iconColor: const Color(0xFF7B1FA2),
                                 ),
                                 _statCard(
@@ -519,8 +517,8 @@ class _StatsScreenState extends State<StatsScreen> {
                                   ..._grouped.entries.map((e) => Padding(
                                         padding:
                                             const EdgeInsets.only(bottom: 10),
-                                        child: _buildBreakdownCard(
-                                            e.key, e.value),
+                                        child:
+                                            _buildBreakdownCard(e.key, e.value),
                                       )),
                                 ],
                               ),

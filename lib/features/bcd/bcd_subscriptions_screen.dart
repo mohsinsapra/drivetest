@@ -418,8 +418,8 @@ class _ProductCard extends StatelessWidget {
                 const Spacer(),
                 if (isFree || owned)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: cs.primary.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(20),
@@ -436,8 +436,8 @@ class _ProductCard extends StatelessWidget {
                   )
                 else if (durationLabel != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: cs.onSurface.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(20),
@@ -463,8 +463,7 @@ class _ProductCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Divider(
-                height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
+            Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             if (isFree || owned)
               AppFilledButton(

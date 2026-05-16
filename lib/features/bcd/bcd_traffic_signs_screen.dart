@@ -116,8 +116,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
                         controller: _scrollController,
                         slivers: [
                           SliverPadding(
-                            padding:
-                                const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
                             sliver: SliverList.builder(
                               itemCount: _filtered.length,
                               itemBuilder: (ctx, i) => _SignGroupCard(

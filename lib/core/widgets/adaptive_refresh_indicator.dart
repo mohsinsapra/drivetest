@@ -23,8 +23,7 @@ class AdaptiveRefreshIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectivePhysics =
-        physics ?? const AlwaysScrollableScrollPhysics();
+    final effectivePhysics = physics ?? const AlwaysScrollableScrollPhysics();
 
     if (_useCupertino(context)) {
       return CustomScrollView(

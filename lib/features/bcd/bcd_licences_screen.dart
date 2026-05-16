@@ -191,8 +191,7 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
                                           .bcd_no_match_search
                                       : Translations.of(context)
                                           .bcd_no_categories,
-                                  style:
-                                      TextStyle(color: Colors.grey.shade500),
+                                  style: TextStyle(color: Colors.grey.shade500),
                                 ),
                               ),
                             ),
