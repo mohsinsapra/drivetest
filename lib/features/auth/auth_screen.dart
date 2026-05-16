@@ -994,8 +994,10 @@ class _LandingView extends StatelessWidget {
                         Text(
                           Translations.of(context).auth_landing_subtitle,
                           textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
+                            fontSize: 13,
                             color: cs.onSurfaceVariant,
                             height: 1.5,
                           ),
@@ -1315,8 +1317,10 @@ class _LoginPageState extends State<_LoginPage> {
                               const SizedBox(height: 8),
                               Text(
                                 t.auth_login_subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 16,
+                                  fontSize: 13,
                                   color: cs.onSurfaceVariant,
                                 ),
                               ),
@@ -1617,8 +1621,10 @@ class _SignupPageState extends State<_SignupPage> {
                               const SizedBox(height: 8),
                               Text(
                                 t.auth_signup_subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 15,
+                                  fontSize: 13,
                                   color: cs.onSurfaceVariant,
                                 ),
                               ),

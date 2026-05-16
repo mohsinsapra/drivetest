@@ -5,37 +5,57 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.00021">
+      <testcase classname="fastlane.lanes" name="00: default_platform" time="0.000224">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: Switch to ios build lane" time="0.000114">
+      <testcase classname="fastlane.lanes" name="01: Switch to ios build lane" time="9.1e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: get_provisioning_profile" time="5.357883">
+      <testcase classname="fastlane.lanes" name="02: get_provisioning_profile" time="4.395539">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: Switch to ios build_ios_archive lane" time="0.000126">
+      <testcase classname="fastlane.lanes" name="03: Switch to ios build_ios_archive lane" time="0.000139">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: Switch to ios resolve_xcode_dart_defines lane" time="5.9e-05">
+      <testcase classname="fastlane.lanes" name="04: Switch to ios resolve_xcode_dart_defines lane" time="5.6e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="5: Switch to ios load_root_env lane" time="9.5e-05">
+      <testcase classname="fastlane.lanes" name="05: Switch to ios load_root_env lane" time="7.4e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="6: build_app" time="34.435601">
+      <testcase classname="fastlane.lanes" name="06: build_app" time="218.715371">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="07: Switch to ios tag_release lane" time="0.000128">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="08: git tag v1.1.3-201" time="0.012155">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="09: Switch to ios upload lane" time="9.7e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="10: xcrun altool --upload-app -f '/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/ios/Runner.ipa' -t ios -u mohsin.sapra@gmail.com -p 'oknc-vmhh-amvb-vust' --asc-provider 128337297 --output-format normal" time="93.588373">
         
       </testcase>
     
