@@ -13,6 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.5+203] - 2026-05-16
+
+### Added
+-
+
+### Changed
 - Platform-adaptive pull-to-refresh: Cupertino spinner on iOS/web, Material on Android across all scrollable screens (home, dashboard, licences, BCD licences, BCD traffic signs, stats)
 - Subscription screen pull-to-refresh uses `RefreshIndicator.adaptive` to avoid gesture conflicts inside `TabBarView`
 - Consistent "Log in" button label across auth and login screens
@@ -22,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Apple sign-in button icon color in dark mode now follows theme (matches Google icon treatment)
 
+---
 ---
 
 ## [1.1.4+202] - 2026-05-16

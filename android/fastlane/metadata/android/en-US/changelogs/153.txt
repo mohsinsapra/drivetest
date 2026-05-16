@@ -1,0 +1,9 @@
+Added
+-
+
+Changed
+• Platform-adaptive pull-to-refresh: Cupertino spinner on iOS/web, Material on Android across all scrollable screens (home, dashboard, licences, BCD licences, BCD traffic signs, stats)
+• Subscription screen pull-to-refresh uses `RefreshIndicator.adaptive` to avoid gesture conflicts inside `TabBarView`
+• Consistent "Log in" button label across auth and login screens
+• Auth screen subtitles constrained to single line (scaled down to fit)
+• Onboarding "GET STARTED" title now exp...
