@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.6+204] - 2026-05-16
+
+### Added
 - `hasResumableProgressChanges` helper and targeted regression test coverage for resumed test progress detection
 - `TestAttemptSaveService` and regression tests covering local-first save order and backend sync failure handling
 
@@ -23,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Paused and completed test saves now await the backend sync attempt before the screen closes or the flow continues
 - Test attempts are now always written to local storage first, and `Save & Exit` keeps the user on the test screen with an error message if backend sync fails instead of silently closing
 
+---
 ---
 
 ## [1.1.5+203] - 2026-05-16

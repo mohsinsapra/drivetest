@@ -1,0 +1,7 @@
+Added
+• `hasResumableProgressChanges` helper and targeted regression test coverage for resumed test progress detection
+• `TestAttemptSaveService` and regression tests covering local-first save order and backend sync failure handling
+
+Changed
+• Moved test/save/resume UI copy in the test screen, result screen, finish/result dialogs, and saved-progress deletion prompts to the existing i18n translation files
+• Added new EN/SV translation keys for test flow feedback, result summaries, exit/save pr...
