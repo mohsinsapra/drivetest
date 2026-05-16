@@ -224,7 +224,11 @@ class ApiService {
     }
 
     // No saved token, or restoration failed — create a fresh guest account.
-    final response = await _dio.post('api/user/guest/');
+    // Use a bare Dio with no interceptors so a server error is a plain
+    // exception and never triggers logoutAndRedirect (which would navigate
+    // away and swallow the error before the caller can handle it).
+    final bareDio = Dio(BaseOptions(baseUrl: _dio.options.baseUrl));
+    final response = await bareDio.post('api/user/guest/');
     final access = response.data['access'] as String;
     final refresh = response.data['refresh'] as String;
     await _dioClient.setTokens(access: access, refresh: refresh);
