@@ -315,7 +315,7 @@ class _PlansTab extends StatelessWidget {
       );
     }
 
-    return RefreshIndicator(
+    return RefreshIndicator.adaptive(
       onRefresh: onRefresh,
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
@@ -368,6 +368,7 @@ class _ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+    final t = Translations.of(context);
     final name = product['name']?.toString() ?? 'Plan';
     final price = product['price']?.toString() ?? '';
     final currency = product['currency']?.toString() ?? 'SEK';
@@ -417,16 +418,14 @@ class _ProductCard extends StatelessWidget {
                 const Spacer(),
                 if (isFree || owned)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: cs.primary.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      isFree
-                          ? Translations.of(context).bcd_free_label
-                          : Translations.of(context).bcd_active_label,
+                      isFree ? t.bcd_free_label : t.bcd_active_label,
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -437,8 +436,8 @@ class _ProductCard extends StatelessWidget {
                   )
                 else if (durationLabel != null)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: cs.onSurface.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(20),
@@ -464,11 +463,12 @@ class _ProductCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
+            Divider(
+                height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             if (isFree || owned)
               AppFilledButton(
-                label: Translations.of(context).bcd_start_practice,
+                label: t.bcd_start_practice,
                 onPressed: isFree ? onFreeAccess : onStartPractice,
                 icon: const Icon(LucideIcons.bookOpenCheck, size: 16),
               )
@@ -486,7 +486,7 @@ class _ProductCard extends StatelessWidget {
                       ),
                     ),
                   AppFilledButton(
-                    label: Translations.of(context).bcd_subscribe_btn,
+                    label: t.bcd_subscribe_btn,
                     onPressed: disabled ? null : onBuy,
                     loading: buying,
                     minimumWidth: 0,
@@ -534,29 +534,36 @@ class _MySubscriptionsTab extends StatelessWidget {
 
     if (subscriptions.isEmpty) {
       final cs = Theme.of(context).colorScheme;
-      return RefreshIndicator(
+      return RefreshIndicator.adaptive(
         onRefresh: onRefresh,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(LucideIcons.packageOpen,
-                  size: 48, color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
-              const SizedBox(height: 12),
-              Text(Translations.of(context).bcd_no_plans,
-                  style: TextStyle(color: cs.onSurfaceVariant)),
-              const SizedBox(height: 4),
-              Text(Translations.of(context).bcd_browse_plans,
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: cs.onSurfaceVariant.withValues(alpha: 0.6))),
-            ],
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: 300,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(LucideIcons.packageOpen,
+                      size: 48,
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
+                  const SizedBox(height: 12),
+                  Text(Translations.of(context).bcd_no_plans,
+                      style: TextStyle(color: cs.onSurfaceVariant)),
+                  const SizedBox(height: 4),
+                  Text(Translations.of(context).bcd_browse_plans,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: cs.onSurfaceVariant.withValues(alpha: 0.6))),
+                ],
+              ),
+            ),
           ),
         ),
       );
     }
 
-    return RefreshIndicator(
+    return RefreshIndicator.adaptive(
       onRefresh: onRefresh,
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),

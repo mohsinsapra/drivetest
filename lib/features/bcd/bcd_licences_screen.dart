@@ -1,4 +1,5 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -176,43 +177,45 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
           Expanded(
             child: _loading
                 ? _Shimmer()
-                : RefreshIndicator(
+                : AdaptiveRefreshIndicator(
                     onRefresh: _forceRefresh,
-                    child: _filtered.isEmpty
-                        ? ListView(
-                            children: [
-                              SizedBox(
-                                height: 300,
-                                child: Center(
-                                  child: Text(
-                                    _searchQuery.isNotEmpty
-                                        ? Translations.of(context)
-                                            .bcd_no_match_search
-                                        : Translations.of(context)
-                                            .bcd_no_categories,
-                                    style:
-                                        TextStyle(color: Colors.grey.shade500),
-                                  ),
+                    controller: _scrollController,
+                    slivers: _filtered.isEmpty
+                        ? [
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: Center(
+                                child: Text(
+                                  _searchQuery.isNotEmpty
+                                      ? Translations.of(context)
+                                          .bcd_no_match_search
+                                      : Translations.of(context)
+                                          .bcd_no_categories,
+                                  style:
+                                      TextStyle(color: Colors.grey.shade500),
                                 ),
                               ),
-                            ],
-                          )
-                        : ListView.builder(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _filtered.length,
-                            itemBuilder: (_, i) {
-                              final cat = _filtered[i];
-                              return _StaggeredItem(
-                                index: i,
-                                animate: _animateList,
-                                child: _CategoryCard(
-                                  category: cat,
-                                  onTap: () => _onCategoryTap(cat),
-                                ),
-                              );
-                            },
-                          ),
+                            ),
+                          ]
+                        : [
+                            SliverPadding(
+                              padding: const EdgeInsets.all(16),
+                              sliver: SliverList.builder(
+                                itemCount: _filtered.length,
+                                itemBuilder: (_, i) {
+                                  final cat = _filtered[i];
+                                  return _StaggeredItem(
+                                    index: i,
+                                    animate: _animateList,
+                                    child: _CategoryCard(
+                                      category: cat,
+                                      onTap: () => _onCategoryTap(cat),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                   ),
           ),
         ],

@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:math';
 
@@ -426,125 +427,140 @@ class _StatsScreenState extends State<StatsScreen> {
                     ],
                   ),
                 )
-              : RefreshIndicator(
+              : AdaptiveRefreshIndicator(
                   onRefresh: _loadAttempts,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      // ── 2×3 stat grid ─────────────────────────────────────
-                      GridView.count(
-                        crossAxisCount: 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 1.6,
-                        children: [
-                          _statCard(
-                            value: '$_completedCount',
-                            label: 'Completed tests',
-                            icon: Icons.description_outlined,
-                            iconBg: Colors.blue.withValues(alpha: 0.15),
-                            iconColor: const Color(0xFF1976D2),
-                          ),
-                          _statCard(
-                            value: '${_passRate.round()}%',
-                            label: 'Pass rate',
-                            icon: Icons.gps_fixed,
-                            iconBg: Colors.green.withValues(alpha: 0.15),
-                            iconColor: const Color(0xFF388E3C),
-                          ),
-                          _statCard(
-                            value: '${_bestScore.round()}%',
-                            label: 'Best score',
-                            icon: Icons.emoji_events_outlined,
-                            iconBg: Colors.orange.withValues(alpha: 0.15),
-                            iconColor: const Color(0xFFF57C00),
-                          ),
-                          _statCard(
-                            value: '${_avgScore.round()}%',
-                            label: 'Average score',
-                            icon: Icons.trending_up,
-                            iconBg: Colors.blue.withValues(alpha: 0.15),
-                            iconColor: const Color(0xFF1976D2),
-                          ),
-                          _statCard(
-                            value: _fmtDuration(_totalSeconds),
-                            label: 'Total study time',
-                            icon: Icons.access_time,
-                            iconBg: Colors.purple.withValues(alpha: 0.15),
-                            iconColor: const Color(0xFF7B1FA2),
-                          ),
-                          _statCard(
-                            value: '${_latestScore.round()}%',
-                            label: 'Latest result',
-                            icon: Icons.cancel_outlined,
-                            iconBg: Colors.red.withValues(alpha: 0.15),
-                            iconColor: const Color(0xFFD32F2F),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // ── Per-test breakdown ────────────────────────────────
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2))
-                          ],
-                        ),
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.all(16),
+                      sliver: SliverToBoxAdapter(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const Text('Per-test breakdown',
-                                style: TextStyle(
-                                    fontSize: 17, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 14),
-                            ..._grouped.entries.map((e) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: _buildBreakdownCard(e.key, e.value),
-                                )),
+                            // ── 2×3 stat grid ─────────────────────────────────────
+                            GridView.count(
+                              crossAxisCount: 2,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 1.6,
+                              children: [
+                                _statCard(
+                                  value: '$_completedCount',
+                                  label: 'Completed tests',
+                                  icon: Icons.description_outlined,
+                                  iconBg: Colors.blue.withValues(alpha: 0.15),
+                                  iconColor: const Color(0xFF1976D2),
+                                ),
+                                _statCard(
+                                  value: '${_passRate.round()}%',
+                                  label: 'Pass rate',
+                                  icon: Icons.gps_fixed,
+                                  iconBg: Colors.green.withValues(alpha: 0.15),
+                                  iconColor: const Color(0xFF388E3C),
+                                ),
+                                _statCard(
+                                  value: '${_bestScore.round()}%',
+                                  label: 'Best score',
+                                  icon: Icons.emoji_events_outlined,
+                                  iconBg:
+                                      Colors.orange.withValues(alpha: 0.15),
+                                  iconColor: const Color(0xFFF57C00),
+                                ),
+                                _statCard(
+                                  value: '${_avgScore.round()}%',
+                                  label: 'Average score',
+                                  icon: Icons.trending_up,
+                                  iconBg: Colors.blue.withValues(alpha: 0.15),
+                                  iconColor: const Color(0xFF1976D2),
+                                ),
+                                _statCard(
+                                  value: _fmtDuration(_totalSeconds),
+                                  label: 'Total study time',
+                                  icon: Icons.access_time,
+                                  iconBg:
+                                      Colors.purple.withValues(alpha: 0.15),
+                                  iconColor: const Color(0xFF7B1FA2),
+                                ),
+                                _statCard(
+                                  value: '${_latestScore.round()}%',
+                                  label: 'Latest result',
+                                  icon: Icons.cancel_outlined,
+                                  iconBg: Colors.red.withValues(alpha: 0.15),
+                                  iconColor: const Color(0xFFD32F2F),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            // ── Per-test breakdown ────────────────────────────────
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.04),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 2))
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Per-test breakdown',
+                                      style: TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 14),
+                                  ..._grouped.entries.map((e) => Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 10),
+                                        child: _buildBreakdownCard(
+                                            e.key, e.value),
+                                      )),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // ── All attempts ──────────────────────────────────────
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.04),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 2))
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('All attempts',
+                                      style: TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 14),
+                                  ..._attempts.map(_allAttemptRow),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 24),
                           ],
                         ),
                       ),
-
-                      const SizedBox(height: 16),
-
-                      // ── All attempts ──────────────────────────────────────
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2))
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('All attempts',
-                                style: TextStyle(
-                                    fontSize: 17, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 14),
-                            ..._attempts.map(_allAttemptRow),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
     );
   }

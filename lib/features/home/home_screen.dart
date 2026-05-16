@@ -1,5 +1,7 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -282,15 +284,22 @@ class _HomeScreenState extends State<HomeScreen>
         child: _isLoading
             ? _buildSkeleton() // show shimmer immediately, no translation needed
             : SafeArea(
-                child: RefreshIndicator(
-                  onRefresh: () async {
+                child: Builder(builder: (context) {
+                  final useCupertino = !kIsWeb
+                      ? Theme.of(context).platform == TargetPlatform.iOS
+                      : true;
+
+                  Future<void> onRefresh() async {
                     HomeDataCache.invalidate();
                     await Future(() => _loadPreviousAttempts(forceSync: true));
-                  },
-                  child: FadeTransition(
+                  }
+
+                  final scrollView = FadeTransition(
                     opacity: _fadeAnimation,
                     child: CustomScrollView(
                       slivers: [
+                        if (useCupertino)
+                          CupertinoSliverRefreshControl(onRefresh: onRefresh),
                         // Header
                         SliverToBoxAdapter(child: _buildHeader()),
 
@@ -345,8 +354,15 @@ class _HomeScreenState extends State<HomeScreen>
                         ],
                       ],
                     ),
-                  ),
-                ), // RefreshIndicator
+                  );
+
+                  return useCupertino
+                      ? scrollView
+                      : RefreshIndicator(
+                          onRefresh: onRefresh,
+                          child: scrollView,
+                        );
+                }),
               ),
       ),
     );

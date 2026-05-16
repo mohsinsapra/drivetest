@@ -1,4 +1,5 @@
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
+import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -463,32 +464,36 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     const double tileWidth = 180;
     const double tileHeight = 240;
 
-    return RefreshIndicator(
+    return AdaptiveRefreshIndicator(
       onRefresh: _loadLicenseTypes,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Center(
-          child: Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            alignment: WrapAlignment.center,
-            children: licenseTypes.asMap().entries.map((e) {
-              final licenseType = e.value;
-              return _LicenceStaggeredItem(
-                index: e.key,
-                child: SizedBox(
-                  width: tileWidth,
-                  height: tileHeight,
-                  child: LicenseTypeCard(
-                    licenseType: licenseType,
-                    onTap: () => _onLicenseTypePressed(licenseType),
-                  ),
-                ),
-              );
-            }).toList(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          sliver: SliverToBoxAdapter(
+            child: Center(
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                alignment: WrapAlignment.center,
+                children: licenseTypes.asMap().entries.map((e) {
+                  final licenseType = e.value;
+                  return _LicenceStaggeredItem(
+                    index: e.key,
+                    child: SizedBox(
+                      width: tileWidth,
+                      height: tileHeight,
+                      child: LicenseTypeCard(
+                        licenseType: licenseType,
+                        onTap: () => _onLicenseTypePressed(licenseType),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 

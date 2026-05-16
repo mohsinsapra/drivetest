@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:collection/collection.dart';
@@ -128,10 +129,10 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
             errorKind: provider.errorKind,
             onRetry: () => context.read<DashboardProvider>().init(),
           ),
-        DashboardStatus.loaded => RefreshIndicator(
+        DashboardStatus.loaded => _DashboardBody(
+            provider: provider,
+            onSubscribe: _handleSubscribe,
             onRefresh: () => context.read<DashboardProvider>().syncNow(),
-            child: _DashboardBody(
-                provider: provider, onSubscribe: _handleSubscribe),
           ),
       },
     );
@@ -143,9 +144,14 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _DashboardBody extends StatelessWidget {
-  const _DashboardBody({required this.provider, required this.onSubscribe});
+  const _DashboardBody({
+    required this.provider,
+    required this.onSubscribe,
+    required this.onRefresh,
+  });
   final DashboardProvider provider;
   final VoidCallback onSubscribe;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -153,8 +159,8 @@ class _DashboardBody extends StatelessWidget {
     final t = Translations.of(context);
     final theme = Theme.of(context);
 
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
+    return AdaptiveRefreshIndicator(
+      onRefresh: onRefresh,
       slivers: [
         // ── Hero ──────────────────────────────────────────────────────────────
         SliverToBoxAdapter(child: _HeroSection(stats: stats)),
@@ -214,6 +220,7 @@ class _DashboardBody extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+
 // Hero
 // ─────────────────────────────────────────────────────────────────────────────
 

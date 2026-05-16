@@ -237,7 +237,9 @@
       "Bash(awk '{print $2, $11, $12}')",
       "Bash(awk '{print $2, $11, $12, $13}')",
       "Bash(pkill -f \"fswatch\")",
-      "Bash(kill 52357)"
+      "Bash(kill 52357)",
+      "Bash(sed *)",
+      "Bash(xargs dirname)"
     ],
     "deny": [],
     "ask": []

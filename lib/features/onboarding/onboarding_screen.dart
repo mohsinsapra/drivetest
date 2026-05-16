@@ -611,7 +611,7 @@ class _TopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Flexible(
+          Expanded(
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
@@ -688,24 +688,29 @@ class _StepHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        RichText(
-          text: TextSpan(
-            style: GoogleFonts.lexend(
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
-              color: cs.onSurface,
-              height: 1.2,
-            ),
-            children: [
-              TextSpan(text: headlinePlain),
-              TextSpan(
-                text: headlineItalic,
-                style: GoogleFonts.lexend(
-                  fontStyle: FontStyle.italic,
-                  color: cs.primary,
-                ),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: RichText(
+            maxLines: 1,
+            text: TextSpan(
+              style: GoogleFonts.lexend(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface,
+                height: 1.2,
               ),
-            ],
+              children: [
+                TextSpan(text: headlinePlain),
+                TextSpan(
+                  text: headlineItalic,
+                  style: GoogleFonts.lexend(
+                    fontStyle: FontStyle.italic,
+                    color: cs.primary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

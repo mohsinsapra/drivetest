@@ -13,10 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
--
+- Platform-adaptive pull-to-refresh: Cupertino spinner on iOS/web, Material on Android across all scrollable screens (home, dashboard, licences, BCD licences, BCD traffic signs, stats)
+- Subscription screen pull-to-refresh uses `RefreshIndicator.adaptive` to avoid gesture conflicts inside `TabBarView`
+- Consistent "Log in" button label across auth and login screens
+- Auth screen subtitles constrained to single line (scaled down to fit)
+- Onboarding "GET STARTED" title now expands full width; step headline fits on one line
 
 ### Fixed
--
+- Apple sign-in button icon color in dark mode now follows theme (matches Google icon treatment)
 
 ---
 

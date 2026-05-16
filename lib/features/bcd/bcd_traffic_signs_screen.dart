@@ -1,4 +1,5 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
@@ -110,24 +111,29 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
                           ),
                         ),
                       ])
-                    : RefreshIndicator(
+                    : AdaptiveRefreshIndicator(
                         onRefresh: _provider.loadTrafficSigns,
-                        child: ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                          itemCount: _filtered.length,
-                          itemBuilder: (ctx, i) => _SignGroupCard(
-                            sign: _filtered[i],
-                            onTap: () => Navigator.push(
-                              context,
-                              AppPageRoute(
-                                builder: (_) => _SignGroupDetailScreen(
-                                  group: _filtered[i],
+                        controller: _scrollController,
+                        slivers: [
+                          SliverPadding(
+                            padding:
+                                const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                            sliver: SliverList.builder(
+                              itemCount: _filtered.length,
+                              itemBuilder: (ctx, i) => _SignGroupCard(
+                                sign: _filtered[i],
+                                onTap: () => Navigator.push(
+                                  context,
+                                  AppPageRoute(
+                                    builder: (_) => _SignGroupDetailScreen(
+                                      group: _filtered[i],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
           ),
         ],
