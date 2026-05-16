@@ -1,0 +1,4 @@
+Added
+• `AppFilledButton`, `AppOutlinedButton`, `AppDangerButton`, `AppTextButton` — four new centralised button variants in `lib/core/widgets/app_button.dart`; all button styling now lives in one file
+• 11 new translation keys (`btn_save_changes`, `btn_set_password`, `btn_delete_account`, `btn_deleting`, `btn_keep_going`, `btn_exit`, `btn_save_and_exit`, `btn_submit`, `btn_start_saved_test`, `btn_buy_now`, `btn_pay_now`) in EN and SV
+• `make web-tunnel` now auto hot-restarts the Flutter web ...

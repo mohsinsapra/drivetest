@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.1+199] - 2026-05-16
+
+### Added
 - `AppFilledButton`, `AppOutlinedButton`, `AppDangerButton`, `AppTextButton` — four new centralised button variants in `lib/core/widgets/app_button.dart`; all button styling now lives in one file
 - 11 new translation keys (`btn_save_changes`, `btn_set_password`, `btn_delete_account`, `btn_deleting`, `btn_keep_going`, `btn_exit`, `btn_save_and_exit`, `btn_submit`, `btn_start_saved_test`, `btn_buy_now`, `btn_pay_now`) in EN and SV
 - `make web-tunnel` now auto hot-restarts the Flutter web server on every `lib/` file save via `fswatch` + named pipe — changes appear on the tunnel URL without any manual action
@@ -30,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AppLoadingIndicator` threw "Unsupported operation" on Android and Web due to `dart:io` usage; now uses `flutter/foundation` APIs safe on all platforms
 - Progress bar removed from BCD licence cards (Categories screen)
 
+---
 ---
 
 ## [1.1.0+198] - 2026-05-16
