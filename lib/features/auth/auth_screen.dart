@@ -1394,7 +1394,7 @@ class _LoginPageState extends State<_LoginPage> {
                       Hero(
                         tag: 'auth_login_btn',
                         child: AppButton(
-                          label: t.auth_login_title,
+                          label: t.auth_tab_login,
                           loading: _isLoading,
                           loadingLabel: t.auth_signing_in,
                           onPressed: _login,
