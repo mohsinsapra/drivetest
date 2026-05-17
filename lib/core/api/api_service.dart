@@ -23,6 +23,11 @@ class ApiService {
   // one in-flight request and receive the same result.
   static Future<dynamic>? _inFlightSelf;
 
+  // Deduplicates simultaneous guestLogin calls — prevents multiple guest
+  // accounts being created when two callers fire before the first one saves
+  // the refresh token to SharedPreferences.
+  static Future<void>? _inFlightGuestLogin;
+
   Future<bool> authenticate(String username, String password) async {
     try {
       final response = await _dio.post(
@@ -195,7 +200,14 @@ class ApiService {
   ///   2. Token exchange succeeds → restore session, done.
   ///   3. Token exchange fails → discard saved token, create new guest account.
   ///   4. No saved token → create new guest account.
-  Future<void> guestLogin() async {
+  Future<void> guestLogin() {
+    _inFlightGuestLogin ??= _doGuestLogin().whenComplete(() {
+      _inFlightGuestLogin = null;
+    });
+    return _inFlightGuestLogin!;
+  }
+
+  Future<void> _doGuestLogin() async {
     final prefs = await SharedPreferences.getInstance();
     final savedRefresh = prefs.getString(AppStorage.kGuestRefreshToken);
 
