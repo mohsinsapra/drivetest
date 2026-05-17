@@ -144,8 +144,8 @@ Future<void> _appMain() async {
       isAuthenticated: () => DioClient().accessToken != null,
       fetchCurrentUser: () => ApiService().fetchCurrentUser().then((_) {}),
       minInterval: kReleaseMode
-          ? const Duration(seconds: 30)
-          : const Duration(seconds: 5),
+          ? const Duration(minutes: 5)
+          : const Duration(seconds: 30),
     ),
   )..attach();
 
