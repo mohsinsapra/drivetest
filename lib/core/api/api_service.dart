@@ -82,9 +82,10 @@ class ApiService {
       }
     }
 
-    // Discard any in-flight fetchCurrentUser future so the next session
-    // never receives the previous user's data from a pending network call.
+    // Discard any in-flight futures so the next session never receives
+    // stale data or tokens from a pending network call.
     _inFlightSelf = null;
+    _inFlightGuestLogin = null;
 
     // Always clear local tokens regardless of server response.
     try {
@@ -214,7 +215,11 @@ class ApiService {
     if (savedRefresh != null) {
       // Use a bare Dio with no interceptors so failure is a plain exception
       // and never triggers DioClient.logoutAndRedirect().
-      final bareDio = Dio(BaseOptions(baseUrl: _dio.options.baseUrl));
+      final bareDio = Dio(BaseOptions(
+        baseUrl: _dio.options.baseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+      ));
       try {
         final refreshResponse = await bareDio.post(
           'api/token/refresh/',
@@ -239,7 +244,11 @@ class ApiService {
     // Use a bare Dio with no interceptors so a server error is a plain
     // exception and never triggers logoutAndRedirect (which would navigate
     // away and swallow the error before the caller can handle it).
-    final bareDio = Dio(BaseOptions(baseUrl: _dio.options.baseUrl));
+    final bareDio = Dio(BaseOptions(
+      baseUrl: _dio.options.baseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+    ));
     final response = await bareDio.post('api/user/guest/');
     final access = response.data['access'] as String;
     final refresh = response.data['refresh'] as String;
