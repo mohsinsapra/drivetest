@@ -239,7 +239,12 @@
       "Bash(pkill -f \"fswatch\")",
       "Bash(kill 52357)",
       "Bash(sed *)",
-      "Bash(xargs dirname)"
+      "Bash(xargs dirname)",
+      "Bash(curl *)",
+      "Bash(dig taxiexam.hayatpoetry.com +short)",
+      "Bash(xargs -I{} whois {})",
+      "Bash(grep -v \"Duration\\(seconds: [1-9][0-9]\\\\{2,\\\\}\")",
+      "Bash(cloudflared --version)"
     ],
     "deny": [],
     "ask": []
