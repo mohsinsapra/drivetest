@@ -583,5 +583,7 @@
   "test_result_correct_answers": "Rätta svar",
   "test_result_wrong_answers": "Felaktiga svar",
   "test_result_question_row": "F{n}: {text}",
-  "test_result_your_answer": "Ditt svar: {answer}"
+  "test_result_your_answer": "Ditt svar: {answer}",
+  "error_too_many_requests": "För många försök. Försök igen om {wait}.",
+  "error_service_unavailable": "Tjänsten är tillfälligt otillgänglig. Försök igen om en stund."
 }

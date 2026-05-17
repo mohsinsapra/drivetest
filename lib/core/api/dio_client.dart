@@ -17,7 +17,8 @@ import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 
-import 'package:taxi_exam_app/core/utils/crypto_service.dart'; // For HMAC-SHA256 decryption
+import 'package:taxi_exam_app/core/utils/crypto_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();
@@ -264,6 +265,30 @@ class DioClient {
             }
           }
         }
+        // 429 — rate limited / throttled
+        if (error.response?.statusCode == 429) {
+          final retryAfterRaw =
+              error.response?.headers.value('retry-after') ?? '';
+          final retrySeconds = int.tryParse(retryAfterRaw) ?? 60;
+          final waitMsg = retrySeconds >= 60
+              ? '${(retrySeconds / 60).ceil()} min'
+              : '$retrySeconds s';
+          showAppSnackBar(
+            t.error_too_many_requests.replaceAll('{wait}', waitMsg),
+            type: SnackBarType.error,
+          );
+          return handler.next(error);
+        }
+
+        // 503 — server temporarily unavailable (e.g. Google auth timeout)
+        if (error.response?.statusCode == 503) {
+          showAppSnackBar(
+            t.error_service_unavailable,
+            type: SnackBarType.error,
+          );
+          return handler.next(error);
+        }
+
         return handler.next(error);
       },
     ));

@@ -164,11 +164,14 @@ class _AuthScreenState extends State<AuthScreen> {
           isFirstLogin: isFirstLogin, displayName: googleUser.displayName);
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _landingError = _isDeletedAccountError(e)
-            ? Translations.of(context).auth_deleted_account_welcome_back
-            : GoogleSignInHelper.userMessage(e);
-      });
+      // 429/503 already handled by DioClient snackbar — don't show inline error
+      if (!_isThrottleOrServerError(e)) {
+        setState(() {
+          _landingError = _isDeletedAccountError(e)
+              ? Translations.of(context).auth_deleted_account_welcome_back
+              : GoogleSignInHelper.userMessage(e);
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -207,9 +210,11 @@ class _AuthScreenState extends State<AuthScreen> {
         setState(() => _isAppleLoading = false);
         return;
       }
-      setState(() {
-        _landingError = Translations.of(context).auth_generic_error;
-      });
+      if (!_isThrottleOrServerError(e)) {
+        setState(() {
+          _landingError = Translations.of(context).auth_generic_error;
+        });
+      }
     } finally {
       if (mounted) setState(() => _isAppleLoading = false);
     }
@@ -226,6 +231,12 @@ class _AuthScreenState extends State<AuthScreen> {
       if (detail.contains('account has been deleted')) return true;
     }
     return false;
+  }
+
+  bool _isThrottleOrServerError(Object error) {
+    if (error is! DioException) return false;
+    final code = error.response?.statusCode;
+    return code == 429 || code == 503;
   }
 
   // ── Route factories for login / signup ────────────────────────────────────
@@ -1217,6 +1228,12 @@ class _LoginPageState extends State<_LoginPage> {
     return false;
   }
 
+  bool _isThrottleOrServerError(Object error) {
+    if (error is! DioException) return false;
+    final code = error.response?.statusCode;
+    return code == 429 || code == 503;
+  }
+
   Future<void> _login() async {
     final t = Translations.of(context);
     final errors = <String, String?>{};
@@ -1261,11 +1278,14 @@ class _LoginPageState extends State<_LoginPage> {
       }
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _error = _isDeletedAccountError(e)
-            ? Translations.of(context).auth_deleted_account_welcome_back
-            : Translations.of(context).auth_invalid_credentials;
-      });
+      // 429/503 already handled by DioClient snackbar — don't show inline error
+      if (!_isThrottleOrServerError(e)) {
+        setState(() {
+          _error = _isDeletedAccountError(e)
+              ? Translations.of(context).auth_deleted_account_welcome_back
+              : Translations.of(context).auth_invalid_credentials;
+        });
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
