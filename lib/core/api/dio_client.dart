@@ -265,6 +265,17 @@ class DioClient {
             }
           }
         }
+        // Connection/receive/send timeout
+        if (error.type == DioExceptionType.connectionTimeout ||
+            error.type == DioExceptionType.receiveTimeout ||
+            error.type == DioExceptionType.sendTimeout) {
+          showAppSnackBar(
+            t.error_connection_timeout,
+            type: SnackBarType.error,
+          );
+          return handler.next(error);
+        }
+
         // 429 — rate limited / throttled
         if (error.response?.statusCode == 429) {
           final retryAfterRaw =

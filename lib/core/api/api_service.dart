@@ -234,6 +234,19 @@ class ApiService {
         debugPrint('[ApiService] guest session restored');
         return;
       } catch (e) {
+        // Network/timeout errors mean we can't reach the server at all —
+        // propagate so the caller shows a proper "timed out" message instead
+        // of silently creating a new guest account (which would lose the old
+        // session and navigate to home after a 10-second wait).
+        if (e is DioException &&
+            (e.type == DioExceptionType.connectionTimeout ||
+                e.type == DioExceptionType.receiveTimeout ||
+                e.type == DioExceptionType.sendTimeout ||
+                e.type == DioExceptionType.connectionError)) {
+          rethrow;
+        }
+        // Auth errors (expired/invalid token) → discard saved token and
+        // fall through to create a fresh guest account below.
         debugPrint('[ApiService] guest token restore failed, creating new: $e');
         await prefs.remove(AppStorage.kGuestRefreshToken);
       }

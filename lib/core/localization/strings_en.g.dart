@@ -701,6 +701,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
       'Too many attempts. Please try again in {wait}.';
   String get error_service_unavailable =>
       'Service temporarily unavailable. Please try again in a moment.';
+  String get error_connection_timeout =>
+      'Connection timed out. Check your internet and try again.';
 }
 
 /// Flat map(s) containing all translations.
@@ -1846,6 +1848,8 @@ extension on Translations {
         return 'Too many attempts. Please try again in {wait}.';
       case 'error_service_unavailable':
         return 'Service temporarily unavailable. Please try again in a moment.';
+      case 'error_connection_timeout':
+        return 'Connection timed out. Check your internet and try again.';
       default:
         return null;
     }

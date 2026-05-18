@@ -585,5 +585,6 @@
   "test_result_question_row": "F{n}: {text}",
   "test_result_your_answer": "Ditt svar: {answer}",
   "error_too_many_requests": "För många försök. Försök igen om {wait}.",
-  "error_service_unavailable": "Tjänsten är tillfälligt otillgänglig. Försök igen om en stund."
+  "error_service_unavailable": "Tjänsten är tillfälligt otillgänglig. Försök igen om en stund.",
+  "error_connection_timeout": "Anslutningen tog för lång tid. Kontrollera din anslutning och försök igen."
 }

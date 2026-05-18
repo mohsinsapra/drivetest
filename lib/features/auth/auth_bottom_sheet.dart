@@ -189,10 +189,16 @@ class _AuthSheetState extends State<_AuthSheet>
       await _api.authenticate(_loginUser.text.trim(), _loginPass.text);
       if (!mounted) return;
       await _onSuccess();
-    } on DioException {
+    } on DioException catch (e) {
       if (!mounted) return;
+      // Timeout and throttle errors are shown via DioClient snackbar — suppress inline.
+      final silenced = e.response?.statusCode == 429 ||
+          e.response?.statusCode == 503 ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout;
       setState(() {
-        _loginError = t.auth_invalid_credentials;
+        _loginError = silenced ? null : t.auth_invalid_credentials;
         _formLoading = false;
       });
     } catch (_) {

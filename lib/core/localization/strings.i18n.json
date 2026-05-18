@@ -585,5 +585,6 @@
   "test_result_question_row": "Q{n}: {text}",
   "test_result_your_answer": "Your answer: {answer}",
   "error_too_many_requests": "Too many attempts. Please try again in {wait}.",
-  "error_service_unavailable": "Service temporarily unavailable. Please try again in a moment."
+  "error_service_unavailable": "Service temporarily unavailable. Please try again in a moment.",
+  "error_connection_timeout": "Connection timed out. Check your internet and try again."
 }

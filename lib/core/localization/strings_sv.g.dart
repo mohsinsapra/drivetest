@@ -1271,6 +1271,9 @@ class TranslationsSv implements Translations {
   @override
   String get error_service_unavailable =>
       'Tjänsten är tillfälligt otillgänglig. Försök igen om en stund.';
+  @override
+  String get error_connection_timeout =>
+      'Anslutningen tog för lång tid. Kontrollera din anslutning och försök igen.';
 }
 
 /// Flat map(s) containing all translations.
@@ -2416,6 +2419,8 @@ extension on TranslationsSv {
         return 'För många försök. Försök igen om {wait}.';
       case 'error_service_unavailable':
         return 'Tjänsten är tillfälligt otillgänglig. Försök igen om en stund.';
+      case 'error_connection_timeout':
+        return 'Anslutningen tog för lång tid. Kontrollera din anslutning och försök igen.';
       default:
         return null;
     }

@@ -73,8 +73,16 @@ class _AuthScreenState extends State<AuthScreen> {
       );
     } catch (e) {
       if (mounted) {
-        showAppSnackBar(Translations.of(context).auth_guest_session_error,
-            type: SnackBarType.error);
+        final isTimeout = e is DioException &&
+            (e.type == DioExceptionType.connectionTimeout ||
+                e.type == DioExceptionType.receiveTimeout ||
+                e.type == DioExceptionType.sendTimeout);
+        showAppSnackBar(
+          isTimeout
+              ? Translations.of(context).error_connection_timeout
+              : Translations.of(context).auth_guest_session_error,
+          type: SnackBarType.error,
+        );
       }
     } finally {
       if (mounted) setState(() => _isGuestLoading = false);
@@ -236,7 +244,11 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isThrottleOrServerError(Object error) {
     if (error is! DioException) return false;
     final code = error.response?.statusCode;
-    return code == 429 || code == 503;
+    if (code == 429 || code == 503) return true;
+    // Timeouts are shown via DioClient snackbar — suppress inline error.
+    return error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout;
   }
 
   // ── Route factories for login / signup ────────────────────────────────────
@@ -1231,7 +1243,10 @@ class _LoginPageState extends State<_LoginPage> {
   bool _isThrottleOrServerError(Object error) {
     if (error is! DioException) return false;
     final code = error.response?.statusCode;
-    return code == 429 || code == 503;
+    if (code == 429 || code == 503) return true;
+    return error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout;
   }
 
   Future<void> _login() async {
