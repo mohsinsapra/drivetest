@@ -16,11 +16,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Fixed
+-
+
+---
+
+## [1.1.12+210] - 2026-05-18
+
+### Added
+-
+
+### Changed
+-
+
+### Fixed
 - Show "Connection timed out" message instead of navigating to home when auth requests time out
 - Guest login no longer silently creates a new session after a restore timeout — network errors now surface a proper message and keep the user on the auth page
 - Login page no longer shows "Invalid credentials" on connection timeout — a snackbar with the correct timeout message is shown instead
 - Auth bottom sheet login suppresses the inline error for timeout and throttle cases already handled by the global snackbar
 
+---
 ---
 
 ## [1.1.11+209] - 2026-05-17
