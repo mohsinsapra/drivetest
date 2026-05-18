@@ -68,7 +68,7 @@ class _AuthScreenState extends State<AuthScreen> {
       });
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        AppPageRoute(builder: (_) => const MainScreen()),
+        AppPageRoute(builder: (_) => const OnboardingScreen()),
         (route) => false,
       );
     } catch (e) {
