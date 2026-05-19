@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,7 +81,10 @@ class IAPService {
     _pendingProductId = productDetails.id;
     _pendingInternalProductId = internalProductId;
 
-    final param = PurchaseParam(productDetails: productDetails);
+    final param = PurchaseParam(
+      productDetails: productDetails,
+      applicationUserName: AppStorage.currentUserId,
+    );
     await _iap.buyNonConsumable(purchaseParam: param);
 
     return _pendingCompleter!.future;
@@ -94,18 +98,25 @@ class IAPService {
 
       if (purchase.status == PurchaseStatus.purchased ||
           purchase.status == PurchaseStatus.restored) {
+        Object? verifyError;
         try {
           debugPrint('[IAP] verifying on backend...');
           await _verifyOnBackend(purchase);
           debugPrint('[IAP] backend verified, completing purchase');
         } catch (e) {
+          verifyError = e;
           debugPrint('[IAP] backend verify failed: $e');
-          // Save the receipt so it can be retried after re-login or network recovery.
-          // Never surface this error to the user — the StoreKit transaction already succeeded.
-          try {
-            await _saveDeferredReceipt(purchase);
-          } catch (saveErr) {
-            debugPrint('[IAP] failed to save deferred receipt: $saveErr');
+          if (e is IAPSubscriptionOwnedByOtherAccountException) {
+            // Do not defer — this receipt will never succeed for the current user.
+            debugPrint('[IAP] subscription owned by other account, not deferring');
+          } else {
+            // Save the receipt so it can be retried after re-login or network recovery.
+            // Never surface this error to the user — the StoreKit transaction already succeeded.
+            try {
+              await _saveDeferredReceipt(purchase);
+            } catch (saveErr) {
+              debugPrint('[IAP] failed to save deferred receipt: $saveErr');
+            }
           }
         }
 
@@ -119,10 +130,15 @@ class IAPService {
 
         if (_pendingCompleter != null &&
             purchase.productID == _pendingProductId) {
-          // Active buy flow — always resolve as success so the user does not see
-          // a payment error. If backend verify failed, the receipt is saved for
-          // deferred processing.
-          _pendingCompleter?.complete(purchase.purchaseID);
+          if (verifyError is IAPSubscriptionOwnedByOtherAccountException) {
+            // Surface this specific error so the UI can show an actionable message.
+            _pendingCompleter?.completeError(verifyError);
+          } else {
+            // For all other outcomes (success or transient backend error) resolve
+            // as success — the StoreKit transaction completed and the receipt is
+            // deferred for retry if needed.
+            _pendingCompleter?.complete(purchase.purchaseID);
+          }
           _pendingCompleter = null;
           _pendingProductId = null;
           _pendingInternalProductId = null;
@@ -237,6 +253,7 @@ class IAPService {
         receiptData: data['receipt_data'] as String,
         iapProductId: data['product_id'] as String,
         internalProductId: data['internal_product_id'] as int?,
+        appUserId: AppStorage.currentUserId,
       );
       await prefs.remove(_kDeferredKey);
       debugPrint('[IAP] deferred receipt verified and cleared');
@@ -249,37 +266,43 @@ class IAPService {
 
   Future<void> _verifyOnBackend(PurchaseDetails purchase) async {
     if (kIsWeb || !Platform.isIOS) return;
-    // Local StoreKit testing produces JWS tokens Apple's servers can't verify.
-    // For the buy flow (_pendingInternalProductId set) call confirmBCDIAPPurchase
-    // directly. For restored events (no internalProductId) skip — the backend
-    // already has the subscription from the original purchase.
-    //
-    // IMPORTANT: Only confirm `purchased` status, never `restored`. A `restored`
-    // status during an initiated buy means the Apple ID already owns this
-    // subscription (iOS "You're currently subscribed" dialog) — confirming it
-    // would grant access to whichever backend user is currently logged in, even
-    // if they are not the original purchaser.
-    if (purchase.status == PurchaseStatus.restored) {
-      debugPrint(
-          '[IAP] skipping backend verify for restored purchase — subscription belongs to original purchaser');
-      return;
-    }
+    // Both `purchased` and `restored` must be verified on the backend.
+    // `restored` happens when the Apple ID already owns the subscription (e.g. a
+    // different app account is logged in on the same Apple ID). The backend's
+    // original_transaction_id binding enforces ownership:
+    //   • Same app account  → 200 idempotent, subscription already active.
+    //   • Different account → 409, throws IAPSubscriptionOwnedByOtherAccountException.
     if (kDebugMode) {
       if (_pendingInternalProductId != null) {
         debugPrint(
             '[IAP] debug mode: confirming purchase on backend (no Apple verify)');
-        await _api.confirmBCDIAPPurchase(_pendingInternalProductId!);
+        try {
+          await _api.confirmBCDIAPPurchase(_pendingInternalProductId!);
+        } on DioException catch (e) {
+          if (e.response?.statusCode == 409) {
+            throw IAPSubscriptionOwnedByOtherAccountException();
+          }
+          rethrow;
+        }
       } else {
         debugPrint(
             '[IAP] debug mode: skipping backend verify (no internalProductId)');
       }
       return;
     }
-    await _api.verifyAppleIAP(
-      receiptData: purchase.verificationData.serverVerificationData,
-      iapProductId: purchase.productID,
-      internalProductId: _pendingInternalProductId,
-    );
+    try {
+      await _api.verifyAppleIAP(
+        receiptData: purchase.verificationData.serverVerificationData,
+        iapProductId: purchase.productID,
+        internalProductId: _pendingInternalProductId,
+        appUserId: AppStorage.currentUserId,
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 409) {
+        throw IAPSubscriptionOwnedByOtherAccountException();
+      }
+      rethrow;
+    }
   }
 }
 
@@ -290,3 +313,14 @@ class _PurchaseCanceledException implements Exception {
 
 /// True if the exception represents a user-initiated cancellation.
 bool isIAPCancellation(Object e) => e is _PurchaseCanceledException;
+
+/// Thrown when the backend returns 409 — the Apple transaction's
+/// original_transaction_id is already bound to a different app account.
+class IAPSubscriptionOwnedByOtherAccountException implements Exception {
+  @override
+  String toString() => 'Subscription is linked to a different account';
+}
+
+/// True if the exception means the subscription belongs to another app account.
+bool isIAPOwnedByOtherAccount(Object e) =>
+    e is IAPSubscriptionOwnedByOtherAccountException;

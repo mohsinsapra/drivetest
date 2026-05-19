@@ -971,6 +971,7 @@ class ApiService {
     required String receiptData,
     required String iapProductId,
     int? internalProductId,
+    String? appUserId,
   }) async {
     final response = await _dio.post(
       'api/payment/iap/apple/verify/',
@@ -978,6 +979,7 @@ class ApiService {
         'receipt_data': receiptData,
         'product_id': iapProductId,
         if (internalProductId != null) 'internal_product_id': internalProductId,
+        if (appUserId != null && appUserId.isNotEmpty) 'app_user_id': appUserId,
       },
     );
     if (response.data is Map) {

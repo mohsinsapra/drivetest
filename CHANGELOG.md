@@ -10,13 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- `IAPSubscriptionOwnedByOtherAccountException` — typed exception thrown when a purchase or restore attempt is rejected because the Apple `original_transaction_id` is already bound to a different app account
+- `isIAPOwnedByOtherAccount()` helper for consistent exception matching at call sites
+- Localization keys `iap_owned_by_other_title`, `iap_owned_by_other_body`, `iap_owned_by_other_ok` in EN and SV — user-facing text for the account-conflict dialog
 
 ### Changed
--
+- `PurchaseParam` now passes `applicationUserName: currentUserId` — embeds the app user ID in every StoreKit transaction so the backend can enforce the account binding
+- `verifyAppleIAP` API call now includes `app_user_id` in the POST body for audit logging and binding verification
+- `_verifyOnBackend` no longer skips backend verification for `PurchaseStatus.restored` — both `purchased` and `restored` events are now verified; the backend's `original_transaction_id` binding enforces ownership (same account → 200 idempotent, different account → 409)
+- `_onPurchaseUpdate`: `IAPSubscriptionOwnedByOtherAccountException` is now propagated via `completer.completeError` instead of being silently deferred — the buy flow surfaces the error to the UI
+- `_onPurchaseUpdate`: deferred receipt is no longer saved when the backend returns 409 (it would never succeed for the current user)
+- `kDebugMode` path in `_verifyOnBackend` now catches 409 from `confirmBCDIAPPurchase` and converts it to `IAPSubscriptionOwnedByOtherAccountException` — same protection in debug mode as production
+- Backend `IAPAppleVerifyView`: extracts `original_transaction_id` separately from `transaction_id` for both StoreKit 2 (JWS) and StoreKit 1 receipt paths
+- Backend `IAPAppleVerifyView`: idempotency check now queries both `transaction_id` and `original_transaction_id` to handle renewals correctly
+- Backend `IAPAppleVerifyView`: ownership (409) check now uses `original_transaction_id` so the binding covers all renewals of the same subscription, not just the specific `transaction_id`
+- Backend `IAPAppleVerifyView`: stores `original_transaction_id` (not the renewal `transaction_id`) so future renewals resolve to the same ownership record
+- Backend `ConfirmBCDIAPPurchaseView` (debug path): now checks for an existing Apple IAP subscription for a different user before `update_or_create`, returning 409 if the product is already claimed — mirrors production ownership guard
 
 ### Fixed
--
+- Different app account on the same Apple ID could obtain a subscription by triggering a buy flow that iOS resolved as `PurchaseStatus.restored` — backend now rejects with 409 and the UI shows an actionable dialog instead of a misleading success screen
+- Account-conflict dialog used hardcoded English strings and no theme colors — replaced with localized keys and `ColorScheme`/`TextTheme` tokens; dialog is now dark-mode safe
 
 ---
 
