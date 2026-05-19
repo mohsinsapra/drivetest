@@ -10,13 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- `SubscriptionPlanCard` — new shared widget consolidating plan card UI used across onboarding, paywall sheet, and BCD subscriptions screen; replaces three separate duplicate implementations
+- `SubscriptionLegalLinks` — shared Terms of Use / Privacy Policy footer widget, now shown on all purchase flows including the BCD subscriptions screen (fixes Apple Guideline 3.1.2(c) rejection)
+- `showIcon` flag on `SubscriptionPlanCard` — category-matched icon displayed inline with plan title on the BCD subscriptions screen only
+- Translation keys for subscription duration labels (`onb_duration_year_access`, `onb_duration_months_access`, `onb_duration_one_day`, `onb_duration_days`) in EN and SV, replacing hardcoded English strings
+- Translation keys for the full receipt/purchase history screen (`profile_receipt_title`, `profile_receipt_copy_number`, `profile_receipt_number_copied`, `profile_no_purchases`, `profile_receipt_payment_receipt`, `profile_receipt_no`, `profile_receipt_product`, `profile_receipt_duration`, `profile_receipt_amount_paid`, `profile_receipt_payment_via`, `profile_receipt_via_iap`, `profile_receipt_via_card`, `profile_receipt_transaction_id`, `profile_receipt_payment_intent`, `profile_receipt_reference_no`, `profile_receipt_footer`) in EN and SV
+- Icon (`Icons.receipt_long_rounded`) added to Purchase History empty state
 
 ### Changed
--
+- `formatSubscriptionProductDuration` now accepts `BuildContext` and returns translated duration strings instead of hardcoded English
+- BCD subscriptions screen `_ProductCard` refactored to use `SubscriptionPlanCard` — removed ~150 lines of duplicate card UI
+- Onboarding `_PlanTierCard` refactored to use `SubscriptionPlanCard` — removed ~280 lines of duplicate card/button/feature-row/legal-links code
+- Paywall sheet `_PlanTile` and `_LegalLinks` removed in favour of `SubscriptionPlanCard` and `SubscriptionLegalLinks`
+- Paywall sheet title no longer duplicates the product name — falls back to "Subscription Required" so the plan card is the single source of truth for the product name
+- BCD subscriptions empty state vertically centred using `LayoutBuilder` instead of a fixed `height: 300` box
+- `PaymentCoordinator.pay` renamed to `PaymentCoordinator.show` at all call sites
 
 ### Fixed
--
+- Duplicate product name shown in paywall sheet title and inside the plan card simultaneously
+- `_formatDuration` / `_formatProductDuration` / `_durationLabel` private helpers deduplicated — all duration formatting now goes through a single shared function
+- All static/hardcoded English strings in `receipt_screen.dart` replaced with localised translation keys
 
 ---
 

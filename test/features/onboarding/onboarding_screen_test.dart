@@ -9,6 +9,8 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/features/dashboard/models/dashboard_stats.dart';
 import 'package:taxi_exam_app/features/dashboard/models/subscribed_exam.dart';
 import 'package:taxi_exam_app/features/dashboard/providers/dashboard_provider.dart';
@@ -98,7 +100,7 @@ void main() {
     WidgetTester tester,
     Widget child,
   ) async {
-    tester.view.physicalSize = const Size(1440, 3200);
+    tester.view.physicalSize = const Size(1440, 4200);
     tester.view.devicePixelRatio = 1.0;
     await tester.pumpWidget(child);
     await tester.pumpAndSettle();
@@ -106,13 +108,26 @@ void main() {
 
   Future<void> tapSubscribeAndWait(WidgetTester tester) async {
     await tester
-        .ensureVisible(find.widgetWithText(ElevatedButton, 'Get Best Deal'));
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Get Best Deal'));
+        .ensureVisible(find.widgetWithText(OutlinedButton, 'Choose Plan'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Choose Plan'));
     await tester.pump();
     await tester.runAsync(() async {
       await Future<void>.delayed(Duration.zero);
     });
     await tester.pumpAndSettle();
+  }
+
+  Future<void> tapSubscribeViaSignIn(WidgetTester tester) async {
+    await tester
+        .ensureVisible(find.widgetWithText(OutlinedButton, 'Choose Plan'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Choose Plan'));
+    await tester.pump(const Duration(milliseconds: 300));
+    tester.widget<AppButton>(find.byType(AppButton).last).onPressed!();
+    await tester.pump();
+    await tester.runAsync(() async {
+      await Future<void>.delayed(Duration.zero);
+    });
+    await tester.pump(const Duration(milliseconds: 300));
   }
 
   Future<void> reachSelectedPlanStep(WidgetTester tester) async {
@@ -242,7 +257,7 @@ void main() {
       );
       await reachSelectedPlanStep(tester);
 
-      await tapSubscribeAndWait(tester);
+      await tapSubscribeViaSignIn(tester);
 
       expect(authSheetShown, isTrue);
       expect(paidProduct, isNotNull);
@@ -300,7 +315,7 @@ void main() {
       );
       await reachSelectedPlanStep(tester);
 
-      await tapSubscribeAndWait(tester);
+      await tapSubscribeViaSignIn(tester);
 
       expect(authSheetShown, isTrue);
       expect(paymentCalls, 0);
@@ -408,11 +423,13 @@ void main() {
       await reachSelectedPlanStep(tester);
 
       await tester.ensureVisible(
-        find.widgetWithText(ElevatedButton, 'Get Best Deal'),
+        find.widgetWithText(OutlinedButton, 'Choose Plan'),
       );
       await tester.tap(
-        find.widgetWithText(ElevatedButton, 'Get Best Deal'),
+        find.widgetWithText(OutlinedButton, 'Choose Plan'),
       );
+      await tester.pump(const Duration(milliseconds: 300));
+      tester.widget<AppButton>(find.byType(AppButton).last).onPressed!();
       await tester.pump();
       await tester.runAsync(() async {
         await Future<void>.delayed(Duration.zero);
@@ -420,7 +437,7 @@ void main() {
       await tester.pump();
 
       expect(paymentCalls, 1);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(AppLoadingIndicator), findsOneWidget);
 
       await tester.tap(find.byType(ElevatedButton).first, warnIfMissed: false);
       await tester.pump();

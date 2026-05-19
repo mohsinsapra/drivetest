@@ -1,4 +1,3 @@
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -19,9 +18,9 @@ import 'package:taxi_exam_app/features/auth/auth_bottom_sheet.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_sub_category_screen.dart';
+import 'package:taxi_exam_app/features/payment/subscription_plan_card.dart';
 import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
 import 'package:taxi_exam_app/main_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 typedef OnboardingLoadProducts = Future<List<Map<String, dynamic>>> Function();
 typedef OnboardingIsLoggedIn = bool Function();
@@ -1515,7 +1514,8 @@ class _PlanPage extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 14),
                           child: _PlanTierCard(
                             product: products[i],
-                            featured: i == 0,
+                            featured:
+                                isFeaturedSubscriptionProduct(products[i]),
                             purchasing: purchasing,
                             owned: isOwnedFn(products[i]),
                             onBuy: onPurchaseOne == null
@@ -1585,7 +1585,7 @@ class _PlanPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                _OnboardingLegalLinks(cs: cs),
+                SubscriptionLegalLinks(colorScheme: cs),
               ],
             ),
           ),
@@ -1597,37 +1597,6 @@ class _PlanPage extends StatelessWidget {
             onNext: null,
             nextLabel: t.onb_continue,
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _OnboardingLegalLinks extends StatelessWidget {
-  const _OnboardingLegalLinks({required this.cs});
-  final ColorScheme cs;
-
-  void _open(String url) =>
-      launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final color = cs.onSurface.withValues(alpha: 0.4);
-    final style = TextStyle(
-        fontSize: 11, color: color, decoration: TextDecoration.underline);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: () => _open(
-              'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
-          child: Text(t.legal_terms_of_use, style: style),
-        ),
-        Text('  ·  ', style: TextStyle(fontSize: 11, color: color)),
-        GestureDetector(
-          onTap: () => _open('https://drivetest.se/privacy-policy.html'),
-          child: Text(t.legal_privacy_policy, style: style),
         ),
       ],
     );
@@ -1651,293 +1620,12 @@ class _PlanTierCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final title = product['name']?.toString().trim().isNotEmpty == true
-        ? product['name'].toString()
-        : t.onb_no_plan_selected;
-    final price = _formatProductPrice(product, context);
-    final duration = _formatProductDuration(product);
-
-    if (featured) {
-      // Dark highlighted "Best Value" card
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: cs.inverseSurface,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: cs.primary, width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: cs.primary.withValues(alpha: 0.15),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Text(
-                  title,
-                  style: GoogleFonts.lexend(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: cs.onInverseSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  price,
-                  style: GoogleFonts.lexend(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w900,
-                    color: cs.inversePrimary,
-                    height: 1,
-                  ),
-                ),
-                if (duration != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      duration,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: cs.secondaryContainer,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                _PlanFeatureRow(
-                  label: t.onb_feature_mock_exams,
-                  color: cs.secondaryContainer,
-                  textColor: cs.onInverseSurface.withValues(alpha: 0.9),
-                ),
-                const SizedBox(height: 10),
-                _PlanFeatureRow(
-                  label: t.onb_feature_progress_tracking,
-                  color: cs.secondaryContainer,
-                  textColor: cs.onInverseSurface.withValues(alpha: 0.9),
-                ),
-                const SizedBox(height: 10),
-                _PlanFeatureRow(
-                  label: t.onb_feature_explanations,
-                  color: cs.secondaryContainer,
-                  textColor: cs.onInverseSurface.withValues(alpha: 0.9),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: purchasing ? null : onBuy,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          owned ? const Color(0xFF059669) : cs.primary,
-                      foregroundColor: cs.onPrimary,
-                      disabledBackgroundColor:
-                          cs.primary.withValues(alpha: 0.3),
-                      shape: const StadiumBorder(),
-                      elevation: 0,
-                    ),
-                    child: purchasing
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: AppLoadingIndicator(
-                              strokeWidth: 2.5,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(
-                            owned ? t.bcd_start_practice : t.onb_get_best_deal,
-                            style: GoogleFonts.lexend(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // BEST VALUE badge
-          Positioned(
-            top: -14,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                decoration: BoxDecoration(
-                  color: cs.secondaryContainer,
-                  borderRadius: BorderRadius.circular(9999),
-                  boxShadow: [
-                    BoxShadow(
-                      color: cs.onSurface.withValues(alpha: 0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  t.onb_best_value,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2.0,
-                    color: cs.onSecondaryContainer,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Standard non-featured card
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: cs.surfaceContainerHighest, width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.lexend(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: cs.onSurface,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            price,
-            style: GoogleFonts.lexend(
-              fontSize: 34,
-              fontWeight: FontWeight.w900,
-              color: cs.onSurface,
-              height: 1,
-            ),
-          ),
-          if (duration != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                duration,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: cs.outline,
-                ),
-              ),
-            ),
-          const SizedBox(height: 20),
-          _PlanFeatureRow(
-            label: t.onb_feature_mock_exams,
-            color: cs.primary,
-            textColor: cs.onSurfaceVariant,
-          ),
-          const SizedBox(height: 10),
-          _PlanFeatureRow(
-            label: t.onb_feature_progress_tracking,
-            color: cs.primary,
-            textColor: cs.onSurfaceVariant,
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: owned
-                ? ElevatedButton(
-                    onPressed: purchasing ? null : onBuy,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF059669),
-                      foregroundColor: Colors.white,
-                      shape: const StadiumBorder(),
-                      elevation: 0,
-                    ),
-                    child: purchasing
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: AppLoadingIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : Text(
-                            t.bcd_start_practice,
-                            style: GoogleFonts.lexend(
-                                fontSize: 15, fontWeight: FontWeight.w700),
-                          ),
-                  )
-                : OutlinedButton(
-                    onPressed: purchasing ? null : onBuy,
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: cs.primary, width: 2),
-                      shape: const StadiumBorder(),
-                      foregroundColor: cs.primary,
-                    ),
-                    child: purchasing
-                        ? SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: AppLoadingIndicator(
-                              strokeWidth: 2,
-                              color: cs.primary,
-                            ),
-                          )
-                        : Text(
-                            t.onb_choose_plan,
-                            style: GoogleFonts.lexend(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PlanFeatureRow extends StatelessWidget {
-  const _PlanFeatureRow({
-    required this.label,
-    required this.color,
-    required this.textColor,
-  });
-
-  final String label;
-  final Color color;
-  final Color textColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(Icons.check_circle_rounded, color: color, size: 18),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            color: textColor,
-          ),
-        ),
-      ],
+    return SubscriptionPlanCard(
+      product: product,
+      featured: featured,
+      purchasing: purchasing,
+      owned: owned,
+      onPressed: onBuy,
     );
   }
 }
@@ -2050,28 +1738,6 @@ IconData _iconForProduct(Map<String, dynamic> product) {
   if (name.contains('taxi')) return Icons.local_taxi_rounded;
   if (name.contains('vägmärke')) return Icons.signpost_rounded;
   return Icons.workspace_premium_rounded;
-}
-
-String _formatProductPrice(Map<String, dynamic> product, BuildContext context) {
-  final price = product['price']?.toString().trim() ?? '';
-  final currency = product['currency']?.toString().trim() ?? '';
-  if (price.isEmpty && currency.isEmpty) {
-    return Translations.of(context).onb_price_unavailable;
-  }
-  if (price.isEmpty) return currency;
-  if (currency.isEmpty) return price;
-  return '$price $currency';
-}
-
-String? _formatProductDuration(Map<String, dynamic> product) {
-  final rawDuration = product['duration_days'];
-  final days = rawDuration is num
-      ? rawDuration.toInt()
-      : int.tryParse('${rawDuration ?? ''}');
-  if (days == null || days <= 0) return null;
-  if (days >= 365) return '${(days / 365).round()} year access';
-  if (days >= 30) return '${(days / 30).round()} months access';
-  return days == 1 ? '1 day' : '$days days';
 }
 
 // ─── Pre-purchase account choice ─────────────────────────────────────────────

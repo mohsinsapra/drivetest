@@ -3,6 +3,7 @@ import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/purchase_receipt.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 
@@ -19,7 +20,7 @@ class ReceiptScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: cs.surfaceContainerLowest,
       appBar: AppBar(
-        title: const Text('Receipt'),
+        title: Text(Translations.of(context).profile_receipt_title),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -39,14 +40,14 @@ class ReceiptScreen extends StatelessWidget {
 
             // ── Copy receipt number ─────────────────────────────────────────
             AppOutlinedButton(
-              label: 'Copy receipt number',
+              label: Translations.of(context).profile_receipt_copy_number,
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: receipt.receiptNumber));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Receipt number copied'),
+                  SnackBar(
+                    content: Text(Translations.of(context).profile_receipt_number_copied),
                     behavior: SnackBarBehavior.floating,
-                    duration: Duration(seconds: 2),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               },
@@ -76,20 +77,20 @@ class _ReceiptCard extends StatelessWidget {
   final PurchaseReceipt receipt;
   final bool isIAP;
 
-  String _durationLabel(int days) {
+  String _durationLabel(int days, Translations t) {
     if (days >= 365) {
-      final y = (days / 365).round();
-      return '$y year${y > 1 ? 's' : ''}';
+      return t.onb_duration_year_access.replaceAll('{n}', '${(days / 365).round()}');
     }
     if (days >= 30) {
-      final m = (days / 30).round();
-      return '$m month${m > 1 ? 's' : ''}';
+      return t.onb_duration_months_access.replaceAll('{n}', '${(days / 30).round()}');
     }
-    return '$days days';
+    if (days == 1) return t.onb_duration_one_day;
+    return t.onb_duration_days.replaceAll('{n}', '$days');
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final theme = Theme.of(context);
 
     return Container(
@@ -133,7 +134,7 @@ class _ReceiptCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Payment Receipt',
+                  t.profile_receipt_payment_receipt,
                   style: theme.textTheme.titleLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -164,35 +165,35 @@ class _ReceiptCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _Row(
-                    label: 'Receipt no.',
+                    label: t.profile_receipt_no,
                     value: receipt.receiptNumber,
                     mono: true,
                     highlight: true,
                     cs: cs),
                 _divider(),
-                _Row(label: 'Product', value: receipt.productName, cs: cs),
+                _Row(label: t.profile_receipt_product, value: receipt.productName, cs: cs),
                 _Row(
-                  label: 'Duration',
+                  label: t.profile_receipt_duration,
                   value: receipt.durationDays > 0
-                      ? _durationLabel(receipt.durationDays)
+                      ? _durationLabel(receipt.durationDays, t)
                       : '—',
                   cs: cs,
                 ),
                 _divider(),
                 _Row(
-                  label: 'Amount paid',
+                  label: t.profile_receipt_amount_paid,
                   value: '${receipt.amount} ${receipt.currency}',
                   bold: true,
                   cs: cs,
                 ),
                 _Row(
-                  label: 'Payment via',
-                  value: isIAP ? 'Apple App Store' : 'Card (Stripe)',
+                  label: t.profile_receipt_payment_via,
+                  value: isIAP ? t.profile_receipt_via_iap : t.profile_receipt_via_card,
                   cs: cs,
                 ),
                 _divider(),
                 _Row(
-                  label: isIAP ? 'Transaction ID' : 'Payment intent',
+                  label: isIAP ? t.profile_receipt_transaction_id : t.profile_receipt_payment_intent,
                   value: receipt.transactionRef.isNotEmpty
                       ? receipt.transactionRef
                       : '—',
@@ -202,7 +203,7 @@ class _ReceiptCard extends StatelessWidget {
                 ),
                 if (receipt.backendRef != null) ...[
                   _Row(
-                    label: 'Reference no.',
+                    label: t.profile_receipt_reference_no,
                     value: receipt.backendRef!,
                     mono: true,
                     small: true,
@@ -218,9 +219,7 @@ class _ReceiptCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    'Keep this receipt for your records. '
-                    'Contact support with your receipt number if you have '
-                    'questions about this purchase.',
+                    t.profile_receipt_footer,
                     style: TextStyle(
                       fontSize: 11,
                       color: cs.onSurfaceVariant,
@@ -370,18 +369,33 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
     final dateFmt = DateFormat('d MMM yyyy');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Purchase History')),
+      appBar: AppBar(title: Text(t.profile_purchase_history)),
       body: _loading
           ? const Center(child: AppLoadingIndicator())
           : _receipts.isEmpty
               ? Center(
-                  child: Text(
-                    'No purchases yet.',
-                    style: TextStyle(color: cs.onSurfaceVariant),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.receipt_long_rounded,
+                        size: 56,
+                        color: cs.onSurfaceVariant.withValues(alpha: 0.35),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        t.profile_no_purchases,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 )
               : ListView.separated(

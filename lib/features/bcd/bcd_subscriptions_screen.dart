@@ -1,4 +1,3 @@
-import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -6,8 +5,8 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
-import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/payment/subscription_plan_card.dart';
 import 'bcd_category_hub_screen.dart';
 import 'bcd_sub_category_screen.dart';
 
@@ -140,11 +139,11 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
     }
     setState(() => _buyingProductId = product['id']);
     try {
-      final result = await PaymentCoordinator.pay(
+      final result = await PaymentCoordinator.show(
         context,
         products: [product],
-        createStripeIntent: (_) =>
-            _api.createBCDPaymentIntent(product['id'] as int),
+        createStripeIntent: (selected) =>
+            _api.createBCDPaymentIntent(selected['id'] as int),
         onIAPPurchaseConfirmed: (p, transactionId) =>
             _api.confirmBCDIAPPurchase(
           (p['id'] as num).toInt(),
@@ -318,10 +317,16 @@ class _PlansTab extends StatelessWidget {
     return RefreshIndicator.adaptive(
       onRefresh: onRefresh,
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: products.length,
+        itemCount: products.length + 1,
         itemBuilder: (ctx, i) {
+          if (i == products.length) {
+            return const Padding(
+              padding: EdgeInsets.only(top: 8, bottom: 56),
+              child: SubscriptionLegalLinks(),
+            );
+          }
           final p = products[i];
           final owned = _isOwned(p);
           final isFree = p['is_free'] == true;
@@ -329,6 +334,9 @@ class _PlansTab extends StatelessWidget {
             product: p,
             owned: owned,
             isFree: isFree,
+            featured: isFeaturedSubscriptionProduct(
+              Map<String, dynamic>.from(p as Map),
+            ),
             buying: buyingProductId == p['id'],
             disabled: buyingProductId != null,
             onBuy: () => onBuy(p),
@@ -347,6 +355,7 @@ class _ProductCard extends StatelessWidget {
   final dynamic product;
   final bool owned;
   final bool isFree;
+  final bool featured;
   final bool buying;
   final bool disabled;
   final VoidCallback onBuy;
@@ -357,6 +366,7 @@ class _ProductCard extends StatelessWidget {
     required this.product,
     required this.owned,
     required this.isFree,
+    required this.featured,
     required this.buying,
     required this.disabled,
     required this.onBuy,
@@ -366,149 +376,32 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
     final t = Translations.of(context);
-    final name = product['name']?.toString() ?? 'Plan';
-    final price = product['price']?.toString() ?? '';
-    final currency = product['currency']?.toString() ?? 'SEK';
-    final durationDays = product['duration_days'] as int? ?? 0;
-    final durationLabel =
-        durationDays > 0 ? _formatDuration(durationDays) : null;
+    final badgeLabel = isFree
+        ? t.bcd_free_label
+        : owned
+            ? t.bcd_active_label
+            : null;
 
-    final accentColor = (owned || isFree) ? cs.primary : categoryColor(name);
-    final iconData = owned ? LucideIcons.checkCircle : categoryIcon(name);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: owned
-              ? cs.primary.withValues(alpha: 0.35)
-              : cs.outlineVariant.withValues(alpha: 0.4),
-          width: owned ? 1.5 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(iconData, color: accentColor, size: 24),
-                ),
-                const Spacer(),
-                if (isFree || owned)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: cs.primary.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      isFree ? t.bcd_free_label : t.bcd_active_label,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: cs.primary,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  )
-                else if (durationLabel != null)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: cs.onSurface.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      durationLabel,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: cs.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              name,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: cs.onSurface,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
-            const SizedBox(height: 16),
-            if (isFree || owned)
-              AppFilledButton(
-                label: t.bcd_start_practice,
-                onPressed: isFree ? onFreeAccess : onStartPractice,
-                icon: const Icon(LucideIcons.bookOpenCheck, size: 16),
-              )
-            else
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (price.isNotEmpty)
-                    Text(
-                      '$price $currency',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: cs.onSurface,
-                      ),
-                    ),
-                  AppFilledButton(
-                    label: t.bcd_subscribe_btn,
-                    onPressed: disabled ? null : onBuy,
-                    loading: buying,
-                    minimumWidth: 0,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 13),
-                  ),
-                ],
-              ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: SubscriptionPlanCard(
+        product: Map<String, dynamic>.from(product as Map),
+        featured: featured,
+        purchasing: buying,
+        owned: owned || isFree,
+        badgeLabel: badgeLabel,
+        showIcon: true,
+        ctaLabel: owned || isFree ? t.bcd_start_practice : t.bcd_subscribe_btn,
+        onPressed: disabled
+            ? null
+            : (owned
+                ? onStartPractice
+                : isFree
+                    ? onFreeAccess
+                    : onBuy),
       ),
     );
-  }
-
-  String _formatDuration(int days) {
-    if (days >= 365) {
-      final years = (days / 365).round();
-      return '$years year${years > 1 ? 's' : ''}';
-    } else if (days >= 30) {
-      final months = (days / 30).round();
-      return '$months month${months > 1 ? 's' : ''}';
-    }
-    return '$days days';
   }
 }
 
@@ -535,26 +428,28 @@ class _MySubscriptionsTab extends StatelessWidget {
       final cs = Theme.of(context).colorScheme;
       return RefreshIndicator.adaptive(
         onRefresh: onRefresh,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: 300,
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(LucideIcons.packageOpen,
-                      size: 48,
-                      color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
-                  const SizedBox(height: 12),
-                  Text(Translations.of(context).bcd_no_plans,
-                      style: TextStyle(color: cs.onSurfaceVariant)),
-                  const SizedBox(height: 4),
-                  Text(Translations.of(context).bcd_browse_plans,
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: cs.onSurfaceVariant.withValues(alpha: 0.6))),
-                ],
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: constraints.maxHeight,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(LucideIcons.packageOpen,
+                        size: 48,
+                        color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
+                    const SizedBox(height: 12),
+                    Text(Translations.of(context).bcd_no_plans,
+                        style: TextStyle(color: cs.onSurfaceVariant)),
+                    const SizedBox(height: 4),
+                    Text(Translations.of(context).bcd_browse_plans,
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: cs.onSurfaceVariant.withValues(alpha: 0.6))),
+                  ],
+                ),
               ),
             ),
           ),

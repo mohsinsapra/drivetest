@@ -325,7 +325,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     final subtitle =
         [licenceName, categoryName].where((s) => s.isNotEmpty).join(' — ');
 
-    final result = await PaymentCoordinator.pay(
+    final result = await PaymentCoordinator.show(
       context,
       products: [
         {
