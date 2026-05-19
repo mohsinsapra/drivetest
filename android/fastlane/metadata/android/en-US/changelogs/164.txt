@@ -1,0 +1,7 @@
+Added
+• `IAPSubscriptionOwnedByOtherAccountException` — typed exception thrown when a purchase or restore attempt is rejected because the Apple `original_transaction_id` is already bound to a different app account
+• `isIAPOwnedByOtherAccount()` helper for consistent exception matching at call sites
+• Localization keys `iap_owned_by_other_title`, `iap_owned_by_other_body`, `iap_owned_by_other_ok` in EN and SV — user-facing text for the account-conflict dialog
+
+Changed
+• `PurchaseParam` now pas...

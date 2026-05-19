@@ -175,8 +175,10 @@ class PaymentCoordinator {
           builder: (ctx) {
             final theme = Theme.of(ctx);
             return AlertDialog(
-              backgroundColor: theme.dialogTheme.backgroundColor ?? theme.colorScheme.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              backgroundColor: theme.dialogTheme.backgroundColor ??
+                  theme.colorScheme.surface,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               title: Text(
                 t.iap_owned_by_other_title,
                 style: theme.textTheme.titleMedium?.copyWith(

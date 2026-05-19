@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.17+215] - 2026-05-19
+
+### Added
 - `IAPSubscriptionOwnedByOtherAccountException` — typed exception thrown when a purchase or restore attempt is rejected because the Apple `original_transaction_id` is already bound to a different app account
 - `isIAPOwnedByOtherAccount()` helper for consistent exception matching at call sites
 - Localization keys `iap_owned_by_other_title`, `iap_owned_by_other_body`, `iap_owned_by_other_ok` in EN and SV — user-facing text for the account-conflict dialog
@@ -31,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Different app account on the same Apple ID could obtain a subscription by triggering a buy flow that iOS resolved as `PurchaseStatus.restored` — backend now rejects with 409 and the UI shows an actionable dialog instead of a misleading success screen
 - Account-conflict dialog used hardcoded English strings and no theme colors — replaced with localized keys and `ColorScheme`/`TextTheme` tokens; dialog is now dark-mode safe
 
+---
 ---
 
 ## [1.1.16+214] - 2026-05-19

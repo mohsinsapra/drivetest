@@ -108,7 +108,8 @@ class IAPService {
           debugPrint('[IAP] backend verify failed: $e');
           if (e is IAPSubscriptionOwnedByOtherAccountException) {
             // Do not defer — this receipt will never succeed for the current user.
-            debugPrint('[IAP] subscription owned by other account, not deferring');
+            debugPrint(
+                '[IAP] subscription owned by other account, not deferring');
           } else {
             // Save the receipt so it can be retried after re-login or network recovery.
             // Never surface this error to the user — the StoreKit transaction already succeeded.
