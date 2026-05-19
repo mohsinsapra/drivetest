@@ -84,31 +84,31 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
       appBar: AppBar(
         actions: [
           Consumer<NotificationProvider>(
-              builder: (_, notifProvider, __) => Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none_rounded),
-                    onPressed: () => Navigator.of(context).push(
-                      AppPageRoute(builder: (_) => const NotificationsScreen()),
-                    ),
+            builder: (_, notifProvider, __) => Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_none_rounded),
+                  onPressed: () => Navigator.of(context).push(
+                    AppPageRoute(builder: (_) => const NotificationsScreen()),
                   ),
-                  if (notifProvider.unreadCount > 0)
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: Container(
-                        width: 9,
-                        height: 9,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
+                ),
+                if (notifProvider.unreadCount > 0)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      width: 9,
+                      height: 9,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
+          ),
         ],
       ),
       body: switch (provider.status) {

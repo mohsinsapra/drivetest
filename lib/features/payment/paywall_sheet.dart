@@ -110,13 +110,16 @@ class _LegalLinks extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
-    final color = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45);
-    final style = TextStyle(fontSize: 11, color: color, decoration: TextDecoration.underline);
+    final color =
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45);
+    final style = TextStyle(
+        fontSize: 11, color: color, decoration: TextDecoration.underline);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GestureDetector(
-          onTap: () => _open('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
+          onTap: () => _open(
+              'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
           child: Text(t.legal_terms_of_use, style: style),
         ),
         Text('  ·  ', style: TextStyle(fontSize: 11, color: color)),

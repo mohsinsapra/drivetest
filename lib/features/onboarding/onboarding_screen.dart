@@ -1614,12 +1614,14 @@ class _OnboardingLegalLinks extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Translations.of(context);
     final color = cs.onSurface.withValues(alpha: 0.4);
-    final style = TextStyle(fontSize: 11, color: color, decoration: TextDecoration.underline);
+    final style = TextStyle(
+        fontSize: 11, color: color, decoration: TextDecoration.underline);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GestureDetector(
-          onTap: () => _open('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
+          onTap: () => _open(
+              'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
           child: Text(t.legal_terms_of_use, style: style),
         ),
         Text('  ·  ', style: TextStyle(fontSize: 11, color: color)),

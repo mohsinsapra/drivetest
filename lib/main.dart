@@ -34,6 +34,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/streak_notification_service.dart';
 import 'package:taxi_exam_app/features/streak/streak_settings_provider.dart';
 import 'package:taxi_exam_app/core/config/stripe_config.dart';
+import 'package:taxi_exam_app/core/monitoring/safe_flutter_error_handler.dart';
 
 void main() async {
   const sentryDsn = String.fromEnvironment(
@@ -85,6 +86,7 @@ void main() async {
 
 Future<void> _appMain() async {
   WidgetsFlutterBinding.ensureInitialized();
+  installSafeFlutterErrorHandler(isWeb: kIsWeb);
 
   // ── Round 1: Firebase + DioClient + Hive + Clarity are fully independent.
   // Run them all in parallel instead of sequentially.
