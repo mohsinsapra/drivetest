@@ -83,17 +83,7 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          if (provider.syncing)
-            const Padding(
-              padding: EdgeInsets.only(right: 8),
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: AppLoadingIndicator(strokeWidth: 2),
-              ),
-            )
-          else
-            Consumer<NotificationProvider>(
+          Consumer<NotificationProvider>(
               builder: (_, notifProvider, __) => Stack(
                 clipBehavior: Clip.none,
                 children: [

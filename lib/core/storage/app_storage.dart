@@ -35,6 +35,9 @@ class AppStorage {
   /// Reset on logout so box name getters return the unsuffixed fallback name.
   static void clearCurrentUser() => _userId = '';
 
+  /// The currently logged-in user's ID, or empty string if not set.
+  static String get currentUserId => _userId;
+
   static String get _suffix => _userId.isNotEmpty ? '_$_userId' : '';
 
   // ── Hive box base names (constants) ────────────────────────────────────────

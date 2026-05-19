@@ -18,6 +18,7 @@ import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 
 import 'package:taxi_exam_app/core/utils/crypto_service.dart';
+import 'package:taxi_exam_app/config/local_config.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
 class DioClient {
@@ -145,7 +146,7 @@ class DioClient {
         ? tunnelUrl
         : kReleaseMode
             ? 'https://taxiexam.hayatpoetry.com/'
-            : 'http://192.168.1.130:8010/';
+            : kLocalDevBaseUrl;
 
     _dio = Dio(BaseOptions(
       // baseUrl: 'http://10.0.2.2:8000/',

@@ -59,6 +59,9 @@ GOOGLE_SERVER_CLIENT_ID       ?= 640394192831-e6hi0ho85923epa77ir6402ggl8pgrff.a
 # Sentry DSN (has a hardcoded default in main.dart, but .env value should win)
 SENTRY_DSN                    ?= https://32d4a7e8f8033e788074ecf90ad55f2a@o4511088769564672.ingest.de.sentry.io/4511202750038096
 
+# AES-256 key for /self endpoint response encryption — must match backend FIELD_ENCRYPTION_KEY (32 chars)
+FIELD_ENCRYPTION_KEY          ?= ThisIsA32ByteLongSecretKeyForAES
+
 # Set default base href if not provided in .env
 WEB_BASE_HREF ?= /
 
@@ -136,6 +139,7 @@ web-run:
 		--dart-define=GOOGLE_WEB_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
 		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)" \
 		--dart-define=SENTRY_DSN="$(SENTRY_DSN)" \
+		--dart-define=FIELD_ENCRYPTION_KEY="$(FIELD_ENCRYPTION_KEY)" \
 		--dart-define=APP_VERSION="$(APP_VERSION)" \
 		--dart-define=BUILD_NUMBER="$(APP_BUILD_NUMBER)" \
 		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
@@ -162,6 +166,7 @@ web-tunnel:
 		--dart-define=GOOGLE_WEB_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
 		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)" \
 		--dart-define=SENTRY_DSN="$(SENTRY_DSN)" \
+		--dart-define=FIELD_ENCRYPTION_KEY="$(FIELD_ENCRYPTION_KEY)" \
 		--dart-define=APP_VERSION="$(APP_VERSION)" \
 		--dart-define=BUILD_NUMBER="$(APP_BUILD_NUMBER)" \
 		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
@@ -229,6 +234,7 @@ web-build: check
 		--dart-define=GOOGLE_WEB_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
 		--dart-define=GOOGLE_SERVER_CLIENT_ID="$(GOOGLE_SERVER_CLIENT_ID)" \
 		--dart-define=SENTRY_DSN="$(SENTRY_DSN)" \
+		--dart-define=FIELD_ENCRYPTION_KEY="$(FIELD_ENCRYPTION_KEY)" \
 		--dart-define=APP_VERSION="$(APP_VERSION)" \
 		--dart-define=BUILD_NUMBER="$(APP_BUILD_NUMBER)" \
 		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
@@ -299,6 +305,7 @@ _web-build-docker:
 			--dart-define=GOOGLE_WEB_CLIENT_ID='$(GOOGLE_CLIENT_ID)' \
 			--dart-define=GOOGLE_SERVER_CLIENT_ID='$(GOOGLE_SERVER_CLIENT_ID)' \
 			--dart-define=SENTRY_DSN='$(SENTRY_DSN)' \
+			--dart-define=FIELD_ENCRYPTION_KEY='$(FIELD_ENCRYPTION_KEY)' \
 			--dart-define=APP_VERSION='$(APP_VERSION)' \
 			--dart-define=BUILD_NUMBER='$(APP_BUILD_NUMBER)' \
 			--dart-define=GIT_COMMIT_HASH='$(GIT_COMMIT_HASH)' \
@@ -333,6 +340,7 @@ _android-build-docker:
 			--dart-define=GOOGLE_WEB_CLIENT_ID='$(GOOGLE_CLIENT_ID)' \
 			--dart-define=GOOGLE_SERVER_CLIENT_ID='$(GOOGLE_SERVER_CLIENT_ID)' \
 			--dart-define=SENTRY_DSN='$(SENTRY_DSN)' \
+			--dart-define=FIELD_ENCRYPTION_KEY='$(FIELD_ENCRYPTION_KEY)' \
 			--dart-define=APP_VERSION='$(APP_VERSION)' \
 			--dart-define=BUILD_NUMBER='$(APP_BUILD_NUMBER)' \
 			--dart-define=GIT_COMMIT_HASH='$(GIT_COMMIT_HASH)' \

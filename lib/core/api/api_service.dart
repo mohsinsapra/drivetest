@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:encrypt/encrypt.dart' as enc;
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,6 +15,13 @@ import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
 import 'dio_client.dart';
+
+// Key injected at build time via --dart-define=FIELD_ENCRYPTION_KEY=...
+// Must match settings.FIELD_ENCRYPTION_KEY on the backend (32 bytes / chars).
+const String _kSelfEncKey = String.fromEnvironment(
+  'FIELD_ENCRYPTION_KEY',
+  defaultValue: 'ThisIsA32ByteLongSecretKeyForAES',
+);
 
 class ApiService {
   final Dio _dio = DioClient().dio;
@@ -128,6 +136,29 @@ class ApiService {
     return future;
   }
 
+  /// AES-256-CBC decrypt for the `{"d": "<base64>"}` envelope that the backend
+  /// sends in production. Format: base64(IV[16 bytes] || ciphertext).
+  /// Returns null if decryption fails so the caller can surface a useful error.
+  static Map<String, dynamic>? _decryptSelfIfNeeded(dynamic raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    final envelope = raw['d'];
+    if (envelope == null) return raw; // plain response (DEBUG mode)
+    if (envelope is! String) return null;
+    try {
+      final bytes = base64Decode(envelope);
+      if (bytes.length < 17) return null;
+      final iv = enc.IV(Uint8List.fromList(bytes.sublist(0, 16)));
+      final ciphertext = enc.Encrypted(Uint8List.fromList(bytes.sublist(16)));
+      final key = enc.Key.fromUtf8(_kSelfEncKey);
+      final encrypter = enc.Encrypter(enc.AES(key, mode: enc.AESMode.cbc));
+      final plaintext = encrypter.decrypt(ciphertext, iv: iv);
+      return Map<String, dynamic>.from(jsonDecode(plaintext) as Map);
+    } catch (e) {
+      debugPrint('[ApiService] /self decryption failed: $e');
+      return null;
+    }
+  }
+
   Future<dynamic> _fetchCurrentUserImpl({bool forceRefresh = false}) async {
     try {
       final response = await _dio.get(
@@ -136,7 +167,8 @@ class ApiService {
             ? _dioClient.cacheOptions(policy: CachePolicy.refreshForceCache)
             : null,
       );
-      final data = response.data;
+      final raw = response.data;
+      final data = _decryptSelfIfNeeded(raw) ?? raw;
       if (data is Map<String, dynamic>) {
         // Seed BcdCache from the embedded dashboard tree so subsequent
         // BcdCache.ensureLoaded() calls skip all individual category/test fetches.

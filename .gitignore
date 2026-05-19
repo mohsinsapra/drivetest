@@ -9,6 +9,9 @@
 # Debug credentials (dummy values, not for version control)
 lib/features/auth/debug_credentials.dart
 
+# Local dev server config — each dev sets their own IP here
+lib/config/local_config.dart
+
 # Firebase config files (contain API keys)
 ios/Runner/GoogleService-Info.plist
 android/app/google-services.json

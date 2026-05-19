@@ -157,6 +157,7 @@ class IAPService {
             'receipt_data': purchase.verificationData.serverVerificationData,
             'product_id': purchase.productID,
             'internal_product_id': _pendingInternalProductId,
+            'user_id': AppStorage.currentUserId,
           }));
       debugPrint('[IAP] deferred receipt saved for authenticated retry');
     } catch (e) {
@@ -164,11 +165,26 @@ class IAPService {
     }
   }
 
-  /// Returns true if a receipt was saved during a purchase while backend
-  /// verification failed and is still waiting to be retried.
+  /// Returns true if a deferred receipt exists for the current logged-in user.
   Future<bool> hasDeferredReceipt() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_kDeferredKey) != null;
+    final stored = prefs.getString(_kDeferredKey);
+    if (stored == null) return false;
+    try {
+      final data = jsonDecode(stored) as Map<String, dynamic>;
+      final savedUserId = data['user_id'] as String?;
+      // Purge receipts that predate the user_id field (no savedUserId) or
+      // belong to a different user — never retry another user's purchase.
+      if (savedUserId == null || savedUserId != AppStorage.currentUserId) {
+        await prefs.remove(_kDeferredKey);
+        debugPrint('[IAP] deferred receipt belongs to different user, purged');
+        return false;
+      }
+    } catch (_) {
+      await prefs.remove(_kDeferredKey);
+      return false;
+    }
+    return true;
   }
 
   /// Called after login to verify any receipt that was saved during a purchase
@@ -186,6 +202,14 @@ class IAPService {
     } catch (_) {
       await prefs.remove(_kDeferredKey);
       debugPrint('[IAP] deferred receipt was malformed JSON, purged');
+      return null;
+    }
+
+    // Only retry for the user who made the original purchase.
+    final savedUserId = data['user_id'] as String?;
+    if (savedUserId == null || savedUserId != AppStorage.currentUserId) {
+      await prefs.remove(_kDeferredKey);
+      debugPrint('[IAP] deferred receipt belongs to different user, purged');
       return null;
     }
 

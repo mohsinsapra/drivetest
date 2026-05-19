@@ -172,10 +172,12 @@ end
       env_vars = load_root_env
       google_server_client_id = env_vars["GOOGLE_SERVER_CLIENT_ID"].to_s.strip
       stripe_publishable_key = env_vars["STRIPE_PUBLISHABLE_KEY"].to_s.strip
+      field_encryption_key = env_vars["FIELD_ENCRYPTION_KEY"].to_s.strip
 
       defines = []
       defines << "--dart-define=GOOGLE_SERVER_CLIENT_ID=#{google_server_client_id}" unless google_server_client_id.empty?
       defines << "--dart-define=STRIPE_PUBLISHABLE_KEY=#{stripe_publishable_key}" unless stripe_publishable_key.empty?
+      defines << "--dart-define=FIELD_ENCRYPTION_KEY=#{field_encryption_key}" unless field_encryption_key.empty?
       defines << "--dart-define=BUILD_VARIANT=#{build_variant}"
       defines.join(" ")
     else

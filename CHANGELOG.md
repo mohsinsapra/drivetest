@@ -10,13 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Terms of use and privacy policy links on onboarding and paywall screens
+- `FIELD_ENCRYPTION_KEY` dart-define wired through all build targets (Makefile, iOS/Android Fastfiles) so the app can decrypt the encrypted `/self` response in production
+- `lib/config/local_config.dart.example` — per-developer local dev server URL config; `local_config.dart` is gitignored so IP addresses are never committed
 
 ### Changed
--
+- `/self` endpoint now returns AES-256-CBC encrypted payload (`{"d":"..."}`) in production; plain JSON in development — `ApiService._decryptSelfIfNeeded()` handles both transparently so all callers receive an unmodified `Map<String, dynamic>`
+- `/self` dashboard response trimmed ~15% (41 KB → 35 KB): removed `is_active`/`is_published` from test objects (always true, not read by app) and replaced recursive full serializer for sub-categories with a lean serializer that drops `subscription_product`, `attempt_count`, and `test_count` (none read by `BcdCache._applyDashboard`)
+- Dev server URL in `DioClient` now reads from `local_config.dart` (`kLocalDevBaseUrl`) instead of a hardcoded IP
+- Nav bar loading spinner removed — nav tabs are shown immediately without waiting for feature-flag fetch
+- Syncing spinner removed from exam dashboard AppBar actions
 
 ### Fixed
--
+- Apple IAP deferred receipt cross-account security: receipt now stores the originating `user_id`; `hasDeferredReceipt()` and `verifyDeferredReceipt()` reject and purge receipts that belong to a different user, preventing a second user on the same device from claiming a previous user's subscription
+- Backend rejects Apple IAP transactions already claimed by a different account with HTTP 409, preventing subscription transfer between app accounts
 
 ---
 
