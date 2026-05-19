@@ -121,7 +121,7 @@ lint:
 check: fmt lint
 	@echo "$(COLOR_GREEN)✅ Project checks passed!$(COLOR_RESET)"
 
-WEB_PORT ?= 58432
+WEB_PORT ?= 5005
 
 ## web-run: Run web app in development mode
 web-run:
