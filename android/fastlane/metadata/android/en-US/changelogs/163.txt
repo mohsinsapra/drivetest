@@ -1,0 +1,4 @@
+Added
+• `SubscriptionPlanCard` — new shared widget consolidating plan card UI used across onboarding, paywall sheet, and BCD subscriptions screen; replaces three separate duplicate implementations
+• `SubscriptionLegalLinks` — shared Terms of Use / Privacy Policy footer widget, now shown on all purchase flows including the BCD subscriptions screen (fixes Apple Guideline 3.1.2(c) rejection)
+• `showIcon` flag on `SubscriptionPlanCard` — category-matched icon displayed inline with plan title on t...

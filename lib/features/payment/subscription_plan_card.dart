@@ -402,9 +402,8 @@ class _PlanIconBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = dark
-        ? color.withValues(alpha: 0.18)
-        : color.withValues(alpha: 0.10);
+    final bg =
+        dark ? color.withValues(alpha: 0.18) : color.withValues(alpha: 0.10);
     return Container(
       width: 48,
       height: 48,
@@ -437,7 +436,8 @@ class _PlanBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(9999),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -481,10 +481,12 @@ String? formatSubscriptionProductDuration(
   if (days == null || days <= 0) return null;
   final t = Translations.of(context);
   if (days >= 365) {
-    return t.onb_duration_year_access.replaceAll('{n}', '${(days / 365).round()}');
+    return t.onb_duration_year_access
+        .replaceAll('{n}', '${(days / 365).round()}');
   }
   if (days >= 30) {
-    return t.onb_duration_months_access.replaceAll('{n}', '${(days / 30).round()}');
+    return t.onb_duration_months_access
+        .replaceAll('{n}', '${(days / 30).round()}');
   }
   if (days == 1) return t.onb_duration_one_day;
   return t.onb_duration_days.replaceAll('{n}', '$days');

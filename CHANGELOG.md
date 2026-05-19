@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.16+214] - 2026-05-19
+
+### Added
 - `SubscriptionPlanCard` — new shared widget consolidating plan card UI used across onboarding, paywall sheet, and BCD subscriptions screen; replaces three separate duplicate implementations
 - `SubscriptionLegalLinks` — shared Terms of Use / Privacy Policy footer widget, now shown on all purchase flows including the BCD subscriptions screen (fixes Apple Guideline 3.1.2(c) rejection)
 - `showIcon` flag on `SubscriptionPlanCard` — category-matched icon displayed inline with plan title on the BCD subscriptions screen only
@@ -31,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `_formatDuration` / `_formatProductDuration` / `_durationLabel` private helpers deduplicated — all duration formatting now goes through a single shared function
 - All static/hardcoded English strings in `receipt_screen.dart` replaced with localised translation keys
 
+---
 ---
 
 ## [1.1.15+213] - 2026-05-19

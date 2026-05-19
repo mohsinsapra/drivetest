@@ -45,7 +45,8 @@ class ReceiptScreen extends StatelessWidget {
                 Clipboard.setData(ClipboardData(text: receipt.receiptNumber));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(Translations.of(context).profile_receipt_number_copied),
+                    content: Text(
+                        Translations.of(context).profile_receipt_number_copied),
                     behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 2),
                   ),
@@ -79,10 +80,12 @@ class _ReceiptCard extends StatelessWidget {
 
   String _durationLabel(int days, Translations t) {
     if (days >= 365) {
-      return t.onb_duration_year_access.replaceAll('{n}', '${(days / 365).round()}');
+      return t.onb_duration_year_access
+          .replaceAll('{n}', '${(days / 365).round()}');
     }
     if (days >= 30) {
-      return t.onb_duration_months_access.replaceAll('{n}', '${(days / 30).round()}');
+      return t.onb_duration_months_access
+          .replaceAll('{n}', '${(days / 30).round()}');
     }
     if (days == 1) return t.onb_duration_one_day;
     return t.onb_duration_days.replaceAll('{n}', '$days');
@@ -171,7 +174,10 @@ class _ReceiptCard extends StatelessWidget {
                     highlight: true,
                     cs: cs),
                 _divider(),
-                _Row(label: t.profile_receipt_product, value: receipt.productName, cs: cs),
+                _Row(
+                    label: t.profile_receipt_product,
+                    value: receipt.productName,
+                    cs: cs),
                 _Row(
                   label: t.profile_receipt_duration,
                   value: receipt.durationDays > 0
@@ -188,12 +194,16 @@ class _ReceiptCard extends StatelessWidget {
                 ),
                 _Row(
                   label: t.profile_receipt_payment_via,
-                  value: isIAP ? t.profile_receipt_via_iap : t.profile_receipt_via_card,
+                  value: isIAP
+                      ? t.profile_receipt_via_iap
+                      : t.profile_receipt_via_card,
                   cs: cs,
                 ),
                 _divider(),
                 _Row(
-                  label: isIAP ? t.profile_receipt_transaction_id : t.profile_receipt_payment_intent,
+                  label: isIAP
+                      ? t.profile_receipt_transaction_id
+                      : t.profile_receipt_payment_intent,
                   value: receipt.transactionRef.isNotEmpty
                       ? receipt.transactionRef
                       : '—',

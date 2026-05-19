@@ -96,7 +96,8 @@ class PaywallSheet extends StatelessWidget {
                               product: p,
                               featured: isFeaturedSubscriptionProduct(p),
                               ctaLabel: t.onb_continue,
-                              onPressed: () => Navigator.pop(context, active[i]),
+                              onPressed: () =>
+                                  Navigator.pop(context, active[i]),
                             ),
                           );
                         }),
