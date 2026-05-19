@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.14+212] - 2026-05-19
+
+### Added
 - Terms of use and privacy policy links on onboarding and paywall screens
 - `FIELD_ENCRYPTION_KEY` dart-define wired through all build targets (Makefile, iOS/Android Fastfiles) so the app can decrypt the encrypted `/self` response in production
 - `lib/config/local_config.dart.example` — per-developer local dev server URL config; `local_config.dart` is gitignored so IP addresses are never committed
@@ -25,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apple IAP deferred receipt cross-account security: receipt now stores the originating `user_id`; `hasDeferredReceipt()` and `verifyDeferredReceipt()` reject and purge receipts that belong to a different user, preventing a second user on the same device from claiming a previous user's subscription
 - Backend rejects Apple IAP transactions already claimed by a different account with HTTP 409, preventing subscription transfer between app accounts
 
+---
 ---
 
 ## [1.1.13+211] - 2026-05-18

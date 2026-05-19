@@ -1,0 +1,7 @@
+Added
+• Terms of use and privacy policy links on onboarding and paywall screens
+• `FIELD_ENCRYPTION_KEY` dart-define wired through all build targets (Makefile, iOS/Android Fastfiles) so the app can decrypt the encrypted `/self` response in production
+• `lib/config/local_config.dart.example` — per-developer local dev server URL config; `local_config.dart` is gitignored so IP addresses are never committed
+
+Changed
+• `/self` endpoint now returns AES-256-CBC encrypted payload (`{"d":"..."}`) in p...
