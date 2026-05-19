@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_text_utils.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Future<dynamic> showPaywallSheet(
   BuildContext context, {
@@ -93,9 +94,37 @@ class PaywallSheet extends StatelessWidget {
               label: t.bcd_not_now,
               onPressed: () => Navigator.pop(context),
             ),
+            const SizedBox(height: 4),
+            _LegalLinks(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LegalLinks extends StatelessWidget {
+  void _open(String url) =>
+      launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final color = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45);
+    final style = TextStyle(fontSize: 11, color: color, decoration: TextDecoration.underline);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: () => _open('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
+          child: Text(t.legal_terms_of_use, style: style),
+        ),
+        Text('  ·  ', style: TextStyle(fontSize: 11, color: color)),
+        GestureDetector(
+          onTap: () => _open('https://drivetest.se/privacy-policy.html'),
+          child: Text(t.legal_privacy_policy, style: style),
+        ),
+      ],
     );
   }
 }

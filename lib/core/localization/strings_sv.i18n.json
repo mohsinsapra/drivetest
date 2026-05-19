@@ -210,6 +210,8 @@
   "bcd_subscription_required": "Prenumeration krävs",
   "bcd_subscribe_access": "Prenumerera för att få tillgång till \"{name}\" och allt dess innehåll.",
   "bcd_not_now": "Inte nu",
+  "legal_terms_of_use": "Användarvillkor",
+  "legal_privacy_policy": "Integritetspolicy",
   "bcd_buy": "Köp",
   "bcd_payment_failed": "Betalning misslyckades. Försök igen.",
   "bcd_feedback_unavailable": "Feedback ej tillgänglig för denna fråga.",

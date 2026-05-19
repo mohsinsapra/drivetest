@@ -285,6 +285,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get bcd_subscribe_access =>
       'Subscribe to access "{name}" and all its content.';
   String get bcd_not_now => 'Not now';
+  String get legal_terms_of_use => 'Terms of Use';
+  String get legal_privacy_policy => 'Privacy Policy';
   String get bcd_buy => 'Buy';
   String get bcd_payment_failed => 'Payment failed. Please try again.';
   String get bcd_feedback_unavailable =>

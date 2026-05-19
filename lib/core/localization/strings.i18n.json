@@ -210,6 +210,8 @@
   "bcd_subscription_required": "Subscription Required",
   "bcd_subscribe_access": "Subscribe to access \"{name}\" and all its content.",
   "bcd_not_now": "Not now",
+  "legal_terms_of_use": "Terms of Use",
+  "legal_privacy_policy": "Privacy Policy",
   "bcd_buy": "Buy",
   "bcd_payment_failed": "Payment failed. Please try again.",
   "bcd_feedback_unavailable": "Feedback is unavailable for this question.",

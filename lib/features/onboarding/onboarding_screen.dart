@@ -21,6 +21,7 @@ import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_sub_category_screen.dart';
 import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
 import 'package:taxi_exam_app/main_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 typedef OnboardingLoadProducts = Future<List<Map<String, dynamic>>> Function();
 typedef OnboardingIsLoggedIn = bool Function();
@@ -1583,6 +1584,8 @@ class _PlanPage extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 4),
+                _OnboardingLegalLinks(cs: cs),
               ],
             ),
           ),
@@ -1594,6 +1597,35 @@ class _PlanPage extends StatelessWidget {
             onNext: null,
             nextLabel: t.onb_continue,
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OnboardingLegalLinks extends StatelessWidget {
+  const _OnboardingLegalLinks({required this.cs});
+  final ColorScheme cs;
+
+  void _open(String url) =>
+      launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final color = cs.onSurface.withValues(alpha: 0.4);
+    final style = TextStyle(fontSize: 11, color: color, decoration: TextDecoration.underline);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: () => _open('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
+          child: Text(t.legal_terms_of_use, style: style),
+        ),
+        Text('  ·  ', style: TextStyle(fontSize: 11, color: color)),
+        GestureDetector(
+          onTap: () => _open('https://drivetest.se/privacy-policy.html'),
+          child: Text(t.legal_privacy_policy, style: style),
         ),
       ],
     );

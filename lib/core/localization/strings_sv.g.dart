@@ -488,6 +488,10 @@ class TranslationsSv implements Translations {
   @override
   String get bcd_not_now => 'Inte nu';
   @override
+  String get legal_terms_of_use => 'Användarvillkor';
+  @override
+  String get legal_privacy_policy => 'Integritetspolicy';
+  @override
   String get bcd_buy => 'Köp';
   @override
   String get bcd_payment_failed => 'Betalning misslyckades. Försök igen.';
