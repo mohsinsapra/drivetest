@@ -135,6 +135,7 @@ class _AuthScreenState extends State<AuthScreen> {
       await Sentry.addBreadcrumb(
           Breadcrumb(message: 'Google Sign-In: started', category: 'auth'));
       final googleSignIn = GoogleSignInHelper.create();
+      await googleSignIn.signOut();
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         await Sentry.addBreadcrumb(Breadcrumb(

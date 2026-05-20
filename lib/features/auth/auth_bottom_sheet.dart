@@ -116,6 +116,7 @@ class _AuthSheetState extends State<_AuthSheet>
     });
     try {
       final helper = GoogleSignInHelper.create();
+      await helper.signOut();
       final user = await helper.signIn();
       if (user == null) {
         setState(() => _googleLoading = false);
