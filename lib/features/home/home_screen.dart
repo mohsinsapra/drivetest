@@ -347,8 +347,8 @@ class _HomeScreenState extends State<HomeScreen>
                             delegate: SliverChildBuilderDelegate(
                               (context, index) => _StaggeredItem(
                                 index: index,
-                                child:
-                                    _buildActivityItem(_selectedAttempts[index]),
+                                child: _buildActivityItem(
+                                    _selectedAttempts[index]),
                               ),
                               childCount: _selectedAttempts.length,
                             ),
