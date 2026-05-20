@@ -47,6 +47,11 @@ class _HomeScreenState extends State<HomeScreen>
   Map<String, dynamic> _stats = {};
   int selectedTabIndex = 0;
   bool _isLoading = true;
+
+  // Cached per-tab data — updated in _refreshFromBox and on tab change.
+  List<TestAttempt> _selectedAttempts = [];
+  Map<String, int> _dailyCounts = {};
+  Map<String, int> _monthlyCounts = {};
   late final VoidCallback _tabListener;
   MainScreenProvider? _mainScreenProvider;
 
@@ -125,7 +130,18 @@ class _HomeScreenState extends State<HomeScreen>
       _stats = calculateStats(_previousAttempts);
       _isLoading = false;
     });
+    // Recompute cached tab-dependent data after stats are available.
+    _updateSelectedData();
     _fadeController.forward(from: 0);
+  }
+
+  void _updateSelectedData() {
+    _selectedAttempts = _previousAttempts
+        .where((a) => _effectiveLicence(a) == selectedLicence)
+        .toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    _dailyCounts = getDailyAttemptCounts(_selectedAttempts);
+    _monthlyCounts = getMonthlyAttemptCounts(_selectedAttempts);
   }
 
   Future<void> _syncFromBackend(Box<TestAttempt> box) async {
@@ -261,12 +277,6 @@ class _HomeScreenState extends State<HomeScreen>
     final licenceWithCategories = Map<String, Map<String, int>>.from(
         _stats['licenceWithCategories'] ?? {});
     final licenceNames = licenceWithCategories.keys.toList();
-    final selectedAttempts = _previousAttempts
-        .where((a) => _effectiveLicence(a) == selectedLicence)
-        .toList()
-      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-    final dailyCounts = getDailyAttemptCounts(selectedAttempts);
-    final monthlyCounts = getMonthlyAttemptCounts(selectedAttempts);
 
     return Scaffold(
       body: AnimatedSwitcher(
@@ -321,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen>
                           // Charts
                           SliverToBoxAdapter(
                               child: _buildChartsSection(
-                                  dailyCounts, monthlyCounts, t)),
+                                  _dailyCounts, _monthlyCounts, t)),
                           // Pie chart
                           if (licenceWithCategories[selectedLicence] != null)
                             SliverToBoxAdapter(
@@ -331,16 +341,16 @@ class _HomeScreenState extends State<HomeScreen>
                           // Activity header
                           SliverToBoxAdapter(
                               child: _buildSectionHeader(t.home_recent_activity,
-                                  '${selectedAttempts.length} ${t.home_attempts}')),
+                                  '${_selectedAttempts.length} ${t.home_attempts}')),
                           // Activity list
                           SliverList(
                             delegate: SliverChildBuilderDelegate(
                               (context, index) => _StaggeredItem(
                                 index: index,
                                 child:
-                                    _buildActivityItem(selectedAttempts[index]),
+                                    _buildActivityItem(_selectedAttempts[index]),
                               ),
-                              childCount: selectedAttempts.length,
+                              childCount: _selectedAttempts.length,
                             ),
                           ),
                           const SliverToBoxAdapter(
@@ -642,6 +652,7 @@ class _HomeScreenState extends State<HomeScreen>
                 onTap: () {
                   HapticFeedback.selectionClick();
                   setState(() => selectedTabIndex = e.key);
+                  _updateSelectedData();
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),

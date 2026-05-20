@@ -119,6 +119,7 @@ class _TestscreenState extends State<Testscreen> {
   // Timer
   Timer? _countdownTimer;
   int _remainingSeconds = 0;
+  late final ValueNotifier<int> _timerNotifier;
 
   // Mutable runtime toggles — initialised from widget params (settings)
   late bool _isTimed;
@@ -157,6 +158,12 @@ class _TestscreenState extends State<Testscreen> {
     if (_isTimed && !widget.isReviewMode) {
       _remainingSeconds = widget.timeLimitMinutes * 60;
       _startTimer();
+    }
+    _timerNotifier = ValueNotifier(_remainingSeconds);
+
+    // Sort options once here so itemBuilder never mutates on every render.
+    for (final q in widget.questions) {
+      q.options.sort((a, b) => a.optionLabel.compareTo(b.optionLabel));
     }
 
     _savedQuestionIds =
@@ -450,7 +457,8 @@ class _TestscreenState extends State<Testscreen> {
         timer.cancel();
         return;
       }
-      setState(() => _remainingSeconds--);
+      // Update notifier only — avoids rebuilding the entire Testscreen every second.
+      _timerNotifier.value = --_remainingSeconds;
       if (_remainingSeconds <= 0) {
         timer.cancel();
         _onTimerExpired();
@@ -481,12 +489,6 @@ class _TestscreenState extends State<Testscreen> {
       licenceId: widget.licenceId,
       categoryId: widget.categoryId,
     );
-  }
-
-  String get _timerDisplay {
-    final m = _remainingSeconds ~/ 60;
-    final s = _remainingSeconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
   Widget _buildImageTile(BuildContext context, double s, String url) {
@@ -571,6 +573,7 @@ class _TestscreenState extends State<Testscreen> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _timerNotifier.dispose();
     _pageController.dispose();
     ttsService.flutterTts.stop();
     ttsService.ttsState = TtsState.stopped;
@@ -1153,63 +1156,66 @@ class _TestscreenState extends State<Testscreen> {
           ),
           centerTitle: true,
           actions: [
-            // Timer display
+            // Timer display — ValueListenableBuilder isolates rebuilds to this
+            // widget only; the rest of the screen is unaffected by each tick.
             if (_isTimed && !widget.isReviewMode)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Center(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _timerVisible = !_timerVisible),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _remainingSeconds <= 60 && _timerVisible
-                            ? Colors.red.withValues(alpha: 0.12)
-                            : Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: _remainingSeconds <= 60 && _timerVisible
-                              ? Colors.red
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withValues(alpha: 0.4),
+              ValueListenableBuilder<int>(
+                valueListenable: _timerNotifier,
+                builder: (_, secs, __) {
+                  final isUrgent = secs <= 60 && _timerVisible;
+                  final primary = Theme.of(context).colorScheme.primary;
+                  final m = secs ~/ 60;
+                  final s = secs % 60;
+                  final display =
+                      '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () =>
+                            setState(() => _timerVisible = !_timerVisible),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isUrgent
+                                ? Colors.red.withValues(alpha: 0.12)
+                                : primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isUrgent
+                                  ? Colors.red
+                                  : primary.withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _timerVisible
+                                    ? Icons.timer
+                                    : Icons.timer_off_outlined,
+                                size: 14,
+                                color: isUrgent ? Colors.red : primary,
+                              ),
+                              if (_timerVisible) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  display,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: secs <= 60 ? Colors.red : primary,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _timerVisible
-                                ? Icons.timer
-                                : Icons.timer_off_outlined,
-                            size: 14,
-                            color: _remainingSeconds <= 60 && _timerVisible
-                                ? Colors.red
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                          if (_timerVisible) ...[
-                            const SizedBox(width: 4),
-                            Text(
-                              _timerDisplay,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: _remainingSeconds <= 60
-                                    ? Colors.red
-                                    : Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             if (!isSmallScreen)
               Container(
@@ -1275,6 +1281,7 @@ class _TestscreenState extends State<Testscreen> {
                     if (_isTimed) {
                       if (_remainingSeconds <= 0) {
                         _remainingSeconds = widget.timeLimitMinutes * 60;
+                        _timerNotifier.value = _remainingSeconds;
                       }
                       _startTimer();
                     } else {
@@ -1394,9 +1401,6 @@ class _TestscreenState extends State<Testscreen> {
               widget.categoryId,
               widget.questions[index].imageUrl,
             );
-            // Sort options if necessary
-            question.options
-                .sort((a, b) => a.optionLabel.compareTo(b.optionLabel));
 
             // Get translated question text if available
             String questionText = question.text;

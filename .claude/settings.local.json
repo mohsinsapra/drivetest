@@ -253,7 +253,8 @@
       "Bash(ping -c 1 Muhammads-MacBook-Pro-2.local)",
       "Bash(/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate)",
       "Bash(/usr/libexec/ApplicationFirewall/socketfilterfw --getblockall)",
-      "Bash(sudo /usr/libexec/ApplicationFirewall/socketfilterfw --listapps)"
+      "Bash(sudo /usr/libexec/ApplicationFirewall/socketfilterfw --listapps)",
+      "Skill(investigate)"
     ],
     "deny": [],
     "ask": []

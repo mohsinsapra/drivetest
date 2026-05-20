@@ -214,12 +214,12 @@ class DashboardHelpers {
       }
     }).toList();
 
-    // Unique active dates normalised to midnight
-    final activeDates = relevant
+    // Unique active dates normalised to midnight.
+    // Keep both a Set (O(1) contains) and a sorted List (best-streak iteration).
+    final activeDatesSet = relevant
         .map((a) => DateTime(a.dateTime.year, a.dateTime.month, a.dateTime.day))
-        .toSet()
-        .toList()
-      ..sort();
+        .toSet();
+    final activeDates = activeDatesSet.toList()..sort();
 
     final today = DateTime.now();
     final todayMid = DateTime(today.year, today.month, today.day);
@@ -227,13 +227,13 @@ class DashboardHelpers {
     // Current streak (backwards from today, with yesterday grace)
     int currentStreak = 0;
     DateTime check = todayMid;
-    while (activeDates.contains(check)) {
+    while (activeDatesSet.contains(check)) {
       currentStreak++;
       check = check.subtract(const Duration(days: 1));
     }
     if (currentStreak == 0) {
       check = todayMid.subtract(const Duration(days: 1));
-      while (activeDates.contains(check)) {
+      while (activeDatesSet.contains(check)) {
         currentStreak++;
         check = check.subtract(const Duration(days: 1));
       }
@@ -255,7 +255,7 @@ class DashboardHelpers {
     // This week Mon–Sun
     final monday = todayMid.subtract(Duration(days: todayMid.weekday - 1));
     final thisWeek = List.generate(7, (i) => monday.add(Duration(days: i)));
-    final thisWeekActive = thisWeek.where(activeDates.contains).toList();
+    final thisWeekActive = thisWeek.where(activeDatesSet.contains).toList();
 
     return StreakSummary(
       currentStreak: currentStreak,
