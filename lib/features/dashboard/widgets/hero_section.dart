@@ -72,8 +72,8 @@ class HeroSection extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: theme.cardColor,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                      color: cs.onSurface.withValues(alpha: 0.08)),
+                  border:
+                      Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
                   boxShadow: [
                     BoxShadow(
                       color: cs.onSurface.withValues(alpha: 0.04),
@@ -87,8 +87,7 @@ class HeroSection extends StatelessWidget {
                   alignment: Alignment.center,
                   children: [
                     Icon(Icons.notifications_none_rounded,
-                        size: 22,
-                        color: cs.onSurface.withValues(alpha: 0.75)),
+                        size: 22, color: cs.onSurface.withValues(alpha: 0.75)),
                     if (notifProvider.unreadCount > 0)
                       Positioned(
                         top: -4,

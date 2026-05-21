@@ -54,8 +54,7 @@ class SubscribedExam extends HiveObject {
         ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
   /// Batch children of a given category node.
-  List<ExamNode> childrenOf(String parentId) =>
-      _childrenCache.putIfAbsent(
+  List<ExamNode> childrenOf(String parentId) => _childrenCache.putIfAbsent(
         parentId,
         () => nodes.where((n) => n.parentId == parentId).toList()
           ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),

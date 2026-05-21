@@ -10,10 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Loading states with shimmer effect to PerformanceInsightCard, PerformanceMetricCard, and PerformanceOverviewSection for a smoother data-fetching experience
+- Custom height support for bars in MiniBarChart to allow more flexible data visualization
+- Comprehensive tests for dashboard loading states and OnboardingScreen localization
 
 ### Changed
--
+- Removed borders from FreeBcdHubCard and FreeVagmarkesCard to achieve a cleaner, more modern dashboard aesthetic
+- Refactored MainScreen to prioritize cached user data, significantly reducing initial load times
+- Enhanced NotificationsScreen with a custom back button for better navigation control
+- Localized weekday initials in OnboardingScreen to improve the experience for Swedish-speaking users
+- Improved PerformanceMetricCard layout for better information density and readability
+- Refactored PeriodDropdown state management for more reliable period switching
 
 ### Fixed
 -

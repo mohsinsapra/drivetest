@@ -8,6 +8,7 @@ class MiniBarChart extends StatelessWidget {
   });
 
   final Color color;
+
   /// Normalized bar heights in [0.0, 1.0], oldest → newest (left → right).
   final List<double> heights;
 

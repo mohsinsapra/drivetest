@@ -63,18 +63,16 @@ class BatchAttemptHistory extends StatelessWidget {
                           height: 40,
                           child: OutlinedButton.icon(
                             onPressed: () => onResume(paused.first),
-                            icon: const Icon(
-                                Icons.play_circle_outline_rounded,
+                            icon: const Icon(Icons.play_circle_outline_rounded,
                                 size: 16),
                             label: Text(t.home_resume),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.orange,
                               side: const BorderSide(color: Colors.orange),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
                               textStyle: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600),
+                                  fontSize: 14, fontWeight: FontWeight.w600),
                             ),
                           ),
                         ),

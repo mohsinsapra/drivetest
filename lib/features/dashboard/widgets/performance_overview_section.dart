@@ -105,9 +105,8 @@ class PerformanceOverviewSection extends StatelessWidget {
                   chip: stats.totalAttempts == 0
                       ? t.dash_stat_none_yet
                       : t.dash_stat_completed,
-                  chipColor: stats.totalAttempts > 0
-                      ? const Color(0xFF4CAF50)
-                      : null,
+                  chipColor:
+                      stats.totalAttempts > 0 ? const Color(0xFF4CAF50) : null,
                   chipDot: stats.totalAttempts > 0,
                   description: t.dash_perf_attempts_desc,
                   isCompact: true,
@@ -162,9 +161,8 @@ class PerformanceOverviewSection extends StatelessWidget {
               return Wrap(
                 spacing: gap,
                 runSpacing: gap,
-                children: cards
-                    .map((c) => SizedBox(width: cardW, child: c))
-                    .toList(),
+                children:
+                    cards.map((c) => SizedBox(width: cardW, child: c)).toList(),
               );
             },
           ),

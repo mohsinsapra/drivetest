@@ -11,8 +11,7 @@ class FocusCategoriesSection extends StatefulWidget {
   final ExamDashboardStats stats;
 
   @override
-  State<FocusCategoriesSection> createState() =>
-      _FocusCategoriesSectionState();
+  State<FocusCategoriesSection> createState() => _FocusCategoriesSectionState();
 }
 
 class _FocusCategoriesSectionState extends State<FocusCategoriesSection> {

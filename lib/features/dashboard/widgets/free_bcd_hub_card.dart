@@ -120,8 +120,8 @@ class _FreeBcdHubCardState extends State<FreeBcdHubCard> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF059669)
-                                .withValues(alpha: 0.12),
+                            color:
+                                const Color(0xFF059669).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(

@@ -124,9 +124,8 @@ class WeeklyStreakSection extends StatelessWidget {
                           alignment: Alignment.bottomCenter,
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 400),
-                            height: isActive
-                                ? 40
-                                : (isToday && !isFuture ? 18 : 0),
+                            height:
+                                isActive ? 40 : (isToday && !isFuture ? 18 : 0),
                             decoration: BoxDecoration(
                               color: isActive
                                   ? Colors.amber

@@ -110,8 +110,7 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
                 FreeVagmarkesCard(
                   onTap: () => Navigator.push(
                     context,
-                    AppPageRoute(
-                        builder: (_) => const BCDTrafficSignsScreen()),
+                    AppPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
                   ),
                 ),
                 if (!ProfileProvider().isGuest) ...[
@@ -155,32 +154,25 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
             height: 190,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: _leftPad),
+              padding: const EdgeInsets.symmetric(horizontal: _leftPad),
               itemCount: exams.length,
               itemBuilder: (context, i) {
                 final exam = exams[i];
-                final isSelected =
-                    exam.id == provider.selectedExam?.id;
-                final progress =
-                    provider.overviewProgress[exam.id] ?? 0.0;
+                final isSelected = exam.id == provider.selectedExam?.id;
+                final progress = provider.overviewProgress[exam.id] ?? 0.0;
                 final bcdId = int.tryParse(exam.id);
-                final endDate = bcdId != null
-                    ? BcdCache.instance.endDateFor(bcdId)
-                    : null;
+                final endDate =
+                    bcdId != null ? BcdCache.instance.endDateFor(bcdId) : null;
 
                 return Padding(
                   padding: EdgeInsets.only(
-                      right:
-                          i < exams.length - 1 ? _cardSpacing : 0),
+                      right: i < exams.length - 1 ? _cardSpacing : 0),
                   child: SizedBox(
                     width: _cardWidth,
                     child: GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        context
-                            .read<DashboardProvider>()
-                            .selectExam(exam);
+                        context.read<DashboardProvider>().selectExam(exam);
                       },
                       child: ExamCard(
                         exam: exam,

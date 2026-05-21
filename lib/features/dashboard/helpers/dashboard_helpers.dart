@@ -190,7 +190,9 @@ class DashboardHelpers {
   // O(n) scan — avoids sorting the list just to find the latest date.
   static DateTime? _latestDate(List<TestAttempt> attempts) {
     if (attempts.isEmpty) return null;
-    return attempts.map((a) => a.dateTime).reduce((a, b) => a.isAfter(b) ? a : b);
+    return attempts
+        .map((a) => a.dateTime)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
   /// Counts all attempts that belong to [exam] using broad bcdCategoryId matching.

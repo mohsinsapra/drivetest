@@ -214,8 +214,8 @@ class _BatchRowState extends State<BatchRow>
                           exam: widget.exam,
                           batch: batch,
                           onNewTest: widget.onTap,
-                          onResume: (attempt) =>
-                              resumeAttempt(context, attempt, widget.exam, batch),
+                          onResume: (attempt) => resumeAttempt(
+                              context, attempt, widget.exam, batch),
                         ),
                       )
                     : const SizedBox.shrink(),
