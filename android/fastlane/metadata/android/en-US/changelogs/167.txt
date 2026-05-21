@@ -1,0 +1,8 @@
+Added
+• Loading states with shimmer effect to PerformanceInsightCard, PerformanceMetricCard, and PerformanceOverviewSection for a smoother data-fetching experience
+• Custom height support for bars in MiniBarChart to allow more flexible data visualization
+• Comprehensive tests for dashboard loading states and OnboardingScreen localization
+
+Changed
+• Removed borders from FreeBcdHubCard and FreeVagmarkesCard to achieve a cleaner, more modern dashboard aesthetic
+• Refactored MainScreen to priorit...

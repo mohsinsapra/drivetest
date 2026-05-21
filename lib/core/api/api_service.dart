@@ -190,12 +190,15 @@ class ApiService {
           if (data['username'] != null) merged['username'] = data['username'];
           if (data['email'] != null) merged['email'] = data['email'];
           if (data['is_guest'] != null) merged['is_guest'] = data['is_guest'];
-          if (data['show_legacy_tests'] != null)
+          if (data['show_legacy_tests'] != null) {
             merged['show_legacy_tests'] = data['show_legacy_tests'];
-          if (data['show_bcd_tests'] != null)
+          }
+          if (data['show_bcd_tests'] != null) {
             merged['show_bcd_tests'] = data['show_bcd_tests'];
-          if (data['is_administrator'] != null)
+          }
+          if (data['is_administrator'] != null) {
             merged['is_administrator'] = data['is_administrator'];
+          }
           await prefs.setString(AppStorage.kUserJson, jsonEncode(merged));
         } catch (e) {
           debugPrint('[ApiService] failed to cache user fields: $e');
