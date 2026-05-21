@@ -10,6 +10,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.21+219] - 2026-05-21
+
+### Added
+
+### Changed
+
+### Fixed
+
+---
+---
+
+## [1.1.20+218] - 2026-05-21
+
+### Added
 - Loading states with shimmer effect to PerformanceInsightCard, PerformanceMetricCard, and PerformanceOverviewSection for a smoother data-fetching experience
 - Custom height support for bars in MiniBarChart to allow more flexible data visualization
 - Comprehensive tests for dashboard loading states and OnboardingScreen localization
@@ -23,7 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored PeriodDropdown state management for more reliable period switching
 
 ### Fixed
--
 
 ---
 
