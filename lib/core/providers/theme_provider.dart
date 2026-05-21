@@ -4,36 +4,26 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ThemeProvider extends ChangeNotifier {
   static const _key = 'theme_mode';
 
-  ThemeMode _mode = ThemeMode.system;
+  ThemeMode _mode;
 
   ThemeMode get themeMode => _mode;
   bool get isDark => _mode == ThemeMode.dark;
 
-  ThemeProvider() {
-    _load();
-  }
+  ThemeProvider(SharedPreferences prefs) : _mode = _resolve(prefs);
 
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
+  static ThemeMode _resolve(SharedPreferences prefs) {
     final saved = prefs.getString(_key);
     if (saved == null) {
-      // Backward compat: migrate old bool key to new string key
       final oldBool = prefs.getBool('dark_mode');
-      if (oldBool == true) {
-        _mode = ThemeMode.dark;
-      } else if (oldBool == false) {
-        _mode = ThemeMode.light;
-      } else {
-        _mode = ThemeMode.system;
-      }
-    } else {
-      _mode = switch (saved) {
-        'dark' => ThemeMode.dark,
-        'light' => ThemeMode.light,
-        _ => ThemeMode.system,
-      };
+      if (oldBool == true) return ThemeMode.dark;
+      if (oldBool == false) return ThemeMode.light;
+      return ThemeMode.system;
     }
-    notifyListeners();
+    return switch (saved) {
+      'dark' => ThemeMode.dark,
+      'light' => ThemeMode.light,
+      _ => ThemeMode.system,
+    };
   }
 
   Future<void> setMode(ThemeMode mode) async {

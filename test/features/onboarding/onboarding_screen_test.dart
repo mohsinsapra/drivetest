@@ -34,6 +34,8 @@ class _MockDashboardProvider extends ChangeNotifier
   @override
   bool get syncing => false;
   @override
+  bool get switching => false;
+  @override
   String? get error => null;
   @override
   DashboardErrorKind get errorKind => DashboardErrorKind.unknown;
@@ -48,12 +50,16 @@ class _MockDashboardProvider extends ChangeNotifier
   @override
   void reset() {}
   void clearSelectedExam() {}
+  @override
+  PeriodFilter get period => PeriodFilter.thisMonth;
+  @override
+  Future<void> setPeriod(PeriodFilter p) async {}
   Future<void> deleteExam(String examId) async {}
   double getProgress(String examId) => 0.0;
   @override
   List<TestAttempt> get attempts => [];
   @override
-  void setWeeklyGoal(int goal) {}
+  Future<void> setWeeklyGoal(int goal) async {}
 }
 
 class _MockNotificationProvider extends ChangeNotifier
@@ -146,6 +152,17 @@ void main() {
 
   Future<SharedPreferences> prefsFor(WidgetTester tester) async {
     return (await tester.runAsync(SharedPreferences.getInstance))!;
+  }
+
+  Future<void> reachWeeklyGoalStep(WidgetTester tester) async {
+    await tester.tap(find.text('30 Days'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, t.onb_continue));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ElevatedButton, t.onb_continue));
+    await tester.pumpAndSettle();
   }
 
   Object? takeLastException(WidgetTester tester) {
@@ -623,6 +640,47 @@ void main() {
 
       expect(find.text('90 Days'), findsWidgets);
       expect(find.text('399 SEK'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'weekly goal uses localized Swedish weekday initials',
+    (tester) async {
+      await LocaleSettings.setLocale(AppLocale.sv);
+
+      await pumpOnboarding(
+        tester,
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => MainScreenProvider()),
+            ChangeNotifierProvider<DashboardProvider>(
+                create: (_) => _MockDashboardProvider()),
+            ChangeNotifierProvider<NotificationProvider>(
+                create: (_) => _MockNotificationProvider()),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: OnboardingScreen(
+                loadProducts: () async => [
+                  {
+                    'id': 7,
+                    'name': '30 Days',
+                    'price': '199',
+                    'currency': 'SEK',
+                    'duration_days': 30,
+                  },
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await reachWeeklyGoalStep(tester);
+
+      expect(find.text('O'), findsNWidgets(2));
+      expect(find.text('L'), findsNWidgets(2));
+      expect(find.text('W'), findsNothing);
     },
   );
 }

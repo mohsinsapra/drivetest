@@ -289,12 +289,13 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       floatingActionButton: kDebugMode
           ? FloatingActionButton.small(
               backgroundColor: Colors.orange,
-              tooltip: 'Reset Onboarding',
+              tooltip: t.auth_reset_onboarding_tooltip,
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.remove('onboarding_complete');
@@ -435,6 +436,7 @@ class _AuthAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final t = Translations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -459,7 +461,7 @@ class _AuthAppBar extends StatelessWidget {
               child: Material(
                 type: MaterialType.transparency,
                 child: Text(
-                  'DRIVE TEST',
+                  '${t.brand_drive.trim()} ${t.brand_test}',
                   style: GoogleFonts.lexend(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -898,6 +900,7 @@ class _LandingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final t = Translations.of(context);
     final isDark = context.watch<ThemeProvider>().isDark;
     final currentLocale = LocaleSettings.currentLocale;
     final currentFlag = currentLocale == AppLocale.sv ? '🇸🇪' : '🇬🇧';
@@ -935,12 +938,12 @@ class _LandingView extends StatelessWidget {
                             CheckedPopupMenuItem<AppLocale>(
                               value: AppLocale.en,
                               checked: currentLocale == AppLocale.en,
-                              child: const Text('🇬🇧 English'),
+                              child: Text('🇬🇧 ${t.auth_language_english}'),
                             ),
                             CheckedPopupMenuItem<AppLocale>(
                               value: AppLocale.sv,
                               checked: currentLocale == AppLocale.sv,
-                              child: const Text('🇸🇪 Svenska'),
+                              child: Text('🇸🇪 ${t.auth_language_swedish}'),
                             ),
                           ],
                           child: Padding(
@@ -1000,9 +1003,9 @@ class _LandingView extends StatelessWidget {
                                     color: cs.onSurface,
                                   ),
                                   children: [
-                                    const TextSpan(text: 'DRIVE '),
+                                    TextSpan(text: t.brand_drive),
                                     TextSpan(
-                                      text: 'TEST',
+                                      text: t.brand_test,
                                       style: GoogleFonts.lexend(
                                         fontStyle: FontStyle.italic,
                                         color: cs.primary,

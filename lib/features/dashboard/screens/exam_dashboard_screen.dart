@@ -4,7 +4,6 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_body.dart';
 import '../widgets/dashboard_error_view.dart';
@@ -57,20 +56,16 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
-      body: switch (provider.status) {
-        DashboardStatus.idle ||
-        DashboardStatus.loading =>
-          const Center(child: AppLoadingIndicator()),
-        DashboardStatus.error => DashboardErrorView(
-            errorKind: provider.errorKind,
-            onRetry: () => context.read<DashboardProvider>().init(),
-          ),
-        DashboardStatus.loaded => DashboardBody(
-            provider: provider,
-            onSubscribe: _handleSubscribe,
-            onRefresh: () => context.read<DashboardProvider>().syncNow(),
-          ),
-      },
+      body: provider.status == DashboardStatus.error
+          ? DashboardErrorView(
+              errorKind: provider.errorKind,
+              onRetry: () => context.read<DashboardProvider>().init(),
+            )
+          : DashboardBody(
+              provider: provider,
+              onSubscribe: _handleSubscribe,
+              onRefresh: () => context.read<DashboardProvider>().syncNow(),
+            ),
     );
   }
 }

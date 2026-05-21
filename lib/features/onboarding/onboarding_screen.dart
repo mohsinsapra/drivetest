@@ -968,7 +968,15 @@ class _WeeklyGoalPage extends StatelessWidget {
     final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
 
-    const weekdayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final weekdayLetters = [
+      t.onb_weekday_mon_short,
+      t.onb_weekday_tue_short,
+      t.onb_weekday_wed_short,
+      t.onb_weekday_thu_short,
+      t.onb_weekday_fri_short,
+      t.onb_weekday_sat_short,
+      t.onb_weekday_sun_short,
+    ];
 
     return Column(
       children: [

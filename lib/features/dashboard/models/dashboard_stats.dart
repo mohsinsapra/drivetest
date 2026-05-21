@@ -27,9 +27,13 @@ class BatchStats {
   /// True if the user has passed this batch at least once
   final bool isCompleted;
 
+  // Raw unsorted attempts — sorted lazily on first access via [sortedAttempts].
+  final List<TestAttempt> _rawAttempts;
+
   /// All attempts for this batch, sorted newest-first.
-  /// Precomputed during stats cache build — never recomputed in build().
-  final List<TestAttempt> sortedAttempts;
+  /// Computed on first access — zero cost for batches the user never expands.
+  late final List<TestAttempt> sortedAttempts = List.of(_rawAttempts)
+    ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
   BatchStats({
     required this.node,
@@ -41,8 +45,8 @@ class BatchStats {
     required this.targetDurationSeconds,
     required this.lastAttemptDate,
     required this.isCompleted,
-    this.sortedAttempts = const [],
-  });
+    List<TestAttempt> rawAttempts = const [],
+  }) : _rawAttempts = rawAttempts;
 
   /// 0–100 progress: 100 if completed, otherwise avg score
   double get progressPercent =>

@@ -41,7 +41,8 @@ class _PeriodDropdownState extends State<PeriodDropdown>
 
   @override
   void dispose() {
-    _removeOverlay();
+    _overlay?.remove();
+    _overlay = null;
     _arrowCtrl.dispose();
     super.dispose();
   }
@@ -128,9 +129,8 @@ class _PeriodDropdownState extends State<PeriodDropdown>
                                     fontWeight: isSelected
                                         ? FontWeight.w700
                                         : FontWeight.w500,
-                                    color: isSelected
-                                        ? cs.primary
-                                        : cs.onSurface,
+                                    color:
+                                        isSelected ? cs.primary : cs.onSurface,
                                   ),
                                 ),
                               ),
@@ -192,15 +192,13 @@ class _PeriodDropdownState extends State<PeriodDropdown>
               const SizedBox(width: 6),
               RotationTransition(
                 turns: Tween(begin: 0.0, end: 0.5).animate(
-                  CurvedAnimation(
-                      parent: _arrowCtrl, curve: Curves.easeInOut),
+                  CurvedAnimation(parent: _arrowCtrl, curve: Curves.easeInOut),
                 ),
                 child: Icon(
                   Icons.keyboard_arrow_down_rounded,
                   size: 18,
-                  color: isOpen
-                      ? cs.primary
-                      : cs.onSurface.withValues(alpha: 0.5),
+                  color:
+                      isOpen ? cs.primary : cs.onSurface.withValues(alpha: 0.5),
                 ),
               ),
             ],

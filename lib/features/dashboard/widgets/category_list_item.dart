@@ -4,7 +4,7 @@ import '../models/dashboard_stats.dart';
 import 'batch_row.dart';
 import 'exam_nav_helpers.dart';
 
-class CategoryListItem extends StatelessWidget {
+class CategoryListItem extends StatefulWidget {
   const CategoryListItem({
     super.key,
     required this.cat,
@@ -23,25 +23,67 @@ class CategoryListItem extends StatelessWidget {
   final ExamDashboardStats stats;
 
   @override
+  State<CategoryListItem> createState() => _CategoryListItemState();
+}
+
+class _CategoryListItemState extends State<CategoryListItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _curved;
+  // Deferred build: content is only constructed after the first expansion.
+  late bool _hasBeenExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _hasBeenExpanded = widget.isExpanded;
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+      value: widget.isExpanded ? 1.0 : 0.0,
+    );
+    _curved = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+  }
+
+  @override
+  void didUpdateWidget(CategoryListItem old) {
+    super.didUpdateWidget(old);
+    if (old.isExpanded != widget.isExpanded) {
+      if (widget.isExpanded) {
+        _hasBeenExpanded = true;
+        _ctrl.forward();
+      } else {
+        _ctrl.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
     final t = Translations.of(context);
 
-    final statusText = cat.touchedBatches == 0
+    final statusText = widget.cat.touchedBatches == 0
         ? t.dash_not_started
         : t.dash_avg_score_label.replaceAll(
             '{score}',
-            cat.averageScore.toStringAsFixed(0),
+            widget.cat.averageScore.toStringAsFixed(0),
           );
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
       decoration: BoxDecoration(
-        color: isExpanded ? cs.surfaceContainerLow : theme.cardColor,
+        color: widget.isExpanded ? cs.surfaceContainerLow : theme.cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isExpanded
+          color: widget.isExpanded
               ? cs.primary.withValues(alpha: 0.15)
               : cs.onSurface.withValues(alpha: 0.06),
         ),
@@ -62,7 +104,7 @@ class CategoryListItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               clipBehavior: Clip.antiAlias,
               child: InkWell(
-                onTap: onToggle,
+                onTap: widget.onToggle,
                 splashColor: cs.primary.withValues(alpha: 0.08),
                 highlightColor: cs.primary.withValues(alpha: 0.05),
                 child: Padding(
@@ -73,10 +115,10 @@ class CategoryListItem extends StatelessWidget {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.12),
+                          color: widget.color.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(icon, color: color, size: 20),
+                        child: Icon(widget.icon, color: widget.color, size: 20),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -84,13 +126,13 @@ class CategoryListItem extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              cat.node.name,
+                              widget.cat.node.name,
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                             Text(
-                              '${t.dash_batches_count.replaceAll('{n}', '${cat.totalBatches}')} • $statusText',
+                              '${t.dash_batches_count.replaceAll('{n}', '${widget.cat.totalBatches}')} • $statusText',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: cs.onSurface.withValues(alpha: 0.5),
                               ),
@@ -99,7 +141,7 @@ class CategoryListItem extends StatelessWidget {
                         ),
                       ),
                       AnimatedRotation(
-                        turns: isExpanded ? 0.25 : 0.0,
+                        turns: widget.isExpanded ? 0.25 : 0.0,
                         duration: const Duration(milliseconds: 200),
                         child: Icon(
                           Icons.chevron_right_rounded,
@@ -112,49 +154,59 @@ class CategoryListItem extends StatelessWidget {
               ),
             ),
             ClipRect(
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 280),
-                curve: Curves.easeInOut,
-                alignment: Alignment.topCenter,
-                heightFactor: isExpanded ? 1.0 : 0.0,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: cs.onSurface.withValues(alpha: 0.07),
-                      ),
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    children: cat.batchStats
-                        .asMap()
-                        .entries
-                        .map((e) => Padding(
-                              padding: EdgeInsets.only(
-                                bottom: e.key < cat.batchStats.length - 1
-                                    ? 8
-                                    : 0,
-                              ),
-                              // Use precomputed sortedAttempts — no build-time filtering.
-                              child: BatchRow(
-                                batch: e.value,
-                                exam: stats.exam,
-                                nested: true,
-                                batchAttempts: e.value.sortedAttempts,
-                                onTap: stats.exam.isBcd
-                                    ? () => launchBatch(
-                                          context,
-                                          stats.exam,
-                                          e.value.node,
-                                          cat.node.name,
-                                        )
-                                    : null,
-                              ),
-                            ))
-                        .toList(),
-                  ),
-                ),
+              child: AnimatedBuilder(
+                animation: _curved,
+                builder: (ctx, child) {
+                  // Dispose children entirely when fully collapsed — no build cost.
+                  if (_ctrl.status == AnimationStatus.dismissed) {
+                    return const SizedBox.shrink();
+                  }
+                  return Align(
+                    alignment: Alignment.topCenter,
+                    heightFactor: _curved.value,
+                    child: child,
+                  );
+                },
+                child: _hasBeenExpanded
+                    ? Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              color: cs.onSurface.withValues(alpha: 0.07),
+                            ),
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          children: widget.cat.batchStats
+                              .asMap()
+                              .entries
+                              .map((e) => Padding(
+                                    padding: EdgeInsets.only(
+                                      bottom: e.key <
+                                              widget.cat.batchStats.length - 1
+                                          ? 8
+                                          : 0,
+                                    ),
+                                    child: BatchRow(
+                                      batch: e.value,
+                                      exam: widget.stats.exam,
+                                      nested: true,
+                                      batchAttempts: e.value.sortedAttempts,
+                                      onTap: widget.stats.exam.isBcd
+                                          ? () => launchBatch(
+                                                context,
+                                                widget.stats.exam,
+                                                e.value.node,
+                                                widget.cat.node.name,
+                                              )
+                                          : null,
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
             ),
           ],

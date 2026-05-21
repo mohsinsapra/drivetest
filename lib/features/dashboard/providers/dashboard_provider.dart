@@ -69,6 +69,11 @@ class DashboardProvider extends ChangeNotifier {
   bool _syncing = false;
   bool get syncing => _syncing;
 
+  /// True for one microtask frame while switching between exams,
+  /// giving the UI a window to render the shimmer skeleton.
+  bool _switching = false;
+  bool get switching => _switching;
+
   String? _error;
   String? get error => _error;
 
@@ -104,8 +109,8 @@ class DashboardProvider extends ChangeNotifier {
               a.dateTime.day == now.day)
           .toList(),
       PeriodFilter.sevenDays => _attempts
-          .where((a) =>
-              a.dateTime.isAfter(now.subtract(const Duration(days: 7))))
+          .where(
+              (a) => a.dateTime.isAfter(now.subtract(const Duration(days: 7))))
           .toList(),
       PeriodFilter.thisMonth => _attempts
           .where((a) =>
@@ -115,20 +120,20 @@ class DashboardProvider extends ChangeNotifier {
     };
   }
 
-  void setPeriod(PeriodFilter p) {
+  Future<void> setPeriod(PeriodFilter p) async {
     if (_period == p) return;
     _period = p;
-    _rebuildStatsCache();
+    await _rebuildStatsCache();
     _selectedStats =
         _selectedExam != null ? _statsCache[_selectedExam!.id] : null;
     notifyListeners();
   }
 
-  void setWeeklyGoal(int goal) {
+  Future<void> setWeeklyGoal(int goal) async {
     if (_weeklyGoal == goal) return;
     _weeklyGoal = goal;
     if (_selectedExam != null && _attempts.isNotEmpty) {
-      _rebuildStatsCache();
+      await _rebuildStatsCache();
       _selectedStats = _statsCache[_selectedExam!.id];
       notifyListeners();
     }
@@ -164,16 +169,26 @@ class DashboardProvider extends ChangeNotifier {
     _status = DashboardStatus.loading;
     notifyListeners();
 
-    _syncFromApi();
+    // Start attempts pre-fetch concurrently with exam sync — they are
+    // independent, so both can run at the same time.
+    final attemptsReady = _syncAttemptsIfEmpty();
+    _syncFromApi(attemptsReady: attemptsReady);
     _subscribeToAttempts();
   }
 
-  /// Switching exams is a cache lookup — zero computation.
+  /// Clears stats immediately (triggers shimmer), then resolves on the next
+  /// microtask so the skeleton gets one frame to render before real data lands.
   void selectExam(SubscribedExam exam) {
+    if (_selectedExam?.id == exam.id) return;
     _selectedExam = exam;
+    // Keep _selectedStats so the UI retains its structure; only dynamic values shimmer.
+    _switching = true;
+    notifyListeners();
+
     _selectedStats = _statsCache[exam.id] ??
         DashboardHelpers.computeExamStats(exam, _periodAttempts, _attempts,
             weeklyGoal: _weeklyGoal);
+    _switching = false;
     notifyListeners();
   }
 
@@ -183,15 +198,14 @@ class DashboardProvider extends ChangeNotifier {
     _refreshDebounce = Timer(const Duration(milliseconds: 50), _doRefresh);
   }
 
-  void _doRefresh() {
-    _loadAttempts().then((attempts) {
-      _attempts = attempts;
-      _buildOverviewProgress(attempts);
-      _rebuildStatsCache();
-      _selectedStats =
-          _selectedExam != null ? _statsCache[_selectedExam!.id] : null;
-      notifyListeners();
-    });
+  Future<void> _doRefresh() async {
+    final attempts = await _loadAttempts();
+    _attempts = attempts;
+    _buildOverviewProgress(attempts);
+    await _rebuildStatsCache();
+    _selectedStats =
+        _selectedExam != null ? _statsCache[_selectedExam!.id] : null;
+    notifyListeners();
   }
 
   Future<void> syncNow() async {
@@ -233,11 +247,12 @@ class DashboardProvider extends ChangeNotifier {
 
   // ─── Private helpers ───────────────────────────────────────────────────────
 
-  Future<void> _syncFromApi() async {
+  Future<void> _syncFromApi({Future<void>? attemptsReady}) async {
     if (_syncing) return;
+    final shouldNotifySyncStart = _status != DashboardStatus.loading;
     _syncing = true;
     final gen = _generation;
-    notifyListeners();
+    if (shouldNotifySyncStart) notifyListeners();
 
     try {
       final fetched = await _sync.fetchSubscribedExams();
@@ -248,7 +263,7 @@ class DashboardProvider extends ChangeNotifier {
         if (_generation != gen) return;
         final refreshed = await _repo.loadSubscribedExams();
         if (_generation != gen) return;
-        await _applyExams(refreshed);
+        await _applyExams(refreshed, attemptsReady: attemptsReady);
         _status = DashboardStatus.loaded;
       } else if (_exams.isEmpty) {
         _status = DashboardStatus.loaded;
@@ -305,13 +320,18 @@ class DashboardProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> _applyExams(List<SubscribedExam> exams) async {
+  Future<void> _applyExams(
+    List<SubscribedExam> exams, {
+    Future<void>? attemptsReady,
+  }) async {
     _exams = exams;
-    await _syncAttemptsIfEmpty();
+    // Await the pre-fetched attempts future (started concurrently in init) or
+    // fall back to calling it inline (e.g. syncNow path).
+    await (attemptsReady ?? _syncAttemptsIfEmpty());
     final attempts = await _loadAttempts();
     _attempts = attempts;
     _buildOverviewProgress(attempts);
-    _rebuildStatsCache();
+    await _rebuildStatsCache();
 
     final prevId = _selectedExam?.id;
     final target = exams.where((e) => e.id == prevId).firstOrNull ??
@@ -353,17 +373,29 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   void _buildOverviewProgress(List<TestAttempt> attempts) {
-    _overviewProgress = DashboardHelpers.buildOverviewProgress(_exams, attempts);
+    _overviewProgress =
+        DashboardHelpers.buildOverviewProgress(_exams, attempts);
   }
 
   /// Pre-computes stats for every exam using the current period filter.
-  /// All [selectExam] calls after this are O(1) map lookups.
-  void _rebuildStatsCache() {
+  /// Yields to the event loop between each exam so long computations
+  /// (many batches × many attempts) don't block UI frames.
+  Future<void> _rebuildStatsCache() async {
     final filtered = _periodAttempts;
-    _statsCache = {
-      for (final e in _exams)
-        e.id: DashboardHelpers.computeExamStats(e, filtered, _attempts,
-            weeklyGoal: _weeklyGoal),
-    };
+    final exams = _exams;
+    final all = _attempts;
+    final goal = _weeklyGoal;
+    final gen = _generation;
+
+    final result = <String, ExamDashboardStats>{};
+    for (final exam in exams) {
+      // Give the UI thread a frame between heavy per-exam computations.
+      await Future.microtask(() {});
+      if (_generation != gen) return;
+      result[exam.id] = DashboardHelpers.computeExamStats(exam, filtered, all,
+          weeklyGoal: goal);
+    }
+    if (_generation != gen) return;
+    _statsCache = result;
   }
 }

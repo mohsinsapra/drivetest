@@ -12,10 +12,12 @@ class PerformanceOverviewSection extends StatelessWidget {
     super.key,
     required this.stats,
     required this.provider,
+    this.isLoading = false,
   });
 
   final ExamDashboardStats stats;
   final DashboardProvider provider;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -89,8 +91,10 @@ class PerformanceOverviewSection extends StatelessWidget {
               const minCardW = 100.0;
               final fits3 = constraints.maxWidth >= minCardW * 3 + gap * 2;
 
+              final examId = stats.exam.id;
               final cards = [
                 PerformanceMetricCard(
+                  key: ValueKey('mc_attempts_$examId'),
                   color: cs.primary,
                   bgColor: cs.primary.withValues(alpha: 0.06),
                   icon: Icons.history_rounded,
@@ -107,8 +111,10 @@ class PerformanceOverviewSection extends StatelessWidget {
                   chipDot: stats.totalAttempts > 0,
                   description: t.dash_perf_attempts_desc,
                   isCompact: true,
+                  isLoading: isLoading,
                 ),
                 PerformanceMetricCard(
+                  key: ValueKey('mc_batches_$examId'),
                   color: cs.secondary,
                   bgColor: cs.secondary.withValues(alpha: 0.06),
                   icon: Icons.layers_rounded,
@@ -122,8 +128,10 @@ class PerformanceOverviewSection extends StatelessWidget {
                   chipDot: false,
                   description: t.dash_perf_batches_desc,
                   isCompact: true,
+                  isLoading: isLoading,
                 ),
                 PerformanceMetricCard(
+                  key: ValueKey('mc_time_$examId'),
                   color: cs.tertiary,
                   bgColor: cs.tertiary.withValues(alpha: 0.06),
                   icon: Icons.timer_rounded,
@@ -135,6 +143,7 @@ class PerformanceOverviewSection extends StatelessWidget {
                   chipDot: false,
                   description: t.dash_perf_time_desc,
                   isCompact: true,
+                  isLoading: isLoading,
                 ),
               ];
 
@@ -160,7 +169,7 @@ class PerformanceOverviewSection extends StatelessWidget {
             },
           ),
           const SizedBox(height: 14),
-          const PerformanceInsightCard(),
+          PerformanceInsightCard(stats: stats, isLoading: isLoading),
         ],
       ),
     );

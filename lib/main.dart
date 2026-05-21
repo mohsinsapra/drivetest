@@ -188,6 +188,9 @@ Future<void> _appMain() async {
     debugPrint('Locale init error: $e');
   }
 
+  final themeProvider = ThemeProvider(prefs);
+  final fontProvider = FontProvider(prefs);
+
   runApp(
     ClarityWidget(
       clarityConfig:
@@ -196,8 +199,8 @@ Future<void> _appMain() async {
         child: MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => MainScreenProvider()),
-            ChangeNotifierProvider(create: (_) => ThemeProvider()),
-            ChangeNotifierProvider(create: (_) => FontProvider()),
+            ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
+            ChangeNotifierProvider<FontProvider>.value(value: fontProvider),
             ChangeNotifierProvider<NotificationProvider>.value(
                 value: notificationProvider),
             ChangeNotifierProvider<DashboardProvider>.value(

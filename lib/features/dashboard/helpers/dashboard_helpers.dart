@@ -139,15 +139,12 @@ class DashboardHelpers {
   }
 
   /// Shared computation given a pre-filtered list of attempts for one batch.
-  /// [periodAttempts] drive the stats; [allAttempts] are stored sorted for UI.
+  /// [periodAttempts] drive the stats; [allAttempts] are stored for lazy-sorted UI.
   static BatchStats _batchStatsFromAttempts(
     ExamNode node,
     List<TestAttempt> periodAttempts,
     List<TestAttempt> allAttempts,
   ) {
-    // Sort the full history list once here — reused by build() via sortedAttempts.
-    allAttempts.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-
     if (periodAttempts.isEmpty) {
       return BatchStats(
         node: node,
@@ -157,9 +154,9 @@ class DashboardHelpers {
         totalDurationSeconds: 0,
         avgDurationSeconds: 0,
         targetDurationSeconds: node.targetDurationSeconds,
-        lastAttemptDate: allAttempts.isNotEmpty ? allAttempts.first.dateTime : null,
+        lastAttemptDate: _latestDate(allAttempts),
         isCompleted: allAttempts.any((a) => a.hasPassed),
-        sortedAttempts: allAttempts,
+        rawAttempts: allAttempts,
       );
     }
 
@@ -175,7 +172,6 @@ class DashboardHelpers {
     final avgDur = durations.isEmpty ? 0 : totalDur ~/ durations.length;
 
     final passed = periodAttempts.any((a) => a.hasPassed);
-    periodAttempts.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
     return BatchStats(
       node: node,
@@ -185,10 +181,16 @@ class DashboardHelpers {
       totalDurationSeconds: totalDur,
       avgDurationSeconds: avgDur,
       targetDurationSeconds: node.targetDurationSeconds,
-      lastAttemptDate: periodAttempts.first.dateTime,
+      lastAttemptDate: _latestDate(periodAttempts),
       isCompleted: passed,
-      sortedAttempts: allAttempts,
+      rawAttempts: allAttempts,
     );
+  }
+
+  // O(n) scan — avoids sorting the list just to find the latest date.
+  static DateTime? _latestDate(List<TestAttempt> attempts) {
+    if (attempts.isEmpty) return null;
+    return attempts.map((a) => a.dateTime).reduce((a, b) => a.isAfter(b) ? a : b);
   }
 
   /// Counts all attempts that belong to [exam] using broad bcdCategoryId matching.

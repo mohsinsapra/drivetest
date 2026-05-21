@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -26,6 +27,48 @@ class ExamCarouselSection extends StatefulWidget {
 
   @override
   State<ExamCarouselSection> createState() => _ExamCarouselSectionState();
+}
+
+class _ExamCarouselShimmer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+    return Shimmer.fromColors(
+      baseColor: isDark
+          ? cs.onSurface.withValues(alpha: 0.12)
+          : cs.onSurface.withValues(alpha: 0.08),
+      highlightColor: isDark
+          ? cs.onSurface.withValues(alpha: 0.06)
+          : cs.onSurface.withValues(alpha: 0.03),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 190,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                height: 190,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _ExamCarouselSectionState extends State<ExamCarouselSection> {
@@ -53,7 +96,11 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
             ),
           ),
         ),
-        if (exams.isEmpty) ...[
+        if (exams.isEmpty &&
+            (provider.status == DashboardStatus.loading ||
+                provider.status == DashboardStatus.idle)) ...[
+          _ExamCarouselShimmer(),
+        ] else if (exams.isEmpty) ...[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(

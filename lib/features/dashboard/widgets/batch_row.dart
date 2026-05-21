@@ -26,8 +26,37 @@ class BatchRow extends StatefulWidget {
   State<BatchRow> createState() => _BatchRowState();
 }
 
-class _BatchRowState extends State<BatchRow> {
+class _BatchRowState extends State<BatchRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _curved;
   bool _expanded = false;
+  // Deferred build: attempt history is only constructed after first expansion.
+  bool _hasBeenExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+    _curved = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _toggle() {
+    setState(() {
+      _expanded = !_expanded;
+      if (_expanded) _hasBeenExpanded = true;
+    });
+    _expanded ? _ctrl.forward() : _ctrl.reverse();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +111,7 @@ class _BatchRowState extends State<BatchRow> {
               borderRadius: BorderRadius.circular(16),
               clipBehavior: Clip.antiAlias,
               child: InkWell(
-                onTap: () => setState(() => _expanded = !_expanded),
+                onTap: _toggle,
                 splashColor: cs.primary.withValues(alpha: 0.08),
                 highlightColor: cs.primary.withValues(alpha: 0.05),
                 child: Padding(
@@ -158,34 +187,38 @@ class _BatchRowState extends State<BatchRow> {
               ),
             ),
             ClipRect(
-              child: AnimatedOpacity(
-                opacity: _expanded ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                child: AnimatedAlign(
-                  alignment: Alignment.topCenter,
-                  heightFactor: _expanded ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeInOut,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: cs.surface,
-                      border: Border(
-                        top: BorderSide(
-                          color: cs.onSurface.withValues(alpha: 0.07),
+              child: AnimatedBuilder(
+                animation: _curved,
+                builder: (ctx, child) {
+                  if (_ctrl.status == AnimationStatus.dismissed) {
+                    return const SizedBox.shrink();
+                  }
+                  return Align(
+                    alignment: Alignment.topCenter,
+                    heightFactor: _curved.value,
+                    child: child,
+                  );
+                },
+                child: _hasBeenExpanded
+                    ? DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: cs.surface,
+                          border: Border(
+                            top: BorderSide(
+                              color: cs.onSurface.withValues(alpha: 0.07),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    child: BatchAttemptHistory(
-                      batchAttempts: batchAttempts,
-                      exam: widget.exam,
-                      batch: batch,
-                      onNewTest: widget.onTap,
-                      onResume: (attempt) =>
-                          resumeAttempt(context, attempt, widget.exam, batch),
-                    ),
-                  ),
-                ),
+                        child: BatchAttemptHistory(
+                          batchAttempts: batchAttempts,
+                          exam: widget.exam,
+                          batch: batch,
+                          onNewTest: widget.onTap,
+                          onResume: (attempt) =>
+                              resumeAttempt(context, attempt, widget.exam, batch),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
             ),
           ],

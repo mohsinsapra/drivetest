@@ -299,9 +299,9 @@ class _SplashScreenState extends State<SplashScreen>
                                           color: cs.onSurface,
                                         ),
                                         children: [
-                                          const TextSpan(text: 'DRIVE '),
+                                          TextSpan(text: t.brand_drive),
                                           TextSpan(
-                                            text: 'TEST',
+                                            text: t.brand_test,
                                             style: GoogleFonts.lexend(
                                               fontStyle: FontStyle.italic,
                                               color: cs.primary,

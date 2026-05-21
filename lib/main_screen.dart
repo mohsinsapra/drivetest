@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_screen.dart';
@@ -56,34 +61,34 @@ class MainScreenState extends State<MainScreen> {
   // Returns only the tabs the user should see, each pointing to a fixed page.
   // Progress is always first. Home + Tests only appear when the backend sets
   // show_legacy_tests = true on the user's account.
-  List<_NavEntry> get _navEntries {
+  List<_NavEntry> _navEntries(Translations t) {
     return [
-      const _NavEntry(
+      _NavEntry(
         icon: LucideIcons.home,
-        label: 'Progress',
+        label: t.home_my_progress,
         pageIndex: _kPageDashboard,
       ),
       if (_showLegacyTests) ...[
-        const _NavEntry(
+        _NavEntry(
           icon: LucideIcons.barChart2,
-          label: 'Home',
+          label: t.home,
           pageIndex: _kPageHome,
         ),
-        const _NavEntry(
+        _NavEntry(
           icon: LucideIcons.bookOpenCheck,
-          label: 'Tests',
+          label: t.tests,
           pageIndex: _kPageTests,
         ),
       ],
       if (_showBcdTests)
-        const _NavEntry(
+        _NavEntry(
           icon: LucideIcons.graduationCap,
-          label: 'Drive Test',
+          label: t.bcd_drive_test,
           pageIndex: _kPageDriveTest,
         ),
-      const _NavEntry(
+      _NavEntry(
         icon: LucideIcons.user,
-        label: 'Profile',
+        label: t.profile,
         pageIndex: _kPageProfile,
       ),
     ];
@@ -134,21 +139,37 @@ class MainScreenState extends State<MainScreen> {
     });
 
     // If the current page is no longer visible after the tab change, redirect to Progress.
-    final visiblePages = _navEntries.map((e) => e.pageIndex).toSet();
+    final visiblePages = <int>{
+      _kPageDashboard,
+      if (_showLegacyTests) ...[_kPageHome, _kPageTests],
+      if (_showBcdTests) _kPageDriveTest,
+      _kPageProfile,
+    };
     if (!visiblePages.contains(currentPage)) {
       provider.setIndex(_kPageDashboard);
     }
   }
 
   Future<void> _loadTabFlags() async {
+    // Apply cached flags immediately (zero network latency) so tabs appear
+    // on the first frame. The background refresh below keeps them up to date.
     try {
-      final fresh = await _apiService.fetchCurrentUser();
-      if (fresh is Map<String, dynamic>) {
-        await _applyFlagsFromMap(fresh);
+      final prefs = await SharedPreferences.getInstance();
+      final stored = prefs.getString(AppStorage.kUserJson);
+      if (stored != null) {
+        final map = jsonDecode(stored);
+        if (map is Map<String, dynamic>) {
+          await _applyFlagsFromMap(map);
+        }
       }
-    } catch (_) {
-      // Keep defaults if loading flags fails.
-    } finally {}
+    } catch (_) {}
+
+    // Background refresh — silently update if the server returns different flags.
+    _apiService.fetchCurrentUser().then((fresh) {
+      if (fresh is Map<String, dynamic>) {
+        _applyFlagsFromMap(fresh);
+      }
+    }).ignore();
   }
 
   void _handleNavigationChange(MainScreenProvider provider, int pageIndex) {
@@ -160,8 +181,9 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
     final provider = Provider.of<MainScreenProvider>(context);
-    final entries = _navEntries;
+    final entries = _navEntries(t);
     final currentPage = provider.currentIndex.clamp(0, _kAllScreens.length - 1);
 
     // Find which nav entry matches the current page for highlighting.

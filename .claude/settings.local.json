@@ -254,7 +254,13 @@
       "Bash(/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate)",
       "Bash(/usr/libexec/ApplicationFirewall/socketfilterfw --getblockall)",
       "Bash(sudo /usr/libexec/ApplicationFirewall/socketfilterfw --listapps)",
-      "Skill(investigate)"
+      "Skill(investigate)",
+      "Bash(awk NR>=1730 && NR<=1760 *)",
+      "Bash(awk NR>=1760 && NR<=1790 *)",
+      "Bash(awk NR>=2320 && NR<=2335 *)",
+      "Bash(awk -F: '{print $1, $2}')",
+      "Bash(grep -v \"^$\\\\|Analyzing\\\\|ran in\")",
+      "Bash(dart fix *)"
     ],
     "deny": [],
     "ask": []

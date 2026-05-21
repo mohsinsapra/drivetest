@@ -85,7 +85,6 @@ class _FreeBcdHubCardState extends State<FreeBcdHubCard> {
           decoration: BoxDecoration(
             color: cs.onSurface.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -173,6 +173,22 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         scrolledUnderElevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Material(
+            color: theme.cardColor,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => Navigator.maybePop(context),
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: theme.appBarTheme.iconTheme?.color,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
         title: Text(
           t.notifications_title,
           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
