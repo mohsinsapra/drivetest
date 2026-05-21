@@ -18,6 +18,8 @@ enum DashboardStatus { idle, loading, loaded, error }
 
 enum DashboardErrorKind { network, server, unknown }
 
+enum PeriodFilter { today, sevenDays, thisMonth, all }
+
 /// ChangeNotifier provider for the exam dashboard.
 ///
 /// Flow on [init]:
@@ -59,6 +61,10 @@ class DashboardProvider extends ChangeNotifier {
   List<TestAttempt> _attempts = [];
   List<TestAttempt> get attempts => _attempts;
 
+  /// Pre-computed stats for every exam, keyed by exam id.
+  /// Rebuilt whenever attempts or period changes; [selectExam] is a O(1) lookup.
+  Map<String, ExamDashboardStats> _statsCache = {};
+
   /// True while background API sync is running (after initial load).
   bool _syncing = false;
   bool get syncing => _syncing;
@@ -80,15 +86,50 @@ class DashboardProvider extends ChangeNotifier {
   /// Subscription to testAttempts Hive box — triggers refresh on any write.
   StreamSubscription<BoxEvent>? _attemptsSub;
 
+  /// Debounce timer for refresh() — coalesces rapid watcher events into one.
+  Timer? _refreshDebounce;
+
   int _weeklyGoal = 5;
+
+  PeriodFilter _period = PeriodFilter.thisMonth;
+  PeriodFilter get period => _period;
+
+  List<TestAttempt> get _periodAttempts {
+    final now = DateTime.now();
+    return switch (_period) {
+      PeriodFilter.today => _attempts
+          .where((a) =>
+              a.dateTime.year == now.year &&
+              a.dateTime.month == now.month &&
+              a.dateTime.day == now.day)
+          .toList(),
+      PeriodFilter.sevenDays => _attempts
+          .where((a) =>
+              a.dateTime.isAfter(now.subtract(const Duration(days: 7))))
+          .toList(),
+      PeriodFilter.thisMonth => _attempts
+          .where((a) =>
+              a.dateTime.year == now.year && a.dateTime.month == now.month)
+          .toList(),
+      PeriodFilter.all => _attempts,
+    };
+  }
+
+  void setPeriod(PeriodFilter p) {
+    if (_period == p) return;
+    _period = p;
+    _rebuildStatsCache();
+    _selectedStats =
+        _selectedExam != null ? _statsCache[_selectedExam!.id] : null;
+    notifyListeners();
+  }
 
   void setWeeklyGoal(int goal) {
     if (_weeklyGoal == goal) return;
     _weeklyGoal = goal;
     if (_selectedExam != null && _attempts.isNotEmpty) {
-      _selectedStats = DashboardHelpers.computeExamStats(
-          _selectedExam!, _attempts,
-          weeklyGoal: _weeklyGoal);
+      _rebuildStatsCache();
+      _selectedStats = _statsCache[_selectedExam!.id];
       notifyListeners();
     }
   }
@@ -98,9 +139,6 @@ class DashboardProvider extends ChangeNotifier {
   Future<void> init() async {
     if (_status == DashboardStatus.loading) return;
 
-    // Within the same session, skip a re-init if data is fresh (tab switch).
-    // The guard requires status == loaded (i.e. a successful prior fetch in
-    // THIS session) AND a recent sync timestamp — both are cleared by reset().
     if (_status == DashboardStatus.loaded &&
         _exams.isNotEmpty &&
         _lastSyncedAt != null &&
@@ -109,85 +147,9 @@ class DashboardProvider extends ChangeNotifier {
       return;
     }
 
-    // Full clean-slate before loading — guarantees no stale data from a
-    // previous session is ever shown, regardless of whether reset() was called.
-    _generation++; // kills any in-flight _syncFromApi
-    _attemptsSub?.cancel(); // drop the old box subscription
-    _attemptsSub = null;
-    _exams = [];
-    _attempts = [];
-    _selectedExam = null;
-    _selectedStats = null;
-    _overviewProgress = {};
-    _error = null;
-    _syncing = false;
-    _lastSyncedAt = null;
-    _status = DashboardStatus.loading;
-    notifyListeners();
-
-    // Populate from the API — BcdCache is already seeded from /self during
-    // login/splash so this is fast and never shows stale local data.
-    _syncFromApi();
-
-    // Subscribe to testAttempts so completing a test refreshes stats live.
-    _subscribeToAttempts();
-  }
-
-  void selectExam(SubscribedExam exam) {
-    // Fire-and-forget: load async then notify
-    _loadAttempts().then((attempts) {
-      _selectExam(exam, attempts);
-      notifyListeners();
-    });
-  }
-
-  /// Call after saving a [TestAttempt] so dashboard stats stay current.
-  void refresh() {
-    _loadAttempts().then((attempts) {
-      _attempts = attempts;
-      _buildOverviewProgress(attempts);
-      if (_selectedExam != null) {
-        _selectedStats = DashboardHelpers.computeExamStats(
-            _selectedExam!, attempts,
-            weeklyGoal: _weeklyGoal);
-      }
-      notifyListeners();
-    });
-  }
-
-  /// Force a full re-fetch from the API (pull-to-refresh / sync button).
-  ///
-  /// Steps:
-  ///   1. Bust the in-memory BCD tree and the Dio HTTP response cache.
-  ///   2. Re-fetch `/self` — this re-seeds [BcdCache] from the `bcd_dashboard`
-  ///      field in a single network request (no separate category/test calls).
-  ///   3. Run [_syncFromApi] — [BcdCache.ensureLoaded] is now a no-op because
-  ///      step 2 already populated the cache with fresh data.
-  Future<void> syncNow() async {
-    BcdCache.instance.invalidate();
-    await DioClient().clearCache();
-    // Clear Hive so stale entries (e.g. expired subscriptions) don't survive
-    // a refresh that returns an empty or reduced list.
-    try {
-      final box = await AppStorage.subscribedExamsBox();
-      await box.clear();
-    } catch (e) {
-      debugPrint('[DashboardProvider] syncNow: Hive clear failed: $e');
-    }
-    try {
-      await ApiService().fetchCurrentUser(
-          forceRefresh: true); // re-seeds BcdCache from fresh /self
-    } catch (e) {
-      debugPrint('[DashboardProvider] syncNow: /self re-fetch failed: $e');
-      // Continue — _syncFromApi will re-try via ensureLoaded
-    }
-    await _syncFromApi();
-  }
-
-  /// Wipe all in-memory state so a freshly logged-in user starts clean.
-  /// Call this on logout before the next user's session begins.
-  void reset() {
-    _generation++; // invalidates any in-flight _syncFromApi write-back
+    _generation++;
+    _refreshDebounce?.cancel();
+    _refreshDebounce = null;
     _attemptsSub?.cancel();
     _attemptsSub = null;
     _exams = [];
@@ -195,6 +157,72 @@ class DashboardProvider extends ChangeNotifier {
     _selectedExam = null;
     _selectedStats = null;
     _overviewProgress = {};
+    _statsCache = {};
+    _error = null;
+    _syncing = false;
+    _lastSyncedAt = null;
+    _status = DashboardStatus.loading;
+    notifyListeners();
+
+    _syncFromApi();
+    _subscribeToAttempts();
+  }
+
+  /// Switching exams is a cache lookup — zero computation.
+  void selectExam(SubscribedExam exam) {
+    _selectedExam = exam;
+    _selectedStats = _statsCache[exam.id] ??
+        DashboardHelpers.computeExamStats(exam, _periodAttempts, _attempts,
+            weeklyGoal: _weeklyGoal);
+    notifyListeners();
+  }
+
+  /// Debounced so rapid Hive writes (e.g. bulk sync) collapse into one refresh.
+  void refresh() {
+    _refreshDebounce?.cancel();
+    _refreshDebounce = Timer(const Duration(milliseconds: 50), _doRefresh);
+  }
+
+  void _doRefresh() {
+    _loadAttempts().then((attempts) {
+      _attempts = attempts;
+      _buildOverviewProgress(attempts);
+      _rebuildStatsCache();
+      _selectedStats =
+          _selectedExam != null ? _statsCache[_selectedExam!.id] : null;
+      notifyListeners();
+    });
+  }
+
+  Future<void> syncNow() async {
+    BcdCache.instance.invalidate();
+    await DioClient().clearCache();
+    try {
+      final box = await AppStorage.subscribedExamsBox();
+      await box.clear();
+    } catch (e) {
+      debugPrint('[DashboardProvider] syncNow: Hive clear failed: $e');
+    }
+    try {
+      await ApiService().fetchCurrentUser(forceRefresh: true);
+    } catch (e) {
+      debugPrint('[DashboardProvider] syncNow: /self re-fetch failed: $e');
+    }
+    await _syncFromApi();
+  }
+
+  void reset() {
+    _generation++;
+    _refreshDebounce?.cancel();
+    _refreshDebounce = null;
+    _attemptsSub?.cancel();
+    _attemptsSub = null;
+    _exams = [];
+    _attempts = [];
+    _selectedExam = null;
+    _selectedStats = null;
+    _overviewProgress = {};
+    _statsCache = {};
     _lastSyncedAt = null;
     _syncing = false;
     _error = null;
@@ -208,41 +236,33 @@ class DashboardProvider extends ChangeNotifier {
   Future<void> _syncFromApi() async {
     if (_syncing) return;
     _syncing = true;
-    final gen = _generation; // capture before first await
+    final gen = _generation;
     notifyListeners();
 
     try {
       final fetched = await _sync.fetchSubscribedExams();
-      // Abort if reset() was called while we were awaiting — a new user session
-      // has started and we must not write this user's data back to Hive/state.
       if (_generation != gen) return;
 
       if (fetched.isNotEmpty) {
         await _repo.saveAll(fetched);
-        if (_generation != gen) return; // check again after the save await
+        if (_generation != gen) return;
         final refreshed = await _repo.loadSubscribedExams();
         if (_generation != gen) return;
         await _applyExams(refreshed);
         _status = DashboardStatus.loaded;
       } else if (_exams.isEmpty) {
-        // API returned nothing and cache is also empty
-        _status = DashboardStatus.loaded; // show empty state, not error
+        _status = DashboardStatus.loaded;
       }
       _lastSyncedAt = DateTime.now();
     } catch (e) {
       debugPrint('[DashboardProvider] API sync failed: $e');
       if (_generation == gen && _exams.isEmpty) {
-        // Primary load failed with no data to fall back on — show error state.
         _error = e.toString();
         _errorKind = _classifyError(e);
         _status = DashboardStatus.error;
       }
-      // If _exams is already populated (background refresh), keep showing it.
     } finally {
-      if (_generation == gen) {
-        // Only clear the syncing flag for the generation that started it
-        _syncing = false;
-      }
+      if (_generation == gen) _syncing = false;
       notifyListeners();
     }
   }
@@ -268,11 +288,8 @@ class DashboardProvider extends ChangeNotifier {
     return DashboardErrorKind.unknown;
   }
 
-  /// Subscribes to the testAttempts Hive box. Any write (test completed or
-  /// paused) triggers a stats refresh so the dashboard stays current without
-  /// the user having to pull-to-refresh.
   Future<void> _subscribeToAttempts() async {
-    if (_attemptsSub != null) return; // already subscribed
+    if (_attemptsSub != null) return;
     try {
       final box = await AppStorage.testAttemptsBox();
       _attemptsSub = box.watch().listen((_) => refresh());
@@ -283,6 +300,7 @@ class DashboardProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _refreshDebounce?.cancel();
     _attemptsSub?.cancel();
     super.dispose();
   }
@@ -293,37 +311,37 @@ class DashboardProvider extends ChangeNotifier {
     final attempts = await _loadAttempts();
     _attempts = attempts;
     _buildOverviewProgress(attempts);
+    _rebuildStatsCache();
 
-    // Preserve selection if the same exam still exists; otherwise pick first
     final prevId = _selectedExam?.id;
     final target = exams.where((e) => e.id == prevId).firstOrNull ??
         (exams.isNotEmpty ? exams.first : null);
 
-    if (target != null) _selectExam(target, attempts);
+    if (target != null) {
+      _selectedExam = target;
+      _selectedStats = _statsCache[target.id];
+    }
   }
 
-  /// Fetches test attempts from the backend and stores them in Hive when the
-  /// box is empty (e.g. after logout clears the cache). Called once per
-  /// [_applyExams] so the dashboard always has historical data on first load.
   Future<void> _syncAttemptsIfEmpty() async {
     try {
       final box = await AppStorage.testAttemptsBox();
       if (box.isNotEmpty) return;
       final apiService = ApiService();
       final remoteList = await apiService.fetchTestAttempts();
+      final toSave = <String, TestAttempt>{};
       for (final data in remoteList) {
         final id = data['attempt_id'] as String? ?? '';
         if (id.isEmpty || box.containsKey(id)) continue;
         final attempt = apiService.testAttemptFromJson(data);
-        if (attempt != null) await box.put(id, attempt);
+        if (attempt != null) toSave[id] = attempt;
       }
+      if (toSave.isNotEmpty) await box.putAll(toSave);
     } catch (e) {
       debugPrint('[DashboardProvider] _syncAttemptsIfEmpty failed: $e');
     }
   }
 
-  /// Opens the testAttempts box if needed — works on all platforms including
-  /// web (where the box may not be open if the home tab hasn't been visited).
   Future<List<TestAttempt>> _loadAttempts() async {
     try {
       final box = await AppStorage.testAttemptsBox();
@@ -335,15 +353,17 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   void _buildOverviewProgress(List<TestAttempt> attempts) {
-    _overviewProgress = {
-      for (final e in _exams)
-        e.id: DashboardHelpers.overallProgressPercent(e, attempts),
-    };
+    _overviewProgress = DashboardHelpers.buildOverviewProgress(_exams, attempts);
   }
 
-  void _selectExam(SubscribedExam exam, List<TestAttempt> attempts) {
-    _selectedExam = exam;
-    _selectedStats = DashboardHelpers.computeExamStats(exam, attempts,
-        weeklyGoal: _weeklyGoal);
+  /// Pre-computes stats for every exam using the current period filter.
+  /// All [selectExam] calls after this are O(1) map lookups.
+  void _rebuildStatsCache() {
+    final filtered = _periodAttempts;
+    _statsCache = {
+      for (final e in _exams)
+        e.id: DashboardHelpers.computeExamStats(e, filtered, _attempts,
+            weeklyGoal: _weeklyGoal),
+    };
   }
 }

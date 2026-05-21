@@ -42,22 +42,32 @@ class SubscribedExam extends HiveObject {
     this.isBcd = false,
   });
 
+  // Cached computed properties — not persisted, rebuilt lazily after load.
+  List<ExamNode>? _cachedBatches;
+  List<ExamNode>? _cachedCategories;
+  final Map<String, List<ExamNode>> _childrenCache = {};
+
   /// Root-level nodes.
   /// 3-layer → categories; 2-layer → batches directly.
   List<ExamNode> get rootNodes =>
-      (nodes.where((n) => n.parentId == null).toList()
-        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)));
+      nodes.where((n) => n.parentId == null).toList()
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
   /// Batch children of a given category node.
   List<ExamNode> childrenOf(String parentId) =>
-      (nodes.where((n) => n.parentId == parentId).toList()
-        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)));
+      _childrenCache.putIfAbsent(
+        parentId,
+        () => nodes.where((n) => n.parentId == parentId).toList()
+          ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),
+      );
 
   /// Every batch node in this exam (leaf nodes where tests are taken).
-  List<ExamNode> get allBatches => nodes.where((n) => n.isBatch).toList()
-    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  List<ExamNode> get allBatches =>
+      _cachedBatches ??= nodes.where((n) => n.isBatch).toList()
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
   /// Every category node in this exam.
-  List<ExamNode> get allCategories => nodes.where((n) => n.isCategory).toList()
-    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  List<ExamNode> get allCategories =>
+      _cachedCategories ??= nodes.where((n) => n.isCategory).toList()
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 }

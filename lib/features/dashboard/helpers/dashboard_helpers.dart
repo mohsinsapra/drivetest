@@ -9,7 +9,7 @@ class DashboardHelpers {
 
   // ─── Attempt filtering ────────────────────────────────────────────────────
 
-  /// Returns completed attempts for a given batch node.
+  /// Returns all attempts for a given batch node.
   ///
   /// BCD matching:
   ///   attempt.bcdCategoryId == (batchNode.parentId ?? exam.id)   ← direct parent
@@ -24,18 +24,13 @@ class DashboardHelpers {
     ExamNode batchNode,
   ) {
     if (exam.isBcd) {
-      // For 2-layer: parentId is null → match against exam.id (top-level bcd_id)
-      // For 3-layer: parentId is the subcategory bcd_id
       final expectedParentBcdId = batchNode.parentId ?? exam.id;
       return all.where((a) {
-        // Modern attempts: bcdCategoryId is set — match by parent + (id or name)
         if (a.isBcd) {
           if (a.bcdCategoryId?.toString() != expectedParentBcdId) return false;
           return a.categoryId == batchNode.id ||
               (a.categoryId == null && a.categoryName == batchNode.name);
         }
-        // Legacy attempts (bcd_category_id: null → isBcd = false): match by name only.
-        // These are historically-synced attempts that lack bcdCategoryId entirely.
         return a.categoryName != null && a.categoryName == batchNode.name;
       }).toList();
     } else {
@@ -58,46 +53,7 @@ class DashboardHelpers {
     SubscribedExam exam,
   ) {
     final attempts = attemptsForBatch(allAttempts, exam, node);
-
-    if (attempts.isEmpty) {
-      return BatchStats(
-        node: node,
-        attempts: 0,
-        averageScore: 0,
-        bestScore: 0,
-        totalDurationSeconds: 0,
-        avgDurationSeconds: 0,
-        targetDurationSeconds: node.targetDurationSeconds,
-        lastAttemptDate: null,
-        isCompleted: false,
-      );
-    }
-
-    final scores = attempts.map((a) => a.score).toList();
-    final avg = scores.reduce((a, b) => a + b) / scores.length;
-    final best = scores.reduce((a, b) => a > b ? a : b);
-
-    final durations = attempts
-        .where((a) => (a.durationSeconds ?? 0) > 0)
-        .map((a) => a.durationSeconds!)
-        .toList();
-    final totalDur = durations.isEmpty ? 0 : durations.reduce((a, b) => a + b);
-    final avgDur = durations.isEmpty ? 0 : totalDur ~/ durations.length;
-
-    final passed = attempts.any((a) => a.hasPassed);
-    attempts.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-
-    return BatchStats(
-      node: node,
-      attempts: attempts.length,
-      averageScore: avg,
-      bestScore: best,
-      totalDurationSeconds: totalDur,
-      avgDurationSeconds: avgDur,
-      targetDurationSeconds: node.targetDurationSeconds,
-      lastAttemptDate: attempts.first.dateTime,
-      isCompleted: passed,
-    );
+    return _batchStatsFromAttempts(node, attempts, attempts);
   }
 
   // ─── Category stats ───────────────────────────────────────────────────────
@@ -115,22 +71,33 @@ class DashboardHelpers {
 
   // ─── Full exam dashboard stats ────────────────────────────────────────────
 
+  /// Computes full stats for [exam] in O(n_attempts + n_batches) by building
+  /// a lookup index once instead of scanning all attempts per batch.
+  ///
+  /// [periodAttempts] are filtered by the active period and used for stats.
+  /// [allAttempts] is the full unfiltered list and is used to populate
+  /// [BatchStats.sortedAttempts] for history display, avoiding repeated
+  /// filtering inside build().
   static ExamDashboardStats computeExamStats(
     SubscribedExam exam,
+    List<TestAttempt> periodAttempts,
     List<TestAttempt> allAttempts, {
     int weeklyGoal = 5,
   }) {
+    final periodIndex = _AttemptsIndex(periodAttempts);
+    final allIndex = _AttemptsIndex(allAttempts);
+
     List<CategoryStats>? categoryStats;
     List<BatchStats> allBatchStats;
 
     if (exam.hasCategories) {
       categoryStats = exam.allCategories
-          .map((c) => computeCategoryStats(c, exam, allAttempts))
+          .map((c) => _categoryStatsIndexed(c, exam, periodIndex, allIndex))
           .toList();
       allBatchStats = categoryStats.expand((c) => c.batchStats).toList();
     } else {
       allBatchStats = exam.allBatches
-          .map((b) => computeBatchStats(b, allAttempts, exam))
+          .map((b) => _batchStatsIndexed(b, exam, periodIndex, allIndex))
           .toList();
     }
 
@@ -147,9 +114,84 @@ class DashboardHelpers {
     );
   }
 
+  static CategoryStats _categoryStatsIndexed(
+    ExamNode categoryNode,
+    SubscribedExam exam,
+    _AttemptsIndex periodIndex,
+    _AttemptsIndex allIndex,
+  ) {
+    final batches = exam.childrenOf(categoryNode.id);
+    final batchStats = batches
+        .map((b) => _batchStatsIndexed(b, exam, periodIndex, allIndex))
+        .toList();
+    return CategoryStats(node: categoryNode, batchStats: batchStats);
+  }
+
+  static BatchStats _batchStatsIndexed(
+    ExamNode node,
+    SubscribedExam exam,
+    _AttemptsIndex periodIndex,
+    _AttemptsIndex allIndex,
+  ) {
+    final periodAttempts = periodIndex.forBatch(exam, node);
+    final allBatchAttempts = allIndex.forBatch(exam, node);
+    return _batchStatsFromAttempts(node, periodAttempts, allBatchAttempts);
+  }
+
+  /// Shared computation given a pre-filtered list of attempts for one batch.
+  /// [periodAttempts] drive the stats; [allAttempts] are stored sorted for UI.
+  static BatchStats _batchStatsFromAttempts(
+    ExamNode node,
+    List<TestAttempt> periodAttempts,
+    List<TestAttempt> allAttempts,
+  ) {
+    // Sort the full history list once here — reused by build() via sortedAttempts.
+    allAttempts.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+    if (periodAttempts.isEmpty) {
+      return BatchStats(
+        node: node,
+        attempts: 0,
+        averageScore: 0,
+        bestScore: 0,
+        totalDurationSeconds: 0,
+        avgDurationSeconds: 0,
+        targetDurationSeconds: node.targetDurationSeconds,
+        lastAttemptDate: allAttempts.isNotEmpty ? allAttempts.first.dateTime : null,
+        isCompleted: allAttempts.any((a) => a.hasPassed),
+        sortedAttempts: allAttempts,
+      );
+    }
+
+    final scores = periodAttempts.map((a) => a.score).toList();
+    final avg = scores.reduce((a, b) => a + b) / scores.length;
+    final best = scores.reduce((a, b) => a > b ? a : b);
+
+    final durations = periodAttempts
+        .where((a) => (a.durationSeconds ?? 0) > 0)
+        .map((a) => a.durationSeconds!)
+        .toList();
+    final totalDur = durations.isEmpty ? 0 : durations.reduce((a, b) => a + b);
+    final avgDur = durations.isEmpty ? 0 : totalDur ~/ durations.length;
+
+    final passed = periodAttempts.any((a) => a.hasPassed);
+    periodAttempts.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+    return BatchStats(
+      node: node,
+      attempts: periodAttempts.length,
+      averageScore: avg,
+      bestScore: best,
+      totalDurationSeconds: totalDur,
+      avgDurationSeconds: avgDur,
+      targetDurationSeconds: node.targetDurationSeconds,
+      lastAttemptDate: periodAttempts.first.dateTime,
+      isCompleted: passed,
+      sortedAttempts: allAttempts,
+    );
+  }
+
   /// Counts all attempts that belong to [exam] using broad bcdCategoryId matching.
-  /// Unlike [attemptsForBatch], this works even when [TestAttempt.categoryId] is
-  /// null — which is the case for historically-synced attempts from the backend.
   static int _examLevelAttemptCount(
     List<TestAttempt> all,
     SubscribedExam exam,
@@ -175,18 +217,30 @@ class DashboardHelpers {
 
   // ─── Overall exam progress (for overview card) ────────────────────────────
 
+  /// Builds progress % for every exam in one pass — index created once.
+  static Map<String, double> buildOverviewProgress(
+    List<SubscribedExam> exams,
+    List<TestAttempt> allAttempts,
+  ) {
+    if (exams.isEmpty) return {};
+    final index = _AttemptsIndex(allAttempts);
+    return {for (final e in exams) e.id: _progressPercent(e, index)};
+  }
+
+  static double _progressPercent(SubscribedExam exam, _AttemptsIndex index) {
+    final batches = exam.allBatches;
+    if (batches.isEmpty) return 0;
+    final completed = batches
+        .where((b) => index.forBatch(exam, b).any((a) => a.hasPassed))
+        .length;
+    return completed / batches.length * 100;
+  }
+
   static double overallProgressPercent(
     SubscribedExam exam,
     List<TestAttempt> allAttempts,
-  ) {
-    final batches = exam.allBatches;
-    if (batches.isEmpty) return 0;
-    final completed = batches.where((b) {
-      final attempts = attemptsForBatch(allAttempts, exam, b);
-      return attempts.any((a) => a.hasPassed);
-    }).length;
-    return completed / batches.length * 100;
-  }
+  ) =>
+      _progressPercent(exam, _AttemptsIndex(allAttempts));
 
   // ─── Streak ───────────────────────────────────────────────────────────────
 
@@ -206,7 +260,6 @@ class DashboardHelpers {
         if (a.isBcd) {
           return validParentIds.contains(a.bcdCategoryId?.toString());
         }
-        // Legacy attempts: match by batch name
         final batchNames = exam.allBatches.map((b) => b.name).toSet();
         return a.categoryName != null && batchNames.contains(a.categoryName);
       } else {
@@ -214,8 +267,6 @@ class DashboardHelpers {
       }
     }).toList();
 
-    // Unique active dates normalised to midnight.
-    // Keep both a Set (O(1) contains) and a sorted List (best-streak iteration).
     final activeDatesSet = relevant
         .map((a) => DateTime(a.dateTime.year, a.dateTime.month, a.dateTime.day))
         .toSet();
@@ -224,7 +275,6 @@ class DashboardHelpers {
     final today = DateTime.now();
     final todayMid = DateTime(today.year, today.month, today.day);
 
-    // Current streak (backwards from today, with yesterday grace)
     int currentStreak = 0;
     DateTime check = todayMid;
     while (activeDatesSet.contains(check)) {
@@ -239,7 +289,6 @@ class DashboardHelpers {
       }
     }
 
-    // Best streak
     int bestStreak = 0;
     int running = 0;
     for (int i = 0; i < activeDates.length; i++) {
@@ -252,7 +301,6 @@ class DashboardHelpers {
       if (running > bestStreak) bestStreak = running;
     }
 
-    // This week Mon–Sun
     final monday = todayMid.subtract(Duration(days: todayMid.weekday - 1));
     final thisWeek = List.generate(7, (i) => monday.add(Duration(days: i)));
     final thisWeekActive = thisWeek.where(activeDatesSet.contains).toList();
@@ -306,4 +354,70 @@ class DashboardHelpers {
   }
 
   static String formatScore(double score) => '${score.toStringAsFixed(0)}%';
+}
+
+// ─── Attempts lookup index ────────────────────────────────────────────────────
+//
+// Built once per computeExamStats call in O(n_attempts).
+// Reduces per-batch filtering from O(n_attempts) to O(1).
+
+class _AttemptsIndex {
+  // Modern BCD: bcdCategoryId + categoryId
+  final Map<String, List<TestAttempt>> _byId;
+  // Modern BCD: bcdCategoryId + categoryName (when categoryId is null)
+  final Map<String, List<TestAttempt>> _byName;
+  // Legacy BCD (bcdCategoryId == null): categoryName only
+  final Map<String, List<TestAttempt>> _legacyByName;
+  // Non-BCD: licenceId + categoryId (completed only)
+  final Map<String, List<TestAttempt>> _nonBcd;
+
+  factory _AttemptsIndex(List<TestAttempt> attempts) {
+    final byId = <String, List<TestAttempt>>{};
+    final byName = <String, List<TestAttempt>>{};
+    final legacyByName = <String, List<TestAttempt>>{};
+    final nonBcd = <String, List<TestAttempt>>{};
+
+    for (final a in attempts) {
+      if (a.isBcd) {
+        final pid = a.bcdCategoryId!.toString();
+        if (a.categoryId != null) {
+          (byId['$pid|${a.categoryId}'] ??= []).add(a);
+        } else if (a.categoryName != null) {
+          (byName['$pid|${a.categoryName}'] ??= []).add(a);
+        }
+      } else {
+        if (a.categoryName != null) {
+          (legacyByName[a.categoryName!] ??= []).add(a);
+        }
+        if (a.isCompleted && a.licenceId != null && a.categoryId != null) {
+          (nonBcd['${a.licenceId}|${a.categoryId}'] ??= []).add(a);
+        }
+      }
+    }
+
+    return _AttemptsIndex._(byId, byName, legacyByName, nonBcd);
+  }
+
+  const _AttemptsIndex._(
+    this._byId,
+    this._byName,
+    this._legacyByName,
+    this._nonBcd,
+  );
+
+  List<TestAttempt> forBatch(SubscribedExam exam, ExamNode batchNode) {
+    if (exam.isBcd) {
+      final pid = batchNode.parentId ?? exam.id;
+      final result = <TestAttempt>[];
+      final byId = _byId['$pid|${batchNode.id}'];
+      if (byId != null) result.addAll(byId);
+      final byName = _byName['$pid|${batchNode.name}'];
+      if (byName != null) result.addAll(byName);
+      final legacy = _legacyByName[batchNode.name];
+      if (legacy != null) result.addAll(legacy);
+      return result;
+    } else {
+      return _nonBcd['${exam.id}|${batchNode.id}'] ?? const [];
+    }
+  }
 }

@@ -1,3 +1,5 @@
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
+
 import 'exam_node.dart';
 import 'subscribed_exam.dart';
 
@@ -25,7 +27,11 @@ class BatchStats {
   /// True if the user has passed this batch at least once
   final bool isCompleted;
 
-  const BatchStats({
+  /// All attempts for this batch, sorted newest-first.
+  /// Precomputed during stats cache build — never recomputed in build().
+  final List<TestAttempt> sortedAttempts;
+
+  BatchStats({
     required this.node,
     required this.attempts,
     required this.averageScore,
@@ -35,6 +41,7 @@ class BatchStats {
     required this.targetDurationSeconds,
     required this.lastAttemptDate,
     required this.isCompleted,
+    this.sortedAttempts = const [],
   });
 
   /// 0–100 progress: 100 if completed, otherwise avg score
