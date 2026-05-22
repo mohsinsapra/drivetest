@@ -1,4 +1,5 @@
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +79,7 @@ class _BCDDocumentViewerScreenState extends State<BCDDocumentViewerScreen> {
     if (_useExternalLauncher) {
       // Web keeps the browser-native handling path.
       return Scaffold(
-        appBar: AppBar(title: Text(widget.title)),
+        appBar: AppBar(title: Text(widget.title), leading: const AppBackButton()),
         body: const Center(child: AppLoadingIndicator()),
       );
     }

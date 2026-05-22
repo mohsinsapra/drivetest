@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'dart:async';
@@ -75,6 +76,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(Translations.of(context).bcd_traffic_signs),
         elevation: 0,
       ),

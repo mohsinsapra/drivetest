@@ -71,20 +71,29 @@ class _SplashScreenState extends State<SplashScreen>
     _spinCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
-    )..repeat();
+    );
 
     _spinAnim = Tween<double>(begin: 0.0, end: 2 * math.pi).animate(_spinCtrl);
 
     _pulseCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
-    )..repeat(reverse: true);
+    );
 
     _pulseAnim = Tween<double>(begin: 0.85, end: 1.18).animate(
       CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
     );
 
-    _entryCtrl.forward();
+    // Defer animation start to after the first frame so the engine finishes
+    // its warm-up (shader compilation, font loading) before we drive any
+    // animations. The first frame is just the scaffold background — content
+    // is invisible at this point since _fadeAnim starts at opacity 0.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _entryCtrl.forward();
+      _spinCtrl.repeat();
+      _pulseCtrl.repeat(reverse: true);
+    });
     _run();
   }
 

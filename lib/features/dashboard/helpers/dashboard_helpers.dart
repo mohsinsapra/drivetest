@@ -103,7 +103,7 @@ class DashboardHelpers {
 
     final streak =
         computeStreakSummary(allAttempts, exam: exam, weeklyGoal: weeklyGoal);
-    final examAttempts = _examLevelAttemptCount(allAttempts, exam);
+    final examAttempts = _examLevelAttemptCount(periodAttempts, exam);
 
     return ExamDashboardStats(
       exam: exam,
@@ -171,18 +171,17 @@ class DashboardHelpers {
     final totalDur = durations.isEmpty ? 0 : durations.reduce((a, b) => a + b);
     final avgDur = durations.isEmpty ? 0 : totalDur ~/ durations.length;
 
-    final passed = periodAttempts.any((a) => a.hasPassed);
-
     return BatchStats(
       node: node,
       attempts: periodAttempts.length,
       averageScore: avg,
       bestScore: best,
       totalDurationSeconds: totalDur,
+      durationCount: durations.length,
       avgDurationSeconds: avgDur,
       targetDurationSeconds: node.targetDurationSeconds,
       lastAttemptDate: _latestDate(periodAttempts),
-      isCompleted: passed,
+      isCompleted: allAttempts.any((a) => a.hasPassed),
       rawAttempts: allAttempts,
     );
   }

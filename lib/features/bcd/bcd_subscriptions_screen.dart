@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -230,6 +231,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(Translations.of(context).bcd_subscriptions),
         bottom: TabBar(
           controller: _tabController,

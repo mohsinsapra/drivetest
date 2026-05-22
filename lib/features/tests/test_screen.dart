@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
@@ -772,6 +773,10 @@ class _TestscreenState extends State<Testscreen> {
         content: Text(t.test_exit_save_prompt),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
+          AppFilledButton(
+            label: t.btn_save_and_exit,
+            onPressed: () => Navigator.pop(ctx, 'save'),
+          ),
           Row(
             children: [
               Expanded(
@@ -783,14 +788,11 @@ class _TestscreenState extends State<Testscreen> {
               Expanded(
                 child: AppTextButton(
                   label: t.btn_exit,
+                  foregroundColor: Theme.of(ctx).colorScheme.error,
                   onPressed: () => Navigator.pop(ctx, 'exit'),
                 ),
               ),
             ],
-          ),
-          AppFilledButton(
-            label: t.btn_save_and_exit,
-            onPressed: () => Navigator.pop(ctx, 'save'),
           ),
         ],
       ),
@@ -1138,9 +1140,7 @@ class _TestscreenState extends State<Testscreen> {
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back,
-                color: Theme.of(context).colorScheme.onSurface),
+          leading: AppBackButton(
             onPressed: () {
               if (widget.isReviewMode) {
                 Navigator.of(context).pop();
@@ -1252,7 +1252,7 @@ class _TestscreenState extends State<Testscreen> {
                       children: [
                         Text(
                           ttsService.getLanguageFlag(currentLanguageCode),
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 14),
                         ),
                         const SizedBox(width: 4),
                         Icon(

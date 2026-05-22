@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -99,7 +100,7 @@ class _SavedQuestionsPreviewScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Saved Questions')),
+      appBar: AppBar(title: Text(Translations.of(context).home_saved_questions_title), leading: const AppBackButton()),
       body: Column(
         children: [
           Container(

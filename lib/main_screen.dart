@@ -206,9 +206,10 @@ class MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // IndexedStack keeps every screen alive and switches instantly
-          // without any index-mapping between visible tabs and screen positions.
-          IndexedStack(
+          // _LazyIndexedStack only builds a screen on first visit, so the
+          // transition animation from splash/onboarding doesn't pay for all
+          // 5 screens at once. After first visit each screen stays alive.
+          _LazyIndexedStack(
             index: currentPage,
             children: _kAllScreens,
           ),
@@ -249,7 +250,7 @@ class _FloatingNavArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset + 12),
+      padding: EdgeInsets.only(bottom: bottomInset + 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -275,8 +276,8 @@ class _FloatingNavPill extends StatefulWidget {
   final List<_NavEntry> items;
   final ValueChanged<int> onTap; // receives fixed pageIndex
 
-  static const double _itemW = 56;
-  static const double _itemH = 44;
+  static const double _itemW = 62;
+  static const double _itemH = 50;
   static const double _pad = 5;
 
   const _FloatingNavPill({
@@ -409,7 +410,7 @@ class _FloatingNavPillState extends State<_FloatingNavPill> {
                         curve: Curves.easeOut,
                         child: Icon(
                           e.value.icon,
-                          size: 22,
+                          size: 26,
                           color: isActive
                               ? Theme.of(context).colorScheme.primary
                               : Theme.of(context)
@@ -500,6 +501,52 @@ class _FloatingFabState extends State<_FloatingFab>
           child: const Icon(Icons.add, color: Colors.white, size: 28),
         ),
       ),
+    );
+  }
+}
+
+// ─── Lazy IndexedStack ───────────────────────────────────────────────────────
+// Defers building a child until its index is first activated. Once built, the
+// child stays alive (same keep-alive semantics as a regular IndexedStack).
+
+class _LazyIndexedStack extends StatefulWidget {
+  final int index;
+  final List<Widget> children;
+
+  const _LazyIndexedStack({required this.index, required this.children});
+
+  @override
+  State<_LazyIndexedStack> createState() => _LazyIndexedStackState();
+}
+
+class _LazyIndexedStackState extends State<_LazyIndexedStack> {
+  late final List<bool> _built;
+
+  @override
+  void initState() {
+    super.initState();
+    _built = List.generate(
+      widget.children.length,
+      (i) => i == widget.index,
+    );
+  }
+
+  @override
+  void didUpdateWidget(_LazyIndexedStack old) {
+    super.didUpdateWidget(old);
+    if (!_built[widget.index]) {
+      setState(() => _built[widget.index] = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IndexedStack(
+      index: widget.index,
+      children: [
+        for (int i = 0; i < widget.children.length; i++)
+          _built[i] ? widget.children[i] : const SizedBox.shrink(),
+      ],
     );
   }
 }

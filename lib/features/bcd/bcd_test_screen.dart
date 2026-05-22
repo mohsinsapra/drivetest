@@ -1,5 +1,6 @@
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -86,7 +87,7 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.testName)),
+      appBar: AppBar(title: Text(widget.testName), leading: const AppBackButton()),
       body: const Center(child: AppLoadingIndicator()),
     );
   }

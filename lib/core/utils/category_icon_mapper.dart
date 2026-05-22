@@ -223,16 +223,5 @@ Color categoryColor(String name) {
 
 /// Solid background color for the text panel of an image card.
 /// Matched to the dominant background of each illustration.
-Color? categoryImagePanelColor(String name) {
-  final s = name.toLowerCase();
-  if (_has(s, ['legitimation', 'taxiförar', 'taxiförare'])) {
-    return const Color(0xFFF5D5A8); // warm peach — matches taxi image bg
-  }
-  if (_has(s, ['motorcykel', 'motorcycle', 'moped', 'mc '])) {
-    return const Color(0xFFC8EDE5); // mint — matches motorcycle image bg
-  }
-  return null;
-}
-
 bool _has(String text, List<String> keywords) =>
     keywords.any((kw) => text.contains(kw));

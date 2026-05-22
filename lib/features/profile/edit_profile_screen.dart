@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
@@ -148,7 +149,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile')),
+      appBar: AppBar(title: Text(Translations.of(context).profile_edit), leading: const AppBackButton()),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

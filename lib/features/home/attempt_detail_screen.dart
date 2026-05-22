@@ -1,6 +1,7 @@
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
-// attempt_detail_screen.dart
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 
@@ -35,7 +36,8 @@ class AttemptDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Attempt Details'),
+        leading: const AppBackButton(),
+        title: Text(Translations.of(context).home_attempt_details),
         elevation: 0,
       ),
       body: ListView(

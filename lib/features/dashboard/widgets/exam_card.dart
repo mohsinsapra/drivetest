@@ -2,8 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
-import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart'
-    show categoryImagePanelColor;
 import '../models/subscribed_exam.dart';
 
 class ExamCard extends StatelessWidget {
@@ -66,19 +64,33 @@ class ExamCard extends StatelessWidget {
 
     final expiry = _expiryLabel(t);
     final displayName = _displayName(exam.name);
-    final panelColor = categoryImagePanelColor(exam.name);
 
     // Pick day or night image URL with mutual fallback.
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final imageUrl = isDark
-        ? (exam.examPictureNight ?? exam.examPictureDay)
-        : (exam.examPictureDay ?? exam.examPictureNight);
+    // Derive panel overlay from theme primary so all cards share the same colour.
+    final panelColor = isDark
+        ? Color.lerp(cs.primary, Colors.white, 0.28)!
+        : Color.lerp(cs.primary, Colors.black, 0.25)!;
+    // Inactive: moderate dim — desaturation filter already reduces visual weight.
+    final inactivePanelColor = Color.lerp(
+      panelColor,
+      isDark ? Colors.black : Colors.white,
+      isDark ? 0.30 : 0.35,
+    )!;
+    final imageUrl = isActive
+        ? (isDark
+            ? (exam.examPictureNight ?? exam.examPictureDay)
+            : (exam.examPictureDay ?? exam.examPictureNight))
+        : (isDark
+            ? (exam.examPictureNightInactive ?? exam.examPictureDayInactive ?? exam.examPictureNight ?? exam.examPictureDay)
+            : (exam.examPictureDayInactive ?? exam.examPictureNightInactive ?? exam.examPictureDay ?? exam.examPictureNight));
 
     if (isActive) {
       if (imageUrl != null) {
         return _ImageCard(
           imageUrl: imageUrl,
-          panelColor: panelColor ?? cs.primaryContainer,
+          panelColor: panelColor,
+          isDark: isDark,
           isActive: true,
           badge: t.dash_card_active,
           name: displayName,
@@ -163,9 +175,8 @@ class ExamCard extends StatelessWidget {
     if (imageUrl != null) {
       return _ImageCard(
         imageUrl: imageUrl,
-        panelColor: panelColor != null
-            ? Color.lerp(panelColor, Colors.grey, 0.25)!
-            : cs.surfaceContainerHighest,
+        panelColor: inactivePanelColor,
+        isDark: isDark,
         isActive: false,
         badge: t.dash_card_inactive,
         name: displayName,
@@ -231,6 +242,7 @@ class _ImageCard extends StatelessWidget {
   const _ImageCard({
     required this.imageUrl,
     required this.panelColor,
+    required this.isDark,
     required this.isActive,
     required this.badge,
     required this.name,
@@ -239,6 +251,7 @@ class _ImageCard extends StatelessWidget {
 
   final String imageUrl;
   final Color panelColor;
+  final bool isDark;
   final bool isActive;
   final String badge;
   final String name;
@@ -247,7 +260,9 @@ class _ImageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const shape = BorderRadius.all(Radius.circular(24));
-    final textColor = _contrastColor(panelColor);
+    // Dark mode overlay is light-tinted → dark background overall → white text.
+    // Light mode overlay is dark-tinted → sits on bright image → dark text.
+    final textColor = isDark ? Colors.white : Colors.black87;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -277,13 +292,13 @@ class _ImageCard extends StatelessWidget {
               Positioned.fill(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      stops: const [0.0, 0.48, 0.70],
+                    gradient: RadialGradient(
+                      center: Alignment.topLeft,
+                      radius: 1.1,
+                      stops: const [0.0, 0.45, 1.0],
                       colors: [
-                        panelColor.withValues(alpha: 0.85),
-                        panelColor.withValues(alpha: 0.52),
+                        panelColor.withValues(alpha: 0.90),
+                        panelColor.withValues(alpha: 0.45),
                         panelColor.withValues(alpha: 0.0),
                       ],
                     ),
@@ -302,14 +317,13 @@ class _ImageCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.12),
+                        color: Colors.black.withValues(alpha: 0.20),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         badge,
                         style: GoogleFonts.lexend(
-                          color:
-                              textColor.withValues(alpha: isActive ? 0.9 : 0.6),
+                          color: Colors.white.withValues(alpha: isActive ? 0.95 : 0.65),
                           fontSize: 8,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1.4,
@@ -351,6 +365,4 @@ class _ImageCard extends StatelessWidget {
     );
   }
 
-  Color _contrastColor(Color bg) =>
-      bg.computeLuminance() > 0.4 ? Colors.black87 : Colors.white;
 }

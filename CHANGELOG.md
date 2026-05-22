@@ -10,13 +10,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- `AppBackButton` widget — a styled pill/card back button (`lib/core/widgets/app_back_button.dart`) used uniformly across all screens, matching the notification bell and settings icon style
+- Localization keys `profile_statistics`, `home_attempt_details`, and `home_saved_questions_title` in EN and SV, replacing hardcoded English strings in `StatsScreen`, `AttemptDetailScreen`, and `SavedQuestionsPreviewScreen`
+- `durationCount` field on `BatchStats` to track the number of attempts with a non-zero duration, enabling accurate cross-batch average calculation
 
 ### Changed
--
+- Applied `AppBackButton` as the `leading` widget in app bars across 13 screens: `BCDDocumentViewerScreen`, `BCDLicencesScreen`, `BCDSubscriptionsScreen`, `BCDTestScreen`, `BCDTrafficSignsScreen`, `AttemptDetailScreen`, `NotificationsScreen`, `EditProfileScreen`, `StatsScreen`, `StreakSettingsScreen`, `HelpScreen`, `CustomTestScreen`, `SavedQuestionsPreviewScreen`, `TestScreen`, and `ResultScreen`
+- `ExamCard` panel overlay color now derives from the theme's `ColorScheme.primary` (light/dark tinted) instead of per-category hardcoded colors, so all exam cards share a consistent tint
+- `ExamCard` gradient changed from a linear left-to-right sweep to a radial top-left gradient for a softer image blend; badge text color is always white regardless of background luminance
+- `_ExamCarouselShimmer` refactored to use `ListView.separated` with a constant `_count = 5` instead of hardcoded duplicate children
+- `_LazyIndexedStack` introduced in `MainScreen` — defers building a tab screen until its first visit, reducing startup cost from building all 5 screens simultaneously
+- Floating nav pill item width/height increased (`56→62` / `44→50`) and icon size increased (`22→26`) for a larger, easier-to-tap target; bottom padding reduced (`12→4`)
+- Splash screen animation controllers (`_spinCtrl`, `_pulseCtrl`) now start in `addPostFrameCallback` after the first frame to avoid competing with shader compilation and font loading on startup
+- Profile screen settings icon replaced from bare `IconButton` to a styled pill container matching `AppBackButton` aesthetics
+- Notifications empty state updated: double-ring icon container (outer 120px / inner 84px), `GoogleFonts.lexend` title, `GoogleFonts.plusJakartaSans` subtitle replacing plain `TextStyle`
+- Test screen exit dialog: "Save & Exit" button moved above the "Keep Going" / "Exit" row; "Exit" button now uses `colorScheme.error` foreground color for clearer destructive intent
+- TTS language flag font size reduced from 16 to 14 in test screen
+- `avgDurationSeconds` on `ExamDashboardStats` now computed as a true weighted average across all batches (`totalDurationSeconds / totalDurationCount`) instead of an average of per-batch averages
+- `_examLevelAttemptCount` in `DashboardHelpers` now uses `periodAttempts` (filtered by time period) instead of `allAttempts`, so the attempt counter respects the selected period
+- `BatchStats.isCompleted` now uses `allAttempts` (all-time) rather than `periodAttempts` to determine pass status, so a batch stays completed even when filtering to a shorter period
 
-### Fixed
--
+### Removed
+- `categoryImagePanelColor()` function from `category_icon_mapper.dart` — superseded by theme-derived panel colors in `ExamCard`
+- `_contrastColor()` helper from `_ImageCard` — text color is now determined directly from `isDark` flag
 
 ---
 

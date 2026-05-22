@@ -8,6 +8,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -173,22 +174,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Material(
-            color: theme.cardColor,
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () => Navigator.maybePop(context),
-              child: Icon(
-                Icons.arrow_back_rounded,
-                color: theme.appBarTheme.iconTheme?.color,
-                size: 20,
-              ),
-            ),
-          ),
-        ),
+        leading: const AppBackButton(),
         title: Text(
           t.notifications_title,
           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
@@ -576,32 +562,48 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Outer ring
             Container(
-              width: 72,
-              height: 72,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.08),
+                color: colorScheme.primary.withValues(alpha: 0.06),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                LucideIcons.bellOff,
-                size: 30,
-                color: colorScheme.primary.withValues(alpha: 0.5),
+              child: Center(
+                // Inner circle
+                child: Container(
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.10),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    LucideIcons.bellOff,
+                    size: 38,
+                    color: colorScheme.primary.withValues(alpha: 0.55),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Text(
               t.notifications_empty_title,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+              style: GoogleFonts.lexend(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               t.notifications_empty_subtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: Colors.grey.shade500,
-                height: 1.5,
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+                height: 1.55,
               ),
             ),
           ],

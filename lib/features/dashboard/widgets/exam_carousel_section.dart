@@ -35,6 +35,8 @@ const double _kCardSpacing = 12;
 const double _kLeftPad = 16;
 
 class _ExamCarouselShimmer extends StatelessWidget {
+  static const int _count = 5;
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -48,31 +50,21 @@ class _ExamCarouselShimmer extends StatelessWidget {
           : cs.onSurface.withValues(alpha: 0.03),
       child: SizedBox(
         height: _kCardHeight,
-        child: ListView(
+        child: ListView.separated(
           scrollDirection: Axis.horizontal,
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
-          children: [
-            SizedBox(
-              width: _kCardWidth,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
+          itemCount: _count,
+          separatorBuilder: (_, __) => const SizedBox(width: _kCardSpacing),
+          itemBuilder: (_, __) => SizedBox(
+            width: _kCardWidth,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
               ),
             ),
-            const SizedBox(width: _kCardSpacing),
-            SizedBox(
-              width: _kCardWidth,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

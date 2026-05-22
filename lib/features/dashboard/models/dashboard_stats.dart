@@ -16,6 +16,9 @@ class BatchStats {
   /// Sum of all attempt durations in seconds
   final int totalDurationSeconds;
 
+  /// Number of attempts that had a non-zero duration (used for cross-batch avg)
+  final int durationCount;
+
   /// Average duration per attempt in seconds (0 if no attempts)
   final int avgDurationSeconds;
 
@@ -24,7 +27,7 @@ class BatchStats {
 
   final DateTime? lastAttemptDate;
 
-  /// True if the user has passed this batch at least once
+  /// True if the user has passed this batch at least once (all-time)
   final bool isCompleted;
 
   // Raw unsorted attempts — sorted lazily on first access via [sortedAttempts].
@@ -45,6 +48,7 @@ class BatchStats {
     required this.targetDurationSeconds,
     required this.lastAttemptDate,
     required this.isCompleted,
+    this.durationCount = 0,
     List<TestAttempt> rawAttempts = const [],
   }) : _rawAttempts = rawAttempts;
 
@@ -186,10 +190,11 @@ class ExamDashboardStats {
   int get totalBatchCount => allBatchStats.length;
 
   int get avgDurationSeconds {
-    final withAttempts = allBatchStats.where((b) => b.attempts > 0).toList();
-    if (withAttempts.isEmpty) return 0;
-    final total = withAttempts.fold(0, (sum, b) => sum + b.avgDurationSeconds);
-    return total ~/ withAttempts.length;
+    final totalDur =
+        allBatchStats.fold(0, (sum, b) => sum + b.totalDurationSeconds);
+    final totalCount =
+        allBatchStats.fold(0, (sum, b) => sum + b.durationCount);
+    return totalCount == 0 ? 0 : totalDur ~/ totalCount;
   }
 
   /// The last attempted batch — shown as "Continue" so the user picks up

@@ -404,13 +404,37 @@ class _ProfileScreenState extends State<ProfileScreen>
       appBar: AppBar(
         title: Text(t.profile),
         actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.settings),
-            onPressed: () => Navigator.push(
-              context,
-              AppPageRoute(builder: (_) => const SettingsScreen()),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                AppPageRoute(builder: (_) => const SettingsScreen()),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  LucideIcons.settings,
+                  size: 22,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+                ),
+              ),
             ),
-          )
+          ),
         ],
       ),
       body: SafeArea(

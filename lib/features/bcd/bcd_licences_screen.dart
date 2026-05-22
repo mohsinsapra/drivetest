@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'dart:async';
@@ -147,7 +148,7 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(Translations.of(context).bcd_categories)),
+      appBar: AppBar(title: Text(Translations.of(context).bcd_categories), leading: const AppBackButton()),
       body: Column(
         children: [
           Padding(

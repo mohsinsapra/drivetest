@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -121,6 +122,7 @@ class _HelpScreenState extends State<HelpScreen> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
+        leading: const AppBackButton(),
         title: Text(t.help_title),
       ),
       body: SafeArea(

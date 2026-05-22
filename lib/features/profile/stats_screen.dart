@@ -1,8 +1,10 @@
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 
@@ -399,11 +401,12 @@ class _StatsScreenState extends State<StatsScreen> {
       appBar: AppBar(
         elevation: 0,
         centerTitle: false,
+        leading: const AppBackButton(),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Statistics',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(Translations.of(context).profile_statistics,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             if (widget.subtitle != null)
               Text(widget.subtitle!,
                   style: const TextStyle(

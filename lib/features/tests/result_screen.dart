@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -73,6 +74,9 @@ class _ResultScreenState extends State<ResultScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: AppBackButton(
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         title: Text(isPassed
