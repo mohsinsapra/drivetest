@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/constants/app_text_styles.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -110,13 +111,16 @@ class _SectionCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(section.title,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w600)),
+                  Text(
+                    section.title,
+                    style: AppTextStyles.headingMedium(),
+                  ),
                   const SizedBox(height: 2),
-                  Text(section.subtitle,
-                      style:
-                          TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                  Text(
+                    section.subtitle,
+                    style: AppTextStyles.listSubtitle(
+                        color: Colors.grey.shade600),
+                  ),
                 ],
               ),
             ),

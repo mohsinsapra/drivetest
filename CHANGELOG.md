@@ -10,13 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- `AppTextStyles` — centralised text-style class (`lib/core/constants/app_text_styles.dart`) with named static methods (`headingLarge`, `headingMedium`, `headingSmall`, `bodyLarge`, `bodyMedium`, `bodySmall`, `listTitle`, `listSubtitle`, `displayLarge`) backed by Lexend (headings) and Plus Jakarta Sans (body), matching the dashboard typographic system; change font or scale once and it propagates app-wide
+- Swedish translations for eight new statistics keys: `stats_no_tests_yet`, `stats_attempt_history`, `stats_avg_time`, `stats_attempt_one`, `stats_attempt_many`, `stats_avg_label`, `stats_best`, `stats_average`, `stats_unknown`
 
 ### Changed
--
-
-### Fixed
--
+- **`ExamCard`** panel overlay colour: replaced primary-derived tint (dark navy in light mode) with neutral white (light) / `#09082F` ink (dark), eliminating the "too dark top-left corner" on pastel exam images; inactive overlay opacity reduced to let the desaturation filter carry more visual weight
+- **`ExamCard`** badge pill: mode-aware semi-transparent background (white-tinted in dark, black-tinted in light) with matching text contrast; active/inactive opacity differentiated per badge state
+- **`BCDScreen`** (`lib/features/bcd/bcd_screen.dart`) menu tile title and subtitle now use `AppTextStyles.headingMedium` / `AppTextStyles.listSubtitle` replacing bare `const TextStyle`
+- **`BCDCategoryHubScreen`** document and checklist tile titles now use `AppTextStyles.listTitle`; checklist body content uses `AppTextStyles.bodyMedium`
+- **`ProfileScreen`** username, email, badge label, menu tile titles, and logout sheet title/body all migrated to `AppTextStyles`, removing scattered `GoogleFonts.*` and `const TextStyle` calls
+- **`StatsScreen`** all visible text (stat card values/labels, breakdown card headings, mini-stats, attempt history rows, pass/fail badge, empty-state message) migrated to `AppTextStyles`; hardcoded English strings replaced with translation keys (`home_passed`, `home_failed`, `stats_*`)
 
 ---
 

@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/constants/app_text_styles.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
@@ -812,7 +813,7 @@ class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
                         ),
                         title: Text(
                           cleanBcdText(doc['title']?.toString() ?? ''),
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          style: AppTextStyles.listTitle(),
                         ),
                         trailing:
                             const Icon(LucideIcons.externalLink, size: 18),
@@ -892,13 +893,14 @@ class _BCDChecklistsScreenState extends State<_BCDChecklistsScreen> {
                             color: Color(0xFF3B5F8A)),
                         title: Text(
                           cleanBcdText(item['title']?.toString() ?? ''),
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          style: AppTextStyles.listTitle(),
                         ),
                         children: [
                           Text(
                             cleanBcdMultilineText(
                                 item['content']?.toString() ?? ''),
-                            style: const TextStyle(fontSize: 14, height: 1.5),
+                            style: AppTextStyles.bodyMedium()
+                                .copyWith(height: 1.5),
                           ),
                         ],
                       ),

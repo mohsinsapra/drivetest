@@ -67,16 +67,12 @@ class ExamCard extends StatelessWidget {
 
     // Pick day or night image URL with mutual fallback.
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Derive panel overlay from theme primary so all cards share the same colour.
-    final panelColor = isDark
-        ? Color.lerp(cs.primary, Colors.white, 0.28)!
-        : Color.lerp(cs.primary, Colors.black, 0.25)!;
-    // Inactive: moderate dim — desaturation filter already reduces visual weight.
-    final inactivePanelColor = Color.lerp(
-      panelColor,
-      isDark ? Colors.black : Colors.white,
-      isDark ? 0.30 : 0.35,
-    )!;
+    // Neutral overlay: white in light mode keeps text readable on any pastel image;
+    // deep ink in dark mode keeps white text readable on any image.
+    final panelColor =
+        isDark ? const Color(0xFF09082F) : Colors.white;
+    final inactivePanelColor =
+        isDark ? const Color(0xFF0D0C35) : const Color(0xFFF0F0F0);
     final imageUrl = isActive
         ? (isDark
             ? (exam.examPictureNight ?? exam.examPictureDay)
@@ -266,9 +262,22 @@ class _ImageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const shape = BorderRadius.all(Radius.circular(24));
-    // Dark mode overlay is light-tinted → dark background overall → white text.
-    // Light mode overlay is dark-tinted → sits on bright image → dark text.
+    // White overlay → dark text; dark overlay → white text.
     final textColor = isDark ? Colors.white : Colors.black87;
+
+    // Badge pill: semi-transparent, mode-aware so it reads on any image.
+    final badgeBg = isDark
+        ? Colors.white.withValues(alpha: isActive ? 0.18 : 0.10)
+        : Colors.black.withValues(alpha: isActive ? 0.13 : 0.08);
+    final badgeTextColor = isDark
+        ? Colors.white.withValues(alpha: isActive ? 1.0 : 0.60)
+        : Colors.black87.withValues(alpha: isActive ? 0.85 : 0.50);
+
+    // Active: slightly more opaque overlay so text pops; inactive: sheer —
+    // the saturation filter already does the heavy lifting.
+    final activeAlphas = isActive
+        ? const [0.88, 0.50, 0.0]
+        : const [0.72, 0.38, 0.0];
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -283,7 +292,7 @@ class _ImageCard extends StatelessWidget {
                     ? const ColorFilter.mode(
                         Colors.transparent, BlendMode.multiply)
                     : ColorFilter.mode(
-                        Colors.grey.withValues(alpha: 0.35),
+                        Colors.grey.withValues(alpha: 0.40),
                         BlendMode.saturation,
                       ),
                 child: CachedNetworkImage(
@@ -303,9 +312,9 @@ class _ImageCard extends StatelessWidget {
                       radius: 1.1,
                       stops: const [0.0, 0.45, 1.0],
                       colors: [
-                        panelColor.withValues(alpha: 0.90),
-                        panelColor.withValues(alpha: 0.45),
-                        panelColor.withValues(alpha: 0.0),
+                        panelColor.withValues(alpha: activeAlphas[0]),
+                        panelColor.withValues(alpha: activeAlphas[1]),
+                        panelColor.withValues(alpha: activeAlphas[2]),
                       ],
                     ),
                   ),
@@ -323,14 +332,13 @@ class _ImageCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.20),
+                        color: badgeBg,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         badge,
                         style: GoogleFonts.lexend(
-                          color: Colors.white
-                              .withValues(alpha: isActive ? 0.95 : 0.65),
+                          color: badgeTextColor,
                           fontSize: 8,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1.4,
@@ -341,8 +349,7 @@ class _ImageCard extends StatelessWidget {
                     Text(
                       name,
                       style: GoogleFonts.lexend(
-                        color:
-                            textColor.withValues(alpha: isActive ? 1.0 : 0.65),
+                        color: textColor.withValues(alpha: isActive ? 1.0 : 0.60),
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         height: 1.25,
@@ -355,8 +362,7 @@ class _ImageCard extends StatelessWidget {
                       Text(
                         expiry!,
                         style: GoogleFonts.plusJakartaSans(
-                          color: textColor.withValues(
-                              alpha: isActive ? 0.75 : 0.5),
+                          color: textColor.withValues(alpha: isActive ? 0.72 : 0.45),
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
                         ),

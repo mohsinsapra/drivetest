@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/constants/app_text_styles.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
@@ -120,7 +121,7 @@ class _StatsScreenState extends State<StatsScreen> {
     final first = group.first;
     if ((first.categoryName ?? '').isNotEmpty) return first.categoryName!;
     if ((first.licenceName ?? '').isNotEmpty) return first.licenceName!;
-    return 'Unknown';
+    return Translations.of(context).stats_unknown;
   }
 
   // ── UI helpers ────────────────────────────────────────────────────────────
@@ -157,11 +158,11 @@ class _StatsScreenState extends State<StatsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(value,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold)),
+                    style: AppTextStyles.headingLarge()
+                        .copyWith(fontSize: 22)),
                 const SizedBox(height: 2),
                 Text(label,
-                    style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                    style: AppTextStyles.bodyMedium(color: Colors.grey)),
               ],
             ),
           ),
@@ -206,14 +207,11 @@ class _StatsScreenState extends State<StatsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(label,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
+                        Text(label, style: AppTextStyles.headingMedium()),
                         const SizedBox(height: 3),
                         Text(
-                          '${group.length} ${group.length == 1 ? 'attempt' : 'attempts'} • Avg: ${avgScore.round()}%',
-                          style:
-                              const TextStyle(fontSize: 13, color: Colors.grey),
+                          '${group.length} ${group.length == 1 ? Translations.of(context).stats_attempt_one : Translations.of(context).stats_attempt_many} • ${Translations.of(context).stats_avg_label}: ${avgScore.round()}%',
+                          style: AppTextStyles.bodyMedium(color: Colors.grey),
                         ),
                       ],
                     ),
@@ -228,11 +226,10 @@ class _StatsScreenState extends State<StatsScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      latestPassed ? 'Passed' : 'Failed',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600),
+                      latestPassed
+                          ? Translations.of(context).home_passed
+                          : Translations.of(context).home_failed,
+                      style: AppTextStyles.headingSmall(color: Colors.white),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -260,28 +257,27 @@ class _StatsScreenState extends State<StatsScreen> {
                       Expanded(
                           child: _miniStat(
                         value: '${bestScore.round()}%',
-                        label: 'Best',
+                        label: Translations.of(context).stats_best,
                         valueColor: const Color(0xFF4CAF50),
                       )),
                       Expanded(
                           child: _miniStat(
                         value: '${avgScore.round()}%',
-                        label: 'Average',
+                        label: Translations.of(context).stats_average,
                       )),
                       Expanded(
                           child: _miniStat(
                         value: _fmtDuration(avgSeconds),
-                        label: 'Avg time',
+                        label: Translations.of(context).stats_avg_time,
                       )),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text('ATTEMPT HISTORY',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey,
-                          letterSpacing: 0.8)),
+                  Text(Translations.of(context).stats_attempt_history,
+                      style: AppTextStyles.bodySmall(color: Colors.grey)
+                          .copyWith(
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.8)),
                   const SizedBox(height: 10),
                   ...group.map(_attemptHistoryRow),
                 ],
@@ -298,12 +294,12 @@ class _StatsScreenState extends State<StatsScreen> {
     return Column(
       children: [
         Text(value,
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: valueColor ?? Theme.of(context).colorScheme.onSurface)),
+            style: AppTextStyles.headingLarge(
+                    color: valueColor ??
+                        Theme.of(context).colorScheme.onSurface)
+                .copyWith(fontSize: 18)),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(label, style: AppTextStyles.bodySmall(color: Colors.grey)),
       ],
     );
   }
@@ -327,15 +323,14 @@ class _StatsScreenState extends State<StatsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('$correct/$total (${a.score.round()}%)',
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
+                    style: AppTextStyles.listTitle()),
                 Text(_fmtDate(a.dateTime),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    style: AppTextStyles.bodySmall(color: Colors.grey)),
               ],
             ),
           ),
           Text(_fmtDuration(a.durationSeconds ?? 0),
-              style: const TextStyle(fontSize: 13, color: Colors.grey)),
+              style: AppTextStyles.bodyMedium(color: Colors.grey)),
         ],
       ),
     );
@@ -346,7 +341,7 @@ class _StatsScreenState extends State<StatsScreen> {
     final total = a.questions.length;
     final testName = (a.categoryName?.isNotEmpty == true)
         ? a.categoryName!
-        : (a.licenceName ?? 'Unknown');
+        : (a.licenceName ?? Translations.of(context).stats_unknown);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -369,27 +364,23 @@ class _StatsScreenState extends State<StatsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(testName,
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(testName, style: AppTextStyles.listTitle()),
                 Text(_fmtDate(a.dateTime),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    style: AppTextStyles.bodySmall(color: Colors.grey)),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('$correct/$total',
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.bold)),
+              Text('$correct/$total', style: AppTextStyles.listTitle()),
               Text('${a.score.round()}%',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  style: AppTextStyles.bodySmall(color: Colors.grey)),
             ],
           ),
           const SizedBox(width: 12),
           Text(_fmtDuration(a.durationSeconds ?? 0),
-              style: const TextStyle(fontSize: 13, color: Colors.grey)),
+              style: AppTextStyles.bodyMedium(color: Colors.grey)),
         ],
       ),
     );
@@ -406,28 +397,24 @@ class _StatsScreenState extends State<StatsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(Translations.of(context).profile_statistics,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                style: AppTextStyles.headingLarge()),
             if (widget.subtitle != null)
               Text(widget.subtitle!,
-                  style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.normal)),
+                  style: AppTextStyles.bodyMedium(color: Colors.grey)),
           ],
         ),
       ),
       body: _isLoading
           ? const Center(child: AppLoadingIndicator())
           : _attempts.isEmpty
-              ? const Center(
+              ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.bar_chart, size: 64, color: Colors.grey),
-                      SizedBox(height: 12),
-                      Text('No completed tests yet',
-                          style: TextStyle(fontSize: 16, color: Colors.grey)),
+                      const Icon(Icons.bar_chart, size: 64, color: Colors.grey),
+                      const SizedBox(height: 12),
+                      Text(Translations.of(context).stats_no_tests_yet,
+                          style: AppTextStyles.bodyLarge(color: Colors.grey)),
                     ],
                   ),
                 )

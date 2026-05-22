@@ -4,6 +4,7 @@ import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:taxi_exam_app/core/constants/app_text_styles.dart';
 
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
@@ -498,26 +499,22 @@ class _ProfileScreenState extends State<ProfileScreen>
                         _profile.isGuest
                             ? t.guest_banner_cta
                             : t.profile_student,
-                        style: TextStyle(
+                        style: AppTextStyles.headingSmall(
                           color: _profile.isGuest
                               ? Theme.of(context).colorScheme.onSurfaceVariant
                               : Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        ).copyWith(letterSpacing: 0.8),
                       ),
                     ),
                     const SizedBox(height: 8),
                     if (!_profile.isGuest) ...[
                       Text(
                         _profile.username ?? t.loading,
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                        style: AppTextStyles.headingLarge(),
                       ),
                       Text(
                         _profile.email ?? '',
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.grey),
+                        style: AppTextStyles.bodyMedium(color: Colors.grey),
                       ),
                     ],
                     const SizedBox(height: 24),
@@ -721,12 +718,11 @@ class _LogoutSheetState extends State<_LogoutSheet> {
           children: [
             Text(
               t.logout,
-              style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red),
+              style: AppTextStyles.headingLarge(color: Colors.red),
             ),
             const SizedBox(height: 12),
             Text(t.profile_logout_confirm,
-                style: const TextStyle(fontSize: 16)),
+                style: AppTextStyles.bodyLarge()),
             const SizedBox(height: 24),
             Row(
               children: [
@@ -772,7 +768,7 @@ Widget _buildMenuTile(
       ),
       child: Icon(icon, color: Colors.black),
     ),
-    title: Text(title),
+    title: Text(title, style: AppTextStyles.listTitle()),
     trailing: const Icon(Icons.chevron_right),
     onTap: onTap,
   );
