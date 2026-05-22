@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+const _hapticChannel = MethodChannel('com.taxiexam/haptic');
+
 /// Pull-to-refresh that uses [CupertinoSliverRefreshControl] on iOS/web
 /// and [RefreshIndicator] on Android. Fires light haptic ticks during drag.
 class AdaptiveRefreshIndicator extends StatefulWidget {
@@ -25,12 +27,10 @@ class AdaptiveRefreshIndicator extends StatefulWidget {
 }
 
 class _AdaptiveRefreshIndicatorState extends State<AdaptiveRefreshIndicator> {
-  static const double _hapticTickInterval = 12.0;
-  static const Duration _minHapticInterval = Duration(milliseconds: 30);
+  static const double _hapticTickInterval = 1.0;
 
   double _totalOverscroll = 0.0;
   double _lastHapticThreshold = 0.0;
-  DateTime? _lastHapticTime;
 
   static bool _useCupertino(BuildContext context) =>
       kIsWeb || Theme.of(context).platform == TargetPlatform.iOS;
@@ -55,19 +55,18 @@ class _AdaptiveRefreshIndicatorState extends State<AdaptiveRefreshIndicator> {
     } else if (notification is ScrollEndNotification) {
       _totalOverscroll = 0.0;
       _lastHapticThreshold = 0.0;
-      _lastHapticTime = null;
     }
     return false;
   }
 
   void _maybeFireHaptic() {
-    final now = DateTime.now();
-    final gapOk = _lastHapticTime == null ||
-        now.difference(_lastHapticTime!) >= _minHapticInterval;
-    if (gapOk && _totalOverscroll - _lastHapticThreshold >= _hapticTickInterval) {
-      HapticFeedback.lightImpact();
+    if (_totalOverscroll - _lastHapticThreshold >= _hapticTickInterval) {
       _lastHapticThreshold = _totalOverscroll;
-      _lastHapticTime = now;
+      if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
+        _hapticChannel.invokeMethod('tick');
+      } else {
+        HapticFeedback.selectionClick();
+      }
     }
   }
 
