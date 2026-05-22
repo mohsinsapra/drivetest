@@ -38,13 +38,15 @@ platform :ios do
     app_password = ENV["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"]
     UI.user_error!("Set FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD in ios/fastlane/.env") if app_password.nil? || app_password.empty? || app_password == "your-app-specific-password-here"
 
-    sh("xcrun altool --upload-app " \
-       "-f '#{ipa_path}' " \
-       "-t ios " \
-       "-u mohsin.sapra@gmail.com " \
-       "-p '#{app_password}' " \
-       "--asc-provider 128337297 " \
-       "--output-format normal")
+    changelog = get_latest_changelog_entry
+
+    upload_to_testflight(
+      ipa: ipa_path,
+      username: "mohsin.sapra@gmail.com",
+      team_id: "128337297",
+      changelog: changelog,
+      skip_waiting_for_build_processing: true
+    )
   end
 
   desc "Build + upload to TestFlight"

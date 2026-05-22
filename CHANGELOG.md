@@ -20,6 +20,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.22+220] - 2026-05-22
+
+### Added
+- App download sheet for web users with platform-specific links (iOS/Android)
+- Platform detection utility for web environments
+- Remote image URLs to `SubscribedExam` model and updated `ExamSyncService` accordingly
+- Background color mapping for category images
+- Tests for platform detection functionality
+
+### Changed
+- Replaced `RefreshIndicator` with `AdaptiveRefreshIndicator` for better pull-to-refresh UX across screens including subscriptions
+- Enhanced `ExamCard` to display exam images and improve layout
+- Updated Swedish translations for dashboard and app download prompts
+
+### Fixed
+- Removed unused chip label in performance overview section
+
+---
+---
+
 ## [1.1.21+219] - 2026-05-22
 
 ### Added

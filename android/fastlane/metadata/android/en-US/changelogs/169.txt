@@ -1,0 +1,10 @@
+Added
+• App download sheet for web users with platform-specific links (iOS/Android)
+• Platform detection utility for web environments
+• Remote image URLs to `SubscribedExam` model and updated `ExamSyncService` accordingly
+• Background color mapping for category images
+• Tests for platform detection functionality
+
+Changed
+• Replaced `RefreshIndicator` with `AdaptiveRefreshIndicator` for better pull-to-refresh UX across screens including subscriptions
+• Enhanced `ExamCard` to display exam image...
