@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge _web-build-docker _android-build-docker
+.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge _web-build-docker _android-build-docker
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -211,8 +211,8 @@ restart-flutter:
 restart-backend:
 	@$(MAKE) -C ../taxi_exam_backend restart-backend
 
-## web-build: Build web app for production
-web-build: check
+## _web-build-core: Build web app for production (no check — callers must have run check already)
+_web-build-core:
 	@echo "$(COLOR_GREEN)Building web app for production...$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)Base URL: $(WEB_BASE_HREF)$(COLOR_RESET)"
 	@echo "$(COLOR_YELLOW)Web version: v$(APP_VERSION) ($(APP_BUILD_NUMBER))$(COLOR_RESET)"
@@ -248,6 +248,9 @@ web-build: check
 		echo "$(COLOR_GREEN)✅ .git folder restored!$(COLOR_RESET)"; \
 	fi
 	@echo "$(COLOR_GREEN)✅ Build completed! Output: $(WEB_BUILD_DIR)$(COLOR_RESET)"
+
+## web-build: Format, lint, then build web app for production
+web-build: check _web-build-core
 
 ## _write-web-version-file: Write deploy metadata for the built web app
 _write-web-version-file:
@@ -350,7 +353,7 @@ _android-build-docker:
 	@echo "$(COLOR_GREEN)✅ Android Docker build completed!$(COLOR_RESET)"
 
 ## _web-deploy-core: Build web and push to web repo (no version bump, no git commit)
-_web-deploy-core: web-build
+_web-deploy-core: _web-build-core
 	@echo "$(COLOR_BLUE)Deploying web app to repository...$(COLOR_RESET)"
 	@$(MAKE) -s _deploy-to-web-repo
 	@$(MAKE) -s _cloudflare-purge
