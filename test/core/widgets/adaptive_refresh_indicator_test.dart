@@ -26,7 +26,7 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform, null);
     });
 
-    testWidgets('fires haptic ticks during overscroll drag', (tester) async {
+    testWidgets('Android: fires haptic ticks during overscroll drag', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(platform: TargetPlatform.android),
@@ -45,11 +45,34 @@ void main() {
         ),
       );
 
-      // Drag down 80px to simulate pull-to-refresh gesture
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 80));
       await tester.pumpAndSettle();
 
-      // Should have fired at least one haptic tick (80px / 12px interval = ~6)
+      expect(hapticCalls, isNotEmpty);
+    });
+
+    testWidgets('iOS: fires haptic ticks via ScrollUpdateNotification when pixels go negative', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Scaffold(
+            body: AdaptiveRefreshIndicator(
+              onRefresh: () async {},
+              slivers: [
+                SliverList(
+                  delegate: SliverChildListDelegate(
+                    [const SizedBox(height: 2000)],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 80));
+      await tester.pumpAndSettle();
+
       expect(hapticCalls, isNotEmpty);
     });
 
