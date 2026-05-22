@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.23+221] - 2026-05-22
+
+### Added
 - `AppBackButton` widget — a styled pill/card back button (`lib/core/widgets/app_back_button.dart`) used uniformly across all screens, matching the notification bell and settings icon style
 - Localization keys `profile_statistics`, `home_attempt_details`, and `home_saved_questions_title` in EN and SV, replacing hardcoded English strings in `StatsScreen`, `AttemptDetailScreen`, and `SavedQuestionsPreviewScreen`
 - `durationCount` field on `BatchStats` to track the number of attempts with a non-zero duration, enabling accurate cross-batch average calculation
@@ -34,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `categoryImagePanelColor()` function from `category_icon_mapper.dart` — superseded by theme-derived panel colors in `ExamCard`
 - `_contrastColor()` helper from `_ImageCard` — text color is now determined directly from `isDark` flag
 
+---
 ---
 
 ## [1.1.22+220] - 2026-05-22

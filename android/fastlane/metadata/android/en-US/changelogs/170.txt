@@ -1,0 +1,4 @@
+Added
+• `AppBackButton` widget — a styled pill/card back button (`lib/core/widgets/app_back_button.dart`) used uniformly across all screens, matching the notification bell and settings icon style
+• Localization keys `profile_statistics`, `home_attempt_details`, and `home_saved_questions_title` in EN and SV, replacing hardcoded English strings in `StatsScreen`, `AttemptDetailScreen`, and `SavedQuestionsPreviewScreen`
+• `durationCount` field on `BatchStats` to track the number of attempts with ...
