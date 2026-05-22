@@ -297,7 +297,9 @@
       "Bash(~/.claude/skills/gstack/bin/gstack-config get *)",
       "Bash(~/.claude/skills/gstack/bin/gstack-learnings-search --limit 10 --query \"debug investigation root cause hypothesis bug fix\")",
       "Bash(~/.claude/skills/gstack/bin/gstack-learnings-log '{\"skill\":\"investigate\",\"type\":\"investigation\",\"key\":\"indexed-stack-eager-build-jank\",\"insight\":\"IndexedStack builds all children immediately on insertion. MainScreen had 5 screens in a const list — all 5 were built during the 400ms splash→dashboard and 220ms onboarding→dashboard transition animations, causing visible jank. Fix: _LazyIndexedStack that defers building a child until its index is first activated, then keeps it alive.\",\"confidence\":9,\"source\":\"observed\",\"files\":[\"lib/main_screen.dart\"]}')",
-      "Bash(coderabbit --version)"
+      "Bash(coderabbit --version)",
+      "Bash(graphify claude *)",
+      "Bash(graphify hook *)"
     ],
     "deny": [],
     "ask": []
