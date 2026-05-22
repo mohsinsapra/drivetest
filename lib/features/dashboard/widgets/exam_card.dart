@@ -69,8 +69,7 @@ class ExamCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // Neutral overlay: white in light mode keeps text readable on any pastel image;
     // deep ink in dark mode keeps white text readable on any image.
-    final panelColor =
-        isDark ? const Color(0xFF09082F) : Colors.white;
+    final panelColor = isDark ? const Color(0xFF09082F) : Colors.white;
     final inactivePanelColor =
         isDark ? const Color(0xFF0D0C35) : const Color(0xFFF0F0F0);
     final imageUrl = isActive
@@ -275,9 +274,8 @@ class _ImageCard extends StatelessWidget {
 
     // Active: slightly more opaque overlay so text pops; inactive: sheer —
     // the saturation filter already does the heavy lifting.
-    final activeAlphas = isActive
-        ? const [0.88, 0.50, 0.0]
-        : const [0.72, 0.38, 0.0];
+    final activeAlphas =
+        isActive ? const [0.88, 0.50, 0.0] : const [0.72, 0.38, 0.0];
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -349,7 +347,8 @@ class _ImageCard extends StatelessWidget {
                     Text(
                       name,
                       style: GoogleFonts.lexend(
-                        color: textColor.withValues(alpha: isActive ? 1.0 : 0.60),
+                        color:
+                            textColor.withValues(alpha: isActive ? 1.0 : 0.60),
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         height: 1.25,
@@ -362,7 +361,8 @@ class _ImageCard extends StatelessWidget {
                       Text(
                         expiry!,
                         style: GoogleFonts.plusJakartaSans(
-                          color: textColor.withValues(alpha: isActive ? 0.72 : 0.45),
+                          color: textColor.withValues(
+                              alpha: isActive ? 0.72 : 0.45),
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
                         ),

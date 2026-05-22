@@ -1,11 +1,11 @@
 # Graph Report - taxi_exam_app  (2026-05-22)
 
 ## Corpus Check
-- 194 files · ~165,671 words
+- 194 files · ~165,912 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1866 nodes · 2515 edges · 44 communities detected
+- 1867 nodes · 2515 edges · 44 communities detected
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
@@ -62,8 +62,8 @@
 4. `package:shared_preferences/shared_preferences.dart` - 30 edges
 5. `package:taxi_exam_app/core/utils/app_page_route.dart` - 27 edges
 6. `package:taxi_exam_app/core/api/api_service.dart` - 26 edges
-7. `package:google_fonts/google_fonts.dart` - 24 edges
-8. `package:taxi_exam_app/core/widgets/app_button.dart` - 23 edges
+7. `package:taxi_exam_app/core/widgets/app_button.dart` - 23 edges
+8. `package:google_fonts/google_fonts.dart` - 23 edges
 9. `package:flutter_test/flutter_test.dart` - 22 edges
 10. `package:taxi_exam_app/core/widgets/snackbar.dart` - 21 edges
 
@@ -158,12 +158,12 @@ Cohesion: 0.04
 Nodes (48): exam_card.dart, free_bcd_hub_card.dart, free_vagmarkes_card.dart, package:provider/provider.dart, package:taxi_exam_app/core/services/payment_coordinator.dart, package:taxi_exam_app/features/bcd/bcd_test_screen.dart, package:taxi_exam_app/features/bcd/bcd_traffic_signs_screen.dart, package:taxi_exam_app/features/profile/providers/profile_provider.dart (+40 more)
 
 ### Community 19 - "Community 19"
-Cohesion: 0.05
-Nodes (42): batch_row.dart, category_list_item.dart, exam_carousel_section.dart, exam_nav_helpers.dart, hero_section.dart, package:taxi_exam_app/core/utils/category_icon_mapper.dart, performance_overview_section.dart, Align (+34 more)
+Cohesion: 0.04
+Nodes (39): package:auto_size_text/auto_size_text.dart, package:dio/io.dart, package:flutter/services.dart, package:google_sign_in/google_sign_in.dart, package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart, HttpClient, create, GoogleSignIn (+31 more)
 
 ### Community 20 - "Community 20"
 Cohesion: 0.05
-Nodes (38): package:auto_size_text/auto_size_text.dart, package:dio/io.dart, package:flutter/services.dart, package:google_sign_in/google_sign_in.dart, package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart, HttpClient, create, GoogleSignIn (+30 more)
+Nodes (42): batch_row.dart, category_list_item.dart, exam_carousel_section.dart, exam_nav_helpers.dart, hero_section.dart, package:taxi_exam_app/core/utils/category_icon_mapper.dart, performance_overview_section.dart, Align (+34 more)
 
 ### Community 21 - "Community 21"
 Cohesion: 0.05
@@ -258,7 +258,7 @@ Cohesion: 1.0
 Nodes (1): hasResumableProgressChanges
 
 ## Knowledge Gaps
-- **1529 isolated node(s):** `main`, `main`, `main`, `initializeStripe`, `main` (+1524 more)
+- **1530 isolated node(s):** `main`, `main`, `main`, `initializeStripe`, `main` (+1525 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 38`** (3 nodes): `web_redirect.dart`, `redirectToUrl`, `web_redirect_stub.dart`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -277,13 +277,13 @@ Nodes (1): hasResumableProgressChanges
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `package:flutter/material.dart` connect `Community 1` to `Community 0`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 17`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 23`, `Community 24`, `Community 26`?**
-  _High betweenness centrality (0.411) - this node is a cross-community bridge._
+  _High betweenness centrality (0.410) - this node is a cross-community bridge._
 - **Why does `package:taxi_exam_app/core/localization/strings.g.dart` connect `Community 2` to `Community 0`, `Community 3`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 11`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 17`, `Community 18`, `Community 19`, `Community 20`, `Community 21`, `Community 23`, `Community 26`?**
-  _High betweenness centrality (0.169) - this node is a cross-community bridge._
-- **Why does `package:taxi_exam_app/core/models/test_attempt.dart` connect `Community 4` to `Community 2`, `Community 3`, `Community 5`, `Community 6`, `Community 14`, `Community 15`, `Community 20`?**
+  _High betweenness centrality (0.168) - this node is a cross-community bridge._
+- **Why does `package:taxi_exam_app/core/models/test_attempt.dart` connect `Community 4` to `Community 2`, `Community 3`, `Community 5`, `Community 6`, `Community 14`, `Community 15`, `Community 19`?**
   _High betweenness centrality (0.061) - this node is a cross-community bridge._
 - **What connects `main`, `main`, `main` to the rest of the system?**
-  _1529 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1530 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.02 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**

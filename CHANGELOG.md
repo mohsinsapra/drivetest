@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.24+222] - 2026-05-22
+
+### Added
 - `AppTextStyles` — centralised text-style class (`lib/core/constants/app_text_styles.dart`) with named static methods (`headingLarge`, `headingMedium`, `headingSmall`, `bodyLarge`, `bodyMedium`, `bodySmall`, `listTitle`, `listSubtitle`, `displayLarge`) backed by Lexend (headings) and Plus Jakarta Sans (body), matching the dashboard typographic system; change font or scale once and it propagates app-wide
 - Swedish translations for eight new statistics keys: `stats_no_tests_yet`, `stats_attempt_history`, `stats_avg_time`, `stats_attempt_one`, `stats_attempt_many`, `stats_avg_label`, `stats_best`, `stats_average`, `stats_unknown`
 
@@ -21,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`ProfileScreen`** username, email, badge label, menu tile titles, and logout sheet title/body all migrated to `AppTextStyles`, removing scattered `GoogleFonts.*` and `const TextStyle` calls
 - **`StatsScreen`** all visible text (stat card values/labels, breakdown card headings, mini-stats, attempt history rows, pass/fail badge, empty-state message) migrated to `AppTextStyles`; hardcoded English strings replaced with translation keys (`home_passed`, `home_failed`, `stats_*`)
 
+---
 ---
 
 ## [1.1.23+221] - 2026-05-22

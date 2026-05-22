@@ -118,8 +118,8 @@ class _SectionCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     section.subtitle,
-                    style: AppTextStyles.listSubtitle(
-                        color: Colors.grey.shade600),
+                    style:
+                        AppTextStyles.listSubtitle(color: Colors.grey.shade600),
                   ),
                 ],
               ),

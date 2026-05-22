@@ -405,7 +405,7 @@
       "source_file": "test/core/widgets/adaptive_refresh_indicator_test.dart",
       "source_location": null,
       "id": "test_core_widgets_adaptive_refresh_indicator_test_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "adaptive_refresh_indicator_test.dart"
     },
     {
@@ -414,7 +414,7 @@
       "source_file": "test/core/widgets/adaptive_refresh_indicator_test.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_test_core_widgets_adaptive_refresh_indicator_test_dart_main",
-      "community": 20,
+      "community": 19,
       "norm_label": "main"
     },
     {
@@ -432,7 +432,7 @@
       "source_file": "lib/features/dashboard/widgets/exam_carousel_section.dart",
       "source_location": null,
       "id": "package_flutter_services_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "package:flutter/services.dart"
     },
     {
@@ -441,7 +441,7 @@
       "source_file": "lib/features/bcd/bcd_traffic_signs_screen.dart",
       "source_location": null,
       "id": "package_taxi_exam_app_core_widgets_adaptive_refresh_indicator_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart"
     },
     {
@@ -2160,7 +2160,7 @@
       "source_file": "lib/core/auth/google_sign_in_helper.dart",
       "source_location": null,
       "id": "lib_core_auth_google_sign_in_helper_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "google_sign_in_helper.dart"
     },
     {
@@ -2169,7 +2169,7 @@
       "source_file": "lib/core/auth/google_sign_in_helper.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_auth_google_sign_in_helper_dart_googlesigninhelper",
-      "community": 20,
+      "community": 19,
       "norm_label": "googlesigninhelper"
     },
     {
@@ -2178,7 +2178,7 @@
       "source_file": "lib/core/auth/google_sign_in_helper.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_auth_google_sign_in_helper_dart_create",
-      "community": 20,
+      "community": 19,
       "norm_label": "create"
     },
     {
@@ -2187,7 +2187,7 @@
       "source_file": "lib/core/auth/google_sign_in_helper.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_auth_google_sign_in_helper_dart_googlesignin",
-      "community": 20,
+      "community": 19,
       "norm_label": "googlesignin"
     },
     {
@@ -2196,7 +2196,7 @@
       "source_file": "lib/core/auth/google_sign_in_helper.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_auth_google_sign_in_helper_dart_usermessage",
-      "community": 20,
+      "community": 19,
       "norm_label": "usermessage"
     },
     {
@@ -2205,7 +2205,7 @@
       "source_file": "lib/core/auth/google_sign_in_helper.dart",
       "source_location": null,
       "id": "package_google_sign_in_google_sign_in_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "package:google_sign_in/google_sign_in.dart"
     },
     {
@@ -3573,7 +3573,7 @@
       "source_file": "lib/core/api/certificate_pinning_io.dart",
       "source_location": null,
       "id": "lib_core_api_certificate_pinning_io_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "certificate_pinning_io.dart"
     },
     {
@@ -3582,7 +3582,7 @@
       "source_file": "lib/core/api/certificate_pinning_io.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_api_certificate_pinning_io_dart_httpclient",
-      "community": 20,
+      "community": 19,
       "norm_label": "httpclient"
     },
     {
@@ -3591,7 +3591,7 @@
       "source_file": "lib/core/api/certificate_pinning_io.dart",
       "source_location": null,
       "id": "package_dio_io_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "package:dio/io.dart"
     },
     {
@@ -5013,7 +5013,7 @@
       "source_file": "lib/core/widgets/licence_type_card_widget.dart",
       "source_location": null,
       "id": "lib_core_widgets_licence_type_card_widget_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "licence_type_card_widget.dart"
     },
     {
@@ -5022,7 +5022,7 @@
       "source_file": "lib/core/widgets/licence_type_card_widget.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_widgets_licence_type_card_widget_dart_licensetypecard",
-      "community": 20,
+      "community": 19,
       "norm_label": "licensetypecard"
     },
     {
@@ -5031,7 +5031,7 @@
       "source_file": "lib/core/widgets/licence_type_card_widget.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_widgets_licence_type_card_widget_dart_build",
-      "community": 20,
+      "community": 19,
       "norm_label": "build"
     },
     {
@@ -5040,7 +5040,7 @@
       "source_file": "lib/core/widgets/licence_type_card_widget.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_widgets_licence_type_card_widget_dart_gesturedetector",
-      "community": 20,
+      "community": 19,
       "norm_label": "gesturedetector"
     },
     {
@@ -5706,7 +5706,7 @@
       "source_file": "lib/core/widgets/test_option_card_widget.dart",
       "source_location": null,
       "id": "lib_core_widgets_test_option_card_widget_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "test_option_card_widget.dart"
     },
     {
@@ -5715,7 +5715,7 @@
       "source_file": "lib/core/widgets/test_option_card_widget.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_widgets_test_option_card_widget_dart_testoptioncard",
-      "community": 20,
+      "community": 19,
       "norm_label": "testoptioncard"
     },
     {
@@ -5724,7 +5724,7 @@
       "source_file": "lib/core/widgets/test_option_card_widget.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_widgets_test_option_card_widget_dart_build",
-      "community": 20,
+      "community": 19,
       "norm_label": "build"
     },
     {
@@ -5733,7 +5733,7 @@
       "source_file": "lib/core/widgets/test_option_card_widget.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_widgets_test_option_card_widget_dart_gesturedetector",
-      "community": 20,
+      "community": 19,
       "norm_label": "gesturedetector"
     },
     {
@@ -5742,7 +5742,7 @@
       "source_file": "lib/core/widgets/test_option_card_widget.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_core_widgets_test_option_card_widget_dart_sizedbox",
-      "community": 20,
+      "community": 19,
       "norm_label": "sizedbox"
     },
     {
@@ -5751,7 +5751,7 @@
       "source_file": "lib/core/widgets/test_option_card_widget.dart",
       "source_location": null,
       "id": "package_auto_size_text_auto_size_text_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "package:auto_size_text/auto_size_text.dart"
     },
     {
@@ -8955,7 +8955,7 @@
       "source_file": "lib/features/bcd/bcd_licences_screen.dart",
       "source_location": null,
       "id": "package_taxi_exam_app_core_utils_category_icon_mapper_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "package:taxi_exam_app/core/utils/category_icon_mapper.dart"
     },
     {
@@ -12060,7 +12060,7 @@
       "source_file": "lib/features/dashboard/widgets/focus_categories_section.dart",
       "source_location": null,
       "id": "lib_features_dashboard_widgets_focus_categories_section_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "focus_categories_section.dart"
     },
     {
@@ -12069,7 +12069,7 @@
       "source_file": "lib/features/dashboard/widgets/focus_categories_section.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_focus_categories_section_dart_focuscategoriessection",
-      "community": 19,
+      "community": 20,
       "norm_label": "focuscategoriessection"
     },
     {
@@ -12078,7 +12078,7 @@
       "source_file": "lib/features/dashboard/widgets/focus_categories_section.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_focus_categories_section_dart_focuscategoriessectionstate",
-      "community": 19,
+      "community": 20,
       "norm_label": "_focuscategoriessectionstate"
     },
     {
@@ -12087,7 +12087,7 @@
       "source_file": "lib/features/dashboard/widgets/focus_categories_section.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_focus_categories_section_dart_initstate",
-      "community": 19,
+      "community": 20,
       "norm_label": "initstate"
     },
     {
@@ -12096,7 +12096,7 @@
       "source_file": "lib/features/dashboard/widgets/focus_categories_section.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_focus_categories_section_dart_didupdatewidget",
-      "community": 19,
+      "community": 20,
       "norm_label": "didupdatewidget"
     },
     {
@@ -12105,7 +12105,7 @@
       "source_file": "lib/features/dashboard/widgets/focus_categories_section.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_focus_categories_section_dart_resetexpanded",
-      "community": 19,
+      "community": 20,
       "norm_label": "_resetexpanded"
     },
     {
@@ -12114,7 +12114,7 @@
       "source_file": "lib/features/dashboard/widgets/focus_categories_section.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_focus_categories_section_dart_build",
-      "community": 19,
+      "community": 20,
       "norm_label": "build"
     },
     {
@@ -12123,7 +12123,7 @@
       "source_file": "lib/features/dashboard/widgets/focus_categories_section.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_focus_categories_section_dart_padding",
-      "community": 19,
+      "community": 20,
       "norm_label": "padding"
     },
     {
@@ -12132,7 +12132,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "category_list_item_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "category_list_item.dart"
     },
     {
@@ -12726,7 +12726,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "lib_features_dashboard_widgets_category_list_item_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "category_list_item.dart"
     },
     {
@@ -12735,7 +12735,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_category_list_item_dart_categorylistitem",
-      "community": 19,
+      "community": 20,
       "norm_label": "categorylistitem"
     },
     {
@@ -12744,7 +12744,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_category_list_item_dart_categorylistitemstate",
-      "community": 19,
+      "community": 20,
       "norm_label": "_categorylistitemstate"
     },
     {
@@ -12753,7 +12753,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_category_list_item_dart_initstate",
-      "community": 19,
+      "community": 20,
       "norm_label": "initstate"
     },
     {
@@ -12762,7 +12762,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_category_list_item_dart_didupdatewidget",
-      "community": 19,
+      "community": 20,
       "norm_label": "didupdatewidget"
     },
     {
@@ -12771,7 +12771,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_category_list_item_dart_dispose",
-      "community": 19,
+      "community": 20,
       "norm_label": "dispose"
     },
     {
@@ -12780,7 +12780,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_category_list_item_dart_build",
-      "community": 19,
+      "community": 20,
       "norm_label": "build"
     },
     {
@@ -12789,7 +12789,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_category_list_item_dart_animatedcontainer",
-      "community": 19,
+      "community": 20,
       "norm_label": "animatedcontainer"
     },
     {
@@ -12798,7 +12798,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_category_list_item_dart_sizedbox",
-      "community": 19,
+      "community": 20,
       "norm_label": "sizedbox"
     },
     {
@@ -12807,7 +12807,7 @@
       "source_file": "lib/features/dashboard/widgets/category_list_item.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_category_list_item_dart_align",
-      "community": 19,
+      "community": 20,
       "norm_label": "align"
     },
     {
@@ -12816,7 +12816,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "batch_row_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "batch_row.dart"
     },
     {
@@ -12825,7 +12825,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "exam_nav_helpers_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "exam_nav_helpers.dart"
     },
     {
@@ -12987,7 +12987,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "lib_features_dashboard_widgets_dashboard_body_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "dashboard_body.dart"
     },
     {
@@ -12996,7 +12996,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_dashboardbody",
-      "community": 19,
+      "community": 20,
       "norm_label": "dashboardbody"
     },
     {
@@ -13005,7 +13005,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_dashboardbodystate",
-      "community": 19,
+      "community": 20,
       "norm_label": "_dashboardbodystate"
     },
     {
@@ -13014,7 +13014,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_performanceshimmer",
-      "community": 19,
+      "community": 20,
       "norm_label": "_performanceshimmer"
     },
     {
@@ -13023,7 +13023,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_focusareasshimmer",
-      "community": 19,
+      "community": 20,
       "norm_label": "_focusareasshimmer"
     },
     {
@@ -13032,7 +13032,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_weeklystreakshimmer",
-      "community": 19,
+      "community": 20,
       "norm_label": "_weeklystreakshimmer"
     },
     {
@@ -13041,7 +13041,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_syncexam",
-      "community": 19,
+      "community": 20,
       "norm_label": "_syncexam"
     },
     {
@@ -13050,7 +13050,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_build",
-      "community": 19,
+      "community": 20,
       "norm_label": "build"
     },
     {
@@ -13059,7 +13059,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_adaptiverefreshindicator",
-      "community": 19,
+      "community": 20,
       "norm_label": "adaptiverefreshindicator"
     },
     {
@@ -13068,7 +13068,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_slivertoboxadapter",
-      "community": 19,
+      "community": 20,
       "norm_label": "slivertoboxadapter"
     },
     {
@@ -13077,7 +13077,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_buildcategoryslivers",
-      "community": 19,
+      "community": 20,
       "norm_label": "_buildcategoryslivers"
     },
     {
@@ -13086,7 +13086,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_sliverpadding",
-      "community": 19,
+      "community": 20,
       "norm_label": "sliverpadding"
     },
     {
@@ -13095,7 +13095,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_padding",
-      "community": 19,
+      "community": 20,
       "norm_label": "padding"
     },
     {
@@ -13104,7 +13104,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_buildfocusareasshimmer",
-      "community": 19,
+      "community": 20,
       "norm_label": "_buildfocusareasshimmer"
     },
     {
@@ -13113,7 +13113,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_performanceoverviewsection",
-      "community": 19,
+      "community": 20,
       "norm_label": "performanceoverviewsection"
     },
     {
@@ -13122,7 +13122,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_loadingdashboardstats",
-      "community": 19,
+      "community": 20,
       "norm_label": "_loadingdashboardstats"
     },
     {
@@ -13131,7 +13131,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_examdashboardstats",
-      "community": 19,
+      "community": 20,
       "norm_label": "examdashboardstats"
     },
     {
@@ -13140,7 +13140,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_loadingstreak",
-      "community": 19,
+      "community": 20,
       "norm_label": "_loadingstreak"
     },
     {
@@ -13149,7 +13149,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_dashboard_widgets_dashboard_body_dart_streaksummary",
-      "community": 19,
+      "community": 20,
       "norm_label": "streaksummary"
     },
     {
@@ -13158,7 +13158,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "exam_carousel_section_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "exam_carousel_section.dart"
     },
     {
@@ -13167,7 +13167,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "hero_section_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "hero_section.dart"
     },
     {
@@ -13176,7 +13176,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "performance_overview_section_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "performance_overview_section.dart"
     },
     {
@@ -13185,7 +13185,7 @@
       "source_file": "lib/features/dashboard/widgets/dashboard_body.dart",
       "source_location": null,
       "id": "weekly_streak_section_dart",
-      "community": 19,
+      "community": 20,
       "norm_label": "weekly_streak_section.dart"
     },
     {
@@ -14112,7 +14112,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "lib_features_profile_stats_screen_dart",
-      "community": 20,
+      "community": 19,
       "norm_label": "stats_screen.dart"
     },
     {
@@ -14121,7 +14121,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_statsscreen",
-      "community": 20,
+      "community": 19,
       "norm_label": "statsscreen"
     },
     {
@@ -14130,7 +14130,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_statsscreenstate",
-      "community": 20,
+      "community": 19,
       "norm_label": "_statsscreenstate"
     },
     {
@@ -14139,7 +14139,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_initstate",
-      "community": 20,
+      "community": 19,
       "norm_label": "initstate"
     },
     {
@@ -14148,7 +14148,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_correctcount",
-      "community": 20,
+      "community": 19,
       "norm_label": "_correctcount"
     },
     {
@@ -14157,7 +14157,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_fmtduration",
-      "community": 20,
+      "community": 19,
       "norm_label": "_fmtduration"
     },
     {
@@ -14166,7 +14166,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_fmtdate",
-      "community": 20,
+      "community": 19,
       "norm_label": "_fmtdate"
     },
     {
@@ -14175,7 +14175,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_grouplabel",
-      "community": 20,
+      "community": 19,
       "norm_label": "_grouplabel"
     },
     {
@@ -14184,7 +14184,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_statcard",
-      "community": 20,
+      "community": 19,
       "norm_label": "_statcard"
     },
     {
@@ -14193,7 +14193,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_container",
-      "community": 20,
+      "community": 19,
       "norm_label": "container"
     },
     {
@@ -14202,7 +14202,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_sizedbox",
-      "community": 20,
+      "community": 19,
       "norm_label": "sizedbox"
     },
     {
@@ -14211,7 +14211,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_buildbreakdowncard",
-      "community": 20,
+      "community": 19,
       "norm_label": "_buildbreakdowncard"
     },
     {
@@ -14220,7 +14220,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_decoratedbox",
-      "community": 20,
+      "community": 19,
       "norm_label": "decoratedbox"
     },
     {
@@ -14229,7 +14229,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_ministat",
-      "community": 20,
+      "community": 19,
       "norm_label": "_ministat"
     },
     {
@@ -14238,7 +14238,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_column",
-      "community": 20,
+      "community": 19,
       "norm_label": "column"
     },
     {
@@ -14247,7 +14247,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_attempthistoryrow",
-      "community": 20,
+      "community": 19,
       "norm_label": "_attempthistoryrow"
     },
     {
@@ -14256,7 +14256,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_padding",
-      "community": 20,
+      "community": 19,
       "norm_label": "padding"
     },
     {
@@ -14265,7 +14265,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_allattemptrow",
-      "community": 20,
+      "community": 19,
       "norm_label": "_allattemptrow"
     },
     {
@@ -14274,7 +14274,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_build",
-      "community": 20,
+      "community": 19,
       "norm_label": "build"
     },
     {
@@ -14283,8 +14283,17 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_scaffold",
-      "community": 20,
+      "community": 19,
       "norm_label": "scaffold"
+    },
+    {
+      "label": "Icon",
+      "file_type": "code",
+      "source_file": "lib/features/profile/stats_screen.dart",
+      "source_location": null,
+      "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_icon",
+      "community": 19,
+      "norm_label": "icon"
     },
     {
       "label": "Text",
@@ -14292,7 +14301,7 @@
       "source_file": "lib/features/profile/stats_screen.dart",
       "source_location": null,
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_text",
-      "community": 20,
+      "community": 19,
       "norm_label": "text"
     },
     {
@@ -26998,18 +27007,6 @@
       "_tgt": "package_google_fonts_google_fonts_dart",
       "source": "package_google_fonts_google_fonts_dart",
       "target": "lib_features_profile_profile_screen_dart"
-    },
-    {
-      "relation": "imports",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "lib/features/profile/stats_screen.dart",
-      "source_location": null,
-      "weight": 1.0,
-      "_src": "lib_features_profile_stats_screen_dart",
-      "_tgt": "package_google_fonts_google_fonts_dart",
-      "source": "package_google_fonts_google_fonts_dart",
-      "target": "lib_features_profile_stats_screen_dart"
     },
     {
       "relation": "imports",
@@ -43654,6 +43651,18 @@
       "_tgt": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_scaffold",
       "source": "lib_features_profile_stats_screen_dart",
       "target": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_scaffold"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "lib/features/profile/stats_screen.dart",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "lib_features_profile_stats_screen_dart",
+      "_tgt": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_icon",
+      "source": "lib_features_profile_stats_screen_dart",
+      "target": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_profile_stats_screen_dart_icon"
     },
     {
       "relation": "defines",

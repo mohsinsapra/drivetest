@@ -1,0 +1,3 @@
+Added
+• `AppTextStyles` — centralised text-style class (`lib/core/constants/app_text_styles.dart`) with named static methods (`headingLarge`, `headingMedium`, `headingSmall`, `bodyLarge`, `bodyMedium`, `bodySmall`, `listTitle`, `listSubtitle`, `displayLarge`) backed by Lexend (headings) and Plus Jakarta Sans (body), matching the dashboard typographic system; change font or scale once and it propagates app-wide
+• Swedish translations for eight new statistics keys: `stats_no_tests_yet`, `stats_...

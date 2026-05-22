@@ -158,8 +158,7 @@ class _StatsScreenState extends State<StatsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(value,
-                    style: AppTextStyles.headingLarge()
-                        .copyWith(fontSize: 22)),
+                    style: AppTextStyles.headingLarge().copyWith(fontSize: 22)),
                 const SizedBox(height: 2),
                 Text(label,
                     style: AppTextStyles.bodyMedium(color: Colors.grey)),
@@ -276,8 +275,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   Text(Translations.of(context).stats_attempt_history,
                       style: AppTextStyles.bodySmall(color: Colors.grey)
                           .copyWith(
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.8)),
+                              fontWeight: FontWeight.w600, letterSpacing: 0.8)),
                   const SizedBox(height: 10),
                   ...group.map(_attemptHistoryRow),
                 ],
@@ -295,8 +293,8 @@ class _StatsScreenState extends State<StatsScreen> {
       children: [
         Text(value,
             style: AppTextStyles.headingLarge(
-                    color: valueColor ??
-                        Theme.of(context).colorScheme.onSurface)
+                    color:
+                        valueColor ?? Theme.of(context).colorScheme.onSurface)
                 .copyWith(fontSize: 18)),
         const SizedBox(height: 2),
         Text(label, style: AppTextStyles.bodySmall(color: Colors.grey)),

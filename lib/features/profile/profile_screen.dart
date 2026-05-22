@@ -721,8 +721,7 @@ class _LogoutSheetState extends State<_LogoutSheet> {
               style: AppTextStyles.headingLarge(color: Colors.red),
             ),
             const SizedBox(height: 12),
-            Text(t.profile_logout_confirm,
-                style: AppTextStyles.bodyLarge()),
+            Text(t.profile_logout_confirm, style: AppTextStyles.bodyLarge()),
             const SizedBox(height: 24),
             Row(
               children: [
