@@ -11,8 +11,10 @@ import UIKit
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
+    // super must run first so window/rootViewController are ready
+    let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     setupHapticChannel()
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    return result
   }
 
   private func setupHapticChannel() {
@@ -37,7 +39,6 @@ import UIKit
 
   @available(iOS 13.0, *)
   private func prepareHapticEngine() {
-    guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
     do {
       hapticEngine = try CHHapticEngine()
       hapticEngine?.isAutoShutdownEnabled = false
@@ -49,8 +50,7 @@ import UIKit
 
   @available(iOS 13.0, *)
   private func fireHapticTick() {
-    guard let engine = hapticEngine,
-          CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+    guard let engine = hapticEngine else { return }
     let event = CHHapticEvent(
       eventType: .hapticTransient,
       parameters: [

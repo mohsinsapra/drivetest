@@ -28,9 +28,11 @@ class AdaptiveRefreshIndicator extends StatefulWidget {
 
 class _AdaptiveRefreshIndicatorState extends State<AdaptiveRefreshIndicator> {
   static const double _hapticTickInterval = 1.0;
+  static const Duration _minHapticInterval = Duration(milliseconds: 16);
 
   double _totalOverscroll = 0.0;
   double _lastHapticThreshold = 0.0;
+  DateTime? _lastHapticTime;
 
   static bool _useCupertino(BuildContext context) =>
       kIsWeb || Theme.of(context).platform == TargetPlatform.iOS;
@@ -55,18 +57,22 @@ class _AdaptiveRefreshIndicatorState extends State<AdaptiveRefreshIndicator> {
     } else if (notification is ScrollEndNotification) {
       _totalOverscroll = 0.0;
       _lastHapticThreshold = 0.0;
+      _lastHapticTime = null;
     }
     return false;
   }
 
   void _maybeFireHaptic() {
-    if (_totalOverscroll - _lastHapticThreshold >= _hapticTickInterval) {
-      _lastHapticThreshold = _totalOverscroll;
-      if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
-        _hapticChannel.invokeMethod('tick');
-      } else {
-        HapticFeedback.selectionClick();
-      }
+    if (_totalOverscroll - _lastHapticThreshold < _hapticTickInterval) return;
+    final now = DateTime.now();
+    if (_lastHapticTime != null &&
+        now.difference(_lastHapticTime!) < _minHapticInterval) return;
+    _lastHapticThreshold = _totalOverscroll;
+    _lastHapticTime = now;
+    if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
+      _hapticChannel.invokeMethod('tick');
+    } else {
+      HapticFeedback.selectionClick();
     }
   }
 
