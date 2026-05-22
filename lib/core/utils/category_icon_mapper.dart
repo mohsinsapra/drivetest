@@ -234,6 +234,5 @@ Color? categoryImagePanelColor(String name) {
   return null;
 }
 
-
 bool _has(String text, List<String> keywords) =>
     keywords.any((kw) => text.contains(kw));

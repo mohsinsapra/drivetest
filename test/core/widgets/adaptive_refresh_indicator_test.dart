@@ -26,7 +26,8 @@ void main() {
           .setMockMethodCallHandler(SystemChannels.platform, null);
     });
 
-    testWidgets('Android: fires haptic ticks during overscroll drag', (tester) async {
+    testWidgets('Android: fires haptic ticks during overscroll drag',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(platform: TargetPlatform.android),
@@ -51,7 +52,9 @@ void main() {
       expect(hapticCalls, isNotEmpty);
     });
 
-    testWidgets('iOS: fires haptic ticks via ScrollUpdateNotification when pixels go negative', (tester) async {
+    testWidgets(
+        'iOS: fires haptic ticks via ScrollUpdateNotification when pixels go negative',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(platform: TargetPlatform.iOS),
@@ -76,7 +79,8 @@ void main() {
       expect(hapticCalls, isNotEmpty);
     });
 
-    testWidgets('does not fire haptic when scrolling down (not overscroll)', (tester) async {
+    testWidgets('does not fire haptic when scrolling down (not overscroll)',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(platform: TargetPlatform.android),
@@ -102,7 +106,8 @@ void main() {
       expect(hapticCalls, isEmpty);
     });
 
-    testWidgets('resets counters after release so next drag fires fresh ticks', (tester) async {
+    testWidgets('resets counters after release so next drag fires fresh ticks',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(platform: TargetPlatform.android),

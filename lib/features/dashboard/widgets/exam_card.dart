@@ -2,7 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
-import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart' show categoryImagePanelColor;
+import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart'
+    show categoryImagePanelColor;
 import '../models/subscribed_exam.dart';
 
 class ExamCard extends StatelessWidget {
@@ -18,8 +19,18 @@ class ExamCard extends StatelessWidget {
   final String? endDate;
 
   static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   String _displayName(String raw) =>
@@ -105,7 +116,8 @@ class ExamCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: cs.onPrimary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -241,100 +253,100 @@ class _ImageCard extends StatelessWidget {
       builder: (context, constraints) {
         final cardWidth = constraints.maxWidth;
         return ClipRRect(
-            borderRadius: shape,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                ColorFiltered(
-                  colorFilter: isActive
-                      ? const ColorFilter.mode(
-                          Colors.transparent, BlendMode.multiply)
-                      : ColorFilter.mode(
-                          Colors.grey.withValues(alpha: 0.35),
-                          BlendMode.saturation,
-                        ),
-                  child: CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          fadeInDuration: const Duration(milliseconds: 250),
-                          fadeOutDuration: const Duration(milliseconds: 150),
-                          placeholder: (_, __) => const SizedBox.expand(),
-                          errorWidget: (_, __, ___) => const SizedBox.expand(),
-                        ),
-                ),
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        stops: const [0.0, 0.48, 0.70],
-                        colors: [
-                          panelColor.withValues(alpha: 0.85),
-                          panelColor.withValues(alpha: 0.52),
-                          panelColor.withValues(alpha: 0.0),
-                        ],
+          borderRadius: shape,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ColorFiltered(
+                colorFilter: isActive
+                    ? const ColorFilter.mode(
+                        Colors.transparent, BlendMode.multiply)
+                    : ColorFilter.mode(
+                        Colors.grey.withValues(alpha: 0.35),
+                        BlendMode.saturation,
                       ),
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  fadeInDuration: const Duration(milliseconds: 250),
+                  fadeOutDuration: const Duration(milliseconds: 150),
+                  placeholder: (_, __) => const SizedBox.expand(),
+                  errorWidget: (_, __, ___) => const SizedBox.expand(),
+                ),
+              ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      stops: const [0.0, 0.48, 0.70],
+                      colors: [
+                        panelColor.withValues(alpha: 0.85),
+                        panelColor.withValues(alpha: 0.52),
+                        panelColor.withValues(alpha: 0.0),
+                      ],
                     ),
                   ),
                 ),
-                Positioned(
-                  left: 14,
-                  top: 14,
-                  width: cardWidth * 0.58,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          badge,
-                          style: GoogleFonts.lexend(
-                            color: textColor.withValues(
-                                alpha: isActive ? 0.9 : 0.6),
-                            fontSize: 8,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.4,
-                          ),
-                        ),
+              ),
+              Positioned(
+                left: 14,
+                top: 14,
+                width: cardWidth * 0.58,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        name,
+                      child: Text(
+                        badge,
                         style: GoogleFonts.lexend(
-                          color: textColor.withValues(
-                              alpha: isActive ? 1.0 : 0.65),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          height: 1.25,
+                          color:
+                              textColor.withValues(alpha: isActive ? 0.9 : 0.6),
+                          fontSize: 8,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.4,
                         ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (expiry != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          expiry!,
-                          style: GoogleFonts.plusJakartaSans(
-                            color: textColor.withValues(
-                                alpha: isActive ? 0.75 : 0.5),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      name,
+                      style: GoogleFonts.lexend(
+                        color:
+                            textColor.withValues(alpha: isActive ? 1.0 : 0.65),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (expiry != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        expiry!,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: textColor.withValues(
+                              alpha: isActive ? 0.75 : 0.5),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          );
+              ),
+            ],
+          ),
+        );
       },
     );
   }

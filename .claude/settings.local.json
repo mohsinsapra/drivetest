@@ -274,7 +274,12 @@
       "Bash(mysql *)",
       "Bash(mkdir -p /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products)",
       "Bash(cp /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/exams/motorcykel.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/motorcykel.png)",
-      "Bash(cp /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/exams/taxiforarlegitimation.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/taxiforarlegitimation.png)"
+      "Bash(cp /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/exams/taxiforarlegitimation.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/taxiforarlegitimation.png)",
+      "Bash(cp \"/Users/muhammadmohsin/Downloads/taxi-exam-images /bus-day.png\" \"/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/bus-day.png\")",
+      "Bash(cp \"/Users/muhammadmohsin/Downloads/taxi-exam-images /buss-night.png\" \"/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/buss-night.png\")",
+      "Bash(cp \"/Users/muhammadmohsin/Downloads/taxi-exam-images /gods-akeri-day.png\" \"/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/gods-akeri-day.png\")",
+      "Bash(cp \"/Users/muhammadmohsin/Downloads/taxi-exam-images /gods-akeri-night.png\" \"/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/gods-akeri-night.png\")",
+      "Bash(cp \"/Users/muhammadmohsin/Downloads/taxi-exam-images /lastbil-day.png\" \"/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/lastbil-day.png\")"
     ],
     "deny": [],
     "ask": []

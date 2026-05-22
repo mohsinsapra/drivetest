@@ -8,8 +8,7 @@ import 'package:taxi_exam_app/core/widgets/app_button.dart';
 
 const _kPlayStoreUrl =
     'https://play.google.com/store/apps/details?id=com.mohsinsapra.drivetest';
-const _kAppStoreUrl =
-    'https://apps.apple.com/app/drive-test-pro/id6765940954';
+const _kAppStoreUrl = 'https://apps.apple.com/app/drive-test-pro/id6765940954';
 const _kLandingUrl = 'https://drivetest.se/';
 
 Future<void> showAppDownloadSheet(
@@ -118,9 +117,8 @@ class _AppDownloadSheet extends StatelessWidget {
 
           // Primary CTA — opens store
           AppButton(
-            label: isAndroid
-                ? t.app_download_cta_android
-                : t.app_download_cta_ios,
+            label:
+                isAndroid ? t.app_download_cta_android : t.app_download_cta_ios,
             onPressed: () => redirectToUrl(
               isAndroid ? _kPlayStoreUrl : _kAppStoreUrl,
             ),
