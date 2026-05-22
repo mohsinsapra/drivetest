@@ -412,16 +412,23 @@ class _ProfileScreenState extends State<ProfileScreen>
                 AppPageRoute(builder: (_) => const SettingsScreen()),
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.08),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.04),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -430,7 +437,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                 child: Icon(
                   LucideIcons.settings,
                   size: 22,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.75),
                 ),
               ),
             ),

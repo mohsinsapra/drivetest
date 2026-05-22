@@ -100,7 +100,9 @@ class _SavedQuestionsPreviewScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(Translations.of(context).home_saved_questions_title), leading: const AppBackButton()),
+      appBar: AppBar(
+          title: Text(Translations.of(context).home_saved_questions_title),
+          leading: const AppBackButton()),
       body: Column(
         children: [
           Container(

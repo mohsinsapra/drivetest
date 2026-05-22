@@ -149,7 +149,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(Translations.of(context).profile_edit), leading: const AppBackButton()),
+      appBar: AppBar(
+          title: Text(Translations.of(context).profile_edit),
+          leading: const AppBackButton()),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

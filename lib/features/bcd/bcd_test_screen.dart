@@ -87,7 +87,8 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.testName), leading: const AppBackButton()),
+      appBar:
+          AppBar(title: Text(widget.testName), leading: const AppBackButton()),
       body: const Center(child: AppLoadingIndicator()),
     );
   }

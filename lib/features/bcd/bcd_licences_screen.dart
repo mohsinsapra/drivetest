@@ -148,7 +148,9 @@ class _BCDLicencesScreenState extends State<BCDLicencesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(Translations.of(context).bcd_categories), leading: const AppBackButton()),
+      appBar: AppBar(
+          title: Text(Translations.of(context).bcd_categories),
+          leading: const AppBackButton()),
       body: Column(
         children: [
           Padding(

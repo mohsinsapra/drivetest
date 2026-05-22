@@ -192,8 +192,7 @@ class ExamDashboardStats {
   int get avgDurationSeconds {
     final totalDur =
         allBatchStats.fold(0, (sum, b) => sum + b.totalDurationSeconds);
-    final totalCount =
-        allBatchStats.fold(0, (sum, b) => sum + b.durationCount);
+    final totalCount = allBatchStats.fold(0, (sum, b) => sum + b.durationCount);
     return totalCount == 0 ? 0 : totalDur ~/ totalCount;
   }
 

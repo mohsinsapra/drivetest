@@ -406,7 +406,8 @@ class _StatsScreenState extends State<StatsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(Translations.of(context).profile_statistics,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             if (widget.subtitle != null)
               Text(widget.subtitle!,
                   style: const TextStyle(

@@ -58,8 +58,10 @@ class ExamSyncService {
     )
       ..examPictureDay = toUrl(product?['exam_picture_day'] as String?)
       ..examPictureNight = toUrl(product?['exam_picture_night'] as String?)
-      ..examPictureDayInactive = toUrl(product?['exam_picture_day_inactive'] as String?)
-      ..examPictureNightInactive = toUrl(product?['exam_picture_night_inactive'] as String?);
+      ..examPictureDayInactive =
+          toUrl(product?['exam_picture_day_inactive'] as String?)
+      ..examPictureNightInactive =
+          toUrl(product?['exam_picture_night_inactive'] as String?);
   }
 
   /// 2-layer: tests directly under the top-level category.

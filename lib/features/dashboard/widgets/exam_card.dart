@@ -82,8 +82,14 @@ class ExamCard extends StatelessWidget {
             ? (exam.examPictureNight ?? exam.examPictureDay)
             : (exam.examPictureDay ?? exam.examPictureNight))
         : (isDark
-            ? (exam.examPictureNightInactive ?? exam.examPictureDayInactive ?? exam.examPictureNight ?? exam.examPictureDay)
-            : (exam.examPictureDayInactive ?? exam.examPictureNightInactive ?? exam.examPictureDay ?? exam.examPictureNight));
+            ? (exam.examPictureNightInactive ??
+                exam.examPictureDayInactive ??
+                exam.examPictureNight ??
+                exam.examPictureDay)
+            : (exam.examPictureDayInactive ??
+                exam.examPictureNightInactive ??
+                exam.examPictureDay ??
+                exam.examPictureNight));
 
     if (isActive) {
       if (imageUrl != null) {
@@ -323,7 +329,8 @@ class _ImageCard extends StatelessWidget {
                       child: Text(
                         badge,
                         style: GoogleFonts.lexend(
-                          color: Colors.white.withValues(alpha: isActive ? 0.95 : 0.65),
+                          color: Colors.white
+                              .withValues(alpha: isActive ? 0.95 : 0.65),
                           fontSize: 8,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1.4,
@@ -364,5 +371,4 @@ class _ImageCard extends StatelessWidget {
       },
     );
   }
-
 }

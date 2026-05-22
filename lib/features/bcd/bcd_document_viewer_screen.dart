@@ -79,7 +79,8 @@ class _BCDDocumentViewerScreenState extends State<BCDDocumentViewerScreen> {
     if (_useExternalLauncher) {
       // Web keeps the browser-native handling path.
       return Scaffold(
-        appBar: AppBar(title: Text(widget.title), leading: const AppBackButton()),
+        appBar:
+            AppBar(title: Text(widget.title), leading: const AppBackButton()),
         body: const Center(child: AppLoadingIndicator()),
       );
     }
