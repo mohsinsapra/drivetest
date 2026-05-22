@@ -3,8 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const _hapticChannel = MethodChannel('com.taxiexam/haptic');
-
 /// Pull-to-refresh that uses [CupertinoSliverRefreshControl] on iOS/web
 /// and [RefreshIndicator] on Android. Fires light haptic ticks during drag.
 class AdaptiveRefreshIndicator extends StatefulWidget {
@@ -42,12 +40,9 @@ class _AdaptiveRefreshIndicatorState extends State<AdaptiveRefreshIndicator> {
   // track both notification types and use the same threshold logic for each.
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification is OverscrollNotification && notification.overscroll < 0) {
-      // Android: ClampingScrollPhysics fires OverscrollNotification with a
-      // delta each event; accumulate to get total pull distance.
       _totalOverscroll += notification.overscroll.abs();
       _maybeFireHaptic();
     } else if (notification is ScrollUpdateNotification) {
-      // iOS: scroll position goes below minScrollExtent while pulling down.
       final pull =
           notification.metrics.minScrollExtent - notification.metrics.pixels;
       if (pull > 0) {
@@ -69,11 +64,7 @@ class _AdaptiveRefreshIndicatorState extends State<AdaptiveRefreshIndicator> {
         now.difference(_lastHapticTime!) < _minHapticInterval) return;
     _lastHapticThreshold = _totalOverscroll;
     _lastHapticTime = now;
-    if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
-      _hapticChannel.invokeMethod('tick');
-    } else {
-      HapticFeedback.selectionClick();
-    }
+    HapticFeedback.selectionClick();
   }
 
   @override
