@@ -137,7 +137,7 @@ class PerformanceOverviewSection extends StatelessWidget {
                   progress: avgSecs > 0 ? 0.4 : 0.0,
                   value: avgTimeLabel,
                   title: t.dash_avg_time_per_session,
-                  chip: t.dash_stat_per_session,
+                  chip: '',
                   chipColor: cs.tertiary,
                   chipDot: false,
                   description: t.dash_perf_time_desc,

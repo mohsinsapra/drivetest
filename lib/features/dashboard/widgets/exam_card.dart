@@ -1,39 +1,29 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart' show categoryImagePanelColor;
 import '../models/subscribed_exam.dart';
-import 'circular_progress_ring.dart';
 
 class ExamCard extends StatelessWidget {
   const ExamCard({
     super.key,
     required this.exam,
-    required this.progress,
     required this.isActive,
     this.endDate,
-    this.onArrowTap,
   });
 
   final SubscribedExam exam;
-  final double progress;
   final bool isActive;
   final String? endDate;
-  final VoidCallback? onArrowTap;
 
   static const _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ];
+
+  String _displayName(String raw) =>
+      raw.replaceAll(RegExp(r'\s*\(.*?\)'), '').trim();
 
   String? _expiryLabel(Translations t) {
     final iso = endDate;
@@ -63,11 +53,29 @@ class ExamCard extends StatelessWidget {
     final theme = Theme.of(context);
     final t = Translations.of(context);
 
-    final progressValue = progress / 100.0;
-    final progressLabel = '${progress.toStringAsFixed(0)}%';
     final expiry = _expiryLabel(t);
+    final displayName = _displayName(exam.name);
+    final panelColor = categoryImagePanelColor(exam.name);
+
+    // Pick day or night image URL with mutual fallback.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final imageUrl = isDark
+        ? (exam.examPictureNight ?? exam.examPictureDay)
+        : (exam.examPictureDay ?? exam.examPictureNight);
 
     if (isActive) {
+      if (imageUrl != null) {
+        return _ImageCard(
+          imageUrl: imageUrl,
+          panelColor: panelColor ?? cs.primaryContainer,
+          isActive: true,
+          badge: t.dash_card_active,
+          name: displayName,
+          expiry: expiry,
+        );
+      }
+
+      // Gradient card (no custom image)
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -77,13 +85,6 @@ class ExamCard extends StatelessWidget {
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: cs.primary.withValues(alpha: 0.35),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
         ),
         child: Stack(
           children: [
@@ -104,10 +105,7 @@ class ExamCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: cs.onPrimary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -123,7 +121,7 @@ class ExamCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  exam.name,
+                  displayName,
                   style: GoogleFonts.lexend(
                     color: cs.onPrimary,
                     fontSize: 17,
@@ -134,46 +132,14 @@ class ExamCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (expiry != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      expiry,
-                      style: GoogleFonts.plusJakartaSans(
-                        color: cs.onPrimary.withValues(alpha: 0.75),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  Text(
+                    expiry,
+                    style: GoogleFonts.plusJakartaSans(
+                      color: cs.onPrimary.withValues(alpha: 0.75),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CircularProgressRing(
-                      value: progressValue,
-                      label: progressLabel,
-                      trackColor: cs.onPrimary.withValues(alpha: 0.2),
-                      progressColor: cs.onPrimary,
-                      textColor: cs.onPrimary,
-                    ),
-                    GestureDetector(
-                      onTap: onArrowTap,
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: cs.onPrimary.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.arrow_forward_rounded,
-                          color: cs.onPrimary,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ],
@@ -181,21 +147,27 @@ class ExamCard extends StatelessWidget {
       );
     }
 
-    // Inactive card
+    // Inactive card with image
+    if (imageUrl != null) {
+      return _ImageCard(
+        imageUrl: imageUrl,
+        panelColor: panelColor != null
+            ? Color.lerp(panelColor, Colors.grey, 0.25)!
+            : cs.surfaceContainerHighest,
+        isActive: false,
+        badge: t.dash_card_inactive,
+        name: displayName,
+        expiry: expiry,
+      );
+    }
+
+    // Inactive card — no image
     return Container(
-      width: 260,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
-        boxShadow: [
-          BoxShadow(
-            color: cs.onSurface.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +190,7 @@ class ExamCard extends StatelessWidget {
             ),
           ),
           Text(
-            exam.name,
+            displayName,
             style: GoogleFonts.lexend(
               color: cs.onSurface,
               fontSize: 15,
@@ -228,37 +200,145 @@ class ExamCard extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CircularProgressRing(
-                value: progressValue,
-                label: progressLabel,
-                trackColor: cs.onSurface.withValues(alpha: 0.12),
-                progressColor: cs.primary,
-                textColor: cs.onSurface.withValues(alpha: 0.6),
+          if (expiry != null)
+            Text(
+              expiry,
+              style: GoogleFonts.plusJakartaSans(
+                color: cs.onSurface.withValues(alpha: 0.45),
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
               ),
-              GestureDetector(
-                onTap: onArrowTap,
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: cs.onSurface.withValues(alpha: 0.06),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.arrow_forward_rounded,
-                    color: cs.onSurface.withValues(alpha: 0.4),
-                    size: 16,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
         ],
       ),
     );
   }
+}
+
+class _ImageCard extends StatelessWidget {
+  const _ImageCard({
+    required this.imageUrl,
+    required this.panelColor,
+    required this.isActive,
+    required this.badge,
+    required this.name,
+    this.expiry,
+  });
+
+  final String imageUrl;
+  final Color panelColor;
+  final bool isActive;
+  final String badge;
+  final String name;
+  final String? expiry;
+
+  @override
+  Widget build(BuildContext context) {
+    const shape = BorderRadius.all(Radius.circular(24));
+    final textColor = _contrastColor(panelColor);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth;
+        return ClipRRect(
+            borderRadius: shape,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ColorFiltered(
+                  colorFilter: isActive
+                      ? const ColorFilter.mode(
+                          Colors.transparent, BlendMode.multiply)
+                      : ColorFilter.mode(
+                          Colors.grey.withValues(alpha: 0.35),
+                          BlendMode.saturation,
+                        ),
+                  child: CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          fadeInDuration: const Duration(milliseconds: 250),
+                          fadeOutDuration: const Duration(milliseconds: 150),
+                          placeholder: (_, __) => const SizedBox.expand(),
+                          errorWidget: (_, __, ___) => const SizedBox.expand(),
+                        ),
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        stops: const [0.0, 0.48, 0.70],
+                        colors: [
+                          panelColor.withValues(alpha: 0.85),
+                          panelColor.withValues(alpha: 0.52),
+                          panelColor.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 14,
+                  top: 14,
+                  width: cardWidth * 0.58,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          badge,
+                          style: GoogleFonts.lexend(
+                            color: textColor.withValues(
+                                alpha: isActive ? 0.9 : 0.6),
+                            fontSize: 8,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.4,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        name,
+                        style: GoogleFonts.lexend(
+                          color: textColor.withValues(
+                              alpha: isActive ? 1.0 : 0.65),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          height: 1.25,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (expiry != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          expiry!,
+                          style: GoogleFonts.plusJakartaSans(
+                            color: textColor.withValues(
+                                alpha: isActive ? 0.75 : 0.5),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+      },
+    );
+  }
+
+  Color _contrastColor(Color bg) =>
+      bg.computeLuminance() > 0.4 ? Colors.black87 : Colors.white;
 }

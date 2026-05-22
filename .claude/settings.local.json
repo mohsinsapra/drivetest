@@ -260,7 +260,21 @@
       "Bash(awk NR>=2320 && NR<=2335 *)",
       "Bash(awk -F: '{print $1, $2}')",
       "Bash(grep -v \"^$\\\\|Analyzing\\\\|ran in\")",
-      "Bash(dart fix *)"
+      "Bash(dart fix *)",
+      "Skill(ios-fix)",
+      "Bash(pkill -f \"flutter test\")",
+      "Bash(tee /tmp/test_output.txt)",
+      "Bash(pkill -9 -f \"flutter test\")",
+      "Bash(pkill -9 -f \"flutter_tester\")",
+      "Bash(pip install *)",
+      "Bash(DJANGO_SETTINGS_MODULE=taxi_exam_backend.settings python -c \"import django; django.setup\\(\\); from questions.models import BCDSubscriptionProduct; fields = [f.name for f in BCDSubscriptionProduct._meta.get_fields\\(\\)]; print\\('Fields:', fields\\)\")",
+      "Bash(pytest questions/tests.py::BCDSubscriptionProductSerializerTests -v)",
+      "Bash(pytest questions/tests.py::BCDSubscriptionProductSerializerTests -v --tb=short)",
+      "Bash(docker-compose ps *)",
+      "Bash(mysql *)",
+      "Bash(mkdir -p /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products)",
+      "Bash(cp /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/exams/motorcykel.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/motorcykel.png)",
+      "Bash(cp /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/exams/taxiforarlegitimation.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/media/bcd/subscription_products/taxiforarlegitimation.png)"
     ],
     "deny": [],
     "ask": []

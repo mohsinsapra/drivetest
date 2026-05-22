@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import '../models/exam_node.dart';
 import '../models/subscribed_exam.dart';
@@ -42,6 +43,11 @@ class ExamSyncService {
         ? _buildThreeLayerNodes(bcdId)
         : _buildTwoLayerNodes(bcdId, parentId: null);
 
+    final product = cat['subscription_product'] as Map<String, dynamic>?;
+    final api = ApiService();
+    String? toUrl(String? path) =>
+        (path != null && path.isNotEmpty) ? api.bcdMediaUrl(path) : null;
+
     return SubscribedExam(
       id: bcdId.toString(),
       name: name,
@@ -49,7 +55,9 @@ class ExamSyncService {
       isBcd: true,
       nodes: nodes,
       subscribedAt: DateTime.now(),
-    );
+    )
+      ..examPictureDay = toUrl(product?['exam_picture_day'] as String?)
+      ..examPictureNight = toUrl(product?['exam_picture_night'] as String?);
   }
 
   /// 2-layer: tests directly under the top-level category.

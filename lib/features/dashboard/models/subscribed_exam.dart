@@ -42,6 +42,10 @@ class SubscribedExam extends HiveObject {
     this.isBcd = false,
   });
 
+  // Remote image URLs — not persisted, populated by ExamSyncService on load.
+  String? examPictureDay;
+  String? examPictureNight;
+
   // Cached computed properties — not persisted, rebuilt lazily after load.
   List<ExamNode>? _cachedBatches;
   List<ExamNode>? _cachedCategories;

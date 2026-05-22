@@ -5,6 +5,7 @@ import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/payment/subscription_plan_card.dart';
 import 'bcd_category_hub_screen.dart';
@@ -314,37 +315,42 @@ class _PlansTab extends StatelessWidget {
       );
     }
 
-    return RefreshIndicator.adaptive(
+    return AdaptiveRefreshIndicator(
       onRefresh: onRefresh,
-      child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: products.length + 1,
-        itemBuilder: (ctx, i) {
-          if (i == products.length) {
-            return const Padding(
-              padding: EdgeInsets.only(top: 8, bottom: 56),
-              child: SubscriptionLegalLinks(),
-            );
-          }
-          final p = products[i];
-          final owned = _isOwned(p);
-          final isFree = p['is_free'] == true;
-          return _ProductCard(
-            product: p,
-            owned: owned,
-            isFree: isFree,
-            featured: isFeaturedSubscriptionProduct(
-              Map<String, dynamic>.from(p as Map),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (ctx, i) {
+                if (i == products.length) {
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 8, bottom: 56),
+                    child: SubscriptionLegalLinks(),
+                  );
+                }
+                final p = products[i];
+                final owned = _isOwned(p);
+                final isFree = p['is_free'] == true;
+                return _ProductCard(
+                  product: p,
+                  owned: owned,
+                  isFree: isFree,
+                  featured: isFeaturedSubscriptionProduct(
+                    Map<String, dynamic>.from(p as Map),
+                  ),
+                  buying: buyingProductId == p['id'],
+                  disabled: buyingProductId != null,
+                  onBuy: () => onBuy(p),
+                  onFreeAccess: () => onFreeAccess(p),
+                  onStartPractice: () => onStartPractice(p),
+                );
+              },
+              childCount: products.length + 1,
             ),
-            buying: buyingProductId == p['id'],
-            disabled: buyingProductId != null,
-            onBuy: () => onBuy(p),
-            onFreeAccess: () => onFreeAccess(p),
-            onStartPractice: () => onStartPractice(p),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -426,48 +432,49 @@ class _MySubscriptionsTab extends StatelessWidget {
 
     if (subscriptions.isEmpty) {
       final cs = Theme.of(context).colorScheme;
-      return RefreshIndicator.adaptive(
+      return AdaptiveRefreshIndicator(
         onRefresh: onRefresh,
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: SizedBox(
-              height: constraints.maxHeight,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(LucideIcons.packageOpen,
-                        size: 48,
-                        color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
-                    const SizedBox(height: 12),
-                    Text(Translations.of(context).bcd_no_plans,
-                        style: TextStyle(color: cs.onSurfaceVariant)),
-                    const SizedBox(height: 4),
-                    Text(Translations.of(context).bcd_browse_plans,
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: cs.onSurfaceVariant.withValues(alpha: 0.6))),
-                  ],
-                ),
+        slivers: [
+          SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(LucideIcons.packageOpen,
+                      size: 48,
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
+                  const SizedBox(height: 12),
+                  Text(Translations.of(context).bcd_no_plans,
+                      style: TextStyle(color: cs.onSurfaceVariant)),
+                  const SizedBox(height: 4),
+                  Text(Translations.of(context).bcd_browse_plans,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: cs.onSurfaceVariant.withValues(alpha: 0.6))),
+                ],
               ),
             ),
           ),
-        ),
+        ],
       );
     }
 
-    return RefreshIndicator.adaptive(
+    return AdaptiveRefreshIndicator(
       onRefresh: onRefresh,
-      child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: subscriptions.length,
-        itemBuilder: (ctx, i) => _SubscriptionTile(
-          sub: subscriptions[i],
-          onTap: () => onTap(subscriptions[i]),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (ctx, i) => _SubscriptionTile(
+                sub: subscriptions[i],
+                onTap: () => onTap(subscriptions[i]),
+              ),
+              childCount: subscriptions.length,
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

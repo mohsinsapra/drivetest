@@ -445,7 +445,7 @@
   "dash_card_expires_tomorrow": "Löper ut imorgon",
   "dash_card_expires_days": "Löper ut om {days} dagar",
   "dash_card_expires_on": "Löper ut {date}",
-  "dash_stat_completed": "Genomförda",
+  "dash_stat_completed": "Klart",
   "dash_stat_none_yet": "Inga ännu",
   "dash_stat_of_n": "av {total}",
   "dash_stat_per_session": "Per omgång",
@@ -457,7 +457,7 @@
   "dash_perf_subtitle": "Följ dina framsteg. Nå dina mål.",
   "dash_perf_attempts_desc": "Alla dina försök under perioden",
   "dash_perf_batches_desc": "Framsteg denna period",
-  "dash_avg_time_per_session": "Snittid per pass",
+  "dash_avg_time_per_session": "Snittid / pass",
   "dash_perf_time_desc": "Genomsnittlig tid per pass",
   "dash_keep_it_up": "Fortsätt så!",
   "dash_consistency_today": "Regelbundenhet idag, framgång imorgon.",
@@ -647,5 +647,13 @@
   "test_result_your_answer": "Ditt svar: {answer}",
   "error_too_many_requests": "För många försök. Försök igen om {wait}.",
   "error_service_unavailable": "Tjänsten är tillfälligt otillgänglig. Försök igen om en stund.",
-  "error_connection_timeout": "Anslutningen tog för lång tid. Kontrollera din anslutning och försök igen."
+  "error_connection_timeout": "Anslutningen tog för lång tid. Kontrollera din anslutning och försök igen.",
+
+  "app_download_title": "Bättre i appen",
+  "app_download_subtitle_android": "Ladda ner Drive Test-appen på Google Play för en snabbare och smidigare upplevelse.",
+  "app_download_subtitle_ios": "Ladda ner Drive Test-appen från App Store för en snabbare och smidigare upplevelse.",
+  "app_download_cta_android": "Ladda ner på Google Play",
+  "app_download_cta_ios": "Ladda ner från App Store",
+  "app_download_learn_more": "Läs mer på drivetest.se",
+  "app_download_dismiss": "Fortsätt i webbläsaren"
 }

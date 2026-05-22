@@ -445,7 +445,7 @@
   "dash_card_expires_tomorrow": "Expires tomorrow",
   "dash_card_expires_days": "Expires in {days} days",
   "dash_card_expires_on": "Expires {date}",
-  "dash_stat_completed": "Completed",
+  "dash_stat_completed": "Done",
   "dash_stat_none_yet": "None yet",
   "dash_stat_of_n": "of {total}",
   "dash_stat_per_session": "Per session",
@@ -457,7 +457,7 @@
   "dash_perf_subtitle": "Track your progress. Reach your goals.",
   "dash_perf_attempts_desc": "All your attempts in this period",
   "dash_perf_batches_desc": "Progress this period",
-  "dash_avg_time_per_session": "Avg. Time Per Session",
+  "dash_avg_time_per_session": "Avg. Time / Session",
   "dash_perf_time_desc": "Average time taken per session",
   "dash_keep_it_up": "Keep it up!",
   "dash_consistency_today": "Consistency today, success tomorrow.",
@@ -647,5 +647,13 @@
   "test_result_your_answer": "Your answer: {answer}",
   "error_too_many_requests": "Too many attempts. Please try again in {wait}.",
   "error_service_unavailable": "Service temporarily unavailable. Please try again in a moment.",
-  "error_connection_timeout": "Connection timed out. Check your internet and try again."
+  "error_connection_timeout": "Connection timed out. Check your internet and try again.",
+
+  "app_download_title": "Better on the app",
+  "app_download_subtitle_android": "Download the Drive Test app on Google Play for a faster, smoother experience.",
+  "app_download_subtitle_ios": "Download the Drive Test app on the App Store for a faster, smoother experience.",
+  "app_download_cta_android": "Download on Google Play",
+  "app_download_cta_ios": "Download on the App Store",
+  "app_download_learn_more": "Learn more at drivetest.se",
+  "app_download_dismiss": "Continue in browser"
 }

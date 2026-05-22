@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,8 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
+import 'package:taxi_exam_app/core/utils/platform_detector.dart';
+import 'package:taxi_exam_app/core/widgets/app_download_sheet.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_screen.dart';
@@ -103,6 +106,7 @@ class MainScreenState extends State<MainScreen> {
           .setIndex(_kPageDashboard);
       _loadTabFlags();
       NotificationService.init(_apiService).ignore();
+      _maybeShowAppDownloadSheet();
     });
   }
 
@@ -170,6 +174,13 @@ class MainScreenState extends State<MainScreen> {
         _applyFlagsFromMap(fresh);
       }
     }).ignore();
+  }
+
+  void _maybeShowAppDownloadSheet() {
+    if (!kIsWeb) return;
+    final platform = detectWebPlatform();
+    if (platform == WebPlatform.none) return;
+    showAppDownloadSheet(context, platform: platform).ignore();
   }
 
   void _handleNavigationChange(MainScreenProvider provider, int pageIndex) {

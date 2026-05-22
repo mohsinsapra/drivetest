@@ -10,7 +10,6 @@ import 'package:taxi_exam_app/features/bcd/bcd_traffic_signs_screen.dart';
 import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
 import '../providers/dashboard_provider.dart';
 import 'exam_card.dart';
-import 'exam_nav_helpers.dart';
 import 'free_bcd_hub_card.dart';
 import 'free_vagmarkes_card.dart';
 import 'subscribe_cta_card.dart';
@@ -29,6 +28,12 @@ class ExamCarouselSection extends StatefulWidget {
   State<ExamCarouselSection> createState() => _ExamCarouselSectionState();
 }
 
+// Image asset dimensions: 1654 × 756 — card height matches this ratio.
+const double _kCardWidth = 260;
+const double _kCardHeight = _kCardWidth * 756 / 1654; // ≈ 119
+const double _kCardSpacing = 12;
+const double _kLeftPad = 16;
+
 class _ExamCarouselShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -41,23 +46,26 @@ class _ExamCarouselShimmer extends StatelessWidget {
       highlightColor: isDark
           ? cs.onSurface.withValues(alpha: 0.06)
           : cs.onSurface.withValues(alpha: 0.03),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
+      child: SizedBox(
+        height: _kCardHeight,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
           children: [
-            Expanded(
+            SizedBox(
+              width: _kCardWidth,
               child: Container(
-                height: 190,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
+            const SizedBox(width: _kCardSpacing),
+            SizedBox(
+              width: _kCardWidth,
               child: Container(
-                height: 190,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -72,10 +80,6 @@ class _ExamCarouselShimmer extends StatelessWidget {
 }
 
 class _ExamCarouselSectionState extends State<ExamCarouselSection> {
-  static const double _cardSpacing = 12;
-  static const double _leftPad = 16;
-  static const double _cardWidth = 220;
-
   @override
   Widget build(BuildContext context) {
     final exams = widget.provider.exams;
@@ -122,28 +126,25 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
           ),
         ] else if (exams.length == 1) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: _leftPad),
-            child: SizedBox(
-              height: 190,
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  context.read<DashboardProvider>().selectExam(exams[0]);
-                },
-                child: ExamCard(
-                  exam: exams[0],
-                  progress: provider.overviewProgress[exams[0].id] ?? 0.0,
-                  isActive: true,
-                  endDate: () {
-                    final bcdId = int.tryParse(exams[0].id);
-                    return bcdId != null
-                        ? BcdCache.instance.endDateFor(bcdId)
-                        : null;
-                  }(),
-                  onArrowTap: () => handleExamArrowTap(
-                    context,
-                    exams[0],
-                    provider,
+            padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 240),
+              child: AspectRatio(
+                aspectRatio: 1654 / 756,
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    context.read<DashboardProvider>().selectExam(exams[0]);
+                  },
+                  child: ExamCard(
+                    exam: exams[0],
+                    isActive: true,
+                    endDate: () {
+                      final bcdId = int.tryParse(exams[0].id);
+                      return bcdId != null
+                          ? BcdCache.instance.endDateFor(bcdId)
+                          : null;
+                    }(),
                   ),
                 ),
               ),
@@ -151,24 +152,23 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
           ),
         ] else
           SizedBox(
-            height: 190,
+            height: _kCardHeight,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: _leftPad),
+              padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
               itemCount: exams.length,
               itemBuilder: (context, i) {
                 final exam = exams[i];
                 final isSelected = exam.id == provider.selectedExam?.id;
-                final progress = provider.overviewProgress[exam.id] ?? 0.0;
                 final bcdId = int.tryParse(exam.id);
                 final endDate =
                     bcdId != null ? BcdCache.instance.endDateFor(bcdId) : null;
 
                 return Padding(
                   padding: EdgeInsets.only(
-                      right: i < exams.length - 1 ? _cardSpacing : 0),
+                      right: i < exams.length - 1 ? _kCardSpacing : 0),
                   child: SizedBox(
-                    width: _cardWidth,
+                    width: _kCardWidth,
                     child: GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
@@ -176,14 +176,8 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
                       },
                       child: ExamCard(
                         exam: exam,
-                        progress: progress,
                         isActive: isSelected,
                         endDate: endDate,
-                        onArrowTap: () => handleExamArrowTap(
-                          context,
-                          exam,
-                          provider,
-                        ),
                       ),
                     ),
                   ),
