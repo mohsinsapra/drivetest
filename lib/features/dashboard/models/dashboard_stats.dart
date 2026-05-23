@@ -187,7 +187,8 @@ class ExamDashboardStats {
   DateTime? get lastAttemptDate => allBatchStats
       .map((b) => b.lastAttemptDate)
       .whereType<DateTime>()
-      .fold<DateTime?>(null, (best, d) => best == null || d.isAfter(best) ? d : best);
+      .fold<DateTime?>(
+          null, (best, d) => best == null || d.isAfter(best) ? d : best);
 
   int get completedBatchCount =>
       allBatchStats.where((b) => b.isCompleted).length;

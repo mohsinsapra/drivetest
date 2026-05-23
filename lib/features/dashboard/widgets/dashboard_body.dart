@@ -163,7 +163,8 @@ class _DashboardBodyState extends State<DashboardBody> {
     DateTime? latestDate(CategoryStats cat) => cat.batchStats
         .map((b) => b.lastAttemptDate)
         .whereType<DateTime>()
-        .fold<DateTime?>(null, (best, d) => best == null || d.isAfter(best) ? d : best);
+        .fold<DateTime?>(
+            null, (best, d) => best == null || d.isAfter(best) ? d : best);
 
     final cats = List.of(stats.categoryStats!)
       ..sort((a, b) {

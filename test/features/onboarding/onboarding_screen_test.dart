@@ -32,6 +32,8 @@ class _MockDashboardProvider extends ChangeNotifier
   @override
   Map<String, double> get overviewProgress => {};
   @override
+  Map<String, ExamDashboardStats> get statsCache => {};
+  @override
   bool get syncing => false;
   @override
   bool get switching => false;

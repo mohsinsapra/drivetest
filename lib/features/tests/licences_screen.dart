@@ -203,7 +203,9 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
     if (cachedJson != null && isFresh) {
       final cached = (jsonDecode(cachedJson) as List).cast<dynamic>();
       final counts = await _lastAttemptDatePerLicence();
-      if (mounted) setState(() => licenseTypes = _sortedByLastAttempt(cached, counts));
+      if (mounted) {
+        setState(() => licenseTypes = _sortedByLastAttempt(cached, counts));
+      }
       return; // fresh cache — skip network call entirely
     }
 

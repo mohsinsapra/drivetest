@@ -29,6 +29,8 @@ class _LoadingDashboardProvider extends ChangeNotifier
 
   @override
   Map<String, double> get overviewProgress => {};
+  @override
+  Map<String, ExamDashboardStats> get statsCache => {};
 
   @override
   bool get syncing => false;

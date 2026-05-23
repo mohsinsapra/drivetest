@@ -142,7 +142,9 @@ class WeeklyStreakSection extends StatelessWidget {
                         style: TextStyle(
                           color: isToday
                               ? Colors.amber
-                              : isDark ? cs.onSurface : cs.onInverseSurface.withValues(alpha: 0.5),
+                              : isDark
+                                  ? cs.onSurface
+                                  : cs.onInverseSurface.withValues(alpha: 0.5),
                           fontSize: 9,
                           fontWeight:
                               isToday ? FontWeight.w800 : FontWeight.w600,
