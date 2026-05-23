@@ -1,0 +1,6 @@
+Added
+• **Exam carousel snap-to-left**: tapping an inactive exam card in "My Exams" now animates the carousel so the selected card snaps flush to the left edge of the screen; clamped to scroll bounds so first/last cards behave gracefully
+• `lastAttemptDate` getter on `ExamDashboardStats` — derives the most recent batch attempt date across all batches in an exam
+
+Changed
+• **My Exams sorting**: exams in the carousel are now ordered by most-recently-attempted date (most recent first); never-att...

@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.25+223] - 2026-05-23
+
+### Added
 - **Exam carousel snap-to-left**: tapping an inactive exam card in "My Exams" now animates the carousel so the selected card snaps flush to the left edge of the screen; clamped to scroll bounds so first/last cards behave gracefully
 - `lastAttemptDate` getter on `ExamDashboardStats` — derives the most recent batch attempt date across all batches in an exam
 
@@ -22,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
+---
 ---
 
 ## [1.1.24+222] - 2026-05-22
