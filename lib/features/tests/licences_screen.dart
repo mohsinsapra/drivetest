@@ -20,6 +20,8 @@ import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
 import 'package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class LicenceTypesScreen extends StatefulWidget {
@@ -120,6 +122,76 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   static const _licenceTtl = Duration(hours: 24);
   static const _categoryTtl = Duration(hours: 1);
 
+  Future<Map<String, DateTime>> _lastAttemptDatePerLicence() async {
+    final box = await Hive.openBox<TestAttempt>('testAttempts');
+    final latest = <String, DateTime>{};
+    for (final attempt in box.values) {
+      final id = attempt.licenceId;
+      if (id == null || id.isEmpty) continue;
+      final date = attempt.dateTime;
+      if (!latest.containsKey(id) || date.isAfter(latest[id]!)) {
+        latest[id] = date;
+      }
+    }
+    return latest;
+  }
+
+  List<dynamic> _sortedByLastAttempt(
+      List<dynamic> licenses, Map<String, DateTime> latest) {
+    final sorted = List<dynamic>.from(licenses);
+    sorted.sort((a, b) {
+      final dateA = latest[a['licence_id']?.toString() ?? ''];
+      final dateB = latest[b['licence_id']?.toString() ?? ''];
+      if (dateA == null && dateB == null) return 0;
+      if (dateA == null) return 1;
+      if (dateB == null) return -1;
+      return dateB.compareTo(dateA);
+    });
+    return sorted;
+  }
+
+  Future<Map<String, DateTime>> _lastAttemptDatePerCategory() async {
+    final box = await Hive.openBox<TestAttempt>('testAttempts');
+    final latest = <String, DateTime>{};
+    for (final attempt in box.values) {
+      final id = attempt.categoryId;
+      if (id == null || id.isEmpty) continue;
+      final date = attempt.dateTime;
+      if (!latest.containsKey(id) || date.isAfter(latest[id]!)) {
+        latest[id] = date;
+      }
+    }
+    return latest;
+  }
+
+  List<dynamic> _sortedCategoriesByLastAttempt(
+      List<dynamic> cats, Map<String, DateTime> latest) {
+    if (latest.isEmpty) return cats;
+    final sorted = List<dynamic>.from(cats);
+    sorted.sort((a, b) {
+      final dateA = latest[a['category_id']?.toString() ?? ''];
+      final dateB = latest[b['category_id']?.toString() ?? ''];
+      if (dateA == null && dateB == null) return 0;
+      if (dateA == null) return 1;
+      if (dateB == null) return -1;
+      return dateB.compareTo(dateA);
+    });
+    return sorted;
+  }
+
+  Future<void> _resortInPlace() async {
+    if (!mounted) return;
+    final licenceDates = await _lastAttemptDatePerLicence();
+    final categoryDates = await _lastAttemptDatePerCategory();
+    if (!mounted) return;
+    setState(() {
+      licenseTypes = _sortedByLastAttempt(licenseTypes, licenceDates);
+      if (isShowingCategories) {
+        categories = _sortedCategoriesByLastAttempt(categories, categoryDates);
+      }
+    });
+  }
+
   Future<void> _loadLicenseTypes() async {
     // 1. Try cache first — show immediately, no loading indicator
     final prefs = await SharedPreferences.getInstance();
@@ -130,7 +202,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
 
     if (cachedJson != null && isFresh) {
       final cached = (jsonDecode(cachedJson) as List).cast<dynamic>();
-      if (mounted) setState(() => licenseTypes = cached);
+      final counts = await _lastAttemptDatePerLicence();
+      if (mounted) setState(() => licenseTypes = _sortedByLastAttempt(cached, counts));
       return; // fresh cache — skip network call entirely
     }
 
@@ -143,13 +216,15 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       await prefs.setString('cache_licences', jsonEncode(licenses));
       await prefs.setInt(
           'cache_licences_at', DateTime.now().millisecondsSinceEpoch);
-      setState(() => licenseTypes = licenses);
+      final counts = await _lastAttemptDatePerLicence();
+      setState(() => licenseTypes = _sortedByLastAttempt(licenses, counts));
     } catch (e) {
       if (!mounted) return;
       // Fall back to stale cache if available
       if (cachedJson != null) {
-        setState(() =>
-            licenseTypes = (jsonDecode(cachedJson) as List).cast<dynamic>());
+        final cached = (jsonDecode(cachedJson) as List).cast<dynamic>();
+        final counts = await _lastAttemptDatePerLicence();
+        setState(() => licenseTypes = _sortedByLastAttempt(cached, counts));
       } else {
         showAppSnackBar('Error fetching license types. Please try again.',
             type: SnackBarType.error);
@@ -171,9 +246,10 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
 
     if (cachedJson != null && isFresh) {
       final cached = (jsonDecode(cachedJson) as List).cast<dynamic>();
+      final counts = await _lastAttemptDatePerCategory();
       if (mounted) {
         setState(() {
-          categories = cached;
+          categories = _sortedCategoriesByLastAttempt(cached, counts);
           isShowingCategories = true;
         });
       }
@@ -187,15 +263,18 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
       if (!mounted) return;
       await prefs.setString(cacheKey, jsonEncode(fetched));
       await prefs.setInt(cacheAtKey, DateTime.now().millisecondsSinceEpoch);
+      final counts = await _lastAttemptDatePerCategory();
       setState(() {
-        categories = fetched;
+        categories = _sortedCategoriesByLastAttempt(fetched, counts);
         isShowingCategories = true;
       });
     } catch (e) {
       if (!mounted) return;
       if (cachedJson != null) {
+        final cached = (jsonDecode(cachedJson) as List).cast<dynamic>();
+        final counts = await _lastAttemptDatePerCategory();
         setState(() {
-          categories = (jsonDecode(cachedJson) as List).cast<dynamic>();
+          categories = _sortedCategoriesByLastAttempt(cached, counts);
           isShowingCategories = true;
         });
       } else {
@@ -583,7 +662,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
                 categoryName: selectedCategory?['name'],
               ),
             ),
-          );
+          ).then((_) => _resortInPlace());
         },
       },
       {
@@ -601,7 +680,7 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
                 categoryName: selectedCategory?['name'],
               ),
             ),
-          );
+          ).then((_) => _resortInPlace());
         },
       },
       {

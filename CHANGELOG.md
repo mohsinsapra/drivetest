@@ -10,10 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Exam carousel snap-to-left**: tapping an inactive exam card in "My Exams" now animates the carousel so the selected card snaps flush to the left edge of the screen; clamped to scroll bounds so first/last cards behave gracefully
+- `lastAttemptDate` getter on `ExamDashboardStats` — derives the most recent batch attempt date across all batches in an exam
 
 ### Changed
--
+- **My Exams sorting**: exams in the carousel are now ordered by most-recently-attempted date (most recent first); never-attempted exams remain in their original order at the bottom; re-sorts automatically after every attempt via `DashboardProvider`'s existing Hive watcher
+- **Dashboard category sorting**: categories within an exam are now sorted by most-recently-attempted date (most recent first); re-sorts on every provider rebuild
+- **Licences screen sorting**: licence type cards and category cards are sorted by last attempt date on load and re-sorted on return from any Practice Test or Custom Test session
+- **Getting started tutorial**: removed `kDebugMode` guard so the translation tutorial on the test screen is only shown once (first launch) in both debug and release builds
 
 ### Fixed
 -

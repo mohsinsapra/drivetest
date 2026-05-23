@@ -160,7 +160,20 @@ class _DashboardBodyState extends State<DashboardBody> {
   }
 
   Widget _buildCategorySlivers(ExamDashboardStats stats) {
-    final cats = stats.categoryStats!;
+    DateTime? latestDate(CategoryStats cat) => cat.batchStats
+        .map((b) => b.lastAttemptDate)
+        .whereType<DateTime>()
+        .fold<DateTime?>(null, (best, d) => best == null || d.isAfter(best) ? d : best);
+
+    final cats = List.of(stats.categoryStats!)
+      ..sort((a, b) {
+        final dateA = latestDate(a);
+        final dateB = latestDate(b);
+        if (dateA == null && dateB == null) return 0;
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        return dateB.compareTo(dateA);
+      });
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList.builder(

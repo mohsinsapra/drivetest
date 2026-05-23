@@ -10,8 +10,9 @@ class WeeklyStreakSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final t = Translations.of(context);
     final now = DateTime.now();
     final monday = DateTime(now.year, now.month, now.day)
@@ -32,7 +33,7 @@ class WeeklyStreakSection extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: cs.inverseSurface,
+          color: isDark ? cs.surfaceContainerHighest : cs.inverseSurface,
           borderRadius: BorderRadius.circular(28),
         ),
         child: Row(
@@ -57,7 +58,7 @@ class WeeklyStreakSection extends StatelessWidget {
                             '${streak.currentStreak}',
                           ),
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: cs.onInverseSurface,
+                            color: isDark ? cs.onSurface : cs.onInverseSurface,
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.3,
                           ),
@@ -74,14 +75,14 @@ class WeeklyStreakSection extends StatelessWidget {
                           '{n}',
                           '${streak.currentStreak}',
                         ),
-                        valueColor: cs.onInverseSurface,
-                        labelColor: cs.onInverseSurface,
+                        valueColor: isDark ? cs.onSurface : cs.onInverseSurface,
+                        labelColor: isDark ? cs.onSurface : cs.onInverseSurface,
                       ),
                       Container(
                         width: 1,
                         height: 32,
                         margin: const EdgeInsets.symmetric(horizontal: 16),
-                        color: Colors.white.withValues(alpha: 0.12),
+                        color: cs.onSurface.withValues(alpha: 0.12),
                       ),
                       StreakStatLabel(
                         label: t.dash_streak_best,
@@ -89,8 +90,8 @@ class WeeklyStreakSection extends StatelessWidget {
                           '{n}',
                           '${streak.bestStreak}',
                         ),
-                        valueColor: cs.onInverseSurface,
-                        labelColor: cs.onInverseSurface,
+                        valueColor: isDark ? cs.onSurface : cs.onInverseSurface,
+                        labelColor: isDark ? cs.onSurface : cs.onInverseSurface,
                       ),
                     ],
                   ),
@@ -117,7 +118,7 @@ class WeeklyStreakSection extends StatelessWidget {
                         width: 8,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: cs.onSurface.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Align(
@@ -141,7 +142,7 @@ class WeeklyStreakSection extends StatelessWidget {
                         style: TextStyle(
                           color: isToday
                               ? Colors.amber
-                              : cs.onInverseSurface.withValues(alpha: 0.5),
+                              : isDark ? cs.onSurface : cs.onInverseSurface.withValues(alpha: 0.5),
                           fontSize: 9,
                           fontWeight:
                               isToday ? FontWeight.w800 : FontWeight.w600,

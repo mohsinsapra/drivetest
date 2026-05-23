@@ -181,11 +181,9 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   Future<void> _checkAndShowTutorial() async {
-    if (!kDebugMode) {
-      final prefs = await SharedPreferences.getInstance();
-      if (prefs.getBool(_kTranslationTutorialKey) == true) return;
-      await prefs.setBool(_kTranslationTutorialKey, true);
-    }
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_kTranslationTutorialKey) == true) return;
+    await prefs.setBool(_kTranslationTutorialKey, true);
     if (!mounted) return;
     await Future.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;

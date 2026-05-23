@@ -72,10 +72,38 @@ class _ExamCarouselShimmer extends StatelessWidget {
 }
 
 class _ExamCarouselSectionState extends State<ExamCarouselSection> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _snapCardIntoView(int index) {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    final target = (index * (_kCardWidth + _kCardSpacing))
+        .clamp(pos.minScrollExtent, pos.maxScrollExtent);
+    _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final exams = widget.provider.exams;
     final provider = widget.provider;
+    final exams = List.of(provider.exams)
+      ..sort((a, b) {
+        final dateA = provider.statsCache[a.id]?.lastAttemptDate;
+        final dateB = provider.statsCache[b.id]?.lastAttemptDate;
+        if (dateA == null && dateB == null) return 0;
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        return dateB.compareTo(dateA);
+      });
     final t = Translations.of(context);
 
     return Column(
@@ -146,6 +174,7 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
           SizedBox(
             height: _kCardHeight,
             child: ListView.builder(
+              controller: _scrollController,
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
               itemCount: exams.length,
@@ -165,6 +194,7 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
                       onTap: () {
                         HapticFeedback.selectionClick();
                         context.read<DashboardProvider>().selectExam(exam);
+                        if (!isSelected) _snapCardIntoView(i);
                       },
                       child: ExamCard(
                         exam: exam,

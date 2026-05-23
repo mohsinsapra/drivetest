@@ -64,6 +64,7 @@ class DashboardProvider extends ChangeNotifier {
   /// Pre-computed stats for every exam, keyed by exam id.
   /// Rebuilt whenever attempts or period changes; [selectExam] is a O(1) lookup.
   Map<String, ExamDashboardStats> _statsCache = {};
+  Map<String, ExamDashboardStats> get statsCache => _statsCache;
 
   /// True while background API sync is running (after initial load).
   bool _syncing = false;
