@@ -48,7 +48,10 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
             unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.6),
             indicatorColor: colorScheme.primary,
             tabs: widget.tabs
-                .map((tab) => Tab(text: tab.title.isNotEmpty ? tab.title : t.question_tab_label))
+                .map((tab) => Tab(
+                    text: tab.title.isNotEmpty
+                        ? tab.title
+                        : t.question_tab_label))
                 .toList(),
           ),
         SizedBox(
