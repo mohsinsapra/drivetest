@@ -42,32 +42,38 @@ class _ExamCarouselShimmer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
-    return Shimmer.fromColors(
-      baseColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.12)
-          : cs.onSurface.withValues(alpha: 0.08),
-      highlightColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.06)
-          : cs.onSurface.withValues(alpha: 0.03),
-      child: SizedBox(
-        height: _kCardHeight,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
-          itemCount: _count,
-          separatorBuilder: (_, __) => const SizedBox(width: _kCardSpacing),
-          itemBuilder: (_, __) => SizedBox(
-            width: _kCardWidth,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth * _kViewportFraction;
+        final height = cardWidth * 756 / 1654;
+        return Shimmer.fromColors(
+          baseColor: isDark
+              ? cs.onSurface.withValues(alpha: 0.12)
+              : cs.onSurface.withValues(alpha: 0.08),
+          highlightColor: isDark
+              ? cs.onSurface.withValues(alpha: 0.06)
+              : cs.onSurface.withValues(alpha: 0.03),
+          child: SizedBox(
+            height: height,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
+              itemCount: _count,
+              separatorBuilder: (_, __) => const SizedBox(width: _kCardSpacing),
+              itemBuilder: (_, __) => SizedBox(
+                width: cardWidth,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
