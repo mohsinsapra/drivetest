@@ -86,8 +86,7 @@ class _DashboardBodyState extends State<DashboardBody> {
     }
   }
 
-  Future<void> _fetchChecklists(
-      String examId, List<String> categoryIds) async {
+  Future<void> _fetchChecklists(String examId, List<String> categoryIds) async {
     if (_checklistExamId == examId) return;
     _checklistExamId = examId;
     final ids = categoryIds.map(int.tryParse).whereType<int>().toList();

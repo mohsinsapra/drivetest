@@ -9,9 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.27+225] - 2026-05-25
+
 ### Changed
 - **Dashboard exam ordering**: the most recently attempted exam is now always pinned to position 0 in the carousel and auto-selected on load; remaining exams are sorted by total attempt count (descending)
 
+---
 ---
 
 ## [1.1.26+224] - 2026-05-25
