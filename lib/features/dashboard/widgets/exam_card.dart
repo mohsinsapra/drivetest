@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import '../models/subscribed_exam.dart';
 
@@ -16,21 +17,6 @@ class ExamCard extends StatelessWidget {
   final bool isActive;
   final String? endDate;
 
-  static const _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
   String _displayName(String raw) =>
       raw.replaceAll(RegExp(r'\s*\(.*?\)'), '').trim();
 
@@ -41,7 +27,8 @@ class ExamCard extends StatelessWidget {
       final dt = DateTime.parse(iso).toLocal();
       final now = DateTime.now();
       final diff = dt.difference(now);
-      final dateStr = '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
+      final locale = LocaleSettings.currentLocale.flutterLocale.toLanguageTag();
+      final dateStr = DateFormat('d MMM yyyy', locale).format(dt);
       if (diff.inDays < 0) {
         return t.dash_card_expired.replaceAll('{date}', dateStr);
       }

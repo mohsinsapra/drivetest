@@ -20,6 +20,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.33+231] - 2026-05-25
+
+### Added
+- **Question tabs**: BCD test questions now support tabbed reference images (e.g. "Lokalkartan", "Teckenförklaring") — each tab can contain multiple images, viewable in the fullscreen image viewer
+- **Tab translations**: fallback tab label translated into English ("Tab") and Swedish ("Flik")
+
+### Changed
+- **Question image fix**: deactivated 60 broken BCD question images (Supabase-deleted); questions with tabs no longer show redundant regular images
+- Tabs render above answer options so reference material is visible before answering
+
+### Fixed
+- Empty tabs (containing only dead motortrafikskola.se images) are now filtered out server-side and never sent to the app
+
+---
+---
+
 ## [1.1.32+230] - 2026-05-25
 
 ### Added
