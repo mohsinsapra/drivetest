@@ -173,6 +173,15 @@ class BcdCache {
         'attempt_count': cat['attempt_count'] ?? 0,
       });
 
+      // Capture end_date directly from the category when available so the
+      // dashboard card can show expiry without relying on bcd_subscriptions.
+      if (cat['is_subscribed'] == true) {
+        final endDate = cat['end_date']?.toString();
+        if (endDate != null && endDate.isNotEmpty) {
+          _endDateByBcdId[bcdId] = endDate;
+        }
+      }
+
       // Subcategories (and their tests)
       final subs = cat['sub_categories'] as List<dynamic>? ?? [];
       if (subs.isNotEmpty) {

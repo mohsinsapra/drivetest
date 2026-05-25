@@ -265,6 +265,8 @@
   "bcd_my_subscriptions_tab": "My Subscriptions",
   "bcd_no_plans": "No plans available",
   "bcd_active_label": "Active",
+  "bcd_expired_label": "Expired",
+  "bcd_sub_expires_days": "Expires in {days} days · {date}",
   "bcd_subscribe_btn": "Subscribe",
   "bcd_start_practice": "Start Practice",
   "bcd_no_active_subscriptions": "No active subscriptions",

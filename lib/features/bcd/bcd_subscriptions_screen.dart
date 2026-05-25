@@ -524,7 +524,7 @@ class _SubscriptionTile extends StatelessWidget {
     final statusLabel = isActive
         ? t.bcd_active_label
         : isExpired
-            ? 'Expired'
+            ? t.bcd_expired_label
             : _capitalize(status);
 
     return Material(
@@ -585,7 +585,7 @@ class _SubscriptionTile extends StatelessWidget {
                       ),
                       if (endDate.isNotEmpty)
                         Text(
-                          _expiryLabel(endDate, isActive),
+                          _expiryLabel(endDate, isActive, t),
                           style: TextStyle(
                             fontSize: 12,
                             color: isActive && _isDueSoon(endDate)
@@ -646,20 +646,22 @@ class _SubscriptionTile extends StatelessWidget {
     }
   }
 
-  String _expiryLabel(String iso, bool isActive) {
+  String _expiryLabel(String iso, bool isActive, Translations t) {
     try {
       final dt = DateTime.parse(iso).toLocal();
       final now = DateTime.now();
       final diff = dt.difference(now);
       final dateStr = '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
 
-      if (!isActive) return 'Expired $dateStr';
-
-      if (diff.inDays < 0) return 'Expired $dateStr';
-      if (diff.inDays == 0) return 'Expires today';
-      if (diff.inDays == 1) return 'Expires tomorrow';
-      if (diff.inDays <= 14) return 'Expires in ${diff.inDays} days · $dateStr';
-      return 'Expires $dateStr';
+      if (diff.inDays < 0) return t.dash_card_expired.replaceAll('{date}', dateStr);
+      if (diff.inDays == 0) return t.dash_card_expires_today;
+      if (diff.inDays == 1) return t.dash_card_expires_tomorrow;
+      if (diff.inDays <= 14) {
+        return t.bcd_sub_expires_days
+            .replaceAll('{days}', '${diff.inDays}')
+            .replaceAll('{date}', dateStr);
+      }
+      return t.dash_card_expires_on.replaceAll('{date}', dateStr);
     } catch (_) {
       return iso;
     }

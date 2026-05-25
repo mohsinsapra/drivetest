@@ -343,6 +343,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get bcd_my_subscriptions_tab => 'My Subscriptions';
   String get bcd_no_plans => 'No plans available';
   String get bcd_active_label => 'Active';
+  String get bcd_expired_label => 'Expired';
+  String get bcd_sub_expires_days => 'Expires in {days} days · {date}';
   String get bcd_subscribe_btn => 'Subscribe';
   String get bcd_start_practice => 'Start Practice';
   String get bcd_no_active_subscriptions => 'No active subscriptions';
@@ -1370,6 +1372,10 @@ extension on Translations {
         return 'No plans available';
       case 'bcd_active_label':
         return 'Active';
+      case 'bcd_expired_label':
+        return 'Expired';
+      case 'bcd_sub_expires_days':
+        return 'Expires in {days} days · {date}';
       case 'bcd_subscribe_btn':
         return 'Subscribe';
       case 'bcd_start_practice':

@@ -265,6 +265,8 @@
   "bcd_my_subscriptions_tab": "Mina prenumerationer",
   "bcd_no_plans": "Inga planer tillgängliga",
   "bcd_active_label": "Aktiv",
+  "bcd_expired_label": "Utgången",
+  "bcd_sub_expires_days": "Löper ut om {days} dagar · {date}",
   "bcd_subscribe_btn": "Prenumerera",
   "bcd_start_practice": "Börja öva",
   "bcd_no_active_subscriptions": "Inga aktiva prenumerationer",

@@ -72,25 +72,30 @@ class _ExamCarouselShimmer extends StatelessWidget {
   }
 }
 
+// Maximum width of the carousel container — prevents over-stretching on tablets/web.
+const double _kCarouselMaxWidth = 580;
+// Each card occupies this fraction of the viewport so adjacent cards peek.
+const double _kViewportFraction = 0.84;
+// Side cards shrink to this scale; centre card is always 1.0.
+const double _kSideScale = 0.86;
+
 class _ExamCarouselSectionState extends State<ExamCarouselSection> {
-  final ScrollController _scrollController = ScrollController();
+  late PageController _pageController;
+  double _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: _kViewportFraction)
+      ..addListener(() {
+        setState(() => _currentPage = _pageController.page ?? 0);
+      });
+  }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _pageController.dispose();
     super.dispose();
-  }
-
-  void _snapCardIntoView(int index) {
-    if (!_scrollController.hasClients) return;
-    final pos = _scrollController.position;
-    final target = (index * (_kCardWidth + _kCardSpacing))
-        .clamp(pos.minScrollExtent, pos.maxScrollExtent);
-    _scrollController.animateTo(
-      target,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
   }
 
   @override
@@ -187,40 +192,75 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
             ),
           ),
         ] else
-          SizedBox(
-            height: _kCardHeight,
-            child: ListView.builder(
-              controller: _scrollController,
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
-              itemCount: exams.length,
-              itemBuilder: (context, i) {
-                final exam = exams[i];
-                final isSelected = exam.id == provider.selectedExam?.id;
-                final bcdId = int.tryParse(exam.id);
-                final endDate =
-                    bcdId != null ? BcdCache.instance.endDateFor(bcdId) : null;
-
-                return Padding(
-                  padding: EdgeInsets.only(
-                      right: i < exams.length - 1 ? _kCardSpacing : 0),
-                  child: SizedBox(
-                    width: _kCardWidth,
-                    child: GestureDetector(
-                      onTap: () {
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: _kCarouselMaxWidth),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Derive height from the centre card's width so the image
+                  // aspect ratio (1654 × 756) is always respected.
+                  final centerCardWidth =
+                      constraints.maxWidth * _kViewportFraction;
+                  final carouselHeight = centerCardWidth * 756 / 1654;
+                  return SizedBox(
+                    height: carouselHeight,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      clipBehavior: Clip.none,
+                      itemCount: exams.length,
+                      onPageChanged: (index) {
                         HapticFeedback.selectionClick();
-                        context.read<DashboardProvider>().selectExam(exam);
-                        if (!isSelected) _snapCardIntoView(i);
+                        context
+                            .read<DashboardProvider>()
+                            .selectExam(exams[index]);
                       },
-                      child: ExamCard(
-                        exam: exam,
-                        isActive: isSelected,
-                        endDate: endDate,
-                      ),
+                      itemBuilder: (context, i) {
+                        final rawDistance = (_currentPage - i).abs();
+                        final distance = rawDistance.clamp(0.0, 1.0);
+                        final scale = _kSideScale +
+                            (1.0 - _kSideScale) * (1.0 - distance);
+                        final opacity =
+                            (1.4 - rawDistance).clamp(0.0, 1.0);
+                        final exam = exams[i];
+                        final isSelected =
+                            exam.id == provider.selectedExam?.id;
+                        final bcdId = int.tryParse(exam.id);
+                        final endDate = bcdId != null
+                            ? BcdCache.instance.endDateFor(bcdId)
+                            : null;
+                        return GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            _pageController.animateToPage(
+                              i,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                            context
+                                .read<DashboardProvider>()
+                                .selectExam(exam);
+                          },
+                          child: Opacity(
+                            opacity: opacity,
+                            child: Transform.scale(
+                            scale: scale,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: _kLeftPad / 2),
+                              child: ExamCard(
+                                exam: exam,
+                                isActive: isSelected,
+                                endDate: endDate,
+                              ),
+                            ),
+                          ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
       ],

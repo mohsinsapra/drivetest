@@ -599,6 +599,10 @@ class TranslationsSv implements Translations {
   @override
   String get bcd_active_label => 'Aktiv';
   @override
+  String get bcd_expired_label => 'Utgången';
+  @override
+  String get bcd_sub_expires_days => 'Löper ut om {days} dagar · {date}';
+  @override
   String get bcd_subscribe_btn => 'Prenumerera';
   @override
   String get bcd_start_practice => 'Börja öva';
@@ -2073,6 +2077,10 @@ extension on TranslationsSv {
         return 'Inga planer tillgängliga';
       case 'bcd_active_label':
         return 'Aktiv';
+      case 'bcd_expired_label':
+        return 'Utgången';
+      case 'bcd_sub_expires_days':
+        return 'Löper ut om {days} dagar · {date}';
       case 'bcd_subscribe_btn':
         return 'Prenumerera';
       case 'bcd_start_practice':
