@@ -505,12 +505,14 @@ deploy-web-android: check
 deploy-all: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
-	@gmake -s -j3 --output-sync=target _web-deploy-docker-core _android-deploy-docker-core _ios-beta-core
+	@gmake -s -j3 _web-deploy-docker-core _android-deploy-docker-core _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)
 _ios-beta-core:
 	@echo "$(COLOR_GREEN)Deploying iOS to TestFlight...$(COLOR_RESET)"
+	@flutter pub get
+	@cd ios && pod install
 	@cd ios && bundle exec fastlane beta
 
 ## ios-beta: Bump patch, commit, then deploy iOS to TestFlight
