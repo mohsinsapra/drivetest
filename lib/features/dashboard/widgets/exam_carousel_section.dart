@@ -29,9 +29,6 @@ class ExamCarouselSection extends StatefulWidget {
   State<ExamCarouselSection> createState() => _ExamCarouselSectionState();
 }
 
-// Image asset dimensions: 1654 × 756 — card height matches this ratio.
-const double _kCardWidth = 260;
-const double _kCardHeight = _kCardWidth * 756 / 1654; // ≈ 119
 const double _kCardSpacing = 12;
 const double _kLeftPad = 16;
 
