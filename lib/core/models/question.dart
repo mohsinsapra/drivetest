@@ -4,6 +4,18 @@ import 'package:hive/hive.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 part 'question.g.dart';
 
+class QuestionTab {
+  final String title;
+  final String text;
+  final List<String> images;
+
+  const QuestionTab({
+    required this.title,
+    required this.text,
+    required this.images,
+  });
+}
+
 @HiveType(typeId: 1)
 class Question extends HiveObject {
   @HiveField(0)
@@ -21,6 +33,9 @@ class Question extends HiveObject {
   @HiveField(6)
   final List<String> images;
 
+  // Not persisted to Hive — populated from API only
+  final List<QuestionTab> tabs;
+
   Question({
     required this.text,
     required this.imageUrl,
@@ -29,6 +44,7 @@ class Question extends HiveObject {
     required this.options,
     this.questionId = '',
     this.images = const [],
+    this.tabs = const [],
   });
 
   factory Question.fromMap(
@@ -52,6 +68,7 @@ class Question extends HiveObject {
         options: options ?? this.options,
         imageUrl: imageUrl,
         images: images,
+        tabs: tabs,
         correctAnswer: correctAnswer,
         answerExplanation: answerExplanation ?? this.answerExplanation,
         questionId: questionId,

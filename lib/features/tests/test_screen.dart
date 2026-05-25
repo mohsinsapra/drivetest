@@ -22,6 +22,7 @@ import 'package:no_screenshot/no_screenshot.dart';
 import 'package:taxi_exam_app/core/widgets/navigation_controls.dart';
 import 'package:taxi_exam_app/core/widgets/option_tile.dart';
 import 'package:taxi_exam_app/core/widgets/question_progress_header.dart';
+import 'package:taxi_exam_app/core/widgets/question_tabs_widget.dart';
 import 'package:taxi_exam_app/core/widgets/test_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
 import 'package:taxi_exam_app/features/tests/test_attempt_save_service.dart';
@@ -1468,6 +1469,12 @@ class _TestscreenState extends State<Testscreen> {
                                 ? [questionUrl]
                                 : []),
                       ),
+
+                      // Question tabs (BCD questions with tabbed image content)
+                      if (question.tabs.isNotEmpty) ...[
+                        SizedBox(height: 8 * s),
+                        QuestionTabsWidget(tabs: question.tabs),
+                      ],
 
                       SizedBox(height: 12 * s),
 

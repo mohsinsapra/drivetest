@@ -56,7 +56,7 @@ class BcdProvider extends ChangeNotifier {
       final raw = await _api.fetchBCDTestQuestions(testId);
       final prefs = await SharedPreferences.getInstance();
       final shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
-      final questions = raw.map(_toQuestion).toList();
+      final questions = raw.map(toQuestion).toList();
       if (shuffleOnDevice) questions.shuffle(Random());
       testQuestions = questions;
     } catch (e) {
@@ -67,9 +67,9 @@ class BcdProvider extends ChangeNotifier {
     }
   }
 
-  // ── Private helpers ───────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
-  Question _toQuestion(dynamic raw) {
+  Question toQuestion(dynamic raw) {
     final q = raw as Map<String, dynamic>;
     final answers = (q['bcd_answers'] as List<dynamic>?) ?? [];
 
@@ -93,11 +93,26 @@ class BcdProvider extends ChangeNotifier {
         .map(_api.bcdMediaUrl)
         .toList();
 
+    final rawTabs = (q['tabs'] as List<dynamic>?) ?? [];
+    final tabs = rawTabs.map((t) {
+      final tab = t as Map<String, dynamic>;
+      final tabImages = ((tab['images'] as List<dynamic>?) ?? [])
+          .map((e) => _api.bcdMediaUrl(e.toString()))
+          .where((e) => e.isNotEmpty)
+          .toList();
+      return QuestionTab(
+        title: tab['title']?.toString() ?? '',
+        text: tab['text']?.toString() ?? '',
+        images: tabImages,
+      );
+    }).toList();
+
     return Question(
       questionId: q['bcd_id']?.toString() ?? '',
       text: cleanBcdText(q['content']?.toString() ?? ''),
       imageUrl: imageUrl,
       images: images,
+      tabs: tabs,
       correctAnswer: q['correct_answer']?.toString() ?? '',
       answerExplanation: cleanBcdText(q['explanation']?.toString() ?? ''),
       options: options,

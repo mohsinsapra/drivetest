@@ -24,6 +24,7 @@ class QuestionAdapter extends TypeAdapter<Question> {
       options: (fields[4] as List).cast<Option>(),
       questionId: fields[5] as String? ?? '',
       images: (fields[6] as List?)?.cast<String>() ?? [],
+      tabs: const [],
     );
   }
 
