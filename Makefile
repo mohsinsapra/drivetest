@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker
+.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -365,6 +365,16 @@ _android-build-docker:
 			--dart-define=GIT_COMMIT_DATE='$(GIT_COMMIT_DATE)'"
 	@echo "$(COLOR_GREEN)✅ Android Docker build completed!$(COLOR_RESET)"
 
+## _web-deploy-docker-core: Build web in Docker (parallel-safe) then deploy to web repo
+_web-deploy-docker-core: _web-build-docker
+	@$(MAKE) -s _deploy-to-web-repo
+	@$(MAKE) -s _cloudflare-purge
+
+## _android-deploy-docker-core: Build Android in Docker (parallel-safe) then upload via fastlane
+_android-deploy-docker-core: _android-build-docker
+	@echo "$(COLOR_GREEN)Deploying Android to alpha and promoting to production...$(COLOR_RESET)"
+	@cd android && bundle exec fastlane android deploy
+
 ## _web-deploy-core: Build web and push to web repo (no version bump, no git commit)
 _web-deploy-core: _web-build-core
 	@echo "$(COLOR_BLUE)Deploying web app to repository...$(COLOR_RESET)"
@@ -490,12 +500,12 @@ deploy-web-android: check
 	@$(MAKE) -s _web-android-sequence
 	@$(MAKE) -s _commit-and-push
 
-## deploy-all: Bump version, commit, then deploy web+Android (sequential) in parallel with iOS
-## iOS (xcodebuild/fastlane) is independent of Flutter's .dart_tool cache — safe to run concurrently
+## deploy-all: Bump version, commit, then deploy web + Android + iOS all in parallel via Docker
+## Docker isolates .dart_tool per platform so all three builds run concurrently
 deploy-all: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
-	@$(MAKE) -s -j2 --output-sync=target _web-android-sequence _ios-beta-core
+	@gmake -s -j3 --output-sync=target _web-deploy-docker-core _android-deploy-docker-core _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)
