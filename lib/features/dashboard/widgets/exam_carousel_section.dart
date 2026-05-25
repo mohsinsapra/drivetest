@@ -219,11 +219,9 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
                         final distance = rawDistance.clamp(0.0, 1.0);
                         final scale = _kSideScale +
                             (1.0 - _kSideScale) * (1.0 - distance);
-                        final opacity =
-                            (1.4 - rawDistance).clamp(0.0, 1.0);
+                        final opacity = (1.4 - rawDistance).clamp(0.0, 1.0);
                         final exam = exams[i];
-                        final isSelected =
-                            exam.id == provider.selectedExam?.id;
+                        final isSelected = exam.id == provider.selectedExam?.id;
                         final bcdId = int.tryParse(exam.id);
                         final endDate = bcdId != null
                             ? BcdCache.instance.endDateFor(bcdId)
@@ -236,24 +234,22 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeOut,
                             );
-                            context
-                                .read<DashboardProvider>()
-                                .selectExam(exam);
+                            context.read<DashboardProvider>().selectExam(exam);
                           },
                           child: Opacity(
                             opacity: opacity,
                             child: Transform.scale(
-                            scale: scale,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: _kLeftPad / 2),
-                              child: ExamCard(
-                                exam: exam,
-                                isActive: isSelected,
-                                endDate: endDate,
+                              scale: scale,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: _kLeftPad / 2),
+                                child: ExamCard(
+                                  exam: exam,
+                                  isActive: isSelected,
+                                  endDate: endDate,
+                                ),
                               ),
                             ),
-                          ),
                           ),
                         );
                       },

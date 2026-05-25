@@ -653,7 +653,9 @@ class _SubscriptionTile extends StatelessWidget {
       final diff = dt.difference(now);
       final dateStr = '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
 
-      if (diff.inDays < 0) return t.dash_card_expired.replaceAll('{date}', dateStr);
+      if (diff.inDays < 0) {
+        return t.dash_card_expired.replaceAll('{date}', dateStr);
+      }
       if (diff.inDays == 0) return t.dash_card_expires_today;
       if (diff.inDays == 1) return t.dash_card_expires_tomorrow;
       if (diff.inDays <= 14) {

@@ -1,11 +1,15 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _bump-version _cloudflare-purge _web-build-docker _android-build-docker
+.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
 BUMP ?= patch
+
+# Skip fmt+lint (useful for re-runs after a failed deploy when code hasn't changed)
+# Usage: make deploy-all NO_CHECK=1
+NO_CHECK ?= 0
 
 # Colors for output
 COLOR_RESET = \033[0m
@@ -87,7 +91,8 @@ help:
 	@echo "$(COLOR_GREEN)Mobile Deployment:$(COLOR_RESET)"
 	@echo "  make android-beta     - Deploy Android to Google Play alpha"
 	@echo "  make android-deploy   - Deploy Android to alpha, then promote to production"
-	@echo "  make deploy-all       - Deploy web + Android production + iOS TestFlight"
+	@echo "  make deploy-all       - Deploy web+Android (sequential) in parallel with iOS TestFlight"
+	@echo "  make deploy-web-android - Deploy web + Android only, single commit"
 	@echo "  make ios-beta         - Deploy iOS to TestFlight"
 	@echo ""
 	@echo "$(COLOR_YELLOW)BUMP parameter (applies to all deploy commands):$(COLOR_RESET)"
@@ -96,6 +101,10 @@ help:
 	@echo "  BUMP=minor  - New features:      1.0.3 → 1.1.0"
 	@echo "  BUMP=major  - Breaking changes:  1.0.3 → 2.0.0"
 	@echo "  Example: make deploy-all BUMP=minor"
+	@echo ""
+	@echo "$(COLOR_YELLOW)NO_CHECK parameter (skip fmt+lint on re-runs):$(COLOR_RESET)"
+	@echo "  NO_CHECK=1  - Skip fmt and lint (use after a failed deploy when code is unchanged)"
+	@echo "  Example: make deploy-all NO_CHECK=1"
 	@echo ""
 	@echo "$(COLOR_GREEN)Utility Commands:$(COLOR_RESET)"
 	@echo "  make fmt              - Format all Dart files"
@@ -117,9 +126,13 @@ lint:
 	@flutter analyze
 	@echo "$(COLOR_GREEN)✅ Linting passed!$(COLOR_RESET)"
 
-## check: Format and lint before deploy
-check: fmt lint
-	@echo "$(COLOR_GREEN)✅ Project checks passed!$(COLOR_RESET)"
+## check: Format and lint before deploy (skip with NO_CHECK=1)
+check:
+	@if [ "$(NO_CHECK)" = "1" ]; then \
+		echo "$(COLOR_YELLOW)⚠️  Skipping checks (NO_CHECK=1)$(COLOR_RESET)"; \
+	else \
+		$(MAKE) -s fmt && $(MAKE) -s lint && echo "$(COLOR_GREEN)✅ Project checks passed!$(COLOR_RESET)"; \
+	fi
 
 WEB_PORT ?= 5005
 
@@ -358,11 +371,11 @@ _web-deploy-core: _web-build-core
 	@$(MAKE) -s _deploy-to-web-repo
 	@$(MAKE) -s _cloudflare-purge
 
-## web-deploy: Bump patch, deploy web and commit to main repo
+## web-deploy: Bump patch, commit, then deploy web
 web-deploy: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
+	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _web-deploy-core
-	@$(MAKE) -s _commit-and-push
 
 ## _android-beta-core: Deploy Android to alpha (no git commit)
 _android-beta-core:
@@ -374,16 +387,26 @@ _android-deploy-core:
 	@echo "$(COLOR_GREEN)Deploying Android to alpha and promoting to production...$(COLOR_RESET)"
 	@cd android && bundle exec fastlane android deploy
 
-## _commit-and-push: Stage pubspec + changelog + fastlane reports and push to main repo
-_commit-and-push:
-	@echo "$(COLOR_BLUE)Committing changes to main repository...$(COLOR_RESET)"
-	@git add pubspec.yaml CHANGELOG.md
-	@git add android/fastlane/report.xml 2>/dev/null || true
-	@git add android/fastlane/metadata/ 2>/dev/null || true
+## _commit-before-build: Stage all tracked changes + version bump, commit and push before builds start
+## Runs after check+bump so the repo is clean and green before any build artifacts are generated
+_commit-before-build:
+	@echo "$(COLOR_BLUE)Committing pre-build changes (fmt, lint fixes, version bump)...$(COLOR_RESET)"
+	@git add -u
 	@CURRENT_VER=$$(sed -nE 's/^version:[[:space:]]*(.+)$$/\1/p' pubspec.yaml | head -1); \
 	git diff --cached --quiet || git commit -m "chore: bump version to $$CURRENT_VER [deploy]"
 	@git push
-	@echo "$(COLOR_GREEN)✅ Commit pushed!$(COLOR_RESET)"
+	@echo "$(COLOR_GREEN)✅ Pre-build commit pushed — starting builds...$(COLOR_RESET)"
+
+## _commit-and-push: Stage fastlane reports generated during build and push
+_commit-and-push:
+	@echo "$(COLOR_BLUE)Committing post-build artifacts (fastlane reports)...$(COLOR_RESET)"
+	@git add android/fastlane/report.xml 2>/dev/null || true
+	@git add android/fastlane/metadata/ 2>/dev/null || true
+	@git add ios/fastlane/report.xml 2>/dev/null || true
+	@CURRENT_VER=$$(sed -nE 's/^version:[[:space:]]*(.+)$$/\1/p' pubspec.yaml | head -1); \
+	git diff --cached --quiet || git commit -m "chore: fastlane reports $$CURRENT_VER"
+	@git push 2>/dev/null || true
+	@echo "$(COLOR_GREEN)✅ Done!$(COLOR_RESET)"
 
 WEB_REPO_URL ?= https://github.com/mohsinsapra/drivetest
 
@@ -436,38 +459,43 @@ _bump-version:
 
 web-android-deploy: check web-build android-beta
 
-## android-beta: Bump patch, deploy Android to alpha and commit to main repo
+## android-beta: Bump patch, commit, then deploy Android to alpha
 android-beta: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
+	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _android-beta-core
 	@$(MAKE) -s _commit-and-push
 
-## android-deploy: Bump patch, deploy Android to alpha + production and commit to main repo
+## android-deploy: Bump patch, commit, then deploy Android to alpha + production
 android-deploy: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
+	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
 
-## release-all: Bump patch, deploy web + Android production, single commit at the end
+## _web-android-sequence: Internal — web then Android sequentially (share Flutter .dart_tool cache)
+_web-android-sequence: _web-deploy-core _android-deploy-core
+
+## release-all: Bump version, commit, then deploy web + Android production
 release-all: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
-	@$(MAKE) -s _web-deploy-core
-	@$(MAKE) -s _android-deploy-core
+	@$(MAKE) -s _commit-before-build
+	@$(MAKE) -s _web-android-sequence
 	@$(MAKE) -s _commit-and-push
 
-## deploy-web-android: Bump version, deploy web then Android sequentially, single commit at the end
+## deploy-web-android: Bump version, commit, then deploy web + Android
 deploy-web-android: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
-	@$(MAKE) -s _web-deploy-core
-	@$(MAKE) -s _android-deploy-core
+	@$(MAKE) -s _commit-before-build
+	@$(MAKE) -s _web-android-sequence
 	@$(MAKE) -s _commit-and-push
 
-## deploy-all: Bump version, deploy web then Android then iOS sequentially, single commit at the end
+## deploy-all: Bump version, commit, then deploy web+Android (sequential) in parallel with iOS
+## iOS (xcodebuild/fastlane) is independent of Flutter's .dart_tool cache — safe to run concurrently
 deploy-all: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
-	@$(MAKE) -s _web-deploy-core
-	@$(MAKE) -s _android-deploy-core
-	@$(MAKE) -s _ios-beta-core
+	@$(MAKE) -s _commit-before-build
+	@$(MAKE) -s -j2 --output-sync=target _web-android-sequence _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)
@@ -475,9 +503,10 @@ _ios-beta-core:
 	@echo "$(COLOR_GREEN)Deploying iOS to TestFlight...$(COLOR_RESET)"
 	@cd ios && bundle exec fastlane beta
 
-## ios-beta: Bump patch, deploy iOS to TestFlight and commit to main repo
+## ios-beta: Bump patch, commit, then deploy iOS to TestFlight
 ios-beta: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
+	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
