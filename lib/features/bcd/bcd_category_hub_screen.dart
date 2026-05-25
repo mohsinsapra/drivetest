@@ -999,6 +999,10 @@ class _TestCard extends StatelessWidget {
                           _Chip(
                               label:
                                   '${Translations.of(context).bcd_pass_label} ${test['pass_score'] ?? 0}%'),
+                          if ((test['time_limit'] as int? ?? 0) > 0)
+                            _Chip(
+                                label:
+                                    '${test['time_limit']} ${Translations.of(context).bcd_min_label}'),
                           if (isFree)
                             _Chip(
                               label: Translations.of(context).bcd_free_label,

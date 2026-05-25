@@ -77,8 +77,13 @@ class VersionManager
     # Find the unreleased section
     unreleased_section = extract_unreleased_section(changelog)
 
+    # Fall back to last released version's content if [Unreleased] is empty
+    last_released_section = unreleased_section.empty? || unreleased_section.gsub(/[#\-\s]/, '').empty? \
+      ? extract_last_released_section(changelog) \
+      : ""
+
     # Create new version entry
-    new_entry = create_version_entry(version, build, today, unreleased_section)
+    new_entry = create_version_entry(version, build, today, unreleased_section, last_released_section)
 
     # Update changelog
     updated_changelog = changelog.sub(
@@ -94,16 +99,25 @@ class VersionManager
     match ? match[1].strip : ""
   end
 
-  def create_version_entry(version, build, date, unreleased_content)
+  def extract_last_released_section(changelog)
+    match = changelog.match(/## \[(?!Unreleased)[^\]]+\][^\n]*\n(.*?)---/m)
+    match ? match[1].strip : ""
+  end
+
+  def create_version_entry(version, build, date, unreleased_content, last_released_content = "")
     # If there are custom changelog entries, use them
     if @changelog_entries.any?
       entries_text = format_changelog_entries(@changelog_entries)
       return "## [#{version}+#{build}] - #{date}\n\n#{entries_text}\n\n---\n"
     end
 
-    # Otherwise, use unreleased content
+    # Use unreleased content, fall back to last released version, then generic message
     if unreleased_content.empty? || unreleased_content.gsub(/[#\-\s]/, '').empty?
-      entries_text = "### Changed\n- Bug fixes and improvements"
+      if last_released_content.empty? || last_released_content.gsub(/[#\-\s]/, '').empty?
+        entries_text = "### Changed\n- Bug fixes and improvements"
+      else
+        entries_text = last_released_content
+      end
     else
       entries_text = unreleased_content
     end

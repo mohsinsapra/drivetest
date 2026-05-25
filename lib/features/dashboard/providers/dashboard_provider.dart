@@ -335,8 +335,19 @@ class DashboardProvider extends ChangeNotifier {
     await _rebuildStatsCache();
 
     final prevId = _selectedExam?.id;
-    final target = exams.where((e) => e.id == prevId).firstOrNull ??
-        (exams.isNotEmpty ? exams.first : null);
+    SubscribedExam? target = exams.where((e) => e.id == prevId).firstOrNull;
+    if (target == null && exams.isNotEmpty) {
+      SubscribedExam? active;
+      DateTime? latestDate;
+      for (final e in exams) {
+        final d = _statsCache[e.id]?.lastAttemptDate;
+        if (d != null && (latestDate == null || d.isAfter(latestDate))) {
+          latestDate = d;
+          active = e;
+        }
+      }
+      target = active ?? exams.first;
+    }
 
     if (target != null) {
       _selectedExam = target;

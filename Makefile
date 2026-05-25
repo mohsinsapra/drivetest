@@ -455,26 +455,19 @@ release-all: check
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
 
-## deploy-web-android: Bump patch, deploy web + Android natively in parallel, single commit
+## deploy-web-android: Bump version, deploy web then Android sequentially, single commit at the end
 deploy-web-android: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
-	@$(MAKE) -s _web-deploy-core & WEB_PID=$$!; \
-	$(MAKE) -s _android-deploy-core & AND_PID=$$!; \
-	wait $$WEB_PID; WEB_EXIT=$$?; \
-	wait $$AND_PID; AND_EXIT=$$?; \
-	[ $$WEB_EXIT -eq 0 ] && [ $$AND_EXIT -eq 0 ]
+	@$(MAKE) -s _web-deploy-core
+	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
 
-## deploy-all: Bump patch, deploy web + Android + iOS all in parallel, single commit at the end
+## deploy-all: Bump version, deploy web then Android then iOS sequentially, single commit at the end
 deploy-all: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
-	@$(MAKE) -s _web-deploy-core & WEB_PID=$$!; \
-	$(MAKE) -s _android-deploy-core & AND_PID=$$!; \
-	$(MAKE) -s _ios-beta-core & IOS_PID=$$!; \
-	wait $$WEB_PID; WEB_EXIT=$$?; \
-	wait $$AND_PID; AND_EXIT=$$?; \
-	wait $$IOS_PID; IOS_EXIT=$$?; \
-	[ $$WEB_EXIT -eq 0 ] && [ $$AND_EXIT -eq 0 ] && [ $$IOS_EXIT -eq 0 ]
+	@$(MAKE) -s _web-deploy-core
+	@$(MAKE) -s _android-deploy-core
+	@$(MAKE) -s _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)

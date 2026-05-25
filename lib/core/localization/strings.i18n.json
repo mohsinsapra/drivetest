@@ -715,5 +715,6 @@
   "journey_review_unlocked_msg": "All questions mastered. The Full Test is now unlocked!",
   "journey_back_to_group": "Back to Group",
   "journey_no_review_questions": "No questions to review!",
-  "question_tab_label": "Tab"
+  "question_tab_label": "Tab",
+  "bcd_min_label": "min"
 }

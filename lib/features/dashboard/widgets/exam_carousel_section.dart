@@ -8,6 +8,7 @@ import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_traffic_signs_screen.dart';
 import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
+import '../models/subscribed_exam.dart';
 import '../providers/dashboard_provider.dart';
 import 'exam_card.dart';
 import 'free_bcd_hub_card.dart';
@@ -95,15 +96,30 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
   @override
   Widget build(BuildContext context) {
     final provider = widget.provider;
-    final exams = List.of(provider.exams)
-      ..sort((a, b) {
-        final dateA = provider.statsCache[a.id]?.lastAttemptDate;
-        final dateB = provider.statsCache[b.id]?.lastAttemptDate;
-        if (dateA == null && dateB == null) return 0;
-        if (dateA == null) return 1;
-        if (dateB == null) return -1;
-        return dateB.compareTo(dateA);
-      });
+    final statsCache = provider.statsCache;
+    final exams = List.of(provider.exams);
+
+    // Find the "active" exam: the one with the most recent attempt.
+    SubscribedExam? activeExam;
+    DateTime? latestDate;
+    for (final e in exams) {
+      final d = statsCache[e.id]?.lastAttemptDate;
+      if (d != null && (latestDate == null || d.isAfter(latestDate))) {
+        latestDate = d;
+        activeExam = e;
+      }
+    }
+
+    final activeId = activeExam?.id;
+    exams.sort((a, b) {
+      if (activeId != null) {
+        if (a.id == activeId) return -1;
+        if (b.id == activeId) return 1;
+      }
+      final attA = statsCache[a.id]?.totalAttempts ?? 0;
+      final attB = statsCache[b.id]?.totalAttempts ?? 0;
+      return attB.compareTo(attA);
+    });
     final t = Translations.of(context);
 
     return Column(

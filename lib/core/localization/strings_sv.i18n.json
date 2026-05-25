@@ -715,5 +715,6 @@
   "journey_review_unlocked_msg": "Alla frågor bemästrade. Det fullständiga testet är nu upplåst!",
   "journey_back_to_group": "Tillbaka till gruppen",
   "journey_no_review_questions": "Inga frågor att granska!",
-  "question_tab_label": "Flik"
+  "question_tab_label": "Flik",
+  "bcd_min_label": "min"
 }

@@ -838,6 +838,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get journey_back_to_group => 'Back to Group';
   String get journey_no_review_questions => 'No questions to review!';
   String get question_tab_label => 'Tab';
+  String get bcd_min_label => 'min';
 }
 
 /// Flat map(s) containing all translations.
@@ -2239,6 +2240,8 @@ extension on Translations {
         return 'No questions to review!';
       case 'question_tab_label':
         return 'Tab';
+      case 'bcd_min_label':
+        return 'min';
       default:
         return null;
     }

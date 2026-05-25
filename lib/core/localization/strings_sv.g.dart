@@ -1540,6 +1540,8 @@ class TranslationsSv implements Translations {
   String get journey_no_review_questions => 'Inga frågor att granska!';
   @override
   String get question_tab_label => 'Flik';
+  @override
+  String get bcd_min_label => 'min';
 }
 
 /// Flat map(s) containing all translations.
@@ -2941,6 +2943,8 @@ extension on TranslationsSv {
         return 'Inga frågor att granska!';
       case 'question_tab_label':
         return 'Flik';
+      case 'bcd_min_label':
+        return 'min';
       default:
         return null;
     }
