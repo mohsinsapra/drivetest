@@ -6,7 +6,27 @@ String fixBcdEncoding(String text) {
   if (text.codeUnits.every((c) => c < 256)) {
     try {
       return utf8.decode(text.codeUnits.toList());
-    } catch (_) {}
+    } catch (_) {
+      // Strict decode failed — likely a lone 2-byte sequence starter (e.g. trailing "Â" = 0xC2)
+      // without its continuation byte. Drop such orphaned bytes and retry.
+      final bytes = text.codeUnits.toList();
+      final cleaned = <int>[];
+      for (var i = 0; i < bytes.length; i++) {
+        final b = bytes[i];
+        if (b >= 0xC0 && b <= 0xDF) {
+          final next = i + 1 < bytes.length ? bytes[i + 1] : -1;
+          if (next >= 0x80 && next <= 0xBF) {
+            cleaned.add(b); // valid 2-byte pair — keep
+          }
+          // else lone leading byte — drop it
+        } else {
+          cleaned.add(b);
+        }
+      }
+      try {
+        return utf8.decode(cleaned);
+      } catch (_) {}
+    }
   }
   return text;
 }

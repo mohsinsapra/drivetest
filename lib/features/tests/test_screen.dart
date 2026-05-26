@@ -535,7 +535,11 @@ class _TestscreenState extends State<Testscreen> {
         borderRadius: BorderRadius.circular(8),
         child: GestureDetector(
           onTap: () => showImageViewer(context, url),
-          child: CachedNetworkImage(imageUrl: url, fit: BoxFit.cover),
+          child: CachedNetworkImage(
+            imageUrl: url,
+            fit: BoxFit.cover,
+            errorWidget: (_, __, ___) => const _BrokenImagePlaceholder(),
+          ),
         ),
       ),
     );
@@ -588,7 +592,11 @@ class _TestscreenState extends State<Testscreen> {
                   maxHeight: mq.size.height * 0.32,
                   maxWidth: mq.size.width * 0.9,
                 ),
-                child: CachedNetworkImage(imageUrl: url, fit: BoxFit.contain),
+                child: CachedNetworkImage(
+                  imageUrl: url,
+                  fit: BoxFit.contain,
+                  errorWidget: (_, __, ___) => const _BrokenImagePlaceholder(),
+                ),
               ),
             ),
           ),
@@ -1872,6 +1880,25 @@ class _TestscreenState extends State<Testscreen> {
           ),
         );
       },
+    );
+  }
+}
+
+class _BrokenImagePlaceholder extends StatelessWidget {
+  const _BrokenImagePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 120,
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+      child: Center(
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          size: 40,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+        ),
+      ),
     );
   }
 }
