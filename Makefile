@@ -347,7 +347,7 @@ _android-build-docker:
 		-v /tmp/android-sdk-platforms:/opt/android-sdk-linux/platforms \
 		-w /app \
 		$(FLUTTER_DOCKER_IMAGE) \
-		sh -c "flutter precache --android && flutter pub get && flutter build appbundle --release \
+		sh -c "printf 'sdk.dir=/opt/android-sdk-linux\nflutter.sdk=/sdks/flutter\n' > android/local.properties && flutter precache --android && flutter pub get && flutter build appbundle --release \
 			--dart-define=FIREBASE_API_KEY='$(FIREBASE_API_KEY)' \
 			--dart-define=FIREBASE_AUTH_DOMAIN='$(FIREBASE_AUTH_DOMAIN)' \
 			--dart-define=FIREBASE_PROJECT_ID='$(FIREBASE_PROJECT_ID)' \

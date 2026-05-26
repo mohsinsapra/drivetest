@@ -31,6 +31,14 @@ Deploy Beta
 
 Build, upload to alpha, then promote to production
 
+### android deploy_docker
+
+```sh
+[bundle exec] fastlane android deploy_docker
+```
+
+Upload pre-built AAB from Docker to alpha, then promote to production (skips flutter build)
+
 ### android production
 
 ```sh
