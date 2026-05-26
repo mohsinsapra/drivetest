@@ -304,7 +304,9 @@
       "WebFetch(domain:xywcguraejcvmpadcjkb.supabase.co)",
       "WebFetch(domain:web.archive.org)",
       "Bash(ping -c 2 192.168.1.13)",
-      "Bash(echo \"HTTP status: $?\")"
+      "Bash(echo \"HTTP status: $?\")",
+      "Bash(gmake --version)",
+      "Bash(docker image ls *)"
     ],
     "deny": [],
     "ask": []

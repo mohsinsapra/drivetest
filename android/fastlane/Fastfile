@@ -49,6 +49,36 @@ platform :android do
     production
   end
 
+  desc "Upload pre-built AAB from Docker to alpha, then promote to production (skips flutter build)"
+  lane :deploy_docker do
+    ENV['BUILD_VARIANT'] = 'alpha'
+    play_store_json_key = resolve_play_store_json_key
+
+    pubspec_content = File.read("../../pubspec.yaml")
+    version_match = pubspec_content.match(/^version:\s*.+\+(\d+)/)
+    UI.user_error!("Could not read build number from pubspec.yaml") unless version_match
+    current_build_number = version_match[1].to_i
+    puts "Uploading pre-built AAB with build number: #{current_build_number}"
+
+    changelog_text = get_latest_changelog_entry
+    changelogs_dir = "metadata/android/en-US/changelogs"
+    FileUtils.mkdir_p(changelogs_dir)
+    File.write("#{changelogs_dir}/#{current_build_number}.txt", changelog_text)
+
+    upload_to_play_store(
+      track: "alpha",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: false,
+      version_code: current_build_number,
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      json_key_data: play_store_json_key
+    )
+
+    tag_release(build_number: current_build_number)
+    production
+  end
+
   desc "Promote alpha to production"
   lane :production do
     upload_to_play_store(

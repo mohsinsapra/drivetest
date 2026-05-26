@@ -373,7 +373,7 @@ _web-deploy-docker-core: _web-build-docker
 ## _android-deploy-docker-core: Build Android in Docker (parallel-safe) then upload via fastlane
 _android-deploy-docker-core: _android-build-docker
 	@echo "$(COLOR_GREEN)Deploying Android to alpha and promoting to production...$(COLOR_RESET)"
-	@cd android && bundle exec fastlane android deploy
+	@cd android && bundle exec fastlane android deploy_docker
 
 ## _web-deploy-core: Build web and push to web repo (no version bump, no git commit)
 _web-deploy-core: _web-build-core
