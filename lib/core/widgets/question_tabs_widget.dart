@@ -55,7 +55,7 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
                 .toList(),
           ),
         SizedBox(
-          height: 260,
+          height: 280,
           child: TabBarView(
             controller: _tabController,
             children: widget.tabs.map(_buildTabContent).toList(),
@@ -66,16 +66,82 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
   }
 
   Widget _buildTabContent(QuestionTab tab) {
-    final images = tab.images;
-    if (images.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    if (images.length == 1) {
-      return _buildImage(images.first);
-    }
-    return PageView(
-      children: images.map(_buildImage).toList(),
+    // Extract <img src> URLs embedded in the text HTML
+    final embeddedImages = _extractImgSrcs(tab.text);
+    final allImages = [...tab.images, ...embeddedImages];
+    final plainText = _parseTabText(tab.text);
+    final hasText = plainText.isNotEmpty;
+    final hasImages = allImages.isNotEmpty;
+
+    if (!hasText && !hasImages) return const SizedBox.shrink();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (hasText)
+            Text(
+              plainText,
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
+          if (hasImages) ...[
+            if (hasText) const SizedBox(height: 8),
+            if (allImages.length == 1)
+              _buildImage(allImages.first)
+            else
+              SizedBox(
+                height: 220,
+                child: PageView(
+                  children: allImages.map(_buildImage).toList(),
+                ),
+              ),
+          ],
+        ],
+      ),
     );
+  }
+
+  List<String> _extractImgSrcs(String html) {
+    final imgRegex = RegExp(r'''<img[^>]+src=['"]([^'"]+)['"]''', caseSensitive: false);
+    return imgRegex
+        .allMatches(html)
+        .map((m) => m.group(1) ?? '')
+        .where((src) => src.isNotEmpty)
+        .toList();
+  }
+
+  String _parseTabText(String raw) {
+    if (raw.trim().isEmpty) return '';
+    // Replace <br> variants with newlines before stripping tags
+    String text = raw.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    // Strip all HTML tags (including <img>)
+    text = text.replaceAll(RegExp(r'<[^>]+>'), '');
+    // Decode HTML entities
+    text = _decodeEntities(text);
+    // Collapse multiple blank lines / whitespace-only lines
+    text = text.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
+    return text;
+  }
+
+  String _decodeEntities(String s) {
+    s = s.replaceAllMapped(RegExp(r'&#x([0-9a-fA-F]+);'),
+        (m) => String.fromCharCode(int.parse(m.group(1)!, radix: 16)));
+    s = s.replaceAllMapped(RegExp(r'&#(\d+);'),
+        (m) => String.fromCharCode(int.parse(m.group(1)!)));
+    const map = {
+      '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"',
+      '&#39;': "'", '&apos;': "'", '&nbsp;': ' ',
+      '&auml;': 'ä', '&Auml;': 'Ä', '&ouml;': 'ö', '&Ouml;': 'Ö',
+      '&aring;': 'å', '&Aring;': 'Å', '&eacute;': 'é', '&egrave;': 'è',
+      '&aacute;': 'á', '&agrave;': 'à', '&uuml;': 'ü', '&Uuml;': 'Ü',
+      '&mdash;': '—', '&ndash;': '–', '&hellip;': '…',
+      '&laquo;': '«', '&raquo;': '»', '&copy;': '©',
+    };
+    for (final e in map.entries) {
+      s = s.replaceAll(e.key, e.value);
+    }
+    return s;
   }
 
   Widget _buildImage(String url) {
@@ -89,7 +155,31 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
           loadingBuilder: (_, child, progress) => progress == null
               ? child
               : const Center(child: AppLoadingIndicator()),
-          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          errorBuilder: (_, __, ___) => Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.image_not_supported_outlined,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Bild ej tillgänglig',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
