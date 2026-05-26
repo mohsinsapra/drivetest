@@ -10,11 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
 
 ### Changed
+-
 
 ### Fixed
+-
 
+---
+
+## [1.1.36+234] - 2026-05-26
+
+### Added
+- Preload question images (question images, tab images, option images) for the next 2 questions in the background so users see no lag when swiping forward
+
+### Changed
+- Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
+
+---
 ---
 
 ## [1.1.35+233] - 2026-05-26
