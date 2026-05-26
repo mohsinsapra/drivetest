@@ -29,6 +29,10 @@ GIT_SHORT_HASH = $(shell git rev-parse --short HEAD 2>/dev/null)
 GIT_BRANCH = $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
 GIT_COMMIT_DATE = $(shell git log -1 --date=iso-strict --pretty=%cd 2>/dev/null)
 
+# Local SDK paths — used when building Android natively (not in Docker)
+FLUTTER_SDK_PATH = $(shell dirname $$(dirname $$(which flutter)))
+ANDROID_SDK_PATH = $(or $(ANDROID_HOME),$(ANDROID_SDK_ROOT),$(HOME)/Library/Android/sdk)
+
 # Load environment variables
 # .env.local overrides .env for local development (test keys, etc.)
 ifneq (,$(wildcard ./.env))
@@ -393,13 +397,17 @@ web-deploy: check
 
 ## _android-beta-core: Deploy Android to alpha (no git commit)
 _android-beta-core:
+	@sed -i '' 's|^sdk\.dir=.*|sdk.dir=$(ANDROID_SDK_PATH)|' android/local.properties
+	@sed -i '' 's|^flutter\.sdk=.*|flutter.sdk=$(FLUTTER_SDK_PATH)|' android/local.properties
 	@echo "$(COLOR_GREEN)Deploying Android to Google Play alpha track...$(COLOR_RESET)"
-	@cd android && bundle exec fastlane android beta
+	@ANDROID_HOME="$(ANDROID_SDK_PATH)" cd android && bundle exec fastlane android beta
 
 ## _android-deploy-core: Deploy Android to alpha and production (no git commit)
 _android-deploy-core:
+	@sed -i '' 's|^sdk\.dir=.*|sdk.dir=$(ANDROID_SDK_PATH)|' android/local.properties
+	@sed -i '' 's|^flutter\.sdk=.*|flutter.sdk=$(FLUTTER_SDK_PATH)|' android/local.properties
 	@echo "$(COLOR_GREEN)Deploying Android to alpha and promoting to production...$(COLOR_RESET)"
-	@cd android && bundle exec fastlane android deploy
+	@ANDROID_HOME="$(ANDROID_SDK_PATH)" cd android && bundle exec fastlane android deploy
 
 ## _commit-before-build: Stage all tracked changes + version bump, commit and push before builds start
 ## Runs after check+bump so the repo is clean and green before any build artifacts are generated

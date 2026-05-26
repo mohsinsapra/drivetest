@@ -5,49 +5,82 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000259">
+      <testcase classname="fastlane.lanes" name="00: default_platform" time="0.000232">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: Switch to android beta lane" time="0.000121">
+      <testcase classname="fastlane.lanes" name="01: Switch to android beta lane" time="0.000112">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: Switch to android resolve_play_store_json_key lane" time="9.0e-05">
+      <testcase classname="fastlane.lanes" name="02: Switch to android resolve_play_store_json_key lane" time="0.000109">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: Switch to android load_root_env lane" time="8.5e-05">
+      <testcase classname="fastlane.lanes" name="03: Switch to android load_root_env lane" time="6.7e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: google_play_track_version_codes" time="3.080595">
+      <testcase classname="fastlane.lanes" name="04: google_play_track_version_codes" time="2.325526">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="5: Switch to android get_latest_changelog_entry lane" time="0.000113">
+      <testcase classname="fastlane.lanes" name="05: Switch to android get_latest_changelog_entry lane" time="0.000136">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="6: Switch to android resolve_flutter_dart_defines lane" time="0.000109">
+      <testcase classname="fastlane.lanes" name="06: Switch to android resolve_flutter_dart_defines lane" time="9.2e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="7: Switch to android load_root_env lane" time="8.5e-05">
+      <testcase classname="fastlane.lanes" name="07: Switch to android load_root_env lane" time="8.4e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="8: cd .. &amp;&amp; flutter build appbundle --release --build-number=175 --dart-define=GOOGLE_SERVER_CLIENT_ID=640394192831-e6hi0ho85923epa77ir6402ggl8pgrff.apps.googleusercontent.com --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_51QSEQxLdbibfvPzFVwe3hE5seqcH1wQigVXOW60o9KWurHg8ewRFtpekd0c4R16UaiAa51mDZ3MDJFCmIzIRX56i00rZyQBtdD --dart-define=FIELD_ENCRYPTION_KEY=ThisIsA32ByteLongSecretKeyForAES --dart-define=BUILD_VARIANT=alpha" time="5.730926">
+      <testcase classname="fastlane.lanes" name="08: cd .. &amp;&amp; flutter build appbundle --release --build-number=175 --dart-define=GOOGLE_SERVER_CLIENT_ID=640394192831-e6hi0ho85923epa77ir6402ggl8pgrff.apps.googleusercontent.com --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_51QSEQxLdbibfvPzFVwe3hE5seqcH1wQigVXOW60o9KWurHg8ewRFtpekd0c4R16UaiAa51mDZ3MDJFCmIzIRX56i00rZyQBtdD --dart-define=FIELD_ENCRYPTION_KEY=ThisIsA32ByteLongSecretKeyForAES --dart-define=BUILD_VARIANT=alpha" time="224.208503">
         
-          <failure message="/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/actions/actions_helper.rb:67:in `execute_action'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/fast_file.rb:224:in `sh'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/fast_file.rb:216:in `sh'&#10;Fastfile:30:in `block (2 levels) in parsing_binding'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane.rb:41:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:204:in `try_switch_to_lane'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:146:in `trigger_action_by_name'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/fast_file.rb:159:in `method_missing'&#10;Fastfile:48:in `block (2 levels) in parsing_binding'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane.rb:41:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:49:in `block in execute'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:45:in `chdir'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/runner.rb:45:in `execute'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/lane_manager.rb:46:in `cruise_lane'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/command_line_handler.rb:34:in `handle'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:110:in `block (2 levels) in run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/command.rb:187:in `call'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/command.rb:157:in `run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/runner.rb:444:in `run_active_command'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane_core/lib/fastlane_core/ui/fastlane_runner.rb:124:in `run!'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/commander-4.6.0/lib/commander/delegates.rb:18:in `run!'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:363:in `run'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/commands_generator.rb:43:in `start'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/fastlane/lib/fastlane/cli_tools_distributor.rb:123:in `take_off'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/gems/fastlane-2.228.0/bin/fastlane:23:in `&lt;top (required)&gt;'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/fastlane:23:in `load'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/fastlane:23:in `&lt;main&gt;'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/ruby_executable_hooks:22:in `eval'&#10;/Users/muhammadmohsin/.rvm/gems/ruby-2.7.4/bin/ruby_executable_hooks:22:in `&lt;main&gt;'&#10;&#10;Exit status of command 'cd .. &amp;&amp; flutter build appbundle --release --build-number=175 --dart-define=GOOGLE_SERVER_CLIENT_ID=640394192831-e6hi0ho85923epa77ir6402ggl8pgrff.apps.googleusercontent.com --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_51QSEQxLdbibfvPzFVwe3hE5seqcH1wQigVXOW60o9KWurHg8ewRFtpekd0c4R16UaiAa51mDZ3MDJFCmIzIRX56i00rZyQBtdD --dart-define=FIELD_ENCRYPTION_KEY=ThisIsA32ByteLongSecretKeyForAES --dart-define=BUILD_VARIANT=alpha' was 1 instead of 0.&#10;Changing current working directory to: /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app&#10;Resolving dependencies...&#10;Downloading packages...&#10;  _fe_analyzer_shared 93.0.0 (100.0.0 available)&#10;  _flutterfire_internals 1.3.68 (1.3.71 available)&#10;  analyzer 10.0.1 (13.0.0 available)&#10;  asn1lib 1.6.4 (1.6.5 available)&#10;  async 2.13.0 (2.13.1 available)&#10;  build 4.0.5 (4.0.6 available)&#10;  build_daemon 4.0.4 (4.1.1 available)&#10;  build_runner 2.13.1 (2.15.0 available)&#10;  built_value 8.10.1 (8.12.6 available)&#10;  checked_yaml 2.0.3 (2.0.4 available)&#10;  clarity_flutter 1.6.0 (1.9.0 available)&#10;  clarity_web 1.0.1 (1.1.0 available)&#10;  cli_launcher 0.3.1 (0.3.3+1 available)&#10;  cli_util 0.4.2 (0.5.1 available)&#10;  code_builder 4.10.1 (4.11.1 available)&#10;  connectivity_plus 7.0.0 (7.1.1 available)&#10;  connectivity_plus_platform_interface 2.0.1 (2.1.0 available)&#10;  conventional_commit 0.6.1 (0.6.1+1 available)&#10;  crypto 3.0.6 (3.0.7 available)&#10;  csv 6.0.0 (8.0.0 available)&#10;  dart_style 3.1.7 (3.1.9 available)&#10;  dbus 0.7.11 (0.7.13 available)&#10;  device_info_plus 11.4.0 (13.1.0 available)&#10;  device_info_plus_platform_interface 7.0.2 (8.1.0 available)&#10;  dio 5.8.0+1 (5.9.2 available)&#10;  dio_cache_interceptor 4.0.3 (4.0.6 available)&#10;  dio_web_adapter 2.1.1 (2.1.2 available)&#10;  equatable 2.0.7 (2.0.8 available)&#10;  ffi 2.1.4 (2.2.0 available)&#10;  firebase_analytics 12.0.4 (12.4.1 available)&#10;  firebase_analytics_platform_interface 5.0.4 (6.0.1 available)&#10;  firebase_analytics_web 0.6.1 (0.6.1+7 available)&#10;  firebase_core 4.6.0 (4.9.0 available)&#10;  firebase_core_platform_interface 6.0.3 (7.0.1 available)&#10;  firebase_core_web 3.5.1 (3.7.0 available)&#10;  firebase_messaging 16.1.3 (16.2.2 available)&#10;  firebase_messaging_platform_interface 4.7.8 (4.7.11 available)&#10;  firebase_messaging_web 4.1.4 (4.1.7 available)&#10;  fl_chart 1.0.0 (1.2.0 available)&#10;  flutter_dotenv 5.2.1 (6.0.1 available)&#10;  flutter_inappwebview_internal_annotations 1.2.0 (1.3.0 available)&#10;  flutter_lints 5.0.0 (6.0.0 available)&#10;  flutter_local_notifications 18.0.1 (21.0.0 available)&#10;  flutter_local_notifications_linux 5.0.0 (8.0.0 available)&#10;  flutter_local_notifications_platform_interface 8.0.0 (11.0.0 available)&#10;  flutter_secure_storage 9.2.4 (10.3.0 available)&#10;  flutter_secure_storage_linux 1.2.3 (3.0.1 available)&#10;  flutter_secure_storage_macos 3.1.3 (4.0.0 available)&#10;  flutter_secure_storage_platform_interface 1.1.2 (2.0.1 available)&#10;  flutter_secure_storage_web 1.2.1 (2.1.1 available)&#10;  flutter_secure_storage_windows 3.1.2 (4.2.2 available)&#10;  flutter_stripe 12.4.0 (12.6.0 available)&#10;  flutter_stripe_web 7.4.0 (7.6.0 available)&#10;  flutter_timezone 3.0.1 (5.0.2 available)&#10;  flutter_tts 4.2.2 (4.2.5 available)&#10;  font_awesome_flutter 10.12.0 (11.0.0 available)&#10;  google_fonts 8.0.2 (8.1.0 available)&#10;  google_sign_in 6.3.0 (7.2.0 available)&#10;  google_sign_in_android 6.2.1 (7.2.11 available)&#10;  google_sign_in_ios 5.9.0 (6.3.0 available)&#10;  google_sign_in_platform_interface 2.5.0 (3.1.0 available)&#10;  google_sign_in_web 0.12.4+4 (1.1.3 available)&#10;  http 1.4.0 (1.6.0 available)&#10;  http_cache_core 1.1.1 (1.1.3 available)&#10;  image 4.5.4 (4.9.0 available)&#10;  in_app_purchase_android 0.4.0+10 (0.4.0+11 available)&#10;  in_app_purchase_storekit 0.4.8+1 (0.4.9 available)&#10;  introduction_screen 3.1.17 (4.0.0 available)&#10;  jni 0.14.2 (1.0.0 available)&#10;  js 0.6.7 (0.7.2 available)&#10;  json_annotation 4.9.0 (4.12.0 available)&#10;  leak_tracker 11.0.1 (11.0.2 available)&#10;  lints 5.1.1 (6.1.0 available)&#10;  lottie 3.3.1 (3.3.3 available)&#10;  matcher 0.12.19 (0.12.20 available)&#10;  melos 6.3.3 (7.8.0 available)&#10;&lt; meta 1.17.0 (was 1.18.0) (1.18.2 available)&#10;  mustache_template 2.0.0 (2.0.4 available)&#10;  no_screenshot 0.3.6 (1.1.0 available)&#10;  package_info_plus 8.3.0 (10.1.0 available)&#10;  package_info_plus_platform_interface 3.2.0 (4.1.0 available)&#10;  page_transition 2.2.1 (2.2.2 available)&#10;  path_provider_android 2.2.17 (2.3.1 available)&#10;  path_provider_foundation 2.4.1 (2.6.0 available)&#10;  petitparser 6.1.0 (7.0.2 available)&#10;  pointycastle 3.9.1 (4.0.0 available)&#10;  pool 1.5.1 (1.5.2 available)&#10;  posix 6.0.2 (6.5.0 available)&#10;  process 5.0.4 (5.0.5 available)&#10;  protobuf 5.1.0 (6.0.0 available)&#10;  provider 6.1.5 (6.1.5+1 available)&#10;  sentry 9.16.1 (9.20.0 available)&#10;  sentry_dio 9.16.1 (9.20.0 available)&#10;  sentry_flutter 9.16.1 (9.20.0 available)&#10;  shared_preferences 2.5.3 (2.5.5 available)&#10;  shared_preferences_android 2.4.10 (2.4.23 available)&#10;  shared_preferences_foundation 2.5.4 (2.5.6 available)&#10;  shared_preferences_platform_interface 2.4.1 (2.4.2 available)&#10;  shelf_web_socket 2.0.1 (3.0.0 available)&#10;  sign_in_with_apple 6.1.4 (8.0.0 available)&#10;  sign_in_with_apple_platform_interface 1.1.0 (2.0.0 available)&#10;  sign_in_with_apple_web 2.1.1 (3.0.0 available)&#10;  slang 4.7.2 (4.15.0 available)&#10;  slang_flutter 4.7.0 (4.15.0 available)&#10;  source_gen 4.2.2 (4.2.3 available)&#10;  source_span 1.10.1 (1.10.2 available)&#10;  sqflite 2.4.2 (2.4.2+1 available)&#10;  sqflite_android 2.4.1 (2.4.2+3 available)&#10;  sqflite_common 2.5.5 (2.5.8 available)&#10;  stripe_android 12.4.0 (12.6.0 available)&#10;  stripe_ios 12.4.0 (12.6.0 available)&#10;  stripe_js 7.4.0 (7.5.0 available)&#10;  stripe_platform_interface 12.4.0 (12.6.0 available)&#10;  syncfusion_flutter_core 30.2.7 (33.2.8 available)&#10;  syncfusion_flutter_pdf 30.2.7 (33.2.8 available)&#10;  syncfusion_flutter_pdfviewer 30.2.7 (33.2.8 available)&#10;  syncfusion_flutter_signaturepad 30.2.7 (33.2.8 available)&#10;  syncfusion_pdfviewer_linux 30.2.7 (33.2.8 available)&#10;  syncfusion_pdfviewer_macos 30.2.7 (33.2.8 available)&#10;  syncfusion_pdfviewer_platform_interface 30.2.7 (33.2.8 available)&#10;  syncfusion_pdfviewer_web 30.2.7 (33.2.8 available)&#10;  syncfusion_pdfviewer_windows 30.2.7 (33.2.8 available)&#10;  synchronized 3.3.1 (3.4.0+1 available)&#10;&lt; test_api 0.7.10 (was 0.7.11) (0.7.12 available)&#10;  timezone 0.9.4 (0.11.0 available)&#10;  toastification 2.3.0 (3.2.0 available)&#10;  translator 1.0.3+1 (1.0.4+1 available)&#10;  upgrader 11.4.0 (13.4.0 available)&#10;  url_launcher 6.3.1 (6.3.2 available)&#10;  url_launcher_android 6.3.16 (6.3.30 available)&#10;  url_launcher_ios 6.3.3 (6.4.1 available)&#10;  url_launcher_linux 3.2.1 (3.2.2 available)&#10;  url_launcher_macos 3.2.2 (3.2.5 available)&#10;  url_launcher_web 2.4.1 (2.4.3 available)&#10;  url_launcher_windows 3.1.4 (3.1.5 available)&#10;  vector_math 2.2.0 (2.3.0 available)&#10;  vm_service 15.0.0 (15.2.0 available)&#10;  watcher 1.1.1 (1.2.1 available)&#10;  win32 5.13.0 (6.3.0 available)&#10;  win32_registry 2.1.0 (3.0.3 available)&#10;  xml 6.5.0 (7.0.1 available)&#10;  yaml_edit 2.2.2 (2.2.4 available)&#10;  youtube_player_flutter 9.1.1 (9.1.3 available)&#10;Changed 2 dependencies!&#10;143 packages have newer versions incompatible with dependency constraints.&#10;Try `flutter pub outdated` for more information.&#10;Running Gradle task 'bundleRelease'...                          &#10;&#10;FAILURE: Build failed with an exception.&#10;&#10;* Where:&#10;Settings file '/Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/android/settings.gradle' line: 21&#10;&#10;* What went wrong:&#10;Error resolving plugin [id: 'dev.flutter.flutter-plugin-loader', version: '1.0.0']&#10;&gt; Included build '/sdks/flutter/packages/flutter_tools/gradle' does not exist.&#10;&#10;* Try:&#10;&gt; Run with --stacktrace option to get the stack trace.&#10;&gt; Run with --info or --debug option to get more log output.&#10;&gt; Run with --scan to get full insights.&#10;&gt; Get more help at https://help.gradle.org.&#10;&#10;BUILD FAILED in 2s&#10;Running Gradle task 'bundleRelease'...                              3.0s&#10;Gradle task bundleRelease failed with exit code 1&#10;" />
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="09: upload_to_play_store" time="124.688659">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="10: Switch to android tag_release lane" time="0.000365">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="11: git tag v1.1.41-175" time="0.049928">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="12: Switch to android production lane" time="0.000133">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="13: Switch to android resolve_play_store_json_key lane" time="0.000111">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="14: Switch to android load_root_env lane" time="9.1e-05">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="15: upload_to_play_store" time="6.670768">
         
       </testcase>
     

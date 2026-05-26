@@ -33,10 +33,17 @@ def resolvedNdkVersion = localProperties.getProperty('android.ndkVersion')
 if (resolvedNdkVersion == null || resolvedNdkVersion.trim().isEmpty()) {
     resolvedNdkVersion = localProperties.getProperty('flutter.ndkVersion')
 }
+if (resolvedNdkVersion == null || resolvedNdkVersion.trim().isEmpty()) {
+    resolvedNdkVersion = '28.2.13676358'
+}
+
+def flutterCompileSdkVersion = (localProperties.getProperty('flutter.compileSdkVersion') ?: '36').toInteger()
+def flutterMinSdkVersion = (localProperties.getProperty('flutter.minSdkVersion') ?: '25').toInteger()
+def flutterTargetSdkVersion = (localProperties.getProperty('flutter.targetSdkVersion') ?: '36').toInteger()
 
 android {
     namespace "com.mohsinsapra.drivetest"
-    compileSdk localProperties.getProperty('flutter.compileSdkVersion').toInteger()
+    compileSdk flutterCompileSdkVersion
     ndkVersion resolvedNdkVersion
     lintOptions {
         checkReleaseBuilds false
@@ -73,8 +80,8 @@ android {
         applicationId "com.mohsinsapra.drivetest"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion localProperties.getProperty('flutter.minSdkVersion').toInteger()
-        targetSdkVersion localProperties.getProperty('flutter.targetSdkVersion').toInteger()
+        minSdkVersion flutterMinSdkVersion
+        targetSdkVersion flutterTargetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
