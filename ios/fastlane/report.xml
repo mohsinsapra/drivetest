@@ -5,62 +5,62 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="00: default_platform" time="0.000238">
+      <testcase classname="fastlane.lanes" name="00: default_platform" time="0.000624">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="01: Switch to ios build lane" time="0.000109">
+      <testcase classname="fastlane.lanes" name="01: Switch to ios build lane" time="0.00014">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="02: get_provisioning_profile" time="4.44645">
+      <testcase classname="fastlane.lanes" name="02: get_provisioning_profile" time="4.423836">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="03: Switch to ios build_ios_archive lane" time="0.000146">
+      <testcase classname="fastlane.lanes" name="03: Switch to ios build_ios_archive lane" time="0.000125">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="04: Switch to ios resolve_xcode_dart_defines lane" time="7.8e-05">
+      <testcase classname="fastlane.lanes" name="04: Switch to ios resolve_xcode_dart_defines lane" time="0.00014">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="05: Switch to ios load_root_env lane" time="5.3e-05">
+      <testcase classname="fastlane.lanes" name="05: Switch to ios load_root_env lane" time="0.000121">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="06: build_app" time="260.326554">
+      <testcase classname="fastlane.lanes" name="06: build_app" time="198.787637">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="07: Switch to ios tag_release lane" time="0.000319">
+      <testcase classname="fastlane.lanes" name="07: Switch to ios tag_release lane" time="0.00012">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="08: git tag v1.1.34-232" time="0.084561">
+      <testcase classname="fastlane.lanes" name="08: git tag v1.1.35-233" time="0.019788">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="09: Switch to ios upload lane" time="0.000109">
+      <testcase classname="fastlane.lanes" name="09: Switch to ios upload lane" time="8.8e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="10: Switch to ios get_latest_changelog_entry lane" time="7.3e-05">
+      <testcase classname="fastlane.lanes" name="10: Switch to ios get_latest_changelog_entry lane" time="5.9e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="11: upload_to_testflight" time="1250.79001">
+      <testcase classname="fastlane.lanes" name="11: upload_to_testflight" time="443.452046">
         
       </testcase>
     

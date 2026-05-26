@@ -337,14 +337,14 @@ _web-build-docker:
 ## _android-build-docker: Build Android app bundle inside Docker (isolated, parallel-safe)
 _android-build-docker:
 	@echo "$(COLOR_GREEN)Building Android app bundle in Docker...$(COLOR_RESET)"
-	@printf 'org.gradle.jvmargs=-Xmx2g -Dorg.gradle.daemon=false -Djdk.lang.Process.launchMechanism=posix_spawn\nandroid.useAndroidX=true\nandroid.enableJetifier=true\n' > /tmp/docker-gradle.properties
+	@mkdir -p /tmp/flutter-android-engine-cache
 	@docker run --rm \
 		-v $(shell pwd):/app \
 		-v /tmp/flutter-android-dart-tool:/app/.dart_tool \
-		-v /tmp/docker-gradle.properties:/app/android/gradle.properties:ro \
+		-v /tmp/flutter-android-engine-cache:/sdks/flutter/bin/cache/artifacts/engine \
 		-w /app \
 		$(FLUTTER_DOCKER_IMAGE) \
-		sh -c "flutter pub get && flutter build appbundle --release \
+		sh -c "flutter precache --android && flutter pub get && flutter build appbundle --release \
 			--dart-define=FIREBASE_API_KEY='$(FIREBASE_API_KEY)' \
 			--dart-define=FIREBASE_AUTH_DOMAIN='$(FIREBASE_AUTH_DOMAIN)' \
 			--dart-define=FIREBASE_PROJECT_ID='$(FIREBASE_PROJECT_ID)' \
