@@ -337,11 +337,12 @@ _web-build-docker:
 ## _android-build-docker: Build Android app bundle inside Docker (isolated, parallel-safe)
 _android-build-docker:
 	@echo "$(COLOR_GREEN)Building Android app bundle in Docker...$(COLOR_RESET)"
-	@mkdir -p /tmp/flutter-android-engine-cache
+	@mkdir -p /tmp/flutter-android-engine-cache /tmp/android-sdk-platforms
 	@docker run --rm \
 		-v $(shell pwd):/app \
 		-v /tmp/flutter-android-dart-tool:/app/.dart_tool \
 		-v /tmp/flutter-android-engine-cache:/sdks/flutter/bin/cache/artifacts/engine \
+		-v /tmp/android-sdk-platforms:/opt/android-sdk-linux/platforms \
 		-w /app \
 		$(FLUTTER_DOCKER_IMAGE) \
 		sh -c "flutter precache --android && flutter pub get && flutter build appbundle --release \
