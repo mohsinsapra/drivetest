@@ -339,6 +339,7 @@ _android-build-docker:
 	@echo "$(COLOR_GREEN)Building Android app bundle in Docker...$(COLOR_RESET)"
 	@mkdir -p /tmp/flutter-android-engine-cache /tmp/android-sdk-platforms
 	@docker run --rm \
+		--memory=4g --memory-swap=4g \
 		-v $(shell pwd):/app \
 		-v /tmp/flutter-android-dart-tool:/app/.dart_tool \
 		-v /tmp/flutter-android-engine-cache:/sdks/flutter/bin/cache/artifacts/engine \

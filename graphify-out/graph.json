@@ -1196,9 +1196,9 @@
       "file_type": "rationale",
       "source_file": "scripts/ensure_changelog.py",
       "source_location": "L19",
-      "id": "scripts_ensure_changelog_rationale_19",
       "community": 32,
-      "norm_label": "return true if ### <section> in *body* has at least one non-empty bullet."
+      "norm_label": "return true if ### <section> in *body* has at least one non-empty bullet.",
+      "id": "scripts_ensure_changelog_rationale_19"
     },
     {
       "label": "update_version.rb",
