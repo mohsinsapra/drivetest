@@ -124,21 +124,49 @@ platform :ios do
     if File.exist?(changelog_path)
       changelog_content = File.read(changelog_path)
 
-      # Extract the latest version entry (after Unreleased section)
-      match = changelog_content.match(/## \[\d+\.\d+\.\d+\+\d+\].*?\n\n(.*?)(?=\n---|\z)/m)
+      # Extract the first versioned release body (skips [Unreleased])
+      match = changelog_content.match(/## \[\d+\.\d+\.\d+\+\d+\][^\n]*\n(.*?)(?=\n## |\z)/m)
 
       if match
-        # Clean up the changelog text
-        changelog_text = match[1]
-          .gsub(/^### /, '')  # Remove heading markers
-          .gsub(/^- /, '• ')  # Convert markdown lists to bullets
-          .strip
+        body = match[1]
+        sections = []
+
+        ["Added", "Changed", "Fixed"].each do |section|
+          sec_match = body.match(/### #{section}\n(.*?)(?=\n### |\n---|\z)/m)
+          next unless sec_match
+
+          bullets = sec_match[1]
+            .split("\n")
+            .map(&:strip)
+            .select { |line| line.match?(/^-\s+\S/) }
+            .map do |line|
+              text = line.sub(/^-\s+/, "")
+              # Strip markdown: **bold**, *italic*, _italic_, `code`, [text](url)
+              text = text.gsub(/\*\*(.+?)\*\*/, '\1')
+              text = text.gsub(/\*(.+?)\*/, '\1')
+              text = text.gsub(/_(.+?)_/, '\1')
+              text = text.gsub(/`(.+?)`/, '\1')
+              text = text.gsub(/\[([^\]]+)\]\([^)]+\)/, '\1')
+              "- #{text.strip}"
+            end
+
+          next if bullets.empty?
+
+          sections << "#{section}:\n#{bullets.join("\n")}"
+        end
+
+        changelog_text = sections.join("\n\n").strip
       end
     end
 
     # Fallback to commit message if no changelog found
     if changelog_text.empty?
       changelog_text = sh("git log -1 --pretty=%B").strip
+    end
+
+    # TestFlight limit: 4000 characters
+    if changelog_text.length > 4000
+      changelog_text = changelog_text[0...3997] + "..."
     end
 
     changelog_text

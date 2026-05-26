@@ -10,42 +10,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Preload question images (question images, tab images, option images) for the next 2 questions in the background so users see no lag when swiping forward
 
 ### Changed
-- Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
 ### Fixed
--
 
 ---
 
 ## [1.1.35+233] - 2026-05-26
 
 ### Added
--
+- Preload question images (question images, tab images, option images) for the next 2 questions in the background so users see no lag when swiping forward
 
 ### Changed
--
+- Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
-### Fixed
--
-
----
 ---
 
 ## [1.1.34+232] - 2026-05-26
 
 ### Added
--
+- **Question tabs**: BCD test questions now support tabbed reference images (e.g. "Lokalkartan", "Teckenförklaring") — each tab can contain multiple images, viewable in the fullscreen image viewer
+- **Tab translations**: fallback tab label translated into English ("Tab") and Swedish ("Flik")
 
 ### Changed
--
+- **Question image fix**: deactivated 60 broken BCD question images (Supabase-deleted); questions with tabs no longer show redundant regular images
+- Tabs render above answer options so reference material is visible before answering
 
 ### Fixed
--
+- Empty tabs (containing only dead motortrafikskola.se images) are now filtered out server-side and never sent to the app
 
----
 ---
 
 ## [1.1.33+231] - 2026-05-25

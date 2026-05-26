@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core
+.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -384,6 +384,7 @@ _web-deploy-core: _web-build-core
 
 ## web-deploy: Bump patch, commit, then deploy web
 web-deploy: check
+	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _web-deploy-core
@@ -462,6 +463,11 @@ version-major:
 	@echo "$(COLOR_GREEN)Bumping major version...$(COLOR_RESET)"
 	@cd scripts && ruby update_version.rb major
 
+## _ensure-changelog: Fill empty [Unreleased] sections from the most recent release that has data
+_ensure-changelog:
+	@echo "$(COLOR_BLUE)Checking [Unreleased] changelog sections...$(COLOR_RESET)"
+	@python3 scripts/ensure_changelog.py
+
 ## _bump-version: Bump version using BUMP= (fix|patch|minor|major). Defaults to patch.
 _bump-version:
 	$(eval BUMP_TYPE := $(if $(filter fix,$(BUMP)),patch,$(BUMP)))
@@ -472,6 +478,7 @@ web-android-deploy: check web-build android-beta
 
 ## android-beta: Bump patch, commit, then deploy Android to alpha
 android-beta: check
+	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _android-beta-core
@@ -479,6 +486,7 @@ android-beta: check
 
 ## android-deploy: Bump patch, commit, then deploy Android to alpha + production
 android-deploy: check
+	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _android-deploy-core
@@ -489,6 +497,7 @@ _web-android-sequence: _web-deploy-core _android-deploy-core
 
 ## release-all: Bump version, commit, then deploy web + Android production
 release-all: check
+	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _web-android-sequence
@@ -496,6 +505,7 @@ release-all: check
 
 ## deploy-web-android: Bump version, commit, then deploy web + Android
 deploy-web-android: check
+	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _web-android-sequence
@@ -504,6 +514,7 @@ deploy-web-android: check
 ## deploy-all: Bump version, commit, then deploy web + Android + iOS all in parallel via Docker
 ## Docker isolates .dart_tool per platform so all three builds run concurrently
 deploy-all: check
+	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@gmake -s -j3 _web-deploy-docker-core _android-deploy-docker-core _ios-beta-core
@@ -518,6 +529,7 @@ _ios-beta-core:
 
 ## ios-beta: Bump patch, commit, then deploy iOS to TestFlight
 ios-beta: check
+	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _ios-beta-core
