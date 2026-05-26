@@ -103,7 +103,8 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
   }
 
   List<String> _extractImgSrcs(String html) {
-    final imgRegex = RegExp(r'''<img[^>]+src=['"]([^'"]+)['"]''', caseSensitive: false);
+    final imgRegex =
+        RegExp(r'''<img[^>]+src=['"]([^'"]+)['"]''', caseSensitive: false);
     return imgRegex
         .allMatches(html)
         .map((m) => m.group(1) ?? '')
@@ -114,7 +115,8 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
   String _parseTabText(String raw) {
     if (raw.trim().isEmpty) return '';
     // Replace <br> variants with newlines before stripping tags
-    String text = raw.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    String text =
+        raw.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
     // Strip all HTML tags (including <img>)
     text = text.replaceAll(RegExp(r'<[^>]+>'), '');
     // Decode HTML entities
@@ -130,13 +132,31 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
     s = s.replaceAllMapped(RegExp(r'&#(\d+);'),
         (m) => String.fromCharCode(int.parse(m.group(1)!)));
     const map = {
-      '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"',
-      '&#39;': "'", '&apos;': "'", '&nbsp;': ' ',
-      '&auml;': 'ä', '&Auml;': 'Ä', '&ouml;': 'ö', '&Ouml;': 'Ö',
-      '&aring;': 'å', '&Aring;': 'Å', '&eacute;': 'é', '&egrave;': 'è',
-      '&aacute;': 'á', '&agrave;': 'à', '&uuml;': 'ü', '&Uuml;': 'Ü',
-      '&mdash;': '—', '&ndash;': '–', '&hellip;': '…',
-      '&laquo;': '«', '&raquo;': '»', '&copy;': '©',
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&apos;': "'",
+      '&nbsp;': ' ',
+      '&auml;': 'ä',
+      '&Auml;': 'Ä',
+      '&ouml;': 'ö',
+      '&Ouml;': 'Ö',
+      '&aring;': 'å',
+      '&Aring;': 'Å',
+      '&eacute;': 'é',
+      '&egrave;': 'è',
+      '&aacute;': 'á',
+      '&agrave;': 'à',
+      '&uuml;': 'ü',
+      '&Uuml;': 'Ü',
+      '&mdash;': '—',
+      '&ndash;': '–',
+      '&hellip;': '…',
+      '&laquo;': '«',
+      '&raquo;': '»',
+      '&copy;': '©',
     };
     for (final e in map.entries) {
       s = s.replaceAll(e.key, e.value);
@@ -167,13 +187,19 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
                 children: [
                   Icon(Icons.image_not_supported_outlined,
                       size: 32,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.4)),
                   const SizedBox(height: 6),
                   Text(
                     'Bild ej tillgänglig',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.4),
                     ),
                   ),
                 ],
