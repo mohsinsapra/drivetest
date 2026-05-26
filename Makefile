@@ -513,13 +513,13 @@ deploy-web-android: check
 	@$(MAKE) -s _web-android-sequence
 	@$(MAKE) -s _commit-and-push
 
-## deploy-all: Bump version, commit, then deploy web + Android + iOS all in parallel via Docker
-## Docker isolates .dart_tool per platform so all three builds run concurrently
+## deploy-all: Bump version, commit, then deploy web + Android + iOS all in parallel
+## Web runs in Docker (isolated .dart_tool), Android + iOS run locally in parallel
 deploy-all: check
 	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
-	@gmake -s -j3 _web-deploy-docker-core _android-deploy-docker-core _ios-beta-core
+	@gmake -s -j3 _web-deploy-docker-core _android-deploy-core _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)
