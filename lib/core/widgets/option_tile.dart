@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'tts_button.dart'; // ⬅️ update path if needed
 
@@ -203,36 +204,27 @@ class Option extends StatelessWidget {
                     margin: EdgeInsets.only(top: 10 * s),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        imageUrl!,
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl!,
                         width: double.infinity,
                         height: 110 * s,
                         fit: BoxFit.cover,
-                        loadingBuilder: (c, child, progress) {
-                          if (progress == null) return child;
-                          return Container(
-                            width: double.infinity,
-                            height: 110 * s,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(8),
+                        placeholder: (c, _) => Container(
+                          width: double.infinity,
+                          height: 110 * s,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
-                            child: Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  value: progress.expectedTotalBytes != null
-                                      ? progress.cumulativeBytesLoaded /
-                                          progress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (c, _, __) => Container(
+                          ),
+                        ),
+                        errorWidget: (c, _, __) => Container(
                           width: double.infinity,
                           height: 110 * s,
                           decoration: BoxDecoration(

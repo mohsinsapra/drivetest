@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
@@ -179,6 +180,12 @@ class _TestscreenState extends State<Testscreen> {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _checkAndShowTutorial());
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preloadImagesForQuestion(currentQuestionIndex);
+      _preloadImagesForQuestion(currentQuestionIndex + 1);
+      _preloadImagesForQuestion(currentQuestionIndex + 2);
+    });
   }
 
   Future<void> _checkAndShowTutorial() async {
@@ -451,6 +458,27 @@ class _TestscreenState extends State<Testscreen> {
     if (mounted) setState(() => _savedQuestionIds = remoteIds);
   }
 
+  void _preloadImagesForQuestion(int index) {
+    if (!mounted) return;
+    if (index < 0 || index >= widget.questions.length) return;
+    final q = widget.questions[index];
+
+    final urls = <String>[
+      if (q.images.isNotEmpty)
+        ...q.images
+      else if (q.imageUrl.isNotEmpty)
+        _apiService.fetchImage(widget.licenceId, widget.categoryId, q.imageUrl),
+      for (final tab in q.tabs) ...tab.images,
+      for (final opt in q.options)
+        if (opt.imageUrl.isNotEmpty) opt.imageUrl,
+    ];
+
+    for (final url in urls) {
+      if (url.isEmpty) continue;
+      precacheImage(CachedNetworkImageProvider(url), context);
+    }
+  }
+
   void _startTimer() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
@@ -507,7 +535,7 @@ class _TestscreenState extends State<Testscreen> {
         borderRadius: BorderRadius.circular(8),
         child: GestureDetector(
           onTap: () => showImageViewer(context, url),
-          child: Image.network(url, fit: BoxFit.cover),
+          child: CachedNetworkImage(imageUrl: url, fit: BoxFit.cover),
         ),
       ),
     );
@@ -560,7 +588,7 @@ class _TestscreenState extends State<Testscreen> {
                   maxHeight: mq.size.height * 0.32,
                   maxWidth: mq.size.width * 0.9,
                 ),
-                child: Image.network(url, fit: BoxFit.contain),
+                child: CachedNetworkImage(imageUrl: url, fit: BoxFit.contain),
               ),
             ),
           ),
@@ -589,6 +617,8 @@ class _TestscreenState extends State<Testscreen> {
     });
     ttsService.flutterTts.stop();
     ttsService.ttsState = TtsState.stopped;
+    _preloadImagesForQuestion(index + 1);
+    _preloadImagesForQuestion(index + 2);
     if (_tutorialPhase3aActive && index > prevIndex) {
       // Swiped left — show "now swipe right" card.
       Future.delayed(const Duration(milliseconds: 300), _showTutorialPhase3b);

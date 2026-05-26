@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/image_viewer.dart';
@@ -169,13 +170,11 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: GestureDetector(
         onTap: () => showImageViewer(context, url),
-        child: Image.network(
-          url,
+        child: CachedNetworkImage(
+          imageUrl: url,
           fit: BoxFit.contain,
-          loadingBuilder: (_, child, progress) => progress == null
-              ? child
-              : const Center(child: AppLoadingIndicator()),
-          errorBuilder: (_, __, ___) => Container(
+          placeholder: (_, __) => const Center(child: AppLoadingIndicator()),
+          errorWidget: (_, __, ___) => Container(
             height: 120,
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
