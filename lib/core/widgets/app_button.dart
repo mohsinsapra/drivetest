@@ -356,7 +356,7 @@ class AppSocialButton extends StatelessWidget {
     this.iconColor,
   });
 
-  final IconData icon;
+  final FaIconData icon;
   final double iconSize;
   final VoidCallback? onPressed;
   final String? label;
