@@ -86,6 +86,9 @@ platform :ios do
 
     # Tag the release
     tag_release
+
+    # Notify backend that a new production build is live
+    notify_app_update
   end
 
   # Helper methods
@@ -278,5 +281,16 @@ platform :ios do
 
       vars[key.strip] = value.strip
     end
+  end
+
+  private_lane :notify_app_update do
+    backend_url = ENV["BACKEND_URL"].to_s.strip
+    UI.user_error!("Set BACKEND_URL in ios/fastlane/.env") if backend_url.empty?
+
+    api_key = ENV["NOTIFY_API_KEY"].to_s.strip
+    UI.user_error!("Set NOTIFY_API_KEY in ios/fastlane/.env") if api_key.empty?
+
+    sh("curl -s -f -X POST '#{backend_url}/api/v2/notify-update/' -H 'X-Api-Key: #{api_key}'")
+    UI.success("App update push notification sent.")
   end
 end
