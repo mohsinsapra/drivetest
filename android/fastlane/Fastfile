@@ -259,13 +259,20 @@ end
   end
 
   private_lane :notify_app_update do
+    require "net/http"
+    require "uri"
+
     backend_url = ENV["BACKEND_URL"].to_s.strip
-    UI.user_error!("Set BACKEND_URL in android/fastlane/.env") if backend_url.empty?
+    UI.user_error!("Set BACKEND_URL in the root .env") if backend_url.empty?
 
     api_key = ENV["NOTIFY_API_KEY"].to_s.strip
-    UI.user_error!("Set NOTIFY_API_KEY in android/fastlane/.env") if api_key.empty?
+    UI.user_error!("Set NOTIFY_API_KEY in the root .env") if api_key.empty?
 
-    sh("curl -s -f -X POST '#{backend_url}/api/v2/notify-update/' -H 'X-Api-Key: #{api_key}'")
+    uri = URI("#{backend_url}/api/v2/notify-update/")
+    req = Net::HTTP::Post.new(uri)
+    req["X-Api-Key"] = api_key
+    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") { |h| h.request(req) }
+    UI.user_error!("notify-update failed: HTTP #{res.code}") unless res.is_a?(Net::HTTPSuccess)
     UI.success("App update push notification sent.")
   end
 
