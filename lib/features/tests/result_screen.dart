@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/services/app_review_service.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -54,6 +55,7 @@ class _ResultScreenState extends State<ResultScreen>
       CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic),
     );
     _ctrl.forward();
+    AppReviewService.instance.maybeRequestAfterExam();
   }
 
   @override

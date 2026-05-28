@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog
+.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog _notify-app-update
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -478,6 +478,18 @@ _ensure-changelog:
 	@echo "$(COLOR_BLUE)Checking [Unreleased] changelog sections...$(COLOR_RESET)"
 	@python3 scripts/ensure_changelog.py
 
+## _notify-app-update: Send push notification to all users about the new app version
+_notify-app-update:
+	@if [ -z "$(BACKEND_URL)" ] || [ -z "$(NOTIFY_API_KEY)" ]; then \
+		echo "$(COLOR_YELLOW)⚠️  Skipping notify-update — BACKEND_URL or NOTIFY_API_KEY not set$(COLOR_RESET)"; \
+	else \
+		echo "$(COLOR_GREEN)Sending app update push notification...$(COLOR_RESET)"; \
+		curl -sf -X POST "$(BACKEND_URL)/api/v2/notify-update/" \
+			-H "X-Api-Key: $(NOTIFY_API_KEY)" \
+			&& echo "$(COLOR_GREEN)✅ Push notification sent.$(COLOR_RESET)" \
+			|| echo "$(COLOR_YELLOW)⚠️  notify-update request failed (non-fatal).$(COLOR_RESET)"; \
+	fi
+
 ## _bump-version: Bump version using BUMP= (fix|patch|minor|major). Defaults to patch.
 _bump-version:
 	$(eval BUMP_TYPE := $(if $(filter fix,$(BUMP)),patch,$(BUMP)))
@@ -501,6 +513,7 @@ android-deploy: check
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _android-deploy-core
 	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _notify-app-update
 
 ## _web-android-sequence: Internal — web then Android sequentially (share Flutter .dart_tool cache)
 _web-android-sequence: _web-deploy-core _android-deploy-core
@@ -529,6 +542,7 @@ deploy-all: check
 	@$(MAKE) -s _commit-before-build
 	@gmake -s -j3 _web-deploy-docker-core _android-deploy-core _ios-beta-core
 	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _notify-app-update
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)
 _ios-beta-core:

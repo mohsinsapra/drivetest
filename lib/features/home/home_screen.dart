@@ -23,6 +23,7 @@ import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/features/notifications/notifications_screen.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:taxi_exam_app/main_screen.dart';
+import 'package:upgrader/upgrader.dart';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen>
   late final VoidCallback _tabListener;
   MainScreenProvider? _mainScreenProvider;
 
+  late final Upgrader _upgrader;
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
 
@@ -75,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    _upgrader = Upgrader();
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -278,7 +281,14 @@ class _HomeScreenState extends State<HomeScreen>
         _stats['licenceWithCategories'] ?? {});
     final licenceNames = licenceWithCategories.keys.toList();
 
-    return Scaffold(
+    return UpgradeAlert(
+      upgrader: _upgrader,
+      dialogStyle: defaultTargetPlatform == TargetPlatform.iOS
+          ? UpgradeDialogStyle.cupertino
+          : UpgradeDialogStyle.material,
+      showIgnore: false,
+      showLater: true,
+      child: Scaffold(
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 450),
         transitionBuilder: (child, animation) => FadeTransition(
@@ -375,6 +385,7 @@ class _HomeScreenState extends State<HomeScreen>
                 }),
               ),
       ),
+    ),
     );
   }
 

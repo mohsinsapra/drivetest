@@ -93,8 +93,6 @@ platform :android do
       json_key_data: resolve_play_store_json_key
     )
 
-    # Notify backend that a new production build is live
-    notify_app_update
   end
 
   desc "promote from internal to alpha"
@@ -256,24 +254,6 @@ end
 
       vars[key.strip] = value.strip
     end
-  end
-
-  private_lane :notify_app_update do
-    require "net/http"
-    require "uri"
-
-    backend_url = ENV["BACKEND_URL"].to_s.strip
-    UI.user_error!("Set BACKEND_URL in the root .env") if backend_url.empty?
-
-    api_key = ENV["NOTIFY_API_KEY"].to_s.strip
-    UI.user_error!("Set NOTIFY_API_KEY in the root .env") if api_key.empty?
-
-    uri = URI("#{backend_url}/api/v2/notify-update/")
-    req = Net::HTTP::Post.new(uri)
-    req["X-Api-Key"] = api_key
-    res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") { |h| h.request(req) }
-    UI.user_error!("notify-update failed: HTTP #{res.code}") unless res.is_a?(Net::HTTPSuccess)
-    UI.success("App update push notification sent.")
   end
 
   private_lane :tag_release do |options|

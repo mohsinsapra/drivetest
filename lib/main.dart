@@ -14,7 +14,6 @@ import 'package:taxi_exam_app/features/splash/splash_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:taxi_exam_app/main_screen.dart';
-import 'package:upgrader/upgrader.dart';
 import 'package:clarity_flutter/clarity_flutter.dart';
 import 'package:clarity_web/clarity_web.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -481,11 +480,7 @@ class _MyAppState extends State<MyApp> {
       darkTheme: buildDarkTheme(fontProvider.fontFamily),
       themeMode: themeProvider.themeMode,
       debugShowCheckedModeBanner: false,
-      home: UpgradeAlert(
-        showIgnore: false,
-        showLater: true,
-        child: const SplashScreen(),
-      ),
+      home: const SplashScreen(),
     );
   }
 }

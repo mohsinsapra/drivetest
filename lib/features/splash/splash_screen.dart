@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
@@ -11,6 +12,7 @@ import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/features/consent/gdpr_consent_sheet.dart';
 import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
+import 'package:taxi_exam_app/core/services/app_review_service.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -120,6 +122,8 @@ class _SplashScreenState extends State<SplashScreen>
       final prefs = results[0] as SharedPreferences;
       onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
     } catch (_) {}
+
+    unawaited(AppReviewService.instance.recordOpenAndMaybeRequest());
 
     final hasTokens =
         DioClient().refreshToken != null && DioClient().accessToken != null;

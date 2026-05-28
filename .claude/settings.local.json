@@ -308,7 +308,9 @@
       "Bash(gmake --version)",
       "Bash(docker image ls *)",
       "Bash(make _web-build-docker)",
-      "Bash(make _android-build-docker)"
+      "Bash(make _android-build-docker)",
+      "Bash(grep -n \"_ensure-changelog\\\\|^$\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/Makefile)",
+      "WebFetch(domain:pub.dev)"
     ],
     "deny": [],
     "ask": []
