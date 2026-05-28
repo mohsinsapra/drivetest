@@ -3,7 +3,6 @@ import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async'; // Import for TimeoutException
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +36,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
   int timerMinutes = 10;
   bool includeSavedQuestions = false;
   bool randomize = true;
-  bool shuffleOnDevice = false;
+  bool shuffleOnDevice = true;
   final ApiService _apiService = ApiService();
 
   late TextEditingController _numberOfQuestionsController;
@@ -65,7 +64,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
       numberOfQuestions = prefs.getInt('numberOfQuestions') ?? 10;
       timerMinutes = prefs.getInt('timerMinutes') ?? numberOfQuestions;
       randomize = prefs.getBool('randomize') ?? true;
-      shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
+      shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? true;
       _numberOfQuestionsController.text = numberOfQuestions.toString();
       _timerMinutesController.text = timerMinutes.toString();
     });
@@ -174,10 +173,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
         return;
       }
 
-      // Shuffle on device after fetching (independent of backend randomization)
-      if (shuffleOnDevice) {
-        fetchedQuestions.shuffle(Random());
-      }
+
     } on TimeoutException catch (_) {
       if (_isLoadingDialogDisplayed && mounted) {
         Navigator.pop(context);

@@ -30,7 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool isInstantMarking = false;
   bool includeSavedQuestions = false;
   bool randomize = true;
-  bool shuffleOnDevice = false;
+  bool shuffleOnDevice = true;
   int numberOfQuestions = 10;
   int maxQuestions = 1000;
   VersionInfo? _versionInfo;
@@ -170,7 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       isInstantMarking = prefs.getBool('isInstantMarking') ?? false;
       includeSavedQuestions = prefs.getBool('includeSavedQuestions') ?? false;
       randomize = prefs.getBool('randomize') ?? true;
-      shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? false;
+      shuffleOnDevice = prefs.getBool('shuffleOnDevice') ?? true;
       numberOfQuestions = prefs.getInt('numberOfQuestions') ?? 10;
       _numberOfQuestionsController.text = numberOfQuestions.toString();
     });

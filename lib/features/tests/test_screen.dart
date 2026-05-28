@@ -3,6 +3,7 @@ import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -175,6 +176,7 @@ class _TestscreenState extends State<Testscreen> {
     _loadSavedQuestionIds();
     // Pre-open the Hive box so saves never hang waiting for it to open
     AppStorage.testAttemptsBox();
+    if (!widget.isReviewMode) _applyShuffleIfEnabled();
 
     if (!widget.isReviewMode) {
       WidgetsBinding.instance
@@ -186,6 +188,14 @@ class _TestscreenState extends State<Testscreen> {
       _preloadImagesForQuestion(currentQuestionIndex + 1);
       _preloadImagesForQuestion(currentQuestionIndex + 2);
     });
+  }
+
+  Future<void> _applyShuffleIfEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    if ((prefs.getBool('shuffleOnDevice') ?? true) && mounted) {
+      widget.questions.shuffle(Random());
+      setState(() {});
+    }
   }
 
   Future<void> _checkAndShowTutorial() async {

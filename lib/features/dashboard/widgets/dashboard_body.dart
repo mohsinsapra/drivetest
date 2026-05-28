@@ -9,6 +9,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_text_utils.dart';
+import 'package:taxi_exam_app/features/gamification/widgets/journey_dashboard_card.dart';
 import 'package:translator/translator.dart';
 import '../models/dashboard_stats.dart';
 import '../models/exam_node.dart';
@@ -147,6 +148,12 @@ class _DashboardBodyState extends State<DashboardBody> {
         else if (showShimmer)
           SliverToBoxAdapter(
             child: _PerformanceShimmer(provider: widget.provider),
+          ),
+
+        // Journey quick-access card (BCD exams only)
+        if (stats != null && stats.exam.isBcd)
+          SliverToBoxAdapter(
+            child: JourneyDashboardCard(exam: stats.exam),
           ),
 
         // Checklist section — BCD exams only, collapsible
