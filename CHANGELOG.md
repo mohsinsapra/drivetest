@@ -20,6 +20,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.45+243] - 2026-05-29
+
+### Added
+- Push notification sent to all users when a new app version is deployed (`make deploy-all` / `make android-deploy` / `fastlane ios production`)
+- In-app update dialog on the dashboard shown once per new version after login (platform-appropriate style: Cupertino on iOS, Material on Android)
+
+### Changed
+- Updated 20 packages to latest compatible patch/minor versions (firebase, sentry, dio, stripe, google_fonts, and others)
+
+### Fixed
+- Lucide icons now render correctly — font was missing from local package override
+- `CacheKeyBuilder` lambda updated for `dio_cache_interceptor` 4.0.6 (`Object? body` parameter added to match new typedef)
+
+---
+---
+---
+
 ## [1.1.44+242] - 2026-05-29
 
 ### Added
