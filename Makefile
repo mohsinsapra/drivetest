@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog _notify-app-update
+.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-all-docker deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog _notify-app-update
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -95,7 +95,8 @@ help:
 	@echo "$(COLOR_GREEN)Mobile Deployment:$(COLOR_RESET)"
 	@echo "  make android-beta     - Deploy Android to Google Play alpha"
 	@echo "  make android-deploy   - Deploy Android to alpha, then promote to production"
-	@echo "  make deploy-all       - Deploy web+Android (sequential) in parallel with iOS TestFlight"
+	@echo "  make deploy-all       - Deploy web (local) + Android + iOS in parallel"
+	@echo "  make deploy-all-docker - Deploy web (Docker) + Android + iOS in parallel"
 	@echo "  make deploy-web-android - Deploy web + Android only, single commit"
 	@echo "  make ios-beta         - Deploy iOS to TestFlight"
 	@echo ""
@@ -534,9 +535,18 @@ deploy-web-android: check
 	@$(MAKE) -s _web-android-sequence
 	@$(MAKE) -s _commit-and-push
 
-## deploy-all: Bump version, commit, then deploy web + Android + iOS all in parallel
-## Web runs in Docker (isolated .dart_tool), Android + iOS run locally in parallel
+## deploy-all: Bump version, commit, then deploy web (local) + Android + iOS all in parallel
 deploy-all: check
+	@$(MAKE) -s _ensure-changelog
+	@$(MAKE) -s _bump-version BUMP=$(BUMP)
+	@$(MAKE) -s _commit-before-build
+	@gmake -s -j3 _web-deploy-core _android-deploy-core _ios-beta-core
+	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _notify-app-update
+
+## deploy-all-docker: Bump version, commit, then deploy web (Docker) + Android + iOS all in parallel
+## Web runs in Docker (isolated .dart_tool), Android + iOS run locally in parallel
+deploy-all-docker: check
 	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
