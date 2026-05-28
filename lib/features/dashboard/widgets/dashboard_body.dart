@@ -149,7 +149,6 @@ class _DashboardBodyState extends State<DashboardBody> {
             child: _PerformanceShimmer(provider: widget.provider),
           ),
 
-
         // Checklist section — BCD exams only, collapsible
         if (stats != null &&
             stats.exam.isBcd &&

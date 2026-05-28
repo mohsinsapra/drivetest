@@ -172,8 +172,6 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
         showAppSnackBar('No questions available.');
         return;
       }
-
-
     } on TimeoutException catch (_) {
       if (_isLoadingDialogDisplayed && mounted) {
         Navigator.pop(context);

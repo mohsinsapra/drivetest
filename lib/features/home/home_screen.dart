@@ -289,103 +289,107 @@ class _HomeScreenState extends State<HomeScreen>
       showIgnore: false,
       showLater: true,
       child: Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 450),
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position:
-                Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero)
-                    .animate(CurvedAnimation(
-                        parent: animation, curve: Curves.easeOutCubic)),
-            child: child,
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 450),
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position:
+                  Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero)
+                      .animate(CurvedAnimation(
+                          parent: animation, curve: Curves.easeOutCubic)),
+              child: child,
+            ),
           ),
-        ),
-        child: _isLoading
-            ? _buildSkeleton() // show shimmer immediately, no translation needed
-            : SafeArea(
-                child: Builder(builder: (context) {
-                  final useCupertino = !kIsWeb
-                      ? Theme.of(context).platform == TargetPlatform.iOS
-                      : true;
+          child: _isLoading
+              ? _buildSkeleton() // show shimmer immediately, no translation needed
+              : SafeArea(
+                  child: Builder(builder: (context) {
+                    final useCupertino = !kIsWeb
+                        ? Theme.of(context).platform == TargetPlatform.iOS
+                        : true;
 
-                  Future<void> onRefresh() async {
-                    HomeDataCache.invalidate();
-                    await Future(() => _loadPreviousAttempts(forceSync: true));
-                  }
+                    Future<void> onRefresh() async {
+                      HomeDataCache.invalidate();
+                      await Future(
+                          () => _loadPreviousAttempts(forceSync: true));
+                    }
 
-                  final scrollView = FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: CustomScrollView(
-                      slivers: [
-                        if (useCupertino)
-                          CupertinoSliverRefreshControl(onRefresh: onRefresh),
-                        // Header
-                        SliverToBoxAdapter(child: _buildHeader()),
+                    final scrollView = FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: CustomScrollView(
+                        slivers: [
+                          if (useCupertino)
+                            CupertinoSliverRefreshControl(onRefresh: onRefresh),
+                          // Header
+                          SliverToBoxAdapter(child: _buildHeader()),
 
-                        if (hasData) ...[
-                          // Hero card
-                          SliverToBoxAdapter(
-                              child: _buildHeroCard(avgScore, passed, failed)),
-                          // Quick stats
-                          SliverToBoxAdapter(
-                              child: _buildQuickStats(passed, failed)),
-                          // In progress
-                          if (_pausedAttempts.isNotEmpty)
+                          if (hasData) ...[
+                            // Hero card
+                            SliverToBoxAdapter(
+                                child:
+                                    _buildHeroCard(avgScore, passed, failed)),
+                            // Quick stats
+                            SliverToBoxAdapter(
+                                child: _buildQuickStats(passed, failed)),
+                            // In progress
+                            if (_pausedAttempts.isNotEmpty)
+                              SliverToBoxAdapter(
+                                  child: _buildInProgressSection(t)),
+                            // Licence tabs
+                            if (licenceNames.length > 1)
+                              SliverToBoxAdapter(
+                                  child: _buildLicenceTabs(licenceNames)),
+                            // Charts
+                            SliverToBoxAdapter(
+                                child: _buildChartsSection(
+                                    _dailyCounts, _monthlyCounts, t)),
+                            // Pie chart
+                            if (licenceWithCategories[selectedLicence] != null)
+                              SliverToBoxAdapter(
+                                  child: _buildPieSection(
+                                      licenceWithCategories[selectedLicence]!,
+                                      t)),
+                            // Activity header
+                            SliverToBoxAdapter(
+                                child: _buildSectionHeader(
+                                    t.home_recent_activity,
+                                    '${_selectedAttempts.length} ${t.home_attempts}')),
+                            // Activity list
+                            SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) => _StaggeredItem(
+                                  index: index,
+                                  child: _buildActivityItem(
+                                      _selectedAttempts[index]),
+                                ),
+                                childCount: _selectedAttempts.length,
+                              ),
+                            ),
+                            const SliverToBoxAdapter(
+                                child: SizedBox(height: 110)),
+                          ] else if (_pausedAttempts.isNotEmpty) ...[
                             SliverToBoxAdapter(
                                 child: _buildInProgressSection(t)),
-                          // Licence tabs
-                          if (licenceNames.length > 1)
-                            SliverToBoxAdapter(
-                                child: _buildLicenceTabs(licenceNames)),
-                          // Charts
-                          SliverToBoxAdapter(
-                              child: _buildChartsSection(
-                                  _dailyCounts, _monthlyCounts, t)),
-                          // Pie chart
-                          if (licenceWithCategories[selectedLicence] != null)
-                            SliverToBoxAdapter(
-                                child: _buildPieSection(
-                                    licenceWithCategories[selectedLicence]!,
-                                    t)),
-                          // Activity header
-                          SliverToBoxAdapter(
-                              child: _buildSectionHeader(t.home_recent_activity,
-                                  '${_selectedAttempts.length} ${t.home_attempts}')),
-                          // Activity list
-                          SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) => _StaggeredItem(
-                                index: index,
-                                child: _buildActivityItem(
-                                    _selectedAttempts[index]),
-                              ),
-                              childCount: _selectedAttempts.length,
-                            ),
-                          ),
-                          const SliverToBoxAdapter(
-                              child: SizedBox(height: 110)),
-                        ] else if (_pausedAttempts.isNotEmpty) ...[
-                          SliverToBoxAdapter(child: _buildInProgressSection(t)),
-                          const SliverToBoxAdapter(
-                              child: SizedBox(height: 110)),
-                        ] else ...[
-                          SliverFillRemaining(child: _buildEmptyState(t)),
+                            const SliverToBoxAdapter(
+                                child: SizedBox(height: 110)),
+                          ] else ...[
+                            SliverFillRemaining(child: _buildEmptyState(t)),
+                          ],
                         ],
-                      ],
-                    ),
-                  );
+                      ),
+                    );
 
-                  return useCupertino
-                      ? scrollView
-                      : RefreshIndicator(
-                          onRefresh: onRefresh,
-                          child: scrollView,
-                        );
-                }),
-              ),
+                    return useCupertino
+                        ? scrollView
+                        : RefreshIndicator(
+                            onRefresh: onRefresh,
+                            child: scrollView,
+                          );
+                  }),
+                ),
+        ),
       ),
-    ),
     );
   }
 

@@ -14,7 +14,8 @@ class _FakeReview implements InAppReview {
   Future<void> requestReview() async => requestCount++;
 
   @override
-  Future<void> openStoreListing({String? appStoreId, String? microsoftStoreId}) async {}
+  Future<void> openStoreListing(
+      {String? appStoreId, String? microsoftStoreId}) async {}
 }
 
 void main() {
@@ -109,5 +110,6 @@ class _ThrowingReview implements InAppReview {
   @override
   Future<void> requestReview() async => throw Exception('platform error');
   @override
-  Future<void> openStoreListing({String? appStoreId, String? microsoftStoreId}) async {}
+  Future<void> openStoreListing(
+      {String? appStoreId, String? microsoftStoreId}) async {}
 }

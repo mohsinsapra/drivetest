@@ -130,7 +130,8 @@ class DioClient {
       cipher: null,
       // Custom key builder: include Authorization header so per-user endpoints
       // (e.g. my-subscriptions) are cached separately per user.
-      keyBuilder: ({required Uri url, Map<String, String>? headers, Object? body}) {
+      keyBuilder: (
+          {required Uri url, Map<String, String>? headers, Object? body}) {
         final auth =
             headers?['Authorization'] ?? headers?['authorization'] ?? '';
         final authHash = auth.isNotEmpty ? auth.hashCode.toRadixString(16) : '';
