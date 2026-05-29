@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-all-docker deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog _notify-app-update _prepare-deploy _prepare-flutter-deps _prepare-android-ruby _prepare-ios-ruby _prepare-ios-pods
+.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-all-docker deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog _notify-app-update _prepare-deploy _prepare-flutter-deps _prepare-android-ruby _prepare-ios-ruby _prepare-ios-pods _cleanup-deploy-artifacts
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -456,6 +456,13 @@ _prepare-deploy:
 	@echo "$(COLOR_BLUE)Running deploy preflight in parallel...$(COLOR_RESET)"
 	@gmake -s -j4 _prepare-flutter-deps _prepare-android-ruby _prepare-ios-ruby _prepare-ios-pods
 
+## _cleanup-deploy-artifacts: Keep git working tree clean after deploy commands
+_cleanup-deploy-artifacts:
+	@echo "$(COLOR_BLUE)Cleaning deploy-generated artifacts from working tree...$(COLOR_RESET)"
+	@git restore --worktree --staged android/fastlane/report.xml ios/fastlane/report.xml graphify-out/GRAPH_REPORT.md graphify-out/graph.html graphify-out/graph.json 2>/dev/null || true
+	@git clean -f -- android/fastlane/metadata/android/en-US/changelogs/ 2>/dev/null || true
+	@echo "$(COLOR_GREEN)✅ Deploy artifact cleanup complete.$(COLOR_RESET)"
+
 ## _commit-before-build: Stage all tracked changes + version bump, commit and push before builds start
 ## Runs after check+bump so the repo is clean and green before any build artifacts are generated
 _commit-before-build:
@@ -551,7 +558,7 @@ android-beta: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _android-beta-core
-	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _cleanup-deploy-artifacts
 
 ## android-deploy: Bump patch, commit, then deploy Android to alpha + production
 android-deploy: check
@@ -559,7 +566,7 @@ android-deploy: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _android-deploy-core
-	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _cleanup-deploy-artifacts
 	@$(MAKE) -s _notify-app-update
 
 ## _web-android-sequence: Internal — web then Android sequentially (share Flutter .dart_tool cache)
@@ -571,7 +578,7 @@ release-all: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _web-android-sequence
-	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _cleanup-deploy-artifacts
 
 ## deploy-web-android: Bump version, commit, then deploy web + Android
 deploy-web-android: check
@@ -579,7 +586,7 @@ deploy-web-android: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _web-android-sequence
-	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _cleanup-deploy-artifacts
 
 ## deploy-all: Bump version, commit, then deploy web (local) + Android + iOS all in parallel
 ## Note: no push notification here — iOS is TestFlight only. Notification fires via:
@@ -590,7 +597,7 @@ deploy-all: check
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _prepare-deploy
 	@gmake -s -j3 _web-deploy-core _android-deploy-core _ios-beta-core
-	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _cleanup-deploy-artifacts
 
 ## deploy-all-docker: Bump version, commit, then deploy web (Docker) + Android + iOS all in parallel
 ## Web runs in Docker (isolated .dart_tool), Android + iOS run locally in parallel
@@ -600,7 +607,7 @@ deploy-all-docker: check
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _prepare-deploy
 	@gmake -s -j3 _web-deploy-docker-core _android-deploy-core _ios-beta-core
-	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _cleanup-deploy-artifacts
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)
 _ios-beta-core:
@@ -613,7 +620,7 @@ ios-beta: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _ios-beta-core
-	@$(MAKE) -s _commit-and-push
+	@$(MAKE) -s _cleanup-deploy-artifacts
 
 ## clean: Clean build artifacts
 clean:
