@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
+import 'package:taxi_exam_app/core/api/dio_client.dart';
 
 typedef FetchCurrentUser = Future<void> Function();
 typedef IsAuthenticated = bool Function();
@@ -64,10 +66,16 @@ class SessionValidationService {
   Future<void> _runValidation() async {
     try {
       await fetchCurrentUser();
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      // This service only validates `/self`, so a 401/403 here means
+      // the active session is no longer valid and we must leave dashboard.
+      if (status == 401 || status == 403) {
+        await DioClient().logoutAndRedirect();
+      }
+      return;
     } catch (_) {
       // Network/timeout errors are transient — keep the session alive.
-      // 401s are handled upstream by DioClient (token refresh → logout)
-      // before they reach this point.
       return;
     }
     _lastValidationAt = now();

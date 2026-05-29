@@ -18,3 +18,21 @@ class AppPageRoute<T> extends MaterialPageRoute<T> {
   @override
   Duration get reverseTransitionDuration => const Duration(milliseconds: 180);
 }
+
+/// Snappier auth/session transition used for hard redirects
+/// (e.g. auth -> main, forced logout -> auth).
+class AppQuickFadeRoute<T> extends PageRouteBuilder<T> {
+  AppQuickFadeRoute({
+    required WidgetBuilder builder,
+    super.settings,
+  }) : super(
+          pageBuilder: (context, __, ___) => builder(context),
+          transitionDuration: const Duration(milliseconds: 190),
+          reverseTransitionDuration: const Duration(milliseconds: 160),
+          transitionsBuilder: (_, animation, __, child) => FadeTransition(
+            opacity:
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            child: child,
+          ),
+        );
+}

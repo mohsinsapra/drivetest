@@ -662,6 +662,8 @@
   "error_too_many_requests": "För många försök. Försök igen om {wait}.",
   "error_service_unavailable": "Tjänsten är tillfälligt otillgänglig. Försök igen om en stund.",
   "error_connection_timeout": "Anslutningen tog för lång tid. Kontrollera din anslutning och försök igen.",
+  "error_session_expired": "Din session har gått ut. Logga in igen.",
+  "error_logged_out_other_device": "Du har loggats ut eftersom ditt konto användes på en annan enhet.",
 
   "app_download_title": "Bättre i appen",
   "app_download_subtitle_android": "Ladda ner Drive Test-appen på Google Play för en snabbare och smidigare upplevelse.",

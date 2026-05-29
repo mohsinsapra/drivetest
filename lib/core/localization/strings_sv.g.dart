@@ -1427,6 +1427,11 @@ class TranslationsSv implements Translations {
   String get error_connection_timeout =>
       'Anslutningen tog för lång tid. Kontrollera din anslutning och försök igen.';
   @override
+  String get error_session_expired => 'Din session har gått ut. Logga in igen.';
+  @override
+  String get error_logged_out_other_device =>
+      'Du har loggats ut eftersom ditt konto användes på en annan enhet.';
+  @override
   String get app_download_title => 'Bättre i appen';
   @override
   String get app_download_subtitle_android =>
@@ -2870,6 +2875,10 @@ extension on TranslationsSv {
         return 'Tjänsten är tillfälligt otillgänglig. Försök igen om en stund.';
       case 'error_connection_timeout':
         return 'Anslutningen tog för lång tid. Kontrollera din anslutning och försök igen.';
+      case 'error_session_expired':
+        return 'Din session har gått ut. Logga in igen.';
+      case 'error_logged_out_other_device':
+        return 'Du har loggats ut eftersom ditt konto användes på en annan enhet.';
       case 'app_download_title':
         return 'Bättre i appen';
       case 'app_download_subtitle_android':

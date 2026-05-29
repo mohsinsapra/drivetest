@@ -115,7 +115,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final navigator = Navigator.of(context);
     final afterAuth = widget.onAfterAuth;
     navigator.pushAndRemoveUntil(
-      AppPageRoute(builder: (_) => const MainScreen()),
+      AppQuickFadeRoute(builder: (_) => const MainScreen()),
       (route) => false,
     );
     if (afterAuth != null) {
@@ -902,6 +902,8 @@ class _LandingView extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final t = Translations.of(context);
     final isDark = context.watch<ThemeProvider>().isDark;
+    final isSocialLoading = isGoogleLoading || isAppleLoading;
+    final showGoogleAsLoadingButton = isGoogleLoading || !isAppleLoading;
     final currentLocale = LocaleSettings.currentLocale;
     final currentFlag = currentLocale == AppLocale.sv ? '🇸🇪' : '🇬🇧';
 
@@ -1077,123 +1079,175 @@ class _LandingView extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                       ],
-                      // Platform-adaptive button layout
-                      if (AppleSignInHelper.isAvailable()) ...[
-                        // iOS: Login first, then Apple + Google icon pair
-                        Hero(
-                          tag: 'auth_login_btn',
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(9999),
-                            child: AppButton(
-                              label: Translations.of(context).auth_tab_login,
-                              onPressed: onLogin,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          height: 54,
-                          child: Row(
-                            children: [
-                              AppSocialButton(
-                                icon: FontAwesomeIcons.apple,
-                                iconSize: 22,
-                                iconColor: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? cs.primary
-                                    : cs.onSurface,
-                                loading: isAppleLoading,
-                                onPressed: isGoogleLoading ? null : onApple,
-                              ),
-                              const SizedBox(width: 10),
-                              AppSocialButton(
-                                icon: FontAwesomeIcons.google,
-                                iconSize: 18,
-                                iconColor: const Color(0xFF4285F4),
-                                loading: isGoogleLoading,
-                                loadingLabel: googleLoadingStep.isNotEmpty
-                                    ? googleLoadingStep
-                                    : null,
-                                onPressed: isAppleLoading ? null : onGoogle,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ] else ...[
-                        // Android / Web: Google first, then Login (secondary style)
-                        AppButton(
-                          label: Translations.of(context).auth_express_google,
-                          icon: FaIcon(FontAwesomeIcons.google,
-                              size: 18, color: cs.onPrimary),
-                          loading: isGoogleLoading,
-                          loadingLabel: googleLoadingStep.isNotEmpty
-                              ? googleLoadingStep
-                              : null,
-                          onPressed: onGoogle,
-                        ),
-                        const SizedBox(height: 10),
-                        Hero(
-                          tag: 'auth_login_btn',
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(9999),
-                            child: AppSecondaryButton(
-                              label: Translations.of(context).auth_tab_login,
-                              onPressed: onLogin,
-                              height: 58,
-                            ),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 20),
-                      // Sign-up footer text
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '${Translations.of(context).auth_landing_new_here} ',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              color: cs.onSurfaceVariant,
-                            ),
-                          ),
-                          Hero(
-                            tag: 'auth_signup_btn',
-                            child: GestureDetector(
-                              onTap: onSignup,
-                              child: Text(
-                                Translations.of(context)
-                                    .auth_create_account_link,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: cs.primary,
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 280),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        child: isSocialLoading
+                            ? SizedBox(
+                                key: const ValueKey('social-loading-only'),
+                                height: 54,
+                                child: Row(
+                                  children: [
+                                    if (showGoogleAsLoadingButton)
+                                      AppSocialButton(
+                                        icon: FontAwesomeIcons.google,
+                                        iconSize: 18,
+                                        iconColor: const Color(0xFF4285F4),
+                                        label: t.auth_express_google,
+                                        loading: true,
+                                        loadingLabel:
+                                            googleLoadingStep.isNotEmpty
+                                                ? googleLoadingStep
+                                                : null,
+                                        onPressed: null,
+                                      )
+                                    else
+                                      AppSocialButton(
+                                        icon: FontAwesomeIcons.apple,
+                                        iconSize: 22,
+                                        iconColor:
+                                            Theme.of(context).brightness ==
+                                                    Brightness.dark
+                                                ? cs.primary
+                                                : cs.onSurface,
+                                        label: t.auth_express_apple,
+                                        loading: true,
+                                        onPressed: null,
+                                      ),
+                                  ],
                                 ),
+                              )
+                            : Column(
+                                key: const ValueKey('full-auth-actions'),
+                                children: [
+                                  // Platform-adaptive button layout
+                                  if (AppleSignInHelper.isAvailable()) ...[
+                                    // iOS: Login first, then Apple + Google icon pair
+                                    Hero(
+                                      tag: 'auth_login_btn',
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(9999),
+                                        child: AppButton(
+                                          label: t.auth_tab_login,
+                                          onPressed: onLogin,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    SizedBox(
+                                      height: 54,
+                                      child: Row(
+                                        children: [
+                                          AppSocialButton(
+                                            icon: FontAwesomeIcons.apple,
+                                            iconSize: 22,
+                                            iconColor:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? cs.primary
+                                                    : cs.onSurface,
+                                            loading: isAppleLoading,
+                                            onPressed: isGoogleLoading
+                                                ? null
+                                                : onApple,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          AppSocialButton(
+                                            icon: FontAwesomeIcons.google,
+                                            iconSize: 18,
+                                            iconColor: const Color(0xFF4285F4),
+                                            loading: isGoogleLoading,
+                                            loadingLabel:
+                                                googleLoadingStep.isNotEmpty
+                                                    ? googleLoadingStep
+                                                    : null,
+                                            onPressed: isAppleLoading
+                                                ? null
+                                                : onGoogle,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ] else ...[
+                                    // Android / Web: Google first, then Login (secondary style)
+                                    AppButton(
+                                      label: t.auth_express_google,
+                                      icon: FaIcon(FontAwesomeIcons.google,
+                                          size: 18, color: cs.onPrimary),
+                                      loading: isGoogleLoading,
+                                      loadingLabel: googleLoadingStep.isNotEmpty
+                                          ? googleLoadingStep
+                                          : null,
+                                      onPressed: onGoogle,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Hero(
+                                      tag: 'auth_login_btn',
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(9999),
+                                        child: AppSecondaryButton(
+                                          label: t.auth_tab_login,
+                                          onPressed: onLogin,
+                                          height: 58,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 20),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        '${t.auth_landing_new_here} ',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 14,
+                                          color: cs.onSurfaceVariant,
+                                        ),
+                                      ),
+                                      Hero(
+                                        tag: 'auth_signup_btn',
+                                        child: GestureDetector(
+                                          onTap: onSignup,
+                                          child: Text(
+                                            t.auth_create_account_link,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700,
+                                              color: cs.primary,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  isGuestLoading
+                                      ? SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: AppLoadingIndicator(
+                                            strokeWidth: 2,
+                                            color: cs.onSurfaceVariant,
+                                          ),
+                                        )
+                                      : GestureDetector(
+                                          onTap: onContinueAsGuest,
+                                          child: Text(
+                                            t.auth_continue_as_guest,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                              color: cs.onSurfaceVariant
+                                                  .withValues(alpha: 0.7),
+                                            ),
+                                          ),
+                                        ),
+                                ],
                               ),
-                            ),
-                          ),
-                        ],
                       ),
-                      // Continue as guest — always visible
-                      const SizedBox(height: 12),
-                      isGuestLoading
-                          ? SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: AppLoadingIndicator(
-                                  strokeWidth: 2, color: cs.onSurfaceVariant),
-                            )
-                          : GestureDetector(
-                              onTap: onContinueAsGuest,
-                              child: Text(
-                                Translations.of(context).auth_continue_as_guest,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: cs.onSurfaceVariant
-                                      .withValues(alpha: 0.7),
-                                ),
-                              ),
-                            ),
                     ],
                   ),
                 ),
@@ -1296,7 +1350,7 @@ class _LoginPageState extends State<_LoginPage> {
       if (!mounted) return;
       final navigator = Navigator.of(context);
       navigator.pushAndRemoveUntil(
-        AppPageRoute(builder: (_) => const MainScreen()),
+        AppQuickFadeRoute(builder: (_) => const MainScreen()),
         (route) => false,
       );
       final afterAuth = widget.onAfterAuth;

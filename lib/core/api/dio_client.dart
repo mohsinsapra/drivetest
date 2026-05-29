@@ -21,6 +21,8 @@ import 'package:taxi_exam_app/core/utils/crypto_service.dart';
 import 'package:taxi_exam_app/config/local_config.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 
+enum LogoutReason { sessionExpired, signedInElsewhere }
+
 class DioClient {
   static final DioClient _instance = DioClient._internal();
   DioClient._internal();
@@ -116,10 +118,10 @@ class DioClient {
 
       // Default.
       policy: CachePolicy.request,
-      // Returns a cached response on error but for statuses 401 & 403.
-      // Also allows to return a cached response on network errors (e.g. offline usage).
-      // Defaults to [null].
-      hitCacheOnErrorCodes: [401, 403],
+      // Never serve cached data for auth failures. If the backend returns
+      // 401/403 we must surface it so refresh/logout+redirect can run.
+      // Keeping these out prevents "logged out but still on dashboard" states.
+      hitCacheOnErrorCodes: const [],
       // Overrides any HTTP directive to delete entry past this duration.
       // Useful only when origin server has no cache config or custom behaviour is desired.
       // Defaults to [null].
@@ -238,7 +240,9 @@ class DioClient {
           if (responseData is Map &&
               responseData['detail'] ==
                   'You have been logged out because your account was used on another device.') {
-            await logoutAndRedirect();
+            await logoutAndRedirect(
+              reason: LogoutReason.signedInElsewhere,
+            );
             return handler.resolve(Response(
                 requestOptions: error.requestOptions, statusCode: 200));
           } else if (responseData is Map &&
@@ -314,24 +318,26 @@ class DioClient {
     _initialized = true;
   }
 
-  Future<void> logoutAndRedirect() async {
+  Future<void> logoutAndRedirect({
+    LogoutReason reason = LogoutReason.sessionExpired,
+  }) async {
     if (_logoutInProgress) return;
     _logoutInProgress = true;
     try {
       await logout();
       await UserCacheService.clearAll();
-      final context = NavigationService.navigatorKey.currentContext;
-      if (context != null && context.mounted) {
-        // ignore: use_build_context_synchronously
-        Navigator.of(context).pushAndRemoveUntil(
-          AppPageRoute(
-            builder: (context) => const AuthScreen(),
-          ),
+      final navigator = NavigationService.navigatorKey.currentState;
+      if (navigator != null) {
+        navigator.pushAndRemoveUntil(
+          AppQuickFadeRoute(builder: (context) => const AuthScreen()),
           (Route<dynamic> route) => false,
         );
         Future.delayed(const Duration(milliseconds: 500), () {
+          final message = reason == LogoutReason.signedInElsewhere
+              ? t.error_logged_out_other_device
+              : t.error_session_expired;
           showAppSnackBar(
-            'You have been logged out because your account was used on another device.',
+            message,
             type: SnackBarType.error,
           );
         });

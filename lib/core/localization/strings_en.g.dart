@@ -780,6 +780,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
       'Service temporarily unavailable. Please try again in a moment.';
   String get error_connection_timeout =>
       'Connection timed out. Check your internet and try again.';
+  String get error_session_expired =>
+      'Your session has expired. Please log in again.';
+  String get error_logged_out_other_device =>
+      'You were logged out because your account was used on another device.';
   String get app_download_title => 'Better on the app';
   String get app_download_subtitle_android =>
       'Download the Drive Test app on Google Play for a faster, smoother experience.';
@@ -2153,6 +2157,10 @@ extension on Translations {
         return 'Service temporarily unavailable. Please try again in a moment.';
       case 'error_connection_timeout':
         return 'Connection timed out. Check your internet and try again.';
+      case 'error_session_expired':
+        return 'Your session has expired. Please log in again.';
+      case 'error_logged_out_other_device':
+        return 'You were logged out because your account was used on another device.';
       case 'app_download_title':
         return 'Better on the app';
       case 'app_download_subtitle_android':

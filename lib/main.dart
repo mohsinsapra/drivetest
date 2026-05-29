@@ -144,7 +144,10 @@ Future<void> _appMain() async {
   final sessionValidationObserver = SessionValidationLifecycleObserver(
     SessionValidationService(
       isAuthenticated: () => DioClient().accessToken != null,
-      fetchCurrentUser: () => ApiService().fetchCurrentUser().then((_) {}),
+      // Force refresh during periodic validation so expired/invalid sessions
+      // are detected from backend immediately instead of serving stale cache.
+      fetchCurrentUser: () =>
+          ApiService().fetchCurrentUser(forceRefresh: true).then((_) {}),
       minInterval: kReleaseMode
           ? const Duration(minutes: 5)
           : const Duration(seconds: 30),

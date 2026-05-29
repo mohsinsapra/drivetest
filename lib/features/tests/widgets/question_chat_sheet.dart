@@ -57,6 +57,8 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
   bool _initializing = true;
   bool _isSending = false;
   bool _firstMessageFired = false;
+  static const Duration _kMinAssistantResponseDelay =
+      Duration(milliseconds: 1500);
 
   // Typewriter animation state
   Timer? _typewriterTimer;
@@ -188,9 +190,16 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
     _scrollToBottom();
 
     String fullText;
+    final responseWatch = Stopwatch()..start();
     try {
       fullText = await _aiService!.sendMessage(prompt, _messages);
       if (fullText.isEmpty) fullText = t.ai_error;
+      responseWatch.stop();
+      final remainingDelay =
+          _kMinAssistantResponseDelay - responseWatch.elapsed;
+      if (remainingDelay > Duration.zero) {
+        await Future<void>.delayed(remainingDelay);
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() {

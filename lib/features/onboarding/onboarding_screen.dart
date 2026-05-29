@@ -163,6 +163,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _loadingProducts = true;
   final List<Map<String, dynamic>> _selectedProducts = [];
   bool _purchaseInFlight = false;
+  bool _purchaseFlowLocked = false;
   List<Map<String, dynamic>> _mySubscriptions = [];
 
   // Step 0 — exam date (default: 3 months from today)
@@ -245,10 +246,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await _saveProgressPrefs();
     await _markOnboardingComplete();
     if (!mounted) return;
+    final toAuthRoute = PageRouteBuilder(
+      pageBuilder: (_, __, ___) => const AuthScreen(),
+      transitionDuration: const Duration(milliseconds: 200),
+      reverseTransitionDuration: const Duration(milliseconds: 170),
+      transitionsBuilder: (_, animation, __, child) => FadeTransition(
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: child,
+      ),
+    );
     navigator.pushReplacement(
       widget.isLoggedIn()
           ? AppPageRoute(builder: (_) => const MainScreen())
-          : AppPageRoute(builder: (_) => const AuthScreen()),
+          : toAuthRoute,
     );
   }
 
@@ -359,18 +369,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final products = only != null
         ? [only]
         : List<Map<String, dynamic>>.from(_selectedProducts);
-    if (products.isEmpty || !mounted || _purchaseInFlight) return;
-
-    setState(() => _purchaseInFlight = true);
+    if (products.isEmpty ||
+        !mounted ||
+        _purchaseInFlight ||
+        _purchaseFlowLocked) {
+      return;
+    }
+    _purchaseFlowLocked = true;
 
     // Force-refresh subscriptions only if logged in (validates token too).
     if (widget.isLoggedIn()) {
+      if (mounted) setState(() => _purchaseInFlight = true);
       await _fetchMySubscriptions(forceRefresh: true);
 
       // Re-check auth: if the token was cleared by the 401 handler, abort here.
       // logoutAndRedirect() is already navigating to AuthScreen.
       if (!mounted || !widget.isLoggedIn()) {
         if (mounted) setState(() => _purchaseInFlight = false);
+        _purchaseFlowLocked = false;
         return;
       }
 
@@ -388,6 +404,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ? (Map<String, dynamic>.from(rawCategory)..['is_subscribed'] = true)
             : null;
         _navigateToMainAndCategory(Navigator.of(context), targetCategory);
+        _purchaseFlowLocked = false;
         return;
       }
     } // end if (widget.isLoggedIn())
@@ -401,6 +418,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (choice == null) {
         // User dismissed — cancel purchase.
         setState(() => _purchaseInFlight = false);
+        _purchaseFlowLocked = false;
         return;
       }
 
@@ -416,6 +434,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // User explicitly chose "Sign In" but dismissed without logging in.
           // Cancel the purchase — do not silently fall back to guest.
           setState(() => _purchaseInFlight = false);
+          _purchaseFlowLocked = false;
           return;
         }
       } else {
@@ -425,6 +444,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         } catch (e) {
           debugPrint('[Onboarding] guest login before purchase failed: $e');
           if (mounted) setState(() => _purchaseInFlight = false);
+          _purchaseFlowLocked = false;
           return;
         }
       }
@@ -442,7 +462,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         : products;
     if (unpurchased.isEmpty) {
       setState(() => _purchaseInFlight = false);
+      _purchaseFlowLocked = false;
       return;
+    }
+
+    if (mounted && !_purchaseInFlight) {
+      setState(() => _purchaseInFlight = true);
     }
 
     try {
@@ -455,6 +480,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
       if (result == null || !mounted) {
         if (mounted) setState(() => _purchaseInFlight = false);
+        _purchaseFlowLocked = false;
         return;
       }
 
@@ -474,6 +500,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
       await widget.postPurchase(context, result, products);
     } finally {
+      _purchaseFlowLocked = false;
       if (mounted) setState(() => _purchaseInFlight = false);
     }
   }

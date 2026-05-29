@@ -662,6 +662,8 @@
   "error_too_many_requests": "Too many attempts. Please try again in {wait}.",
   "error_service_unavailable": "Service temporarily unavailable. Please try again in a moment.",
   "error_connection_timeout": "Connection timed out. Check your internet and try again.",
+  "error_session_expired": "Your session has expired. Please log in again.",
+  "error_logged_out_other_device": "You were logged out because your account was used on another device.",
 
   "app_download_title": "Better on the app",
   "app_download_subtitle_android": "Download the Drive Test app on Google Play for a faster, smoother experience.",

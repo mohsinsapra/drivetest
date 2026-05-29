@@ -163,21 +163,26 @@ class _SplashScreenState extends State<SplashScreen>
       next = const MainScreen();
     }
 
+    final isAuthRoute = next is AuthScreen;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => next,
-        transitionDuration: const Duration(milliseconds: 400),
+        transitionDuration: isAuthRoute
+            ? const Duration(milliseconds: 220)
+            : const Duration(milliseconds: 320),
+        reverseTransitionDuration: const Duration(milliseconds: 180),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(0.0, 1.0);
           const end = Offset.zero;
           const curve = Curves.easeOutCubic;
-
-          var tween =
+          final slideTween =
               Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
+          return FadeTransition(
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+            child: SlideTransition(
+              position: animation.drive(slideTween),
+              child: child,
+            ),
           );
         },
       ),

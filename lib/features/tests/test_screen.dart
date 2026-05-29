@@ -737,6 +737,7 @@ class _TestscreenState extends State<Testscreen> {
     _countdownTimer?.cancel();
     _timerNotifier.dispose();
     _pageController.dispose();
+    _phase1Coach?.finish();
     ttsService.flutterTts.stop();
     ttsService.ttsState = TtsState.stopped;
     _dismissLangPickHint();
@@ -1071,6 +1072,7 @@ class _TestscreenState extends State<Testscreen> {
         ),
       ),
     );
+    controller.dispose();
 
     final text = (result?['text'] ?? '').trim();
     final type = (result?['type'] ?? 'question_issue').trim();

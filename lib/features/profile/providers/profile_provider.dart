@@ -235,7 +235,7 @@ class ProfileProvider extends ChangeNotifier {
   void _navigateToAuth() {
     final nav = NavigationService.navigatorKey.currentState;
     nav?.pushAndRemoveUntil(
-      AppPageRoute(builder: (_) => const AuthScreen()),
+      AppQuickFadeRoute(builder: (_) => const AuthScreen()),
       (route) => false,
     );
   }
