@@ -1,0 +1,5 @@
+Changed:
+- Update text styles and improve UI consistency
+- Refactor text styles across various components to use Lexend font for better readability and consistency
+- Adjust font weights for improved visual hierarchy
+- Update layout elements to enhance user experience and maintain design standards
