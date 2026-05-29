@@ -51,7 +51,7 @@ dependencies:
   no_screenshot: ^0.3.6
   dio_cache_interceptor: ^4.0.3
   cached_network_image: ^3.4.0
-  flutter_stripe: ^12.4.0
+  flutter_stripe: 12.4.0
   confetti: ^0.8.0
   vibration: ^3.1.8
   flutter_secure_storage: ^9.2.2
@@ -72,7 +72,7 @@ dependencies:
   auto_size_text: ^3.0.0
   flutter_tts: ^4.2.5
   fl_chart: ^1.2.0
-  flutter_stripe_web: ^7.4.0
+  flutter_stripe_web: 7.4.0
   clarity_flutter: 1.7.1
   firebase_core: ^4.9.0
   firebase_analytics: ^12.4.1
@@ -104,6 +104,10 @@ dependency_overrides:
   # Local patch replaces LucideIconData subclass with direct IconData constants.
   lucide_icons:
     path: packages/lucide_icons
+  # flutter_stripe 12.6.0 pulls stripe_android/ios 23.1.0 which requires Kotlin 2.3.
+  # Pin to 12.4.0 until the project Kotlin version is upgraded.
+  stripe_android: 12.4.0
+  stripe_ios: 12.4.0
 
 dev_dependencies:
   flutter_test:

@@ -558,7 +558,7 @@ deploy-all-docker: check
 _ios-beta-core:
 	@echo "$(COLOR_GREEN)Deploying iOS to TestFlight...$(COLOR_RESET)"
 	@flutter pub get
-	@cd ios && pod install
+	@cd ios && pod install --repo-update
 	@cd ios && bundle exec fastlane beta
 
 ## ios-beta: Bump patch, commit, then deploy iOS to TestFlight
