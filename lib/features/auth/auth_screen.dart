@@ -948,8 +948,17 @@ class _LandingView extends StatelessWidget {
                           ],
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(16, 6, 10, 6),
-                            child: Text(currentFlag,
-                                style: const TextStyle(fontSize: 20)),
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: Center(
+                                child: Text(
+                                  currentFlag,
+                                  textScaler: TextScaler.noScaling,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                         Container(

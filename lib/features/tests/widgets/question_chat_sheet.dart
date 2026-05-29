@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -68,6 +70,13 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
   bool _initializing = true;
   bool _isSending = false;
   bool _firstMessageFired = false;
+
+  // Frame-synced render: one setState per vsync frame (8ms on 120Hz, 16ms on
+  // 60Hz, whatever the device can manage on older hardware).
+  bool _frameScheduled = false;
+  String _pendingText = '';
+  // Debounce scroll so we don't animate on every token.
+  Timer? _scrollDebounce;
   // Suggestion chips shown above input — removed one-by-one as they're used.
   final Set<_SuggestionType> _availableSuggestions = {
     _SuggestionType.hint,
@@ -188,6 +197,7 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
 
   @override
   void dispose() {
+    _scrollDebounce?.cancel();
     if (_aiService != null) {
       widget.onSaveSession(_aiService!, List.of(_messages));
     }
@@ -248,10 +258,22 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
       await for (final chunk in _aiService!.sendMessage(prompt)) {
         buffer.write(chunk);
         if (!mounted) return;
-        setState(() => _messages.last =
-            ChatMessage(text: buffer.toString(), isUser: false));
-        _scrollToBottom();
+        // Schedule one setState per vsync frame — naturally adapts to the
+        // device's refresh rate (8ms on 120Hz, 16ms on 60Hz, etc.).
+        _pendingText = buffer.toString();
+        if (!_frameScheduled) {
+          _frameScheduled = true;
+          SchedulerBinding.instance.scheduleFrameCallback((_) {
+            if (!mounted) return;
+            setState(() => _messages.last =
+                ChatMessage(text: _pendingText, isUser: false));
+            _frameScheduled = false;
+            _scrollToBottom();
+          });
+        }
       }
+      // Final flush: ensure the very last chunk is always shown.
+      _frameScheduled = false;
       // Record token usage — use actual Gemini count, fall back to char estimate.
       final actualTokens = _aiService!.lastExchangeTokens;
       final tokens = actualTokens > 0
@@ -279,14 +301,14 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
   }
 
   void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
-      }
+    _scrollDebounce?.cancel();
+    _scrollDebounce = Timer(const Duration(milliseconds: 80), () {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+      );
     });
   }
 
@@ -297,165 +319,182 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
     final cs = theme.colorScheme;
     final inputDisabled = _initializing || _isSending;
 
-    return Material(
-      color: cs.surface,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      child: Column(
-        children: [
-          // ── Header ───────────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
-            decoration: BoxDecoration(
-              border: Border(
-                  bottom: BorderSide(color: theme.dividerColor, width: 0.5)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.auto_awesome, color: cs.primary, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  t.ai_assistant,
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(20),
+    final topPadding = MediaQuery.paddingOf(context).top;
+    return SizedBox(
+      // Leave ~56dp + status bar at top so the scaled background is visible
+      height: MediaQuery.sizeOf(context).height - topPadding - 56,
+      child: Material(
+        color: cs.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        child: Column(
+          children: [
+            // ── Header ───────────────────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+              decoration: BoxDecoration(
+                border: Border(
+                    bottom: BorderSide(color: theme.dividerColor, width: 0.5)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome, color: cs.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    t.ai_assistant,
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
-                  child: Text(
-                    'NEW',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'NEW',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: Icon(Icons.keyboard_arrow_down,
-                      color: cs.onSurfaceVariant),
-                  onPressed: () => Navigator.of(context).pop(),
-                  tooltip: t.ai_close,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-          ),
-
-          // ── Messages ─────────────────────────────────────────────────
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              itemCount: _messages.length,
-              itemBuilder: (_, i) {
-                final msg = _messages[i];
-                final isTyping = !msg.isUser && msg.text.isEmpty && _isSending;
-                return _Bubble(message: msg, isTyping: isTyping);
-              },
-            ),
-          ),
-
-          // ── Suggestion chips ─────────────────────────────────────────
-          if (_availableSuggestions.isNotEmpty && !_isSending)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: Wrap(
-                  spacing: 8,
-                  children: [
-                    if (_availableSuggestions.contains(_SuggestionType.hint))
-                      AiActionButton(
-                        label: t.ai_hint_button,
-                        icon: Icons.lightbulb_outline,
-                        onPressed: () => _useSuggestion(_SuggestionType.hint),
-                      ),
-                    if (_availableSuggestions
-                        .contains(_SuggestionType.understand))
-                      AiActionButton(
-                        label: t.ai_understand_button,
-                        icon: Icons.auto_awesome,
-                        onPressed: () =>
-                            _useSuggestion(_SuggestionType.understand),
-                      ),
-                  ],
-                ),
+                  const Spacer(),
+                  IconButton(
+                    icon: Icon(Icons.keyboard_arrow_down,
+                        color: cs.onSurfaceVariant),
+                    onPressed: () => Navigator.of(context).pop(),
+                    tooltip: t.ai_close,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
             ),
 
-          // ── Input area ───────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            decoration: BoxDecoration(
-              border: Border(
-                  top: BorderSide(color: theme.dividerColor, width: 0.5)),
+            // ── Messages ─────────────────────────────────────────────────
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                itemCount: _messages.length,
+                itemBuilder: (_, i) {
+                  final msg = _messages[i];
+                  final isTyping =
+                      !msg.isUser && msg.text.isEmpty && _isSending;
+                  return _Bubble(message: msg, isTyping: isTyping);
+                },
+              ),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: cs.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: TextField(
-                      controller: _controller,
-                      enabled: !inputDisabled,
-                      style: theme.textTheme.bodyMedium,
-                      decoration: InputDecoration(
-                        hintText:
-                            _initializing ? t.ai_initializing : t.ai_input_hint,
-                        hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                          color: cs.onSurface.withValues(alpha: 0.4),
+
+            // ── Suggestion chips ─────────────────────────────────────────
+            if (_availableSuggestions.isNotEmpty && !_isSending)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: Wrap(
+                    spacing: 8,
+                    children: [
+                      if (_availableSuggestions.contains(_SuggestionType.hint))
+                        AiActionButton(
+                          label: t.ai_hint_button,
+                          icon: Icons.lightbulb_outline,
+                          onPressed: () => _useSuggestion(_SuggestionType.hint),
                         ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                      if (_availableSuggestions
+                          .contains(_SuggestionType.understand))
+                        AiActionButton(
+                          label: t.ai_understand_button,
+                          icon: Icons.auto_awesome,
+                          onPressed: () =>
+                              _useSuggestion(_SuggestionType.understand),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // ── Input area ───────────────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              decoration: BoxDecoration(
+                border: Border(
+                    top: BorderSide(color: theme.dividerColor, width: 0.5)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                      onSubmitted: (_) => _send(),
-                      textInputAction: TextInputAction.send,
+                      child: TextField(
+                        controller: _controller,
+                        enabled: !inputDisabled,
+                        style: theme.textTheme.bodyMedium,
+                        decoration: InputDecoration(
+                          hintText: _initializing
+                              ? t.ai_initializing
+                              : t.ai_input_hint,
+                          hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                            color: cs.onSurface.withValues(alpha: 0.4),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                        onSubmitted: (_) => _send(),
+                        textInputAction: TextInputAction.send,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: inputDisabled ? null : _send,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: inputDisabled
-                          ? cs.onSurface.withValues(alpha: 0.12)
-                          : cs.primary,
-                      shape: BoxShape.circle,
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: inputDisabled ? null : _send,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: inputDisabled
+                            ? cs.onSurface.withValues(alpha: 0.12)
+                            : cs.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: inputDisabled
+                          ? SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: cs.onSurface.withValues(alpha: 0.4),
+                              ),
+                            )
+                          : Icon(Icons.arrow_forward,
+                              color: cs.onPrimary, size: 18),
                     ),
-                    child: inputDisabled
-                        ? SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: cs.onSurface.withValues(alpha: 0.4),
-                            ),
-                          )
-                        : Icon(Icons.arrow_forward,
-                            color: cs.onPrimary, size: 18),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SafeArea(child: SizedBox(height: 4)),
-        ],
-      ),
-    );
+            // Keyboard-aware bottom padding: rises above keyboard when open,
+            // falls back to safe area inset when keyboard is hidden.
+            AnimatedPadding(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.viewInsetsOf(context).bottom > 0
+                    ? MediaQuery.viewInsetsOf(context).bottom
+                    : MediaQuery.paddingOf(context).bottom + 4,
+              ),
+            ),
+          ],
+        ), // Column
+      ), // Material
+    ); // SizedBox
   }
 }
 
@@ -563,6 +602,23 @@ class _TypingDotsState extends State<_TypingDots>
 
   @override
   Widget build(BuildContext context) {
+    // On reduced-motion / low-end devices: static dots, no animation overhead.
+    if (MediaQuery.of(context).disableAnimations) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(
+            3,
+            (_) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: widget.color.withValues(alpha: 0.6),
+                    shape: BoxShape.circle,
+                  ),
+                )),
+      );
+    }
     return SizedBox(
       height: 20,
       child: Row(

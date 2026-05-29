@@ -646,7 +646,7 @@ class _TestscreenState extends State<Testscreen> {
     String? prompt,
   }) {
     final session = _aiSessions[index];
-    showCupertinoModalBottomSheet<void>(
+    CupertinoScaffold.showCupertinoModalBottomSheet<void>(
       context: context,
       builder: (_) => QuestionChatSheet(
         question: widget.questions[index],
@@ -774,8 +774,12 @@ class _TestscreenState extends State<Testscreen> {
     if (_instantMarking && userSelections[index] != null) {
       return;
     }
-    if (_instantMarking && optionId != widget.questions[index].correctAnswer) {
-      vibrateWrongAnswer();
+    if (_instantMarking) {
+      if (optionId == widget.questions[index].correctAnswer) {
+        vibrateCorrectAnswer();
+      } else {
+        vibrateWrongAnswer();
+      }
     } else {
       playNavigationFeedback();
     }
@@ -935,14 +939,17 @@ class _TestscreenState extends State<Testscreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
+        titlePadding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 14, 24, 24),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         title: Text(t.test_exit_title),
         content: Text(t.test_exit_save_prompt),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
           AppFilledButton(
             label: t.btn_save_and_exit,
             onPressed: () => Navigator.pop(ctx, 'save'),
           ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -1303,507 +1310,505 @@ class _TestscreenState extends State<Testscreen> {
         }
         _showExitDialog();
       },
-      child: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          leading: AppBackButton(
-            onPressed: () {
-              if (widget.isReviewMode) {
-                Navigator.of(context).pop();
-              } else {
-                _showExitDialog();
-              }
-            },
-          ),
-          title: QuestionProgressHeader(
-            currentIndex: currentQuestionIndex,
-            total: widget.questions.length,
-            onTap: _showQuestionNavigationSheet,
-          ),
-          centerTitle: true,
-          actions: [
-            // Timer display — ValueListenableBuilder isolates rebuilds to this
-            // widget only; the rest of the screen is unaffected by each tick.
-            if (_isTimed && !widget.isReviewMode)
-              ValueListenableBuilder<int>(
-                valueListenable: _timerNotifier,
-                builder: (_, secs, __) {
-                  final isUrgent = secs <= 60 && _timerVisible;
-                  final primary = Theme.of(context).colorScheme.primary;
-                  final m = secs ~/ 60;
-                  final s = secs % 60;
-                  final display =
-                      '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Center(
-                      child: GestureDetector(
-                        onTap: () =>
-                            setState(() => _timerVisible = !_timerVisible),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isUrgent
-                                ? Colors.red.withValues(alpha: 0.12)
-                                : primary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isUrgent
-                                  ? Colors.red
-                                  : primary.withValues(alpha: 0.4),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _timerVisible
-                                    ? Icons.timer
-                                    : Icons.timer_off_outlined,
-                                size: 14,
-                                color: isUrgent ? Colors.red : primary,
-                              ),
-                              if (_timerVisible) ...[
-                                const SizedBox(width: 4),
-                                Text(
-                                  display,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: secs <= 60 ? Colors.red : primary,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            if (!isSmallScreen)
-              Container(
-                key: _langButtonKey,
-                margin: const EdgeInsets.only(right: 8),
-                child: PopupMenuButton<String>(
-                  key: _langMenuKey,
-                  onSelected: _onLanguageSelected,
-                  itemBuilder: (BuildContext context) => languageOptions
-                      .map((lang) => PopupMenuItem<String>(
-                            value: lang['code'],
-                            child: Text(lang['label']!),
-                          ))
-                      .toList(),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.4),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          ttsService.getLanguageFlag(currentLanguageCode),
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          LucideIcons.languages,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert,
-                  color: Theme.of(context).colorScheme.onSurface),
-              onSelected: (value) {
-                if (value == 'lang_en') {
-                  _onLanguageSelected('EN');
-                } else if (value == 'lang_sv') {
-                  _onLanguageSelected('SV');
-                } else if (value == 'feedback') {
-                  _showFeedbackDialog();
-                } else if (value == 'toggle_timer') {
-                  setState(() {
-                    _isTimed = !_isTimed;
-                    if (_isTimed) {
-                      if (_remainingSeconds <= 0) {
-                        _remainingSeconds = widget.timeLimitMinutes * 60;
-                        _timerNotifier.value = _remainingSeconds;
-                      }
-                      _startTimer();
-                    } else {
-                      _countdownTimer?.cancel();
-                    }
-                  });
-                } else if (value == 'toggle_instant') {
-                  setState(() => _instantMarking = !_instantMarking);
+      child: CupertinoScaffold(
+        body: Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            leading: AppBackButton(
+              onPressed: () {
+                if (widget.isReviewMode) {
+                  Navigator.of(context).pop();
+                } else {
+                  _showExitDialog();
                 }
               },
-              itemBuilder: (context) => [
-                if (isSmallScreen)
-                  PopupMenuItem<String>(
-                    value: 'lang_en',
-                    child: Row(
-                      children: [
-                        Text('🇬🇧 ${t.test_language_english}'),
-                        const Spacer(),
-                        if (currentLanguageCode.toLowerCase() == 'en')
-                          const Icon(Icons.check, size: 16),
-                      ],
-                    ),
-                  ),
-                if (isSmallScreen)
-                  PopupMenuItem<String>(
-                    value: 'lang_sv',
-                    child: Row(
-                      children: [
-                        Text('🇸🇪 ${t.test_language_swedish}'),
-                        const Spacer(),
-                        if (currentLanguageCode.toLowerCase() == 'sv')
-                          const Icon(Icons.check, size: 16),
-                      ],
-                    ),
-                  ),
-                if (isSmallScreen)
-                  PopupMenuItem<String>(
-                    enabled: false,
-                    height: 1,
-                    padding: EdgeInsets.zero,
-                    child: Divider(
-                        color: Theme.of(context).dividerColor, height: 1),
-                  ),
-                if (!widget.isReviewMode)
-                  PopupMenuItem<String>(
-                    value: 'toggle_timer',
-                    child: Row(
-                      children: [
-                        Icon(
-                            _isTimed
-                                ? Icons.timer_off_outlined
-                                : Icons.timer_outlined,
-                            size: 18),
-                        const SizedBox(width: 8),
-                        Text(_isTimed
-                            ? t.test_turn_off_timer
-                            : t.test_turn_on_timer),
-                        const Spacer(),
-                        if (_isTimed) const Icon(Icons.check, size: 16),
-                      ],
-                    ),
-                  ),
-                if (!widget.isReviewMode)
-                  PopupMenuItem<String>(
-                    value: 'toggle_instant',
-                    child: Row(
-                      children: [
-                        Icon(
-                            _instantMarking
-                                ? Icons.rule_outlined
-                                : Icons.rule_outlined,
-                            size: 18),
-                        const SizedBox(width: 8),
-                        Text(_instantMarking
-                            ? t.test_turn_off_instant_marking
-                            : t.test_turn_on_instant_marking),
-                        const Spacer(),
-                        if (_instantMarking) const Icon(Icons.check, size: 16),
-                      ],
-                    ),
-                  ),
-                if (!widget.isReviewMode)
-                  PopupMenuItem<String>(
-                    enabled: false,
-                    height: 1,
-                    padding: EdgeInsets.zero,
-                    child: Divider(
-                        color: Theme.of(context).dividerColor, height: 1),
-                  ),
-                PopupMenuItem<String>(
-                  value: 'feedback',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline, size: 18),
-                      const SizedBox(width: 8),
-                      Text(t.test_feedback_title),
-                    ],
-                  ),
-                ),
-              ],
             ),
-          ],
-        ),
-        body: PageView.builder(
-          controller: _pageController,
-          onPageChanged: _onPageChanged,
-          itemCount: widget.questions.length,
-          itemBuilder: (context, index) {
-            final translatedList = translatedQuestionsWithOptions[
-                currentLanguageCode.toLowerCase()];
-            final question =
-                (translatedList != null && translatedList.length > index)
-                    ? translatedList[index]
-                    : widget.questions[index];
-            var questionUrl = _apiService.fetchImage(
-              widget.licenceId,
-              widget.categoryId,
-              widget.questions[index].imageUrl,
-            );
-
-            // Get translated question text if available
-            String questionText = question.text;
-
-            // Get translated options if available
-            List<String> optionTexts = [];
-            optionTexts = question.options.map((e) => e.text).toList();
-
-            return GestureDetector(
-              onLongPress: () {
-                _revertToPreviousLanguage();
-                // Tutorial: user started holding — update card to "now release".
-                if (_tutorialPhase2Active && !_tutorialPhase2bActive) {
-                  _showReleaseHint();
-                }
-              },
-              onLongPressUp: () {
-                _revertToPreviousLanguage();
-                // Tutorial: user released — advance to "swipe left" step.
-                if (_tutorialPhase2bActive) {
-                  Future.delayed(
-                    const Duration(milliseconds: 600),
-                    _showTutorialPhase3a,
-                  );
-                }
-              },
-              child: Padding(
-                padding: EdgeInsets.all(20.0 * s),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Question text
-                      RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 22 * s,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            height: 1.3,
-                          ),
-                          children: [
-                            TextSpan(text: questionText),
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: TtsButton(
-                                textToSpeak: questionText,
-                                languageCode: currentLanguageCode,
-                                iconSize: 22 * s,
-                                tooltip: Translations.of(context).ai_read_aloud,
+            title: QuestionProgressHeader(
+              currentIndex: currentQuestionIndex,
+              total: widget.questions.length,
+              onTap: _showQuestionNavigationSheet,
+            ),
+            centerTitle: true,
+            actions: [
+              // Timer display — ValueListenableBuilder isolates rebuilds to this
+              // widget only; the rest of the screen is unaffected by each tick.
+              if (_isTimed && !widget.isReviewMode)
+                ValueListenableBuilder<int>(
+                  valueListenable: _timerNotifier,
+                  builder: (_, secs, __) {
+                    final isUrgent = secs <= 60 && _timerVisible;
+                    final primary = Theme.of(context).colorScheme.primary;
+                    final m = secs ~/ 60;
+                    final s = secs % 60;
+                    final display =
+                        '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Center(
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _timerVisible = !_timerVisible),
+                          child: Container(
+                            height: 32,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: isUrgent
+                                  ? Colors.red.withValues(alpha: 0.12)
+                                  : primary.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isUrgent
+                                    ? Colors.red.withValues(alpha: 0.35)
+                                    : primary.withValues(alpha: 0.25),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 14 * s),
-
-                      // Question images — use multi-image list if available,
-                      // fall back to legacy imageUrl for backward compatibility.
-                      ..._buildQuestionImages(
-                        context,
-                        s,
-                        mq,
-                        question.images.isNotEmpty
-                            ? question.images
-                            : (question.imageUrl.isNotEmpty
-                                ? [questionUrl]
-                                : []),
-                      ),
-
-                      // Question tabs (BCD questions with tabbed image content)
-                      if (question.tabs.isNotEmpty) ...[
-                        SizedBox(height: 8 * s),
-                        QuestionTabsWidget(tabs: question.tabs),
-                      ],
-
-                      SizedBox(height: 12 * s),
-
-                      // Options
-                      ...question.options.asMap().entries.map((entry) {
-                        int optIndex = entry.key;
-                        var option = entry.value;
-                        String optionText = optionTexts[optIndex];
-                        bool isSelected =
-                            userSelections[index] == option.optionLabel;
-
-                        return Option(
-                          text: optionText,
-                          optionLabel: option.optionLabel,
-                          imageUrl: option.imageUrl,
-                          isSelected: isSelected,
-                          showInstantMarking:
-                              _instantMarking && userSelections[index] != null,
-                          isCorrectAnswer:
-                              option.optionLabel == question.correctAnswer,
-                          onTap: () => _selectOption(option.optionLabel, index),
-                          languageCode: currentLanguageCode,
-                          scale: s,
-                          // Show explanation inline inside the correct answer tile
-                          explanation:
-                              option.optionLabel == question.correctAnswer
-                                  ? question.answerExplanation
-                                  : null,
-                        );
-                      }),
-
-                      // AI hint / understand buttons (or continue chat)
-                      _buildAiButtons(context, index, s),
-
-                      // Peek-area anchor — only on the first question so the
-                      // tutorial key is stable and in the widget tree.
-                      if (index == 0)
-                        SizedBox(key: _peekAreaKey, height: 12 * s)
-                      else
-                        SizedBox(height: 12 * s),
-
-                      // Bookmark button
-                      if (!widget.isReviewMode &&
-                          widget.questions[index].questionId.isNotEmpty)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () async {
-                              HapticFeedback.lightImpact();
-                              final qId = widget.questions[index].questionId;
-                              final isSaved =
-                                  await SavedQuestionsService.toggleSavedScoped(
-                                qId,
-                                questionText: widget.questions[index].text,
-                                licenceId: widget.licenceId,
-                                categoryId: widget.categoryId,
-                                bcdCategoryId: widget.bcdCategoryId,
-                              );
-                              final ids =
-                                  await SavedQuestionsService.getSavedIdsScoped(
-                                licenceId: widget.licenceId,
-                                categoryId: widget.categoryId,
-                                bcdCategoryId: widget.bcdCategoryId,
-                              );
-                              if (mounted) {
-                                setState(() => _savedQuestionIds = ids);
-                                showAppSnackBar(isSaved
-                                    ? t.test_question_saved
-                                    : t.test_question_removed);
-                              }
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    _savedQuestionIds.contains(
-                                            widget.questions[index].questionId)
-                                        ? Icons.bookmark
-                                        : Icons.bookmark_border,
-                                    color: _savedQuestionIds.contains(
-                                            widget.questions[index].questionId)
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey[600],
-                                    size: 20,
-                                  ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _timerVisible
+                                      ? Icons.timer
+                                      : Icons.timer_off_outlined,
+                                  size: 14,
+                                  color: isUrgent ? Colors.red : primary,
+                                ),
+                                if (_timerVisible) ...[
                                   const SizedBox(width: 4),
                                   Text(
-                                    _savedQuestionIds.contains(
-                                            widget.questions[index].questionId)
-                                        ? t.test_saved
-                                        : t.test_save_question,
+                                    display,
                                     style: TextStyle(
-                                      fontSize: 13,
-                                      color: _savedQuestionIds.contains(widget
-                                              .questions[index].questionId)
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                          : Colors.grey[600],
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: secs <= 60 ? Colors.red : primary,
                                     ),
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
                           ),
                         ),
-
-                      SizedBox(height: 8 * s),
-                    ],
+                      ),
+                    );
+                  },
+                ),
+              if (!isSmallScreen)
+                Container(
+                  key: _langButtonKey,
+                  margin: const EdgeInsets.only(right: 8),
+                  child: PopupMenuButton<String>(
+                    key: _langMenuKey,
+                    onSelected: _onLanguageSelected,
+                    itemBuilder: (BuildContext context) => languageOptions
+                        .map((lang) => PopupMenuItem<String>(
+                              value: lang['code'],
+                              child: Text(lang['label']!),
+                            ))
+                        .toList(),
+                    child: Container(
+                      height: 32,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: Center(
+                              child: Text(
+                                ttsService.getLanguageFlag(currentLanguageCode),
+                                textScaler: TextScaler.noScaling,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            LucideIcons.languages,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert,
+                    color: Theme.of(context).colorScheme.onSurface),
+                onSelected: (value) {
+                  if (value == 'lang_en') {
+                    _onLanguageSelected('EN');
+                  } else if (value == 'lang_sv') {
+                    _onLanguageSelected('SV');
+                  } else if (value == 'feedback') {
+                    _showFeedbackDialog();
+                  } else if (value == 'toggle_timer') {
+                    setState(() {
+                      _isTimed = !_isTimed;
+                      if (_isTimed) {
+                        if (_remainingSeconds <= 0) {
+                          _remainingSeconds = widget.timeLimitMinutes * 60;
+                          _timerNotifier.value = _remainingSeconds;
+                        }
+                        _startTimer();
+                      } else {
+                        _countdownTimer?.cancel();
+                      }
+                    });
+                  } else if (value == 'toggle_instant') {
+                    setState(() => _instantMarking = !_instantMarking);
+                  }
+                },
+                itemBuilder: (context) => [
+                  if (isSmallScreen)
+                    PopupMenuItem<String>(
+                      value: 'lang_en',
+                      child: Row(
+                        children: [
+                          Text('🇬🇧 ${t.test_language_english}'),
+                          const Spacer(),
+                          if (currentLanguageCode.toLowerCase() == 'en')
+                            const Icon(Icons.check, size: 16),
+                        ],
+                      ),
+                    ),
+                  if (isSmallScreen)
+                    PopupMenuItem<String>(
+                      value: 'lang_sv',
+                      child: Row(
+                        children: [
+                          Text('🇸🇪 ${t.test_language_swedish}'),
+                          const Spacer(),
+                          if (currentLanguageCode.toLowerCase() == 'sv')
+                            const Icon(Icons.check, size: 16),
+                        ],
+                      ),
+                    ),
+                  if (isSmallScreen)
+                    PopupMenuItem<String>(
+                      enabled: false,
+                      height: 1,
+                      padding: EdgeInsets.zero,
+                      child: Divider(
+                          color: Theme.of(context).dividerColor, height: 1),
+                    ),
+                  if (!widget.isReviewMode)
+                    PopupMenuItem<String>(
+                      value: 'toggle_timer',
+                      child: Row(
+                        children: [
+                          Icon(
+                              _isTimed
+                                  ? Icons.timer_off_outlined
+                                  : Icons.timer_outlined,
+                              size: 18),
+                          const SizedBox(width: 8),
+                          Text(_isTimed
+                              ? t.test_turn_off_timer
+                              : t.test_turn_on_timer),
+                          const Spacer(),
+                          if (_isTimed) const Icon(Icons.check, size: 16),
+                        ],
+                      ),
+                    ),
+                  if (!widget.isReviewMode)
+                    PopupMenuItem<String>(
+                      value: 'toggle_instant',
+                      child: Row(
+                        children: [
+                          Icon(
+                              _instantMarking
+                                  ? Icons.rule_outlined
+                                  : Icons.rule_outlined,
+                              size: 18),
+                          const SizedBox(width: 8),
+                          Text(_instantMarking
+                              ? t.test_turn_off_instant_marking
+                              : t.test_turn_on_instant_marking),
+                          const Spacer(),
+                          if (_instantMarking)
+                            const Icon(Icons.check, size: 16),
+                        ],
+                      ),
+                    ),
+                  if (!widget.isReviewMode)
+                    PopupMenuItem<String>(
+                      enabled: false,
+                      height: 1,
+                      padding: EdgeInsets.zero,
+                      child: Divider(
+                          color: Theme.of(context).dividerColor, height: 1),
+                    ),
+                  PopupMenuItem<String>(
+                    value: 'feedback',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, size: 18),
+                        const SizedBox(width: 8),
+                        Text(t.test_feedback_title),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            );
-          },
-        ), // PageView
-        bottomNavigationBar: NavigationControls(
-          atFirst: currentQuestionIndex == 0,
-          atLast: currentQuestionIndex == widget.questions.length - 1,
-          onBack: _previousQuestion,
-          // Decide at runtime whether we go to the next page or open the dialogs.
-          onNextOrFinish: () {
-            if (currentQuestionIndex < widget.questions.length - 1) {
-              _nextQuestion();
-              return;
-            }
+            ],
+          ),
+          body: PageView.builder(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            itemCount: widget.questions.length,
+            itemBuilder: (context, index) {
+              final translatedList = translatedQuestionsWithOptions[
+                  currentLanguageCode.toLowerCase()];
+              final question =
+                  (translatedList != null && translatedList.length > index)
+                      ? translatedList[index]
+                      : widget.questions[index];
+              var questionUrl = _apiService.fetchImage(
+                widget.licenceId,
+                widget.categoryId,
+                widget.questions[index].imageUrl,
+              );
 
-            // Last question → show the confirmation dialog
-            showFinishConfirmationDialog(
-              context: context,
-              unansweredCount: widget.questions.length - userSelections.length,
-              onCancel: () {}, // nothing extra on “No”
-              onConfirm: () async {
-                final saveResult = await _saveTestAttempt();
-                if (!mounted) return;
-                if (!saveResult.backendSynced) {
-                  showAppSnackBar(t.test_save_backend_failed);
-                }
-                final passed = _calculateResult();
-                if (passed) {
-                  vibratePass();
-                } else {
-                  vibrateFail();
-                }
-                showResultDialog(
-                  context: this.context,
-                  hasPassed: passed,
-                  score: _computeScorePercent(),
-                  passScorePercent: widget.passScorePercent,
-                  questions: widget.questions,
-                  userSelections: userSelections,
-                  licenceId: widget.licenceId,
-                  categoryId: widget.categoryId,
-                );
-              },
-            );
-          },
-        ),
-      ), // Scaffold
+              // Get translated question text if available
+              String questionText = question.text;
+
+              // Get translated options if available
+              List<String> optionTexts = [];
+              optionTexts = question.options.map((e) => e.text).toList();
+
+              return GestureDetector(
+                onLongPress: () {
+                  _revertToPreviousLanguage();
+                  // Tutorial: user started holding — update card to "now release".
+                  if (_tutorialPhase2Active && !_tutorialPhase2bActive) {
+                    _showReleaseHint();
+                  }
+                },
+                onLongPressUp: () {
+                  _revertToPreviousLanguage();
+                  // Tutorial: user released — advance to "swipe left" step.
+                  if (_tutorialPhase2bActive) {
+                    Future.delayed(
+                      const Duration(milliseconds: 600),
+                      _showTutorialPhase3a,
+                    );
+                  }
+                },
+                child: Padding(
+                  padding: EdgeInsets.all(20.0 * s),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Question text with star bookmark
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(
+                                        fontSize: 22 * s,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                        height: 1.3,
+                                      ),
+                                  children: [
+                                    TextSpan(text: questionText),
+                                    WidgetSpan(
+                                      alignment: PlaceholderAlignment.middle,
+                                      child: TtsButton(
+                                        textToSpeak: questionText,
+                                        languageCode: currentLanguageCode,
+                                        iconSize: 22 * s,
+                                        tooltip: Translations.of(context)
+                                            .ai_read_aloud,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            if (!widget.isReviewMode &&
+                                widget.questions[index].questionId.isNotEmpty)
+                              GestureDetector(
+                                onTap: () async {
+                                  HapticFeedback.lightImpact();
+                                  final qId =
+                                      widget.questions[index].questionId;
+                                  final isSaved = await SavedQuestionsService
+                                      .toggleSavedScoped(
+                                    qId,
+                                    questionText: widget.questions[index].text,
+                                    licenceId: widget.licenceId,
+                                    categoryId: widget.categoryId,
+                                    bcdCategoryId: widget.bcdCategoryId,
+                                  );
+                                  final ids = await SavedQuestionsService
+                                      .getSavedIdsScoped(
+                                    licenceId: widget.licenceId,
+                                    categoryId: widget.categoryId,
+                                    bcdCategoryId: widget.bcdCategoryId,
+                                  );
+                                  if (mounted) {
+                                    setState(() => _savedQuestionIds = ids);
+                                    showAppSnackBar(isSaved
+                                        ? t.test_question_saved
+                                        : t.test_question_removed);
+                                  }
+                                },
+                                child: Padding(
+                                  padding:
+                                      EdgeInsets.only(left: 8 * s, top: 2 * s),
+                                  child: Icon(
+                                    _savedQuestionIds.contains(
+                                            widget.questions[index].questionId)
+                                        ? Icons.star_rounded
+                                        : Icons.star_border_rounded,
+                                    color: _savedQuestionIds.contains(
+                                            widget.questions[index].questionId)
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.grey[400],
+                                    size: 28 * s,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(height: 14 * s),
+
+                        // Question images — use multi-image list if available,
+                        // fall back to legacy imageUrl for backward compatibility.
+                        ..._buildQuestionImages(
+                          context,
+                          s,
+                          mq,
+                          question.images.isNotEmpty
+                              ? question.images
+                              : (question.imageUrl.isNotEmpty
+                                  ? [questionUrl]
+                                  : []),
+                        ),
+
+                        // Question tabs (BCD questions with tabbed image content)
+                        if (question.tabs.isNotEmpty) ...[
+                          SizedBox(height: 8 * s),
+                          QuestionTabsWidget(tabs: question.tabs),
+                        ],
+
+                        SizedBox(height: 12 * s),
+
+                        // Options
+                        ...question.options.asMap().entries.map((entry) {
+                          int optIndex = entry.key;
+                          var option = entry.value;
+                          String optionText = optionTexts[optIndex];
+                          bool isSelected =
+                              userSelections[index] == option.optionLabel;
+
+                          return Option(
+                            text: optionText,
+                            optionLabel: option.optionLabel,
+                            imageUrl: option.imageUrl,
+                            isSelected: isSelected,
+                            showInstantMarking: _instantMarking &&
+                                userSelections[index] != null,
+                            isCorrectAnswer:
+                                option.optionLabel == question.correctAnswer,
+                            onTap: () =>
+                                _selectOption(option.optionLabel, index),
+                            languageCode: currentLanguageCode,
+                            scale: s,
+                            // Show explanation inline inside the correct answer tile
+                            explanation:
+                                option.optionLabel == question.correctAnswer
+                                    ? question.answerExplanation
+                                    : null,
+                          );
+                        }),
+
+                        // AI hint / understand buttons (or continue chat)
+                        _buildAiButtons(context, index, s),
+
+                        // Peek-area anchor — only on the first question so the
+                        // tutorial key is stable and in the widget tree.
+                        if (index == 0)
+                          SizedBox(key: _peekAreaKey, height: 12 * s)
+                        else
+                          SizedBox(height: 12 * s),
+
+                        SizedBox(height: 8 * s),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ), // PageView
+          bottomNavigationBar: NavigationControls(
+            atFirst: currentQuestionIndex == 0,
+            atLast: currentQuestionIndex == widget.questions.length - 1,
+            onBack: _previousQuestion,
+            // Decide at runtime whether we go to the next page or open the dialogs.
+            onNextOrFinish: () {
+              if (currentQuestionIndex < widget.questions.length - 1) {
+                _nextQuestion();
+                return;
+              }
+
+              // Last question → show the confirmation dialog
+              showFinishConfirmationDialog(
+                context: context,
+                unansweredCount:
+                    widget.questions.length - userSelections.length,
+                onCancel: () {}, // nothing extra on “No”
+                onConfirm: () async {
+                  final saveResult = await _saveTestAttempt();
+                  if (!mounted) return;
+                  if (!saveResult.backendSynced) {
+                    showAppSnackBar(t.test_save_backend_failed);
+                  }
+                  final passed = _calculateResult();
+                  if (passed) {
+                    vibratePass();
+                  } else {
+                    vibrateFail();
+                  }
+                  showResultDialog(
+                    context: this.context,
+                    hasPassed: passed,
+                    score: _computeScorePercent(),
+                    passScorePercent: widget.passScorePercent,
+                    questions: widget.questions,
+                    userSelections: userSelections,
+                    licenceId: widget.licenceId,
+                    categoryId: widget.categoryId,
+                  );
+                },
+              );
+            },
+          ),
+        ), // Scaffold
+      ), // CupertinoScaffold
     ); // PopScope
   } // build
 

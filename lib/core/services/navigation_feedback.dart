@@ -14,8 +14,11 @@ Future<void> playNavigationFeedback() {
   return _defaultNavigationFeedbackService.play();
 }
 
+/// Crisp double-tap — correct answer selected in instant-check mode.
+Future<void> vibrateCorrectAnswer() => _vibrate(pattern: [0, 60, 50, 60]);
+
 /// Short error buzz — wrong answer selected in instant-check mode.
-Future<void> vibrateWrongAnswer() => _vibrate(durationMs: 150);
+Future<void> vibrateWrongAnswer() => _vibrate(durationMs: 250);
 
 /// Celebration — test passed.
 Future<void> vibratePass() => _vibrate(pattern: [0, 100, 60, 180, 60, 260]);

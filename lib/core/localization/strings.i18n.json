@@ -688,6 +688,7 @@
   "journey_all_mastered": "All questions mastered!",
   "journey_full_test_n": "Full {n}-Question Test",
   "journey_test_all": "Test all questions from this group",
+  "node_group_prefix": "Group",
   "journey_passed_score": "Passed! Score: {score}%",
   "journey_stage_complete_title": "Stage {n} Complete!",
   "journey_review_complete_title": "Review Complete!",

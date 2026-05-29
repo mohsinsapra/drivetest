@@ -225,3 +225,14 @@ Color categoryColor(String name) {
 /// Matched to the dominant background of each illustration.
 bool _has(String text, List<String> keywords) =>
     keywords.any((kw) => text.contains(kw));
+
+/// Adds a localised prefix when a node name is bare (only digits or letters,
+/// e.g. "1", "A", "12", "AB").  Meaningful names pass through unchanged.
+/// Pass the translated prefix from the call site via [groupPrefix].
+String formatNodeName(String name, String groupPrefix) {
+  final trimmed = name.trim();
+  if (RegExp(r'^[A-Za-z0-9]+$').hasMatch(trimmed)) {
+    return '$groupPrefix $trimmed';
+  }
+  return trimmed;
+}

@@ -33,6 +33,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/streak_notification_service.dart';
 import 'package:taxi_exam_app/features/streak/streak_settings_provider.dart';
 import 'package:taxi_exam_app/core/config/stripe_config.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:taxi_exam_app/core/monitoring/safe_flutter_error_handler.dart';
 
 void main() async {
@@ -246,16 +247,63 @@ Future<void> _initEnvAndStripe() async {
   }
 }
 
+// ── Google Fonts textTheme ─────────────────────────────────────────────────
+// Lexend for titles/headings (clear, readable), PlusJakartaSans for body/label.
+// Applied to both light and dark themes so every widget that uses
+// theme.textTheme.* automatically gets the right Google Font.
+TextTheme _buildTextTheme({Brightness brightness = Brightness.light}) {
+  // Lexend w600 for titles — clear and bold on small mobile screens.
+  // PlusJakartaSans w500 for body — slightly heavier than default w400
+  // so it reads well on low-DPI and AMOLED displays.
+  // Pass the brightness-correct base so Google Fonts doesn't bake in black colors.
+  final base = brightness == Brightness.dark
+      ? ThemeData.dark().textTheme
+      : ThemeData.light().textTheme;
+  final body = GoogleFonts.plusJakartaSansTextTheme(base).apply(
+    fontSizeFactor: 1.0,
+  );
+  final heading = GoogleFonts.lexendTextTheme(base);
+
+  TextStyle bold(TextStyle? s) =>
+      (s ?? const TextStyle()).copyWith(fontWeight: FontWeight.w600);
+  TextStyle medium(TextStyle? s) =>
+      (s ?? const TextStyle()).copyWith(fontWeight: FontWeight.w500);
+
+  final theme = body.copyWith(
+    // Headings — Lexend w600
+    displayLarge: bold(heading.displayLarge),
+    displayMedium: bold(heading.displayMedium),
+    displaySmall: bold(heading.displaySmall),
+    headlineLarge: bold(heading.headlineLarge),
+    headlineMedium: bold(heading.headlineMedium),
+    headlineSmall: bold(heading.headlineSmall),
+    titleLarge: bold(heading.titleLarge),
+    titleMedium: heading.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    titleSmall: heading.titleSmall?.copyWith(fontWeight: FontWeight.w500),
+    // Body — PlusJakartaSans w500
+    bodyLarge: medium(body.bodyLarge),
+    bodyMedium: medium(body.bodyMedium),
+    bodySmall: medium(body.bodySmall),
+    labelLarge: medium(body.labelLarge),
+    labelMedium: medium(body.labelMedium),
+    labelSmall: medium(body.labelSmall),
+  );
+
+  // In dark mode apply the app's onSurface (muted lavender) so text matches
+  // the design system instead of using the stark white from ThemeData.dark().
+  if (brightness == Brightness.dark) {
+    const darkText = Color(0xFF9999C6);
+    return theme.apply(bodyColor: darkText, displayColor: darkText);
+  }
+  return theme;
+}
+
 // ── Nordic Kinetic Design System – dark theme ──────────────────────────────
 // Derived from the same token set: surfaces shift to midnight ink,
 // accents stay vibrant (blue primary, yellow secondary, orange tertiary).
 ThemeData buildDarkTheme(String font) => ThemeData(
       fontFamily: font,
-      textTheme: TextTheme(
-        bodyLarge: TextStyle(fontFamily: font),
-        bodyMedium: TextStyle(fontFamily: font),
-        titleLarge: TextStyle(fontFamily: font),
-      ),
+      textTheme: _buildTextTheme(brightness: Brightness.dark),
       colorScheme: const ColorScheme(
         brightness: Brightness.dark,
         // Primary – Swedish blue (lighter in dark mode for contrast)
@@ -351,11 +399,7 @@ ThemeData buildDarkTheme(String font) => ThemeData(
 // ── Nordic Kinetic Design System – light theme ─────────────────────────────
 ThemeData buildLightTheme(String font) => ThemeData(
       fontFamily: font,
-      textTheme: TextTheme(
-        bodyLarge: TextStyle(fontFamily: font),
-        bodyMedium: TextStyle(fontFamily: font),
-        titleLarge: TextStyle(fontFamily: font),
-      ),
+      textTheme: _buildTextTheme(),
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
         // Primary – Swedish blue

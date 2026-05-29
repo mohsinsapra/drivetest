@@ -44,11 +44,11 @@ class _ExamCarouselShimmer extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Shimmer.fromColors(
       baseColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.12)
+          ? cs.onSurface.withValues(alpha: 0.15)
           : cs.onSurface.withValues(alpha: 0.08),
       highlightColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.06)
-          : cs.onSurface.withValues(alpha: 0.03),
+          ? cs.onSurface.withValues(alpha: 0.28)
+          : cs.onSurface.withValues(alpha: 0.15),
       child: SizedBox(
         height: _kCardHeight,
         child: ListView.separated(

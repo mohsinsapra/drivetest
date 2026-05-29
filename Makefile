@@ -195,6 +195,7 @@ web-tunnel:
 		--dart-define=GIT_SHORT_HASH="$(GIT_SHORT_HASH)" \
 		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
 		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)" \
+		--dart-define=GEMINI_API_KEY="$(GEMINI_API_KEY)" \
 		< /tmp/flutter_tunnel_pipe & FLUTTER_PID=$$!; \
 	exec 3>/tmp/flutter_tunnel_pipe; \
 	trap "echo '$(COLOR_YELLOW)Shutting down...$(COLOR_RESET)'; kill $$CF_PID 2>/dev/null; kill $$FLUTTER_PID 2>/dev/null; exec 3>&-; rm -f /tmp/flutter_tunnel_pipe; exit" INT TERM; \
@@ -262,7 +263,8 @@ _web-build-core:
 		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
 		--dart-define=GIT_SHORT_HASH="$(GIT_SHORT_HASH)" \
 		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
-		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)"
+		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)" \
+		--dart-define=GEMINI_API_KEY="$(GEMINI_API_KEY)"
 	@$(MAKE) -s _write-web-version-file
 	@if [ -d "/tmp/build_web_git_backup" ]; then \
 		echo "$(COLOR_YELLOW)Restoring .git folder...$(COLOR_RESET)"; \
@@ -336,7 +338,8 @@ _web-build-docker:
 			--dart-define=GIT_COMMIT_HASH='$(GIT_COMMIT_HASH)' \
 			--dart-define=GIT_SHORT_HASH='$(GIT_SHORT_HASH)' \
 			--dart-define=GIT_BRANCH='$(GIT_BRANCH)' \
-			--dart-define=GIT_COMMIT_DATE='$(GIT_COMMIT_DATE)'"
+			--dart-define=GIT_COMMIT_DATE='$(GIT_COMMIT_DATE)' \
+			--dart-define=GEMINI_API_KEY='$(GEMINI_API_KEY)'"
 	@$(MAKE) -s _write-web-version-file
 	@if [ -d "/tmp/build_web_git_backup" ]; then \
 		mv /tmp/build_web_git_backup $(WEB_BUILD_DIR)/.git; \
@@ -374,7 +377,8 @@ _android-build-docker:
 			--dart-define=GIT_COMMIT_HASH='$(GIT_COMMIT_HASH)' \
 			--dart-define=GIT_SHORT_HASH='$(GIT_SHORT_HASH)' \
 			--dart-define=GIT_BRANCH='$(GIT_BRANCH)' \
-			--dart-define=GIT_COMMIT_DATE='$(GIT_COMMIT_DATE)'"
+			--dart-define=GIT_COMMIT_DATE='$(GIT_COMMIT_DATE)' \
+			--dart-define=GEMINI_API_KEY='$(GEMINI_API_KEY)'"
 	@echo "$(COLOR_GREEN)✅ Android Docker build completed!$(COLOR_RESET)"
 
 ## _web-deploy-docker-core: Build web in Docker (parallel-safe) then deploy to web repo

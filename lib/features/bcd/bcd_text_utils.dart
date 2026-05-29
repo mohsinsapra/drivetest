@@ -31,9 +31,15 @@ String fixBcdEncoding(String text) {
   return text;
 }
 
-/// Strips HTML tags and fixes all known encoding issues (Mojibake + HTML entities).
+final _emojiRegex = RegExp(
+  r'[\u{1F000}-\u{1FAFF}]|[\u{2600}-\u{27BF}]|[\u{FE00}-\u{FEFF}]|\u{200D}',
+  unicode: true,
+);
+
+/// Strips HTML tags, emojis, and fixes all known encoding issues (Mojibake + HTML entities).
 String cleanBcdText(String raw) {
   return fixBcdEncoding(raw)
+      .replaceAll(_emojiRegex, '')
       .replaceAll(RegExp(r'<[^>]+>'), ' ')
       .replaceAll(RegExp(r'\s+'), ' ')
       .replaceAll('&nbsp;', ' ')

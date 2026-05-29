@@ -806,6 +806,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get journey_all_mastered => 'All questions mastered!';
   String get journey_full_test_n => 'Full {n}-Question Test';
   String get journey_test_all => 'Test all questions from this group';
+  String get node_group_prefix => 'Group';
   String get journey_passed_score => 'Passed! Score: {score}%';
   String get journey_stage_complete_title => 'Stage {n} Complete!';
   String get journey_review_complete_title => 'Review Complete!';
@@ -2200,6 +2201,8 @@ extension on Translations {
         return 'Full {n}-Question Test';
       case 'journey_test_all':
         return 'Test all questions from this group';
+      case 'node_group_prefix':
+        return 'Group';
       case 'journey_passed_score':
         return 'Passed! Score: {score}%';
       case 'journey_stage_complete_title':

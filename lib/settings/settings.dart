@@ -258,27 +258,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                     ),
                     title: Text(t.settings_theme_label),
                     subtitle: Text(t.settings_theme_sub),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _LangChip(
-                          label: t.settings_theme_system,
-                          selected: themeProvider.themeMode == ThemeMode.system,
-                          onTap: () => themeProvider.setMode(ThemeMode.system),
-                        ),
-                        const SizedBox(width: 6),
-                        _LangChip(
-                          label: t.settings_theme_light,
-                          selected: themeProvider.themeMode == ThemeMode.light,
-                          onTap: () => themeProvider.setMode(ThemeMode.light),
-                        ),
-                        const SizedBox(width: 6),
-                        _LangChip(
-                          label: t.settings_theme_dark,
-                          selected: themeProvider.themeMode == ThemeMode.dark,
-                          onTap: () => themeProvider.setMode(ThemeMode.dark),
-                        ),
-                      ],
+                    trailing: _ThemeToggle(
+                      isDark: themeProvider.themeMode == ThemeMode.dark ||
+                          (themeProvider.themeMode == ThemeMode.system &&
+                              isDark),
+                      onChanged: (dark) => themeProvider
+                          .setMode(dark ? ThemeMode.dark : ThemeMode.light),
                     ),
                   ),
 
@@ -711,6 +696,62 @@ class _LangChip extends StatelessWidget {
           ),
         ),
       );
+}
+
+// ── Theme toggle (sun / moon animated switch) ─────────────────────────────────
+
+class _ThemeToggle extends StatelessWidget {
+  const _ThemeToggle({required this.isDark, required this.onChanged});
+  final bool isDark;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: () => onChanged(!isDark),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        width: 64,
+        height: 32,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: isDark
+              ? cs.primaryContainer
+              : cs.secondary.withValues(alpha: 0.3),
+          border: Border.all(
+            color: isDark
+                ? cs.primary.withValues(alpha: 0.4)
+                : cs.secondary.withValues(alpha: 0.6),
+          ),
+        ),
+        child: Stack(
+          children: [
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              alignment: isDark ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark ? cs.primary : cs.secondary,
+                ),
+                child: Icon(
+                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                  size: 14,
+                  color: isDark ? Colors.white : Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ── Version info row ──────────────────────────────────────────────────────────

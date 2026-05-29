@@ -24,7 +24,8 @@ fi
 
 # Run Flutter build
 echo "Running flutter build web..."
-flutter build web
+flutter build web \
+    --dart-define=GEMINI_API_KEY="${GEMINI_API_KEY}"
 BUILD_EXIT=$?
 
 # Restore .git folder if it existed

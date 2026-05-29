@@ -1,34 +1,19 @@
+import 'dart:math';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'tts_button.dart'; // ⬅️ update path if needed
+import 'tts_button.dart';
 
-class Option extends StatelessWidget {
+class Option extends StatefulWidget {
   final String text;
   final String optionLabel;
   final String? imageUrl;
-
-  /// `true` when the user tapped this option.
   final bool isSelected;
-
-  /// Whether the test is in instant-marking mode *and* the user already
-  /// chose something for this question.
   final bool showInstantMarking;
-
-  /// If `showInstantMarking` is true, this decides the green (✔︎) or red (✘) colour.
   final bool isCorrectAnswer;
-
-  /// Called when the tile is tapped.
   final VoidCallback onTap;
-
-  /// ISO-639-1 code used by TTS (e.g. “en”, “sv” …)
   final String languageCode;
-
-  /// Layout scale factor — pass the screen-height-based `s` from the parent
-  /// screen for responsive sizing. Defaults to 1.0 (no scaling).
   final double scale;
-
-  /// Explanation shown inline under the correct answer in instant-marking mode.
-  /// Pass raw HTML — it will be stripped internally.
   final String? explanation;
 
   const Option({
@@ -45,8 +30,7 @@ class Option extends StatelessWidget {
     this.explanation,
   });
 
-  // --- HTML strip ------------------------------------------------------------
-  static String _stripHtml(String html) => html
+  static String stripHtml(String html) => html
       .replaceAll(RegExp(r'<[^>]+>'), ' ')
       .replaceAll('&nbsp;', ' ')
       .replaceAll('&ouml;', 'ö')
@@ -56,10 +40,96 @@ class Option extends StatelessWidget {
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
 
-  // --- Helper colour getters -------------------------------------------------
+  @override
+  State<Option> createState() => _OptionState();
+}
+
+class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  // Phase 1 (0→0.35): circle shrinks to 0  — old shape disappears
+  // Phase 2 (0.35→1): new shape grows from 0 → 1.25 → 1.0  — result pops in
+  late Animation<double> _shrink; // 1.0 → 0.0
+  late Animation<double> _grow; // 0.0 → 1.25 → 1.0
+  late Animation<double> _rotation; // 0 → pi/4 only for correct (diamond)
+
+  bool _wasMarking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 550),
+    );
+    _buildAnimations();
+
+    if (widget.showInstantMarking &&
+        (widget.isCorrectAnswer || widget.isSelected)) {
+      _ctrl.value = 1.0;
+      _wasMarking = true;
+    }
+  }
+
+  void _buildAnimations() {
+    _shrink = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.0, 0.35, curve: Curves.easeIn),
+      ),
+    );
+
+    _grow = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.25), weight: 65),
+      TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 35),
+    ]).animate(
+      CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.35, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    _rotation = Tween<double>(begin: 0, end: pi / 4).animate(
+      CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.35, 0.85, curve: Curves.easeOut),
+      ),
+    );
+  }
+
+  @override
+  void didUpdateWidget(Option old) {
+    super.didUpdateWidget(old);
+    final nowActive = widget.showInstantMarking &&
+        (widget.isCorrectAnswer || widget.isSelected);
+    final wasActive =
+        old.showInstantMarking && (old.isCorrectAnswer || old.isSelected);
+
+    if (nowActive && !wasActive && !_wasMarking) {
+      // Skip animation if system has reduced-motion enabled or on very slow
+      // devices where animations cause jank.
+      if (MediaQuery.of(context).disableAnimations) {
+        _ctrl.value = 1.0;
+      } else {
+        _ctrl.forward(from: 0);
+      }
+      _wasMarking = true;
+    } else if (!nowActive && wasActive) {
+      _ctrl.value = 0;
+      _wasMarking = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  // ── colours ────────────────────────────────────────────────────────────────
   Color _backgroundColor(BuildContext ctx) {
-    if (!showInstantMarking) {
-      if (isSelected) {
+    if (!widget.showInstantMarking) {
+      if (widget.isSelected) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return Theme.of(ctx)
             .colorScheme
@@ -68,67 +138,118 @@ class Option extends StatelessWidget {
       }
       return Theme.of(ctx).cardColor;
     }
-    // If this is the correct answer, always show green background
-    if (isCorrectAnswer) {
-      return Colors.green.withValues(alpha: 0.12);
-    }
-    // If user selected this and it's wrong, show red background
-    if (isSelected) {
-      return Colors.red.withValues(alpha: 0.12);
-    }
+    if (widget.isCorrectAnswer) return Colors.green.withValues(alpha: 0.15);
+    if (widget.isSelected) return Colors.red.withValues(alpha: 0.15);
     return Theme.of(ctx).cardColor;
   }
 
   Color _borderColor(BuildContext ctx) {
     final isDark = Theme.of(ctx).brightness == Brightness.dark;
-    final defaultBorder =
-        isDark ? Colors.white.withValues(alpha: 0.15) : Colors.grey[300]!;
-    if (!showInstantMarking) {
-      return isSelected ? Theme.of(ctx).colorScheme.primary : defaultBorder;
+    final def =
+        isDark ? Colors.white.withValues(alpha: 0.10) : Colors.grey[200]!;
+    if (!widget.showInstantMarking) {
+      return widget.isSelected
+          ? Theme.of(ctx).colorScheme.primary.withValues(alpha: 0.4)
+          : def;
     }
-    if (isCorrectAnswer) return Colors.green[400]!;
-    if (isSelected) return Colors.red[400]!;
-    return defaultBorder;
+    // After marking: no hard border — background color carries the state
+    return Colors.transparent;
   }
 
   double _borderWidth() {
-    if (!showInstantMarking) return isSelected ? 2.0 : 1.0;
-    return (isCorrectAnswer || isSelected) ? 2.0 : 1.0;
+    if (!widget.showInstantMarking) return widget.isSelected ? 1.5 : 1.0;
+    return 0;
   }
-  // ---------------------------------------------------------------------------
 
+  // ── animated indicator ─────────────────────────────────────────────────────
+  Widget _buildIndicator(BuildContext ctx, double s) {
+    final bool active = widget.showInstantMarking &&
+        (widget.isCorrectAnswer || widget.isSelected);
+
+    // Static circle for non-active tiles
+    if (!active) {
+      Color fill = Colors.transparent;
+      Color border =
+          Theme.of(ctx).colorScheme.onSurface.withValues(alpha: 0.35);
+      Widget? inner;
+      if (widget.isSelected) {
+        fill = Theme.of(ctx).primaryColor;
+        border = Theme.of(ctx).primaryColor;
+        inner = Icon(Icons.circle, size: 10 * s, color: Colors.white);
+      }
+      return Container(
+        width: 24 * s,
+        height: 24 * s,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: fill,
+          border: Border.all(color: border, width: 2),
+        ),
+        child: inner != null ? Center(child: inner) : null,
+      );
+    }
+
+    final bool isCorrect = widget.isCorrectAnswer;
+
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        final t = _ctrl.value;
+        // Phase 1 (t < 0.35): old circle shrinks away
+        // Phase 2 (t >= 0.35): new result shape grows in
+        final bool showResult = t >= 0.35;
+        final double scaleFactor = showResult ? _grow.value : _shrink.value;
+        final double rotAngle =
+            (isCorrect && showResult) ? _rotation.value : 0.0;
+
+        final BoxDecoration decoration = isCorrect
+            ? BoxDecoration(
+                color: showResult
+                    ? Colors.green
+                    : Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(5 * s),
+              )
+            : BoxDecoration(
+                shape: BoxShape.circle,
+                color: showResult ? Colors.red : Theme.of(ctx).primaryColor,
+              );
+
+        return Transform.scale(
+          scale: scaleFactor.clamp(0.0, 2.0),
+          child: Transform.rotate(
+            angle: rotAngle,
+            child: Container(
+              width: 24 * s,
+              height: 24 * s,
+              decoration: decoration,
+              child: Center(
+                child: Transform.rotate(
+                  angle: -rotAngle, // keep icon upright inside diamond
+                  child: Icon(
+                    isCorrect ? Icons.check : Icons.close,
+                    size: 14 * s,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ── build ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final s = scale;
-
-    // Determine the icon and color for the bullet/indicator
-    Widget? indicatorIcon;
-    Color indicatorColor = Colors.transparent;
-    Color indicatorBorderColor =
-        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35);
-
-    if (showInstantMarking) {
-      if (isCorrectAnswer) {
-        indicatorColor = Colors.green;
-        indicatorBorderColor = Colors.green;
-        indicatorIcon = Icon(Icons.check, size: 14 * s, color: Colors.white);
-      } else if (isSelected) {
-        indicatorColor = Colors.red;
-        indicatorBorderColor = Colors.red;
-        indicatorIcon = Icon(Icons.close, size: 14 * s, color: Colors.white);
-      }
-    } else if (isSelected) {
-      indicatorColor = Theme.of(context).primaryColor;
-      indicatorBorderColor = Theme.of(context).primaryColor;
-      indicatorIcon = Icon(Icons.circle, size: 10 * s, color: Colors.white);
-    }
+    final s = widget.scale;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12 * s),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: widget.onTap,
           onLongPress: () {},
           borderRadius: BorderRadius.circular(12),
           child: AnimatedContainer(
@@ -155,45 +276,30 @@ class Option extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── label row ────────────────────────────────────────────────
+                // ── label row ──────────────────────────────────────────────
                 Row(
                   children: [
-                    // radio-style bullet or result icon
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 24 * s,
-                      height: 24 * s,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: indicatorColor,
-                        border: Border.all(
-                          color: indicatorBorderColor,
-                          width: 2,
-                        ),
-                      ),
-                      child: Center(child: indicatorIcon),
-                    ),
+                    _buildIndicator(context, s),
                     SizedBox(width: 12 * s),
-
-                    // option text + TTS
                     Expanded(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
                             child: Text(
-                              text,
+                              widget.text,
                               softWrap: true,
                               style: TextStyle(
                                 fontSize: 15 * s,
-                                fontWeight: (isSelected ||
-                                        (showInstantMarking && isCorrectAnswer))
+                                fontWeight: (widget.isSelected ||
+                                        (widget.showInstantMarking &&
+                                            widget.isCorrectAnswer))
                                     ? FontWeight.w600
                                     : FontWeight.normal,
-                                color: showInstantMarking
-                                    ? (isCorrectAnswer
+                                color: widget.showInstantMarking
+                                    ? (widget.isCorrectAnswer
                                         ? Colors.green[700]
-                                        : (isSelected
+                                        : (widget.isSelected
                                             ? Colors.red[700]
                                             : Theme.of(context)
                                                 .colorScheme
@@ -204,8 +310,8 @@ class Option extends StatelessWidget {
                           ),
                           SizedBox(width: 6 * s),
                           TtsButton(
-                            textToSpeak: text,
-                            languageCode: languageCode,
+                            textToSpeak: widget.text,
+                            languageCode: widget.languageCode,
                             iconSize: 18 * s,
                             tooltip: 'Read option aloud',
                           ),
@@ -214,18 +320,16 @@ class Option extends StatelessWidget {
                     ),
                   ],
                 ),
-                // ── inline explanation (correct answer, instant marking) ────
-                if (showInstantMarking &&
-                    isCorrectAnswer &&
-                    explanation != null &&
-                    explanation!.isNotEmpty)
+
+                // ── explanation (correct answer only) ──────────────────────
+                if (widget.showInstantMarking &&
+                    widget.isCorrectAnswer &&
+                    widget.explanation != null &&
+                    widget.explanation!.isNotEmpty)
                   Padding(
-                    padding: EdgeInsets.only(
-                      top: 10 * s,
-                      left: 36 * s, // align with option text
-                    ),
+                    padding: EdgeInsets.only(top: 10 * s, left: 36 * s),
                     child: Text(
-                      _stripHtml(explanation!),
+                      Option.stripHtml(widget.explanation!),
                       style: TextStyle(
                         fontSize: 14 * s,
                         color: Theme.of(context)
@@ -237,14 +341,14 @@ class Option extends StatelessWidget {
                     ),
                   ),
 
-                // ── thumbnail (optional) ────────────────────────────────────
-                if (imageUrl != null && imageUrl!.isNotEmpty)
+                // ── thumbnail ──────────────────────────────────────────────
+                if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
                   Container(
                     margin: EdgeInsets.only(top: 10 * s),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: CachedNetworkImage(
-                        imageUrl: imageUrl!,
+                        imageUrl: widget.imageUrl!,
                         width: double.infinity,
                         height: 110 * s,
                         fit: BoxFit.cover,
@@ -252,7 +356,7 @@ class Option extends StatelessWidget {
                           width: double.infinity,
                           height: 110 * s,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
+                            color: Theme.of(c).colorScheme.surface,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Center(
@@ -267,7 +371,7 @@ class Option extends StatelessWidget {
                           width: double.infinity,
                           height: 110 * s,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
+                            color: Theme.of(c).colorScheme.surface,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
@@ -275,14 +379,14 @@ class Option extends StatelessWidget {
                             children: [
                               Icon(Icons.image_not_supported,
                                   size: 24,
-                                  color: Theme.of(context)
+                                  color: Theme.of(c)
                                       .colorScheme
                                       .onSurface
                                       .withValues(alpha: 0.4)),
                               const SizedBox(height: 4),
                               Text('Image not available',
                                   style: TextStyle(
-                                      color: Theme.of(context)
+                                      color: Theme.of(c)
                                           .colorScheme
                                           .onSurface
                                           .withValues(alpha: 0.6),

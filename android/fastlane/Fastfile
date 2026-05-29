@@ -226,14 +226,23 @@ end
       google_server_client_id = env_vars["GOOGLE_SERVER_CLIENT_ID"].to_s.strip
       stripe_publishable_key = env_vars["STRIPE_PUBLISHABLE_KEY"].to_s.strip
       field_encryption_key = env_vars["FIELD_ENCRYPTION_KEY"].to_s.strip
+      gemini_api_key = ENV["GEMINI_API_KEY"].to_s.strip
+      gemini_api_key = env_vars["GEMINI_API_KEY"].to_s.strip if gemini_api_key.empty?
 
       defines = []
       defines << "--dart-define=GOOGLE_SERVER_CLIENT_ID=#{google_server_client_id}" unless google_server_client_id.empty?
       defines << "--dart-define=STRIPE_PUBLISHABLE_KEY=#{stripe_publishable_key}" unless stripe_publishable_key.empty?
       defines << "--dart-define=FIELD_ENCRYPTION_KEY=#{field_encryption_key}" unless field_encryption_key.empty?
+      defines << "--dart-define=GEMINI_API_KEY=#{gemini_api_key}" unless gemini_api_key.empty?
       defines << "--dart-define=BUILD_VARIANT=#{build_variant}"
       defines.join(" ")
     else
+      unless explicit_defines.include?("GEMINI_API_KEY=")
+        env_vars = load_root_env
+        gemini_api_key = ENV["GEMINI_API_KEY"].to_s.strip
+        gemini_api_key = env_vars["GEMINI_API_KEY"].to_s.strip if gemini_api_key.empty?
+        explicit_defines += " --dart-define=GEMINI_API_KEY=#{gemini_api_key}" unless gemini_api_key.empty?
+      end
       # Inject BUILD_VARIANT unless the caller already specified it
       unless explicit_defines.include?("BUILD_VARIANT=")
         explicit_defines += " --dart-define=BUILD_VARIANT=#{build_variant}"

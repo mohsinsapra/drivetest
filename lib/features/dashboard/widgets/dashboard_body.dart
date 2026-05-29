@@ -260,7 +260,6 @@ class _DashboardBodyState extends State<DashboardBody> {
             child: CategoryListItem(
               cat: cat,
               icon: categoryIcon(cat.node.name),
-              color: categoryColor(cat.node.name),
               isExpanded: _expandedCategories.contains(cat.node.id),
               onToggle: () => setState(() {
                 if (_expandedCategories.contains(cat.node.id)) {
@@ -395,7 +394,9 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final items = _effectiveItems;
 
     return Padding(
@@ -467,22 +468,51 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
           const SizedBox(height: 12),
           if (widget.loading)
             _ChecklistShimmer()
+          else if (items.length == 1)
+            _ChecklistCard(
+              title: items.first['title']!,
+              content: items.first['content']!,
+            )
           else
-            Column(
-              children: items
-                  .asMap()
-                  .entries
-                  .map(
-                    (e) => Padding(
-                      padding: EdgeInsets.only(
-                          bottom: e.key < items.length - 1 ? 10 : 0),
-                      child: _ChecklistCard(
-                        title: e.value['title']!,
-                        content: e.value['content']!,
-                      ),
-                    ),
-                  )
-                  .toList(),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: cs.onSurface.withValues(alpha: 0.06),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Column(
+                  children: items.asMap().entries.map((e) {
+                    final isLast = e.key == items.length - 1;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _ChecklistCard(
+                          title: e.value['title']!,
+                          content: e.value['content']!,
+                          nested: true,
+                        ),
+                        if (!isLast)
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: cs.onSurface.withValues(alpha: 0.07),
+                          ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
         ],
       ),
@@ -491,9 +521,16 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
 }
 
 class _ChecklistCard extends StatefulWidget {
-  const _ChecklistCard({required this.title, required this.content});
+  const _ChecklistCard({
+    required this.title,
+    required this.content,
+    this.nested = false,
+  });
   final String title;
   final String content;
+
+  /// When true, renders without its own card decoration (for use inside a grouped container).
+  final bool nested;
 
   @override
   State<_ChecklistCard> createState() => _ChecklistCardState();
@@ -534,15 +571,104 @@ class _ChecklistCardState extends State<_ChecklistCard>
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildInner(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+    return Column(
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _toggle,
+            splashColor: cs.primary.withValues(alpha: 0.08),
+            highlightColor: cs.primary.withValues(alpha: 0.05),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: cs.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(LucideIcons.clipboardCheck,
+                        color: cs.primary, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _expanded ? 0.25 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      color: cs.onSurface.withValues(alpha: 0.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        ClipRect(
+          child: AnimatedBuilder(
+            animation: _curved,
+            builder: (ctx, child) {
+              if (_ctrl.status == AnimationStatus.dismissed) {
+                return const SizedBox.shrink();
+              }
+              return Align(
+                alignment: Alignment.topCenter,
+                heightFactor: _curved.value,
+                child: child,
+              );
+            },
+            child: _hasBeenExpanded
+                ? Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.07),
+                        ),
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    width: double.infinity,
+                    child: Text(
+                      widget.content,
+                      style: AppTextStyles.bodyMedium().copyWith(height: 1.5),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (widget.nested) return _buildInner(context);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
       decoration: BoxDecoration(
-        color: _expanded ? cs.surfaceContainerLow : theme.cardColor,
+        color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: _expanded
@@ -559,87 +685,7 @@ class _ChecklistCardState extends State<_ChecklistCard>
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: Column(
-          children: [
-            Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: _toggle,
-                splashColor: cs.primary.withValues(alpha: 0.08),
-                highlightColor: cs.primary.withValues(alpha: 0.05),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: cs.primary.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(LucideIcons.clipboardCheck,
-                            color: cs.primary, size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          widget.title,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      AnimatedRotation(
-                        turns: _expanded ? 0.25 : 0.0,
-                        duration: const Duration(milliseconds: 200),
-                        child: Icon(
-                          Icons.chevron_right_rounded,
-                          color: cs.onSurface.withValues(alpha: 0.4),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            ClipRect(
-              child: AnimatedBuilder(
-                animation: _curved,
-                builder: (ctx, child) {
-                  if (_ctrl.status == AnimationStatus.dismissed) {
-                    return const SizedBox.shrink();
-                  }
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    heightFactor: _curved.value,
-                    child: child,
-                  );
-                },
-                child: _hasBeenExpanded
-                    ? Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(
-                              color: cs.onSurface.withValues(alpha: 0.07),
-                            ),
-                          ),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        width: double.infinity,
-                        child: Text(
-                          widget.content,
-                          style:
-                              AppTextStyles.bodyMedium().copyWith(height: 1.5),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ),
-          ],
-        ),
+        child: _buildInner(context),
       ),
     );
   }
@@ -656,11 +702,11 @@ class _ChecklistShimmer extends StatelessWidget {
           padding: EdgeInsets.only(bottom: i < 2 ? 10 : 0),
           child: Shimmer.fromColors(
             baseColor: isDark
-                ? cs.onSurface.withValues(alpha: 0.12)
+                ? cs.onSurface.withValues(alpha: 0.15)
                 : cs.onSurface.withValues(alpha: 0.08),
             highlightColor: isDark
-                ? cs.onSurface.withValues(alpha: 0.06)
-                : cs.onSurface.withValues(alpha: 0.03),
+                ? cs.onSurface.withValues(alpha: 0.28)
+                : cs.onSurface.withValues(alpha: 0.15),
             child: const _ChecklistCard(title: '', content: ''),
           ),
         );
@@ -788,7 +834,7 @@ class _FocusAreasShimmer extends StatelessWidget {
                 ? Theme.of(context)
                     .colorScheme
                     .onSurface
-                    .withValues(alpha: 0.12)
+                    .withValues(alpha: 0.15)
                 : Theme.of(context)
                     .colorScheme
                     .onSurface
@@ -797,18 +843,17 @@ class _FocusAreasShimmer extends StatelessWidget {
                 ? Theme.of(context)
                     .colorScheme
                     .onSurface
-                    .withValues(alpha: 0.06)
+                    .withValues(alpha: 0.28)
                 : Theme.of(context)
                     .colorScheme
                     .onSurface
-                    .withValues(alpha: 0.03),
-            child: CategoryListItem(
-              cat: stats.categoryStats![i],
-              icon: categoryIcon(stats.categoryStats![i].node.name),
-              color: categoryColor(stats.categoryStats![i].node.name),
-              isExpanded: false,
-              onToggle: () {},
-              stats: stats,
+                    .withValues(alpha: 0.15),
+            child: Container(
+              height: 76,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
           ),
         ),
@@ -826,11 +871,11 @@ class _WeeklyStreakShimmer extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Shimmer.fromColors(
       baseColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.12)
+          ? cs.onSurface.withValues(alpha: 0.15)
           : cs.onSurface.withValues(alpha: 0.08),
       highlightColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.06)
-          : cs.onSurface.withValues(alpha: 0.03),
+          ? cs.onSurface.withValues(alpha: 0.28)
+          : cs.onSurface.withValues(alpha: 0.15),
       child: WeeklyStreakSection(streak: _loadingStreak()),
     );
   }

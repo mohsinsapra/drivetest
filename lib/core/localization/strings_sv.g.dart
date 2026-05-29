@@ -1479,6 +1479,8 @@ class TranslationsSv implements Translations {
   @override
   String get journey_test_all => 'Testa alla frågor i den här gruppen';
   @override
+  String get node_group_prefix => 'Grupp';
+  @override
   String get journey_passed_score => 'Godkänt! Poäng: {score}%';
   @override
   String get journey_stage_complete_title => 'Steg {n} klart!';
@@ -2916,6 +2918,8 @@ extension on TranslationsSv {
         return 'Fullständigt {n}-frågorstest';
       case 'journey_test_all':
         return 'Testa alla frågor i den här gruppen';
+      case 'node_group_prefix':
+        return 'Grupp';
       case 'journey_passed_score':
         return 'Godkänt! Poäng: {score}%';
       case 'journey_stage_complete_title':

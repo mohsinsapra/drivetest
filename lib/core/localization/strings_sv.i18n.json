@@ -688,6 +688,7 @@
   "journey_all_mastered": "Alla frågor bemästrade!",
   "journey_full_test_n": "Fullständigt {n}-frågorstest",
   "journey_test_all": "Testa alla frågor i den här gruppen",
+  "node_group_prefix": "Grupp",
   "journey_passed_score": "Godkänt! Poäng: {score}%",
   "journey_stage_complete_title": "Steg {n} klart!",
   "journey_review_complete_title": "Granskning klar!",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import '../models/dashboard_stats.dart';
 import '../models/subscribed_exam.dart';
 import 'batch_attempt_history.dart';
@@ -133,7 +134,8 @@ class _BatchRowState extends State<BatchRow>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              batch.node.name,
+                              formatNodeName(batch.node.name,
+                                  Translations.of(context).node_group_prefix),
                               style: theme.textTheme.bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.w500),
                             ),
