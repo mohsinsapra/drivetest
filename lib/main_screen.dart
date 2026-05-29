@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -204,9 +203,8 @@ class MainScreenState extends State<MainScreen> {
 
     final mq = MediaQuery.of(context);
 
-    return CupertinoScaffold(
-      body: Scaffold(
-        body: Stack(
+    return Scaffold(
+      body: Stack(
         children: [
           // _LazyIndexedStack only builds a screen on first visit, so the
           // transition animation from splash/onboarding doesn't pay for all
@@ -229,7 +227,6 @@ class MainScreenState extends State<MainScreen> {
             ),
           ),
         ],
-      ),
       ),
     );
   }

@@ -1,5 +1,4 @@
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
-import 'package:taxi_exam_app/core/widgets/app_sheet.dart';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -15,10 +14,12 @@ Future<void> showGdprConsentIfNeeded(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   if (prefs.getBool(_kConsentKey) == true) return;
   if (!context.mounted) return;
-  await showAppSheet<void>(
-    context,
+  await showModalBottomSheet<void>(
+    context: context,
     isDismissible: false,
     enableDrag: false,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
     builder: (_) => const _GdprConsentSheet(),
   );
 }

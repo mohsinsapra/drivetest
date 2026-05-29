@@ -11,7 +11,6 @@ import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
-import 'package:taxi_exam_app/core/widgets/app_sheet.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/debug_credentials.dart';
 
@@ -28,8 +27,10 @@ Future<bool> showAuthBottomSheet(
   bool required = false,
   bool allowDemo = true,
 }) async {
-  final result = await showAppSheet<bool>(
-    context,
+  final result = await showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
     isDismissible: !required,
     enableDrag: !required,
     builder: (_) =>
