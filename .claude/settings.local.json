@@ -312,7 +312,18 @@
       "Bash(grep -n \"_ensure-changelog\\\\|^$\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/Makefile)",
       "WebFetch(domain:pub.dev)",
       "Bash(grep -n \"^  }$\\\\|^    }$\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/tests/test_screen.dart)",
-      "Bash(awk 'NR>=1295 && NR<=1825' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/tests/test_screen.dart)"
+      "Bash(awk 'NR>=1295 && NR<=1825' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/tests/test_screen.dart)",
+      "Bash(grep -n \"} // build\\\\|}  // build\\\\|// build$\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/main_screen.dart)",
+      "Bash(grep -n \"} // build\\\\|}  // build\\\\|// build$\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/splash/splash_screen.dart)",
+      "Bash(grep -n \"} // build\\\\|}  // build\\\\|// build$\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/onboarding/onboarding_screen.dart)",
+      "Bash(awk 'NR>=200 && NR<=215' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/main_screen.dart)",
+      "Bash(awk 'NR>=228 && NR<=245' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/splash/splash_screen.dart)",
+      "Bash(awk 'NR>=477 && NR<=492' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/onboarding/onboarding_screen.dart)",
+      "Bash(awk 'NR>=206' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/main_screen.dart)",
+      "Bash(grep -n \"^  }$\")",
+      "Bash(awk 'NR>=236' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/splash/splash_screen.dart)",
+      "Bash(awk 'NR>=483' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/onboarding/onboarding_screen.dart)",
+      "Bash(coderabbit auth *)"
     ],
     "deny": [],
     "ask": []

@@ -34,7 +34,7 @@ class AllAttemptsSheet extends StatelessWidget {
       builder: (_, sc) => Container(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         decoration: BoxDecoration(
-          color: theme.cardColor,
+          color: cs.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -43,7 +43,7 @@ class AllAttemptsSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: cs.onSurface.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

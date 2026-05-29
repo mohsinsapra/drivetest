@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
@@ -233,9 +234,10 @@ class _SplashScreenState extends State<SplashScreen>
     final size = MediaQuery.of(context).size;
     final cs = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: cs.surface,
-      body: Stack(
+    return CupertinoScaffold(
+      body: Scaffold(
+        backgroundColor: cs.surface,
+        body: Stack(
         children: [
           // ── Ambient background blobs ──────────────────────────────────
           Positioned(
@@ -519,6 +521,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
         ],
+      ),
       ),
     );
   }

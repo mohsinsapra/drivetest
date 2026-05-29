@@ -5,6 +5,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/platform_detector.dart';
 import 'package:taxi_exam_app/core/utils/web_redirect.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:taxi_exam_app/core/widgets/app_sheet.dart';
 
 const _kPlayStoreUrl =
     'https://play.google.com/store/apps/details?id=com.mohsinsapra.drivetest';
@@ -18,12 +19,8 @@ Future<void> showAppDownloadSheet(
   assert(kIsWeb, 'showAppDownloadSheet should only be called on web');
   assert(platform != WebPlatform.none);
   if (!context.mounted) return;
-  await showModalBottomSheet<void>(
-    context: context,
-    isDismissible: true,
-    enableDrag: true,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  await showAppSheet<void>(
+    context,
     builder: (_) => _AppDownloadSheet(platform: platform),
   );
 }

@@ -11,6 +11,7 @@ import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:taxi_exam_app/core/widgets/app_sheet.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/debug_credentials.dart';
 
@@ -27,10 +28,8 @@ Future<bool> showAuthBottomSheet(
   bool required = false,
   bool allowDemo = true,
 }) async {
-  final result = await showModalBottomSheet<bool>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
+  final result = await showAppSheet<bool>(
+    context,
     isDismissible: !required,
     enableDrag: !required,
     builder: (_) =>
@@ -366,9 +365,7 @@ class _AuthSheetState extends State<_AuthSheet>
   Widget build(BuildContext context) {
     final t = Translations.of(context);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final sheetBg =
-        isDark ? theme.colorScheme.surface : theme.scaffoldBackgroundColor;
+    final sheetBg = theme.colorScheme.surface;
 
     // Shrink on small screens
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
@@ -463,15 +460,13 @@ class _AuthSheetState extends State<_AuthSheet>
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isDark
-                  ? theme.colorScheme.onSurface.withValues(alpha: 0.08)
-                  : theme.colorScheme.onSurface.withValues(alpha: 0.06),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TabBar(
               controller: _tabs,
               indicator: BoxDecoration(
-                color: isDark ? theme.cardColor : theme.scaffoldBackgroundColor,
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(9),
                 boxShadow: [
                   BoxShadow(
