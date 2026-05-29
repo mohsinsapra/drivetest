@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
--
+- Refreshed app icons for a cleaner, more consistent look across devices
+- Improved Android adaptive icon appearance for better visual quality on different launchers and screen types
 
 ### Fixed
 -
