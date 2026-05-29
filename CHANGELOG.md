@@ -20,6 +20,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.50+248] - 2026-05-29
+
+### Added
+- **AI feature gate**: `ai_enabled` setting on `UserSettings` — controls access to AI-powered question chat per user (default `false`; auto-enabled on active subscription, auto-disabled when all subscriptions expire)
+- **AI token tracking**: `UserAIUsage` model records every AI exchange with token count, category, licence/exam type, question ID, and question text
+- `POST /api/user/ai-usage/` endpoint — records token usage, enforces AI gate server-side
+- `/self` API now includes `ai_enabled` and `total_ai_tokens_used` fields
+- **Analytics dashboard — AI Feature Usage section**: stat cards (total tokens, enabled users, 7-day active users/tokens, total sessions), daily tokens + sessions chart, exam-type pie chart, top categories bar chart, sessions vs tokens scatter chart, AI user leaderboard with token share bars, most-asked questions table
+- `ai_enabled` admin controls: inline on User page, list-editable on User Settings page, bulk enable/disable actions
+- `ApiService.recordAiUsage()` — sends token usage with category, licence, question context after every AI response
+- AI chat defaults to app's selected language (Swedish/English) while allowing the user to ask in any language
+
+### Changed
+- AI chat buttons hidden for users without `ai_enabled` (loaded from `/self` on screen open)
+- Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
+
+---
+---
+---
+---
+
 ## [1.1.49+247] - 2026-05-29
 
 ### Added
