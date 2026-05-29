@@ -10,13 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Theme toggle in Settings for easy light/dark mode switching
+- Google Fonts integration for improved typography across the app
 
 ### Changed
--
+- Shimmer effect colors adjusted in exam carousel, performance insight, and performance metric cards for better visibility
+- Focus categories section refactored with improved layout and user experience
+- Question chat sheet optimized for smoother message rendering and scrolling behavior
+- Refactored multiple bottom sheets to use shared `AppSheet` base widget for consistency
 
-### Fixed
--
+### Removed
+- `recordAiUsage()` removed from `QuestionChatSheet` and `ApiService` — AI usage recording eliminated to avoid unnecessary API calls
 
 ---
 
