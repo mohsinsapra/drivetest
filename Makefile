@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-all-docker deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog _notify-app-update
+.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-all-docker deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog _notify-app-update _prepare-deploy _prepare-flutter-deps _prepare-android-ruby _prepare-ios-ruby _prepare-ios-pods
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -10,6 +10,12 @@ BUMP ?= patch
 # Skip fmt+lint (useful for re-runs after a failed deploy when code hasn't changed)
 # Usage: make deploy-all NO_CHECK=1
 NO_CHECK ?= 0
+
+# iOS pod install tuning for deploys
+# Default avoids slow repo update on every deploy. Use IOS_POD_REPO_UPDATE=1 when needed.
+IOS_POD_REPO_UPDATE ?= 0
+# Set to 1 to skip pod install entirely when you know Pods are already up-to-date.
+IOS_SKIP_POD_INSTALL ?= 0
 
 # Colors for output
 COLOR_RESET = \033[0m
@@ -418,6 +424,38 @@ _android-deploy-core:
 	@echo "$(COLOR_GREEN)Deploying Android to alpha and promoting to production...$(COLOR_RESET)"
 	@ANDROID_HOME="$(ANDROID_SDK_PATH)" cd android && bundle exec fastlane android deploy
 
+## _prepare-flutter-deps: Warm shared Flutter dependencies before parallel deploy jobs
+_prepare-flutter-deps:
+	@echo "$(COLOR_BLUE)Preparing Flutter dependencies...$(COLOR_RESET)"
+	@flutter pub get
+
+## _prepare-android-ruby: Ensure Android fastlane gems are installed
+_prepare-android-ruby:
+	@echo "$(COLOR_BLUE)Preparing Android Ruby gems...$(COLOR_RESET)"
+	@cd android && bundle check || bundle install
+
+## _prepare-ios-ruby: Ensure iOS fastlane gems are installed
+_prepare-ios-ruby:
+	@echo "$(COLOR_BLUE)Preparing iOS Ruby gems...$(COLOR_RESET)"
+	@cd ios && bundle check || bundle install
+
+## _prepare-ios-pods: Install iOS pods (repo update optional for speed)
+_prepare-ios-pods:
+	@if [ "$(IOS_SKIP_POD_INSTALL)" = "1" ]; then \
+		echo "$(COLOR_YELLOW)Skipping pod install (IOS_SKIP_POD_INSTALL=1)$(COLOR_RESET)"; \
+	elif [ "$(IOS_POD_REPO_UPDATE)" = "1" ]; then \
+		echo "$(COLOR_BLUE)Running pod install with repo update...$(COLOR_RESET)"; \
+		cd ios && pod install --repo-update; \
+	else \
+		echo "$(COLOR_BLUE)Running pod install (no repo update)...$(COLOR_RESET)"; \
+		cd ios && pod install; \
+	fi
+
+## _prepare-deploy: Parallel preflight for deploy targets
+_prepare-deploy:
+	@echo "$(COLOR_BLUE)Running deploy preflight in parallel...$(COLOR_RESET)"
+	@gmake -s -j4 _prepare-flutter-deps _prepare-android-ruby _prepare-ios-ruby _prepare-ios-pods
+
 ## _commit-before-build: Stage all tracked changes + version bump, commit and push before builds start
 ## Runs after check+bump so the repo is clean and green before any build artifacts are generated
 _commit-before-build:
@@ -550,6 +588,7 @@ deploy-all: check
 	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
+	@$(MAKE) -s _prepare-deploy
 	@gmake -s -j3 _web-deploy-core _android-deploy-core _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
@@ -559,14 +598,13 @@ deploy-all-docker: check
 	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
+	@$(MAKE) -s _prepare-deploy
 	@gmake -s -j3 _web-deploy-docker-core _android-deploy-core _ios-beta-core
 	@$(MAKE) -s _commit-and-push
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)
 _ios-beta-core:
 	@echo "$(COLOR_GREEN)Deploying iOS to TestFlight...$(COLOR_RESET)"
-	@flutter pub get
-	@cd ios && pod install --repo-update
 	@cd ios && bundle exec fastlane beta
 
 ## ios-beta: Bump patch, commit, then deploy iOS to TestFlight
