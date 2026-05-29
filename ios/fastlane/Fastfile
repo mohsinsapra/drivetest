@@ -251,9 +251,13 @@ platform :ios do
         entries = []
         google_server_client_id = env_vars["GOOGLE_SERVER_CLIENT_ID"].to_s.strip
         stripe_publishable_key = env_vars["STRIPE_PUBLISHABLE_KEY"].to_s.strip
+        field_encryption_key = env_vars["FIELD_ENCRYPTION_KEY"].to_s.strip
+        gemini_api_key = env_vars["GEMINI_API_KEY"].to_s.strip
 
         entries << "GOOGLE_SERVER_CLIENT_ID=#{google_server_client_id}" unless google_server_client_id.empty?
         entries << "STRIPE_PUBLISHABLE_KEY=#{stripe_publishable_key}" unless stripe_publishable_key.empty?
+        entries << "FIELD_ENCRYPTION_KEY=#{field_encryption_key}" unless field_encryption_key.empty?
+        entries << "GEMINI_API_KEY=#{gemini_api_key}" unless gemini_api_key.empty?
         entries << "BUILD_VARIANT=#{build_variant}"
         entries
       else
