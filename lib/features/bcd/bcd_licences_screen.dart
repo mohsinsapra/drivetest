@@ -353,7 +353,11 @@ class _CategoryCard extends StatelessWidget {
                                 Text(
                                   '$attemptCount / $testCount attempted',
                                   style: TextStyle(
-                                      fontSize: 11, color: cs.onSurfaceVariant),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: cs.onSurfaceVariant
+                                        .withValues(alpha: 0.9),
+                                  ),
                                 ),
                               ],
                               if (!isFree &&
@@ -363,7 +367,10 @@ class _CategoryCard extends StatelessWidget {
                                 Text(
                                   '· $durationDays days',
                                   style: TextStyle(
-                                      fontSize: 11, color: cs.outline),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: cs.outline.withValues(alpha: 0.9),
+                                  ),
                                 ),
                               ],
                             ],

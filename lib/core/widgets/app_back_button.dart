@@ -20,7 +20,6 @@ class AppBackButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
             boxShadow: [
               BoxShadow(
                 color: cs.onSurface.withValues(alpha: 0.04),

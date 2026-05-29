@@ -682,8 +682,9 @@ class _TestscreenState extends State<Testscreen> {
     if (hasDismissed) {
       return Padding(
         padding: EdgeInsets.only(top: 8 * s, bottom: 4 * s),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+        child: Wrap(
+          spacing: 8 * s,
+          runSpacing: 6 * s,
           children: [
             AiActionButton(
               label: t.ai_continue_button,
@@ -700,8 +701,9 @@ class _TestscreenState extends State<Testscreen> {
 
     return Padding(
       padding: EdgeInsets.only(top: 8 * s, bottom: 4 * s),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+      child: Wrap(
+        spacing: 8 * s,
+        runSpacing: 6 * s,
         children: [
           AiActionButton(
             label: t.ai_hint_button,
@@ -714,7 +716,6 @@ class _TestscreenState extends State<Testscreen> {
                   'Give me a short hint that helps me figure out the answer without telling me directly. You MUST reply in $uiLang only.',
             ),
           ),
-          SizedBox(width: 8 * s),
           AiActionButton(
             label: t.ai_understand_button,
             icon: Icons.auto_awesome,
@@ -1346,8 +1347,8 @@ class _TestscreenState extends State<Testscreen> {
                           onTap: () =>
                               setState(() => _timerVisible = !_timerVisible),
                           child: Container(
-                            height: 32,
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            height: 26,
+                            padding: const EdgeInsets.symmetric(horizontal: 7),
                             decoration: BoxDecoration(
                               color: isUrgent
                                   ? Colors.red.withValues(alpha: 0.12)
@@ -1366,15 +1367,15 @@ class _TestscreenState extends State<Testscreen> {
                                   _timerVisible
                                       ? Icons.timer
                                       : Icons.timer_off_outlined,
-                                  size: 14,
+                                  size: 13,
                                   color: isUrgent ? Colors.red : primary,
                                 ),
                                 if (_timerVisible) ...[
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: 3),
                                   Text(
                                     display,
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                       color: secs <= 60 ? Colors.red : primary,
                                     ),
@@ -1402,8 +1403,8 @@ class _TestscreenState extends State<Testscreen> {
                             ))
                         .toList(),
                     child: Container(
-                      height: 32,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      height: 26,
+                      padding: const EdgeInsets.symmetric(horizontal: 7),
                       decoration: BoxDecoration(
                         color: Theme.of(context)
                             .colorScheme
@@ -1419,23 +1420,29 @@ class _TestscreenState extends State<Testscreen> {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Center(
-                              child: Text(
-                                ttsService.getLanguageFlag(currentLanguageCode),
-                                textScaler: TextScaler.noScaling,
-                                style: const TextStyle(fontSize: 14),
+                          Container(
+                            width: 17,
+                            height: 17,
+                            alignment: Alignment.center,
+                            child: Text(
+                              ttsService.getLanguageFlag(currentLanguageCode),
+                              textScaler: TextScaler.noScaling,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                height: 1,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            LucideIcons.languages,
-                            size: 14,
-                            color: Theme.of(context).colorScheme.primary,
+                          const SizedBox(width: 3),
+                          Align(
+                            alignment: Alignment.center,
+                            child: Icon(
+                              LucideIcons.languages,
+                              size: 13,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                         ],
                       ),

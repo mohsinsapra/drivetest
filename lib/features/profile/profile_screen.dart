@@ -726,11 +726,10 @@ class _LogoutSheetState extends State<_LogoutSheet> {
             Row(
               children: [
                 Expanded(
-                  child: AppOutlinedButton(
+                  child: AppTextButton(
                     label: t.cancel,
                     onPressed: _isLoading ? null : () => Navigator.pop(context),
                     foregroundColor: Theme.of(context).colorScheme.onSurface,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
                 const SizedBox(width: 16),

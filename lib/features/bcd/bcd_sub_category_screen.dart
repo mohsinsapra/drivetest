@@ -210,7 +210,7 @@ class _CategoryCard extends StatelessWidget {
           style: TextStyle(
             color: subscribed ? const Color(0xFF059669) : Colors.grey.shade600,
             fontSize: 12,
-            fontWeight: subscribed ? FontWeight.w500 : FontWeight.normal,
+            fontWeight: subscribed ? FontWeight.w700 : FontWeight.w600,
           ),
         ),
         trailing: const Icon(LucideIcons.chevronRight, size: 18),

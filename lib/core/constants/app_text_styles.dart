@@ -45,16 +45,16 @@ abstract class AppTextStyles {
       );
 
   /// Secondary / subtitle text
-  static TextStyle bodyMedium({Color? color}) => GoogleFonts.plusJakartaSans(
+  static TextStyle bodyMedium({Color? color}) => GoogleFonts.lexend(
         fontSize: 13,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
         color: color,
       );
 
   /// Caption / hint text
-  static TextStyle bodySmall({Color? color}) => GoogleFonts.plusJakartaSans(
+  static TextStyle bodySmall({Color? color}) => GoogleFonts.lexend(
         fontSize: 12,
-        fontWeight: FontWeight.w400,
+        fontWeight: FontWeight.w600,
         color: color,
       );
 
@@ -68,9 +68,9 @@ abstract class AppTextStyles {
       );
 
   /// List tile subtitle / description
-  static TextStyle listSubtitle({Color? color}) => GoogleFonts.plusJakartaSans(
+  static TextStyle listSubtitle({Color? color}) => GoogleFonts.lexend(
         fontSize: 13,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
         color: color,
       );
 }

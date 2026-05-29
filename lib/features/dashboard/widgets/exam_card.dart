@@ -147,9 +147,9 @@ class ExamCard extends StatelessWidget {
                   Text(
                     expiry,
                     style: GoogleFonts.plusJakartaSans(
-                      color: cs.onPrimary.withValues(alpha: 0.75),
+                      color: cs.onPrimary.withValues(alpha: 0.88),
                       fontSize: 11,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
               ],
@@ -215,9 +215,9 @@ class ExamCard extends StatelessWidget {
             Text(
               expiry,
               style: GoogleFonts.plusJakartaSans(
-                color: cs.onSurface.withValues(alpha: 0.45),
+                color: cs.onSurface.withValues(alpha: 0.72),
                 fontSize: 10,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import '../../models/dashboard_stats.dart';
 
@@ -54,8 +55,10 @@ class CategoryProgressCard extends StatelessWidget {
                           .dash_batches_completed_label
                           .replaceAll('{done}', '${stats.completedBatches}')
                           .replaceAll('{total}', '${stats.totalBatches}'),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.onSurface.withValues(alpha: 0.5),
+                      style: GoogleFonts.lexend(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface.withValues(alpha: 0.72),
                       ),
                     ),
                   ],

@@ -13,7 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
--
+- Update text styles and improve UI consistency
+- Refactor text styles across various components to use `Lexend` font for better readability and consistency
+- Adjust font weights for improved visual hierarchy
+- Update layout elements to enhance user experience and maintain design standards
 
 ### Fixed
 -

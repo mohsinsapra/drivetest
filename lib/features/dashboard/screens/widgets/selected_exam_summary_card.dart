@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import '../../helpers/dashboard_helpers.dart';
 import '../../models/dashboard_stats.dart';
@@ -156,8 +157,11 @@ class _StatCell extends StatelessWidget {
           ),
           Text(
             label,
-            style: theme.textTheme.labelSmall
-                ?.copyWith(color: cs.onSurface.withValues(alpha: 0.5)),
+            style: GoogleFonts.lexend(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: cs.onSurface.withValues(alpha: 0.72),
+            ),
             textAlign: TextAlign.center,
           ),
         ],
