@@ -323,7 +323,20 @@
       "Bash(grep -n \"^  }$\")",
       "Bash(awk 'NR>=236' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/splash/splash_screen.dart)",
       "Bash(awk 'NR>=483' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/features/onboarding/onboarding_screen.dart)",
-      "Bash(coderabbit auth *)"
+      "Bash(coderabbit auth *)",
+      "mcp__claude_ai_Higgs_field_connector__models_explore",
+      "Bash(command -v gemini)",
+      "Bash(gemini --version)",
+      "mcp__claude_ai_Higgs_field_connector__generate_image",
+      "Bash(gemini *)",
+      "mcp__claude_ai_Higgs_field_connector__job_status",
+      "mcp__claude_ai_Higgs_field_connector__job_display",
+      "Bash(convert --version)",
+      "Bash(magick assets/icon/icon.png -filter Lanczos -resize 1024x1024 assets/icon/icon.png)",
+      "Bash(magick identify *)",
+      "Bash(echo \"Upscaled: $\\(magick identify assets/icon/icon.png)",
+      "Bash(magick assets/icon/icon.png -resize 650x650 -fuzz 5% -transparent white -gravity center -background none -extent 1024x1024 assets/icon/icon_foreground.png)",
+      "Bash(echo \"Foreground done: $\\(magick identify assets/icon/icon_foreground.png)"
     ],
     "deny": [],
     "ask": []
