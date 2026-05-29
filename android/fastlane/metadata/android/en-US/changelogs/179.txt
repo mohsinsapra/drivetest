@@ -1,0 +1,5 @@
+Added:
+- AI feature gate: ai_enabled setting on UserSettings — controls access to AI-powered question chat per user (default false; auto-enabled on active subscription, auto-disabled when all subscriptions expire)
+- AI token tracking: UserAIUsage model records every AI exchange with token count, category, licence/exam type, question ID, and question text
+- POST /api/user/ai-usage/ endpoint — records token usage, enforces AI gate server-side
+- /self API now includes aienabled and totalaitokens...
