@@ -469,8 +469,9 @@ class _TestscreenState extends State<Testscreen> {
     try {
       final map = jsonDecode(stored) as Map<String, dynamic>;
       final enabled = map['ai_enabled'] == true;
-      if (mounted && enabled != _aiEnabled)
+      if (mounted && enabled != _aiEnabled) {
         setState(() => _aiEnabled = enabled);
+      }
     } catch (_) {}
   }
 
@@ -659,8 +660,9 @@ class _TestscreenState extends State<Testscreen> {
         onFirstMessageSent: () {
           // Mark session as started immediately so buttons switch to "Continue chat"
           // while the sheet is still open — no need to wait for it to close.
-          if (mounted)
+          if (mounted) {
             setState(() => _aiSessions[index] ??= const _AiSession._pending());
+          }
         },
         onSaveSession: (svc, msgs) {
           // Defer setState — onSaveSession is called from dispose() while

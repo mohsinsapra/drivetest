@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.48+246] - 2026-05-29
+
+### Added
 - **AI feature gate**: `ai_enabled` setting on `UserSettings` — controls access to AI-powered question chat per user (default `false`; auto-enabled on active subscription, auto-disabled when all subscriptions expire)
 - **AI token tracking**: `UserAIUsage` model records every AI exchange with token count, category, licence/exam type, question ID, and question text
 - `POST /api/user/ai-usage/` endpoint — records token usage, enforces AI gate server-side
@@ -23,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI chat buttons hidden for users without `ai_enabled` (loaded from `/self` on screen open)
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
+---
 ---
 
 ## [1.1.48+246] - 2026-05-29
