@@ -1,31 +1,22 @@
 import 'dart:async';
-import 'dart:typed_data';
-import 'package:dio/dio.dart';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/models/chat_message.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/services/ai_chat_service.dart';
 import 'package:taxi_exam_app/core/widgets/ai_action_button.dart';
 
-enum _SuggestionType { hint, understand }
+export 'package:taxi_exam_app/core/models/chat_message.dart' show ChatMessage;
 
-// Public so test_screen can store and restore session history.
-class ChatMessage {
-  final String text;
-  final bool isUser;
-  const ChatMessage({required this.text, required this.isUser});
-}
+enum _SuggestionType { hint, understand }
 
 class QuestionChatSheet extends StatefulWidget {
   final Question question;
 
-  /// Pass an existing service to resume a previous session.
-  final AiChatService? existingService;
-
-  /// Messages to restore when resuming.
+  /// Messages to restore when resuming a previous session.
   final List<ChatMessage> existingMessages;
 
   /// Display text shown in the user bubble (e.g. the button label).
@@ -34,12 +25,10 @@ class QuestionChatSheet extends StatefulWidget {
   /// Actual prompt sent to the AI — may differ from display text.
   final String? initialPrompt;
 
-  /// Called when the sheet closes so the caller can persist the session.
-  final void Function(AiChatService service, List<ChatMessage> messages)
-      onSaveSession;
+  /// Called when the sheet closes so the caller can persist the history.
+  final void Function(List<ChatMessage> messages) onSaveSession;
 
   /// Called as soon as the first user message is sent — before the sheet closes.
-  /// Use this to immediately update the parent UI (e.g. switch buttons to "Continue chat").
   final VoidCallback? onFirstMessageSent;
 
   final String categoryName;
@@ -49,7 +38,6 @@ class QuestionChatSheet extends StatefulWidget {
     super.key,
     required this.question,
     required this.onSaveSession,
-    this.existingService,
     this.existingMessages = const [],
     this.initialDisplayText,
     this.initialPrompt,
@@ -71,10 +59,9 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
   bool _isSending = false;
   bool _firstMessageFired = false;
 
-  // Frame-synced render: one setState per vsync frame (8ms on 120Hz, 16ms on
-  // 60Hz, whatever the device can manage on older hardware).
-  bool _frameScheduled = false;
-  String _pendingText = '';
+  // Typewriter animation state
+  Timer? _typewriterTimer;
+  static const int _kCharsPerTick = 4; // chars revealed per 16ms frame
   // Debounce scroll so we don't animate on every token.
   Timer? _scrollDebounce;
   // Suggestion chips shown above input — removed one-by-one as they're used.
@@ -88,7 +75,6 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
     super.initState();
     _messages = List.of(widget.existingMessages);
 
-    // If opened with a pre-prompt, mark the matching suggestion as used
     if (widget.initialDisplayText != null) {
       final display = widget.initialDisplayText!.toLowerCase();
       if (display.contains('hint') || display.contains('ledtråd')) {
@@ -98,20 +84,7 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
       }
     }
 
-    if (widget.existingService != null) {
-      _aiService = widget.existingService;
-      _initializing = false;
-      if (widget.initialPrompt != null) {
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => _sendText(
-            display: widget.initialDisplayText ?? widget.initialPrompt!,
-            prompt: widget.initialPrompt!,
-          ),
-        );
-      }
-    } else {
-      _initService();
-    }
+    _initService();
   }
 
   @override
@@ -127,65 +100,18 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
     }
   }
 
-  Future<Uint8List?> _fetchImage(String url) async {
-    try {
-      final res = await Dio().get<List<int>>(
-        url,
-        options: Options(responseType: ResponseType.bytes),
-      );
-      if (res.data != null) return Uint8List.fromList(res.data!);
-    } catch (_) {}
-    return null;
-  }
-
   Future<void> _initService() async {
-    final question = widget.question;
-
-    final questionImageUrls = question.images.isNotEmpty
-        ? question.images
-        : (question.imageUrl.startsWith('http')
-            ? [question.imageUrl]
-            : <String>[]);
-
-    final tabImageUrlGroups = question.tabs
-        .map((t) => t.images.where((u) => u.isNotEmpty).toList())
-        .toList();
-
-    final questionImageResults =
-        await Future.wait(questionImageUrls.map(_fetchImage));
-    final tabImageResults = await Future.wait(
-        tabImageUrlGroups.map((urls) => Future.wait(urls.map(_fetchImage))));
-
-    final questionImages = questionImageResults.whereType<Uint8List>().toList();
-    final tabs = <QuestionTabContext>[];
-    for (var i = 0; i < question.tabs.length; i++) {
-      final tab = question.tabs[i];
-      tabs.add(QuestionTabContext(
-        title: tab.title,
-        text: tab.text,
-        images: tabImageResults[i].whereType<Uint8List>().toList(),
-      ));
-    }
-
     final prefs = await SharedPreferences.getInstance();
     final langCode = prefs.getString('language') ?? 'sv';
-    final defaultLanguage = langCode == 'en' ? 'English' : 'Swedish';
+    final language = langCode == 'en' ? 'English' : 'Swedish';
 
-    final service = await AiChatService.forQuestion(
-      questionText: question.text,
-      options: question.options,
-      correctAnswer: question.correctAnswer,
-      explanation: question.answerExplanation,
-      images: questionImages,
-      tabs: tabs,
-      defaultLanguage: defaultLanguage,
+    _aiService = AiChatService(
+      questionId: widget.question.questionId,
+      language: language,
     );
 
     if (!mounted) return;
-    setState(() {
-      _aiService = service;
-      _initializing = false;
-    });
+    setState(() => _initializing = false);
 
     if (widget.initialPrompt != null) {
       await _sendText(
@@ -197,16 +123,14 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
 
   @override
   void dispose() {
+    _typewriterTimer?.cancel();
     _scrollDebounce?.cancel();
-    if (_aiService != null) {
-      widget.onSaveSession(_aiService!, List.of(_messages));
-    }
+    widget.onSaveSession(List.of(_messages));
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  // User taps send — display text == prompt text.
   Future<void> _send() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
@@ -239,7 +163,6 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
   }) async {
     if (_aiService == null || _isSending) return;
 
-    // Notify parent immediately on first message so buttons update while sheet is open
     if (!_firstMessageFired) {
       _firstMessageFired = true;
       widget.onFirstMessageSent?.call();
@@ -248,55 +171,56 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
     final t = Translations.of(context);
     setState(() {
       _messages.add(ChatMessage(text: display, isUser: true));
-      _messages.add(const ChatMessage(text: '', isUser: false)); // typing
+      _messages.add(const ChatMessage(text: '', isUser: false)); // typing dots
       _isSending = true;
     });
     _scrollToBottom();
 
-    final buffer = StringBuffer();
+    String fullText;
     try {
-      await for (final chunk in _aiService!.sendMessage(prompt)) {
-        buffer.write(chunk);
-        if (!mounted) return;
-        // Schedule one setState per vsync frame — naturally adapts to the
-        // device's refresh rate (8ms on 120Hz, 16ms on 60Hz, etc.).
-        _pendingText = buffer.toString();
-        if (!_frameScheduled) {
-          _frameScheduled = true;
-          SchedulerBinding.instance.scheduleFrameCallback((_) {
-            if (!mounted) return;
-            setState(() => _messages.last =
-                ChatMessage(text: _pendingText, isUser: false));
-            _frameScheduled = false;
-            _scrollToBottom();
-          });
-        }
-      }
-      // Final flush: ensure the very last chunk is always shown.
-      _frameScheduled = false;
-      // Record token usage — use actual Gemini count, fall back to char estimate.
-      final actualTokens = _aiService!.lastExchangeTokens;
-      final tokens = actualTokens > 0
-          ? actualTokens
-          : ((prompt.length + buffer.length) / 4).ceil();
-      ApiService()
-          .recordAiUsage(
-            tokens,
-            categoryName: widget.categoryName,
-            licenceName: widget.licenceName,
-            questionId: widget.question.questionId,
-            questionText: widget.question.text,
-          )
-          .ignore();
+      fullText = await _aiService!.sendMessage(prompt, _messages);
+      if (fullText.isEmpty) fullText = t.ai_error;
     } catch (_) {
       if (!mounted) return;
-      buffer.write(t.ai_error);
+      setState(() {
+        _messages.last = ChatMessage(text: t.ai_error, isUser: false);
+        _isSending = false;
+      });
+      return;
     }
 
     if (!mounted) return;
-    setState(() {
-      _messages.last = ChatMessage(text: buffer.toString(), isUser: false);
-      _isSending = false;
+
+    // Record usage before animation (non-blocking)
+    final tokens = ((prompt.length + fullText.length) / 4).ceil();
+    ApiService()
+        .recordAiUsage(
+          tokens,
+          categoryName: widget.categoryName,
+          licenceName: widget.licenceName,
+          questionId: widget.question.questionId,
+          questionText: widget.question.text,
+        )
+        .ignore();
+
+    // Typewriter: reveal fullText character by character
+    int revealed = 0;
+    _typewriterTimer?.cancel();
+    _typewriterTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      revealed = min(revealed + _kCharsPerTick, fullText.length);
+      final partial = fullText.substring(0, revealed);
+      setState(() {
+        _messages.last = ChatMessage(text: partial, isUser: false);
+      });
+      _scrollToBottom();
+      if (revealed >= fullText.length) {
+        timer.cancel();
+        if (mounted) setState(() => _isSending = false);
+      }
     });
   }
 
@@ -321,7 +245,6 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
 
     final topPadding = MediaQuery.paddingOf(context).top;
     return SizedBox(
-      // Leave ~56dp + status bar at top so the scaled background is visible
       height: MediaQuery.sizeOf(context).height - topPadding - 56,
       child: Material(
         color: cs.surface,
@@ -480,11 +403,7 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
                 ],
               ),
             ),
-            // Keyboard-aware bottom padding: rises above keyboard when open,
-            // falls back to safe area inset when keyboard is hidden.
-            AnimatedPadding(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
+            Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.viewInsetsOf(context).bottom > 0
                     ? MediaQuery.viewInsetsOf(context).bottom
@@ -492,9 +411,9 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
               ),
             ),
           ],
-        ), // Column
-      ), // Material
-    ); // SizedBox
+        ),
+      ),
+    );
   }
 }
 
@@ -534,7 +453,6 @@ class _Bubble extends StatelessWidget {
       );
     }
 
-    // AI bubble
     return Align(
       alignment: Alignment.centerLeft,
       child: Row(
@@ -602,7 +520,6 @@ class _TypingDotsState extends State<_TypingDots>
 
   @override
   Widget build(BuildContext context) {
-    // On reduced-motion / low-end devices: static dots, no animation overhead.
     if (MediaQuery.of(context).disableAnimations) {
       return Row(
         mainAxisSize: MainAxisSize.min,

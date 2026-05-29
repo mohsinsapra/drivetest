@@ -29,7 +29,6 @@ import 'package:taxi_exam_app/core/widgets/test_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
 import 'package:taxi_exam_app/features/tests/test_attempt_save_service.dart';
 import 'package:taxi_exam_app/features/tests/test_progress_guard.dart';
-import 'package:taxi_exam_app/core/services/ai_chat_service.dart';
 import 'package:taxi_exam_app/features/tests/widgets/question_chat_sheet.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
@@ -650,8 +649,6 @@ class _TestscreenState extends State<Testscreen> {
       context: context,
       builder: (_) => QuestionChatSheet(
         question: widget.questions[index],
-        existingService:
-            session?.service, // null if pending, real service if resuming
         existingMessages: session?.messages ?? [],
         initialDisplayText: displayText,
         initialPrompt: prompt,
@@ -664,12 +661,12 @@ class _TestscreenState extends State<Testscreen> {
             setState(() => _aiSessions[index] ??= const _AiSession._pending());
           }
         },
-        onSaveSession: (svc, msgs) {
+        onSaveSession: (msgs) {
           // Defer setState — onSaveSession is called from dispose() while
           // the widget tree is locked; scheduling for the next frame is safe.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              setState(() => _aiSessions[index] = _AiSession(svc, msgs));
+              setState(() => _aiSessions[index] = _AiSession(msgs));
             }
           });
         },
@@ -2322,11 +2319,8 @@ class _TutorialCompleteOverlayState extends State<_TutorialCompleteOverlay>
 }
 
 class _AiSession {
-  final AiChatService? service;
   final List<ChatMessage> messages;
-  const _AiSession(AiChatService this.service, this.messages);
-  // Placeholder set immediately on first message — service arrives on sheet close.
-  const _AiSession._pending()
-      : service = null,
-        messages = const [];
+  const _AiSession(this.messages);
+  // Placeholder set immediately on first message — history arrives on sheet close.
+  const _AiSession._pending() : messages = const [];
 }
