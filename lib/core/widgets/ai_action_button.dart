@@ -19,7 +19,8 @@ class AiActionButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 15, color: cs.primary),
-      label: Text(label, style: textTheme.labelMedium?.copyWith(color: cs.primary)),
+      label: Text(label,
+          style: textTheme.labelMedium?.copyWith(color: cs.primary)),
       style: OutlinedButton.styleFrom(
         backgroundColor: cs.primary.withValues(alpha: 0.1),
         side: BorderSide.none,

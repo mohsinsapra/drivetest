@@ -102,7 +102,9 @@ class AiChatService {
     // handles language detection from the user's first message.
     _chat = model.startChat(history: [
       Content.multi(contextParts),
-      Content.model([TextPart('I understand the question. What would you like to know?')]),
+      Content.model([
+        TextPart('I understand the question. What would you like to know?')
+      ]),
     ]);
   }
 

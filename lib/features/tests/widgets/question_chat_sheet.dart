@@ -134,7 +134,9 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
 
     final questionImageUrls = question.images.isNotEmpty
         ? question.images
-        : (question.imageUrl.startsWith('http') ? [question.imageUrl] : <String>[]);
+        : (question.imageUrl.startsWith('http')
+            ? [question.imageUrl]
+            : <String>[]);
 
     final tabImageUrlGroups = question.tabs
         .map((t) => t.images.where((u) => u.isNotEmpty).toList())
@@ -142,8 +144,8 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
 
     final questionImageResults =
         await Future.wait(questionImageUrls.map(_fetchImage));
-    final tabImageResults =
-        await Future.wait(tabImageUrlGroups.map((urls) => Future.wait(urls.map(_fetchImage))));
+    final tabImageResults = await Future.wait(
+        tabImageUrlGroups.map((urls) => Future.wait(urls.map(_fetchImage))));
 
     final questionImages = questionImageResults.whereType<Uint8List>().toList();
     final tabs = <QuestionTabContext>[];
@@ -204,7 +206,8 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
 
   void _useSuggestion(_SuggestionType type) {
     final t = Translations.of(context);
-    final uiLang = LocaleSettings.currentLocale == AppLocale.sv ? 'Swedish' : 'English';
+    final uiLang =
+        LocaleSettings.currentLocale == AppLocale.sv ? 'Swedish' : 'English';
     final String display;
     final String prompt;
     if (type == _SuggestionType.hint) {
@@ -245,8 +248,8 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
       await for (final chunk in _aiService!.sendMessage(prompt)) {
         buffer.write(chunk);
         if (!mounted) return;
-        setState(
-            () => _messages.last = ChatMessage(text: buffer.toString(), isUser: false));
+        setState(() => _messages.last =
+            ChatMessage(text: buffer.toString(), isUser: false));
         _scrollToBottom();
       }
       // Record token usage — use actual Gemini count, fall back to char estimate.
@@ -254,13 +257,15 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
       final tokens = actualTokens > 0
           ? actualTokens
           : ((prompt.length + buffer.length) / 4).ceil();
-      ApiService().recordAiUsage(
-        tokens,
-        categoryName: widget.categoryName,
-        licenceName: widget.licenceName,
-        questionId: widget.question.questionId,
-        questionText: widget.question.text,
-      ).ignore();
+      ApiService()
+          .recordAiUsage(
+            tokens,
+            categoryName: widget.categoryName,
+            licenceName: widget.licenceName,
+            questionId: widget.question.questionId,
+            questionText: widget.question.text,
+          )
+          .ignore();
     } catch (_) {
       if (!mounted) return;
       buffer.write(t.ai_error);
@@ -332,8 +337,8 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
                 ),
                 const Spacer(),
                 IconButton(
-                  icon:
-                      Icon(Icons.keyboard_arrow_down, color: cs.onSurfaceVariant),
+                  icon: Icon(Icons.keyboard_arrow_down,
+                      color: cs.onSurfaceVariant),
                   onPressed: () => Navigator.of(context).pop(),
                   tooltip: t.ai_close,
                   padding: EdgeInsets.zero,
@@ -362,25 +367,27 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
             Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Wrap(
-                spacing: 8,
-                children: [
-                  if (_availableSuggestions.contains(_SuggestionType.hint))
-                    AiActionButton(
-                      label: t.ai_hint_button,
-                      icon: Icons.lightbulb_outline,
-                      onPressed: () => _useSuggestion(_SuggestionType.hint),
-                    ),
-                  if (_availableSuggestions.contains(_SuggestionType.understand))
-                    AiActionButton(
-                      label: t.ai_understand_button,
-                      icon: Icons.auto_awesome,
-                      onPressed: () => _useSuggestion(_SuggestionType.understand),
-                    ),
-                ],
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    if (_availableSuggestions.contains(_SuggestionType.hint))
+                      AiActionButton(
+                        label: t.ai_hint_button,
+                        icon: Icons.lightbulb_outline,
+                        onPressed: () => _useSuggestion(_SuggestionType.hint),
+                      ),
+                    if (_availableSuggestions
+                        .contains(_SuggestionType.understand))
+                      AiActionButton(
+                        label: t.ai_understand_button,
+                        icon: Icons.auto_awesome,
+                        onPressed: () =>
+                            _useSuggestion(_SuggestionType.understand),
+                      ),
+                  ],
+                ),
               ),
-            ),
             ),
 
           // ── Input area ───────────────────────────────────────────────
@@ -403,9 +410,8 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
                       enabled: !inputDisabled,
                       style: theme.textTheme.bodyMedium,
                       decoration: InputDecoration(
-                        hintText: _initializing
-                            ? t.ai_initializing
-                            : t.ai_input_hint,
+                        hintText:
+                            _initializing ? t.ai_initializing : t.ai_input_hint,
                         hintStyle: theme.textTheme.bodyMedium?.copyWith(
                           color: cs.onSurface.withValues(alpha: 0.4),
                         ),
@@ -439,7 +445,8 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
                               color: cs.onSurface.withValues(alpha: 0.4),
                             ),
                           )
-                        : Icon(Icons.arrow_forward, color: cs.onPrimary, size: 18),
+                        : Icon(Icons.arrow_forward,
+                            color: cs.onPrimary, size: 18),
                   ),
                 ),
               ],
@@ -470,8 +477,7 @@ class _Bubble extends StatelessWidget {
         alignment: Alignment.centerRight,
         child: Container(
           margin: const EdgeInsets.only(bottom: 8, left: 48),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: cs.primary,
             borderRadius: const BorderRadius.only(
@@ -483,8 +489,7 @@ class _Bubble extends StatelessWidget {
           ),
           child: Text(
             message.text,
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: cs.onPrimary),
+            style: theme.textTheme.bodyMedium?.copyWith(color: cs.onPrimary),
           ),
         ),
       );
@@ -503,8 +508,7 @@ class _Bubble extends StatelessWidget {
           Flexible(
             child: Container(
               margin: const EdgeInsets.only(bottom: 8, right: 48),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHighest,
                 borderRadius: const BorderRadius.only(

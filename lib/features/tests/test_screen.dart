@@ -469,7 +469,8 @@ class _TestscreenState extends State<Testscreen> {
     try {
       final map = jsonDecode(stored) as Map<String, dynamic>;
       final enabled = map['ai_enabled'] == true;
-      if (mounted && enabled != _aiEnabled) setState(() => _aiEnabled = enabled);
+      if (mounted && enabled != _aiEnabled)
+        setState(() => _aiEnabled = enabled);
     } catch (_) {}
   }
 
@@ -648,7 +649,8 @@ class _TestscreenState extends State<Testscreen> {
       context: context,
       builder: (_) => QuestionChatSheet(
         question: widget.questions[index],
-        existingService: session?.service, // null if pending, real service if resuming
+        existingService:
+            session?.service, // null if pending, real service if resuming
         existingMessages: session?.messages ?? [],
         initialDisplayText: displayText,
         initialPrompt: prompt,
@@ -657,7 +659,8 @@ class _TestscreenState extends State<Testscreen> {
         onFirstMessageSent: () {
           // Mark session as started immediately so buttons switch to "Continue chat"
           // while the sheet is still open — no need to wait for it to close.
-          if (mounted) setState(() => _aiSessions[index] ??= const _AiSession._pending());
+          if (mounted)
+            setState(() => _aiSessions[index] ??= const _AiSession._pending());
         },
         onSaveSession: (svc, msgs) {
           // Defer setState — onSaveSession is called from dispose() while
@@ -2316,5 +2319,7 @@ class _AiSession {
   final List<ChatMessage> messages;
   const _AiSession(AiChatService this.service, this.messages);
   // Placeholder set immediately on first message — service arrives on sheet close.
-  const _AiSession._pending() : service = null, messages = const [];
+  const _AiSession._pending()
+      : service = null,
+        messages = const [];
 }
