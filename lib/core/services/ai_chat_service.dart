@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/models/chat_message.dart';
 

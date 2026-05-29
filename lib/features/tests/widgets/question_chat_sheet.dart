@@ -205,7 +205,8 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
     // Typewriter: reveal fullText character by character
     int revealed = 0;
     _typewriterTimer?.cancel();
-    _typewriterTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+    _typewriterTimer =
+        Timer.periodic(const Duration(milliseconds: 16), (timer) {
       if (!mounted) {
         timer.cancel();
         return;

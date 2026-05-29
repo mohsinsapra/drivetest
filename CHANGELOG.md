@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.58+256] - 2026-05-29
+
+### Added
 - Theme toggle in Settings for easy light/dark mode switching
 - Google Fonts integration for improved typography across the app
 
@@ -22,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - `recordAiUsage()` removed from `QuestionChatSheet` and `ApiService` — AI usage recording eliminated to avoid unnecessary API calls
 
+---
 ---
 
 ## [1.1.57+255] - 2026-05-29
