@@ -13,6 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.60+258] - 2026-05-29
+
+### Added
+-
+
+### Changed
 - Update text styles and improve UI consistency
 - Refactor text styles across various components to use `Lexend` font for better readability and consistency
 - Adjust font weights for improved visual hierarchy
@@ -21,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
+---
 ---
 
 ## [1.1.59+257] - 2026-05-29
