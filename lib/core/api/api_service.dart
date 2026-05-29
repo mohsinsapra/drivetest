@@ -1118,29 +1118,6 @@ class ApiService {
     }
   }
 
-  /// Record AI token usage for the current user.
-  /// Silently ignores failures — AI features remain usable if this call fails.
-  Future<void> recordAiUsage(
-    int tokens, {
-    String categoryName = '',
-    String licenceName = '',
-    String questionId = '',
-    String questionText = '',
-  }) async {
-    if (tokens <= 0) return;
-    try {
-      await _dio.post('api/user/ai-usage/', data: {
-        'tokens': tokens,
-        if (categoryName.isNotEmpty) 'category_name': categoryName,
-        if (licenceName.isNotEmpty) 'licence_name': licenceName,
-        if (questionId.isNotEmpty) 'question_id': questionId,
-        if (questionText.isNotEmpty) 'question_text': questionText,
-      });
-    } catch (e) {
-      debugPrint('[recordAiUsage] failed (non-fatal): $e');
-    }
-  }
-
   Future<Map<String, dynamic>> fetchBackendVersion() async {
     try {
       final response = await _dio.get('api/version/');

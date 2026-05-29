@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/chat_message.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -74,6 +73,18 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
   void initState() {
     super.initState();
     _messages = List.of(widget.existingMessages);
+
+    // Remove suggestions already used in restored session history
+    for (final msg in _messages) {
+      if (!msg.isUser) continue;
+      final text = msg.text.toLowerCase();
+      if (text.contains('hint') || text.contains('ledtråd')) {
+        _availableSuggestions.remove(_SuggestionType.hint);
+      }
+      if (text.contains('understand') || text.contains('förstå')) {
+        _availableSuggestions.remove(_SuggestionType.understand);
+      }
+    }
 
     if (widget.initialDisplayText != null) {
       final display = widget.initialDisplayText!.toLowerCase();
@@ -190,18 +201,6 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
     }
 
     if (!mounted) return;
-
-    // Record usage before animation (non-blocking)
-    final tokens = ((prompt.length + fullText.length) / 4).ceil();
-    ApiService()
-        .recordAiUsage(
-          tokens,
-          categoryName: widget.categoryName,
-          licenceName: widget.licenceName,
-          questionId: widget.question.questionId,
-          questionText: widget.question.text,
-        )
-        .ignore();
 
     // Typewriter: reveal fullText character by character
     int revealed = 0;
