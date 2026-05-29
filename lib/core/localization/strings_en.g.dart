@@ -841,6 +841,20 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get journey_no_review_questions => 'No questions to review!';
   String get question_tab_label => 'Tab';
   String get bcd_min_label => 'min';
+  String get ai_assistant => 'AI Assistant';
+  String get ai_greeting =>
+      'Hi! What would you like to know about this question?';
+  String get ai_initializing => 'Initializing AI...';
+  String get ai_input_hint => 'Ask a question...';
+  String get ai_error => 'Something went wrong. Please try again.';
+  String get ai_tooltip => 'AI Assistant';
+  String get ai_hint_button => 'Give me a hint';
+  String get ai_understand_button => 'Help me understand this';
+  String get ai_continue_button => 'Continue chat';
+  String get ai_greeting_full =>
+      'Need help with this question? Pick one of the options below, or ask your own question.';
+  String get ai_read_aloud => 'Read aloud';
+  String get ai_close => 'Close';
 }
 
 /// Flat map(s) containing all translations.
@@ -2248,6 +2262,30 @@ extension on Translations {
         return 'Tab';
       case 'bcd_min_label':
         return 'min';
+      case 'ai_assistant':
+        return 'AI Assistant';
+      case 'ai_greeting':
+        return 'Hi! What would you like to know about this question?';
+      case 'ai_initializing':
+        return 'Initializing AI...';
+      case 'ai_input_hint':
+        return 'Ask a question...';
+      case 'ai_error':
+        return 'Something went wrong. Please try again.';
+      case 'ai_tooltip':
+        return 'AI Assistant';
+      case 'ai_hint_button':
+        return 'Give me a hint';
+      case 'ai_understand_button':
+        return 'Help me understand this';
+      case 'ai_continue_button':
+        return 'Continue chat';
+      case 'ai_greeting_full':
+        return 'Need help with this question? Pick one of the options below, or ask your own question.';
+      case 'ai_read_aloud':
+        return 'Read aloud';
+      case 'ai_close':
+        return 'Close';
       default:
         return null;
     }

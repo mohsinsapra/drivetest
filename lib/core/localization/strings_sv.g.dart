@@ -1546,6 +1546,31 @@ class TranslationsSv implements Translations {
   String get question_tab_label => 'Flik';
   @override
   String get bcd_min_label => 'min';
+  @override
+  String get ai_assistant => 'AI-assistent';
+  @override
+  String get ai_greeting => 'Hej! Vad vill du veta om den här frågan?';
+  @override
+  String get ai_initializing => 'Initierar AI...';
+  @override
+  String get ai_input_hint => 'Skriv din fråga...';
+  @override
+  String get ai_error => 'Något gick fel. Försök igen.';
+  @override
+  String get ai_tooltip => 'AI-assistent';
+  @override
+  String get ai_hint_button => 'Ge mig en ledtråd';
+  @override
+  String get ai_understand_button => 'Hjälp mig förstå det här';
+  @override
+  String get ai_continue_button => 'Fortsätt chatt';
+  @override
+  String get ai_greeting_full =>
+      'Behöver du hjälp med den här frågan? Välj ett alternativ nedan eller ställ din egen fråga.';
+  @override
+  String get ai_read_aloud => 'Läs högt';
+  @override
+  String get ai_close => 'Stäng';
 }
 
 /// Flat map(s) containing all translations.
@@ -2953,6 +2978,30 @@ extension on TranslationsSv {
         return 'Flik';
       case 'bcd_min_label':
         return 'min';
+      case 'ai_assistant':
+        return 'AI-assistent';
+      case 'ai_greeting':
+        return 'Hej! Vad vill du veta om den här frågan?';
+      case 'ai_initializing':
+        return 'Initierar AI...';
+      case 'ai_input_hint':
+        return 'Skriv din fråga...';
+      case 'ai_error':
+        return 'Något gick fel. Försök igen.';
+      case 'ai_tooltip':
+        return 'AI-assistent';
+      case 'ai_hint_button':
+        return 'Ge mig en ledtråd';
+      case 'ai_understand_button':
+        return 'Hjälp mig förstå det här';
+      case 'ai_continue_button':
+        return 'Fortsätt chatt';
+      case 'ai_greeting_full':
+        return 'Behöver du hjälp med den här frågan? Välj ett alternativ nedan eller ställ din egen fråga.';
+      case 'ai_read_aloud':
+        return 'Läs högt';
+      case 'ai_close':
+        return 'Stäng';
       default:
         return null;
     }

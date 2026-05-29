@@ -3,6 +3,7 @@ import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
@@ -17,7 +18,6 @@ import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
-import 'package:taxi_exam_app/core/widgets/explanation_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:no_screenshot/no_screenshot.dart';
@@ -29,8 +29,12 @@ import 'package:taxi_exam_app/core/widgets/test_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
 import 'package:taxi_exam_app/features/tests/test_attempt_save_service.dart';
 import 'package:taxi_exam_app/features/tests/test_progress_guard.dart';
+import 'package:taxi_exam_app/core/services/ai_chat_service.dart';
+import 'package:taxi_exam_app/features/tests/widgets/question_chat_sheet.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/widgets/ai_action_button.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/core/services/home_data_cache.dart';
 import 'package:translator/translator.dart';
@@ -93,6 +97,11 @@ class _TestscreenState extends State<Testscreen> {
     saveLocal: _persistAttemptLocal,
     syncRemote: _apiService.syncTestAttempt,
   );
+
+  // Per-question AI chat sessions (keyed by question index).
+  final Map<int, _AiSession> _aiSessions = {};
+
+  bool _aiEnabled = false;
 
   // GlobalKeys for the translation tutorial.
   final _langMenuKey = GlobalKey<PopupMenuButtonState<String>>();
@@ -174,6 +183,7 @@ class _TestscreenState extends State<Testscreen> {
         Set<String>.from(widget.initiallySavedQuestionIds ?? {});
 
     _loadSavedQuestionIds();
+    _loadAiEnabled();
     // Pre-open the Hive box so saves never hang waiting for it to open
     AppStorage.testAttemptsBox();
     if (!widget.isReviewMode) _applyShuffleIfEnabled();
@@ -452,6 +462,17 @@ class _TestscreenState extends State<Testscreen> {
     vibratePass();
   }
 
+  Future<void> _loadAiEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(AppStorage.kUserJson);
+    if (stored == null) return;
+    try {
+      final map = jsonDecode(stored) as Map<String, dynamic>;
+      final enabled = map['ai_enabled'] == true;
+      if (mounted && enabled != _aiEnabled) setState(() => _aiEnabled = enabled);
+    } catch (_) {}
+  }
+
   Future<void> _loadSavedQuestionIds() async {
     final localIds = await SavedQuestionsService.getSavedIdsScoped(
       licenceId: widget.licenceId,
@@ -616,6 +637,98 @@ class _TestscreenState extends State<Testscreen> {
     ];
   }
 
+  void _openAiChat(
+    BuildContext context,
+    int index, {
+    String? displayText,
+    String? prompt,
+  }) {
+    final session = _aiSessions[index];
+    showCupertinoModalBottomSheet<void>(
+      context: context,
+      builder: (_) => QuestionChatSheet(
+        question: widget.questions[index],
+        existingService: session?.service, // null if pending, real service if resuming
+        existingMessages: session?.messages ?? [],
+        initialDisplayText: displayText,
+        initialPrompt: prompt,
+        categoryName: widget.categoryName,
+        licenceName: widget.licenceName,
+        onFirstMessageSent: () {
+          // Mark session as started immediately so buttons switch to "Continue chat"
+          // while the sheet is still open — no need to wait for it to close.
+          if (mounted) setState(() => _aiSessions[index] ??= const _AiSession._pending());
+        },
+        onSaveSession: (svc, msgs) {
+          // Defer setState — onSaveSession is called from dispose() while
+          // the widget tree is locked; scheduling for the next frame is safe.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() => _aiSessions[index] = _AiSession(svc, msgs));
+            }
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildAiButtons(BuildContext context, int index, double s) {
+    if (!_aiEnabled) return const SizedBox.shrink();
+    final t = Translations.of(context);
+    final hasDismissed = _aiSessions.containsKey(index);
+
+    if (hasDismissed) {
+      return Padding(
+        padding: EdgeInsets.only(top: 8 * s, bottom: 4 * s),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            AiActionButton(
+              label: t.ai_continue_button,
+              icon: Icons.auto_awesome,
+              onPressed: () => _openAiChat(context, index),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final uiLang =
+        LocaleSettings.currentLocale == AppLocale.sv ? 'Swedish' : 'English';
+
+    return Padding(
+      padding: EdgeInsets.only(top: 8 * s, bottom: 4 * s),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          AiActionButton(
+            label: t.ai_hint_button,
+            icon: Icons.lightbulb_outline,
+            onPressed: () => _openAiChat(
+              context,
+              index,
+              displayText: t.ai_hint_button,
+              prompt:
+                  'Give me a short hint that helps me figure out the answer without telling me directly. You MUST reply in $uiLang only.',
+            ),
+          ),
+          SizedBox(width: 8 * s),
+          AiActionButton(
+            label: t.ai_understand_button,
+            icon: Icons.auto_awesome,
+            onPressed: () => _openAiChat(
+              context,
+              index,
+              displayText: t.ai_understand_button,
+              prompt:
+                  'Help me understand this question. Explain the concept it is testing and why the correct answer is right. You MUST reply in $uiLang only.',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _countdownTimer?.cancel();
@@ -625,6 +738,7 @@ class _TestscreenState extends State<Testscreen> {
     ttsService.ttsState = TtsState.stopped;
     _dismissLangPickHint();
     _dismissPhase2Overlay();
+    _aiSessions.clear(); // Fresh AI context on next test attempt
     super.dispose();
   }
 
@@ -1497,7 +1611,7 @@ class _TestscreenState extends State<Testscreen> {
                                 textToSpeak: questionText,
                                 languageCode: currentLanguageCode,
                                 iconSize: 22 * s,
-                                tooltip: 'Read aloud',
+                                tooltip: Translations.of(context).ai_read_aloud,
                               ),
                             ),
                           ],
@@ -1546,8 +1660,16 @@ class _TestscreenState extends State<Testscreen> {
                           onTap: () => _selectOption(option.optionLabel, index),
                           languageCode: currentLanguageCode,
                           scale: s,
+                          // Show explanation inline inside the correct answer tile
+                          explanation:
+                              option.optionLabel == question.correctAnswer
+                                  ? question.answerExplanation
+                                  : null,
                         );
                       }),
+
+                      // AI hint / understand buttons (or continue chat)
+                      _buildAiButtons(context, index, s),
 
                       // Peek-area anchor — only on the first question so the
                       // tutorial key is stable and in the widget tree.
@@ -1627,36 +1749,6 @@ class _TestscreenState extends State<Testscreen> {
                         ),
 
                       SizedBox(height: 8 * s),
-
-                      // Explanation (scrollable)
-                      if (_instantMarking &&
-                          userSelections[index] != null &&
-                          question.answerExplanation.isNotEmpty)
-                        Container(
-                          margin: EdgeInsets.only(bottom: 16 * s),
-                          padding: EdgeInsets.all(16 * s),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.10),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: Colors.blue.withValues(alpha: 0.3),
-                                width: 1),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                constraints: const BoxConstraints(),
-                                child: ExplanationWidget(
-                                  question: question,
-                                  licenceId: widget.licenceId,
-                                  categoryId: widget.categoryId,
-                                  apiService: _apiService,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -2217,4 +2309,12 @@ class _TutorialCompleteOverlayState extends State<_TutorialCompleteOverlay>
       ),
     );
   }
+}
+
+class _AiSession {
+  final AiChatService? service;
+  final List<ChatMessage> messages;
+  const _AiSession(AiChatService this.service, this.messages);
+  // Placeholder set immediately on first message — service arrives on sheet close.
+  const _AiSession._pending() : service = null, messages = const [];
 }

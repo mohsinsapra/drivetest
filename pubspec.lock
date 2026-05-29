@@ -743,18 +743,18 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_stripe
-      sha256: "410f025b27fe5dd03507444a947c44fe8e27eb89483620a70ed6a257b4aff1ba"
+      sha256: "03ec6f6af8d53dcced0534d2b52840ac4331d9320870c4167957133b2aa45194"
       url: "https://pub.dev"
     source: hosted
-    version: "12.4.0"
+    version: "12.6.0"
   flutter_stripe_web:
     dependency: "direct main"
     description:
       name: flutter_stripe_web
-      sha256: "9f60939a054ae5b48ee7bd3fed9bc11be4e0ec3014086d5ce57a416a1cd3f8fe"
+      sha256: "2eb0a1212341718f794d858b7e720804b8bfb1f80dd2172aa1c813c262eeac87"
       url: "https://pub.dev"
     source: hosted
-    version: "7.4.0"
+    version: "7.6.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -821,6 +821,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.1.0"
+  google_generative_ai:
+    dependency: "direct main"
+    description:
+      name: google_generative_ai
+      sha256: "71f613d0247968992ad87a0eb21650a566869757442ba55a31a81be6746e0d1f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.7"
   google_identity_services_web:
     dependency: transitive
     description:
@@ -1666,21 +1674,21 @@ packages:
     source: hosted
     version: "1.4.1"
   stripe_android:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: stripe_android
-      sha256: "270c9e400f2a0cdff58775c62a088903c743dd970da8d3bc54cd9bd9a1bb2d2c"
+      sha256: "596b2c2f18b6be571a99ef3dffe812ee7c99e134753234fd9110964b48e206c9"
       url: "https://pub.dev"
     source: hosted
-    version: "12.4.0"
+    version: "12.6.0"
   stripe_ios:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: stripe_ios
-      sha256: d186356a101bc2e5b2a15c1bd93e39fd86aca071dc7f8af5f4bdab8b0c43c225
+      sha256: e228c8e8a2e16770bd043a7f93ec26f559763188110dd81baf1aa146a3fd28ab
       url: "https://pub.dev"
     source: hosted
-    version: "12.4.0"
+    version: "12.6.0"
   stripe_js:
     dependency: transitive
     description:

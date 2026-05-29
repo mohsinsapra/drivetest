@@ -718,5 +718,17 @@
   "journey_back_to_group": "Back to Group",
   "journey_no_review_questions": "No questions to review!",
   "question_tab_label": "Tab",
-  "bcd_min_label": "min"
+  "bcd_min_label": "min",
+  "ai_assistant": "AI Assistant",
+  "ai_greeting": "Hi! What would you like to know about this question?",
+  "ai_initializing": "Initializing AI...",
+  "ai_input_hint": "Ask a question...",
+  "ai_error": "Something went wrong. Please try again.",
+  "ai_tooltip": "AI Assistant",
+  "ai_hint_button": "Give me a hint",
+  "ai_understand_button": "Help me understand this",
+  "ai_continue_button": "Continue chat",
+  "ai_greeting_full": "Need help with this question? Pick one of the options below, or ask your own question.",
+  "ai_read_aloud": "Read aloud",
+  "ai_close": "Close"
 }

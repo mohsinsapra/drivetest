@@ -70,6 +70,9 @@ SENTRY_DSN                    ?= https://32d4a7e8f8033e788074ecf90ad55f2a@o45110
 # AES-256 key for /self endpoint response encryption — must match backend FIELD_ENCRYPTION_KEY (32 chars)
 FIELD_ENCRYPTION_KEY          ?= ThisIsA32ByteLongSecretKeyForAES
 
+# Gemini API key for AI chat feature
+GEMINI_API_KEY                ?=
+
 # Set default base href if not provided in .env
 WEB_BASE_HREF ?= /
 
@@ -163,7 +166,8 @@ web-run:
 		--dart-define=GIT_COMMIT_HASH="$(GIT_COMMIT_HASH)" \
 		--dart-define=GIT_SHORT_HASH="$(GIT_SHORT_HASH)" \
 		--dart-define=GIT_BRANCH="$(GIT_BRANCH)" \
-		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)"
+		--dart-define=GIT_COMMIT_DATE="$(GIT_COMMIT_DATE)" \
+		--dart-define=GEMINI_API_KEY="$(GEMINI_API_KEY)"
 
 ## web-tunnel: Run web app + Cloudflare tunnel with auto hot-restart on file save
 web-tunnel:
@@ -536,13 +540,14 @@ deploy-web-android: check
 	@$(MAKE) -s _commit-and-push
 
 ## deploy-all: Bump version, commit, then deploy web (local) + Android + iOS all in parallel
+## Note: no push notification here — iOS is TestFlight only. Notification fires via:
+##   - make android-deploy (Android-only) or fastlane ios production (App Store)
 deploy-all: check
 	@$(MAKE) -s _ensure-changelog
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@gmake -s -j3 _web-deploy-core _android-deploy-core _ios-beta-core
 	@$(MAKE) -s _commit-and-push
-	@$(MAKE) -s _notify-app-update
 
 ## deploy-all-docker: Bump version, commit, then deploy web (Docker) + Android + iOS all in parallel
 ## Web runs in Docker (isolated .dart_tool), Android + iOS run locally in parallel
@@ -552,7 +557,6 @@ deploy-all-docker: check
 	@$(MAKE) -s _commit-before-build
 	@gmake -s -j3 _web-deploy-docker-core _android-deploy-core _ios-beta-core
 	@$(MAKE) -s _commit-and-push
-	@$(MAKE) -s _notify-app-update
 
 ## _ios-beta-core: Deploy iOS to TestFlight (no git commit, no version bump)
 _ios-beta-core:

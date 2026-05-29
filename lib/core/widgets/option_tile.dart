@@ -27,6 +27,10 @@ class Option extends StatelessWidget {
   /// screen for responsive sizing. Defaults to 1.0 (no scaling).
   final double scale;
 
+  /// Explanation shown inline under the correct answer in instant-marking mode.
+  /// Pass raw HTML — it will be stripped internally.
+  final String? explanation;
+
   const Option({
     super.key,
     required this.text,
@@ -38,7 +42,19 @@ class Option extends StatelessWidget {
     required this.onTap,
     this.languageCode = 'sv',
     this.scale = 1.0,
+    this.explanation,
   });
+
+  // --- HTML strip ------------------------------------------------------------
+  static String _stripHtml(String html) => html
+      .replaceAll(RegExp(r'<[^>]+>'), ' ')
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&ouml;', 'ö')
+      .replaceAll('&aring;', 'å')
+      .replaceAll('&auml;', 'ä')
+      .replaceAll('&amp;', '&')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 
   // --- Helper colour getters -------------------------------------------------
   Color _backgroundColor(BuildContext ctx) {
@@ -198,6 +214,29 @@ class Option extends StatelessWidget {
                     ),
                   ],
                 ),
+                // ── inline explanation (correct answer, instant marking) ────
+                if (showInstantMarking &&
+                    isCorrectAnswer &&
+                    explanation != null &&
+                    explanation!.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: 10 * s,
+                      left: 36 * s, // align with option text
+                    ),
+                    child: Text(
+                      _stripHtml(explanation!),
+                      style: TextStyle(
+                        fontSize: 14 * s,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.75),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+
                 // ── thumbnail (optional) ────────────────────────────────────
                 if (imageUrl != null && imageUrl!.isNotEmpty)
                   Container(

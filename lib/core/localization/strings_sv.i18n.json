@@ -718,5 +718,17 @@
   "journey_back_to_group": "Tillbaka till gruppen",
   "journey_no_review_questions": "Inga frågor att granska!",
   "question_tab_label": "Flik",
-  "bcd_min_label": "min"
+  "bcd_min_label": "min",
+  "ai_assistant": "AI-assistent",
+  "ai_greeting": "Hej! Vad vill du veta om den här frågan?",
+  "ai_initializing": "Initierar AI...",
+  "ai_input_hint": "Skriv din fråga...",
+  "ai_error": "Något gick fel. Försök igen.",
+  "ai_tooltip": "AI-assistent",
+  "ai_hint_button": "Ge mig en ledtråd",
+  "ai_understand_button": "Hjälp mig förstå det här",
+  "ai_continue_button": "Fortsätt chatt",
+  "ai_greeting_full": "Behöver du hjälp med den här frågan? Välj ett alternativ nedan eller ställ din egen fråga.",
+  "ai_read_aloud": "Läs högt",
+  "ai_close": "Stäng"
 }
