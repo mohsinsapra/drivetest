@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.64+262] - 2026-05-30
+
+### Added
 - Reusable `AppBottomSheetContainer` component for consistent bottom sheet chrome across the app; supports optional `hint` slot for in-sheet tutorial banners
 - Language selection bottom sheet with 3-column grid, flag tiles, checkmark on active language, and spinner on tile while translating
 - Question navigation sheet redesigned as compact 8-column number grid with green tick on answered questions
@@ -39,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Browser spell-check underlines removed from flag emoji and language names via `SelectionContainer.disabled()`
 - Tutorial `FormatException` on missing key target fixed by pointing spotlight at the three-dots `PopupMenuButton` (`_langMenuKey`) instead of the removed standalone language button
 
+---
 ---
 
 ## [1.1.63+261] - 2026-05-30
