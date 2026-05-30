@@ -431,6 +431,7 @@ class TranslationsSv implements Translations {
   String get auth_reset_go_to_login => 'Gå till inloggning';
   @override
   String get auth_google_connecting => 'Ansluter till Google...';
+  String get auth_apple_connecting => 'Ansluter till Apple...';
   @override
   String get auth_google_verifying => 'Verifierar konto...';
   @override
@@ -1953,6 +1954,8 @@ extension on TranslationsSv {
         return 'Gå till inloggning';
       case 'auth_google_connecting':
         return 'Ansluter till Google...';
+      case 'auth_apple_connecting':
+        return 'Ansluter till Apple...';
       case 'auth_google_verifying':
         return 'Verifierar konto...';
       case 'auth_google_signing_in':

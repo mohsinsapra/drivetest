@@ -968,18 +968,19 @@ class _LandingView extends StatelessWidget {
                           height: 20,
                           color: cs.outlineVariant.withValues(alpha: 0.4),
                         ),
-                        IconButton(
-                          padding: const EdgeInsets.fromLTRB(10, 6, 16, 6),
-                          constraints: const BoxConstraints(),
-                          icon: Icon(
-                            isDark
-                                ? Icons.light_mode_outlined
-                                : Icons.dark_mode_outlined,
-                            size: 20,
-                            color: cs.onSurfaceVariant,
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => context.read<ThemeProvider>().toggle(),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(10, 6, 16, 6),
+                            child: Icon(
+                              isDark
+                                  ? Icons.light_mode_outlined
+                                  : Icons.dark_mode_outlined,
+                              size: 20,
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
-                          onPressed: () =>
-                              context.read<ThemeProvider>().toggle(),
                         ),
                       ],
                     ),
@@ -1054,35 +1055,67 @@ class _LandingView extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      if (loginError != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: cs.error.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.error_outline,
-                                  color: cs.error, size: 16),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  loginError!,
-                                  style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 13, color: cs.error),
-                                ),
-                              ),
-                            ],
-                          ),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOutCubic,
+                        alignment: Alignment.topCenter,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: loginError != null ? 1.0 : 0.0,
+                          child: loginError != null
+                              ? Padding(
+                                  padding:
+                                      const EdgeInsets.only(bottom: 12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          cs.error.withValues(alpha: 0.08),
+                                      borderRadius:
+                                          BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.error_outline,
+                                            color: cs.error, size: 16),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            loginError!,
+                                            style:
+                                                GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13,
+                                                    color: cs.error),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
                         ),
-                        const SizedBox(height: 12),
-                      ],
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 280),
+                      ),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOutCubic,
+                        alignment: Alignment.bottomCenter,
+                        child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
                         switchInCurve: Curves.easeOutCubic,
                         switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.06),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: child,
+                            ),
+                          );
+                        },
                         child: isSocialLoading
                             ? SizedBox(
                                 key: const ValueKey('social-loading-only'),
@@ -1113,6 +1146,7 @@ class _LandingView extends StatelessWidget {
                                                 : cs.onSurface,
                                         label: t.auth_express_apple,
                                         loading: true,
+                                        loadingLabel: t.auth_apple_connecting,
                                         onPressed: null,
                                       ),
                                   ],
@@ -1247,6 +1281,7 @@ class _LandingView extends StatelessWidget {
                                         ),
                                 ],
                               ),
+                      ),
                       ),
                     ],
                   ),

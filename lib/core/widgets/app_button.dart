@@ -404,9 +404,9 @@ class AppSocialButton extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       loadingLabel!,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                      style: GoogleFonts.lexend(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
                         color: cs.primary,
                       ),
                       maxLines: 1,

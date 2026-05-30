@@ -243,6 +243,7 @@ class _BCDSubscriptionsScreenState extends State<BCDSubscriptionsScreen>
       ),
       body: TabBarView(
         controller: _tabController,
+        clipBehavior: Clip.none,
         children: [
           _PlansTab(
             loading: _loadingProducts,
@@ -547,13 +548,6 @@ class _SubscriptionTile extends StatelessWidget {
                         ? cs.error.withValues(alpha: 0.2)
                         : cs.outlineVariant,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Row(
               children: [

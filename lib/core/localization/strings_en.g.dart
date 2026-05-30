@@ -254,6 +254,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
       'Your password has been reset successfully. You can now log in with your new password.';
   String get auth_reset_go_to_login => 'Go to Login';
   String get auth_google_connecting => 'Connecting to Google...';
+  String get auth_apple_connecting => 'Connecting to Apple...';
   String get auth_google_verifying => 'Verifying account...';
   String get auth_google_signing_in => 'Signing you in...';
   String get auth_google_creating => 'Creating your account...';
@@ -1235,6 +1236,8 @@ extension on Translations {
         return 'Go to Login';
       case 'auth_google_connecting':
         return 'Connecting to Google...';
+      case 'auth_apple_connecting':
+        return 'Connecting to Apple...';
       case 'auth_google_verifying':
         return 'Verifying account...';
       case 'auth_google_signing_in':

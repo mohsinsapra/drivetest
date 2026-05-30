@@ -81,6 +81,7 @@ class _AdaptiveRefreshIndicatorState extends State<AdaptiveRefreshIndicator> {
         child: CustomScrollView(
           controller: widget.controller,
           physics: effectivePhysics,
+          clipBehavior: Clip.none,
           slivers: [
             CupertinoSliverRefreshControl(onRefresh: widget.onRefresh),
             ...widget.slivers,
@@ -96,6 +97,7 @@ class _AdaptiveRefreshIndicatorState extends State<AdaptiveRefreshIndicator> {
         child: CustomScrollView(
           controller: widget.controller,
           physics: effectivePhysics,
+          clipBehavior: Clip.none,
           slivers: widget.slivers,
         ),
       ),
