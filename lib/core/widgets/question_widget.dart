@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/models/image_viewer.dart';
 import 'package:taxi_exam_app/core/widgets/tts_button.dart';
@@ -59,14 +60,14 @@ class QuestionHeaderWidget extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: GestureDetector(
-                onTap: () => showImageViewer(context, questionImageUrl),
+                onTap: () => showImageViewer(context, [questionImageUrl]),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     maxHeight: MediaQuery.of(context).size.height * 0.4,
                     maxWidth: MediaQuery.of(context).size.width * 0.9,
                   ),
-                  child: Image.network(
-                    questionImageUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: questionImageUrl,
                     fit: BoxFit.contain,
                   ),
                 ),

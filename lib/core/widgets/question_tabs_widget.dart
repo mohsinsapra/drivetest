@@ -30,12 +30,36 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
     super.dispose();
   }
 
+  /// Builds a flat list of all images across every tab, with parallel lists
+  /// of per-image titles and plain-text bodies for the gallery viewer.
+  _GalleryData _buildGalleryData() {
+    final images = <String>[];
+    final titles = <String>[];
+    final texts = <String>[];
+
+    for (final tab in widget.tabs) {
+      final embedded = _extractImgSrcs(tab.text);
+      final tabImages = [...tab.images, ...embedded];
+      final plainText = _parseTabText(tab.text);
+      final tabLabel = tab.title;
+
+      for (final url in tabImages) {
+        images.add(url);
+        titles.add(tabLabel);
+        texts.add(plainText);
+      }
+    }
+
+    return _GalleryData(images: images, titles: titles, texts: texts);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.tabs.isEmpty) return const SizedBox.shrink();
 
     final colorScheme = Theme.of(context).colorScheme;
     final t = Translations.of(context);
+    final gallery = _buildGalleryData();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -59,20 +83,21 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
           height: 280,
           child: TabBarView(
             controller: _tabController,
-            children: widget.tabs.map(_buildTabContent).toList(),
+            children: widget.tabs
+                .map((tab) => _buildTabContent(tab, gallery))
+                .toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTabContent(QuestionTab tab) {
-    // Extract <img src> URLs embedded in the text HTML
+  Widget _buildTabContent(QuestionTab tab, _GalleryData gallery) {
     final embeddedImages = _extractImgSrcs(tab.text);
-    final allImages = [...tab.images, ...embeddedImages];
+    final tabImages = [...tab.images, ...embeddedImages];
     final plainText = _parseTabText(tab.text);
     final hasText = plainText.isNotEmpty;
-    final hasImages = allImages.isNotEmpty;
+    final hasImages = tabImages.isNotEmpty;
 
     if (!hasText && !hasImages) return const SizedBox.shrink();
 
@@ -88,13 +113,17 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
             ),
           if (hasImages) ...[
             if (hasText) const SizedBox(height: 8),
-            if (allImages.length == 1)
-              _buildImage(allImages.first)
+            // Tapping any thumbnail opens the combined gallery (all tabs),
+            // starting at the tapped image. Title + text update as you swipe.
+            if (tabImages.length == 1)
+              _buildImage(tabImages.first, gallery, tab)
             else
               SizedBox(
                 height: 220,
                 child: PageView(
-                  children: allImages.map(_buildImage).toList(),
+                  children: tabImages
+                      .map((url) => _buildImage(url, gallery, tab))
+                      .toList(),
                 ),
               ),
           ],
@@ -165,11 +194,20 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
     return s;
   }
 
-  Widget _buildImage(String url) {
+  Widget _buildImage(String url, _GalleryData gallery, QuestionTab tab) {
+    final globalIndex = gallery.images.indexOf(url);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: GestureDetector(
-        onTap: () => showImageViewer(context, url),
+        onTap: () => showImageViewer(
+          context,
+          gallery.images,
+          initialIndex: globalIndex < 0 ? 0 : globalIndex,
+          titles:
+              gallery.titles.any((t) => t.isNotEmpty) ? gallery.titles : null,
+          tabTexts:
+              gallery.texts.any((t) => t.isNotEmpty) ? gallery.texts : null,
+        ),
         child: CachedNetworkImage(
           imageUrl: url,
           fit: BoxFit.contain,
@@ -209,4 +247,16 @@ class _QuestionTabsWidgetState extends State<QuestionTabsWidget>
       ),
     );
   }
+}
+
+class _GalleryData {
+  final List<String> images;
+  final List<String> titles;
+  final List<String> texts;
+
+  const _GalleryData({
+    required this.images,
+    required this.titles,
+    required this.texts,
+  });
 }

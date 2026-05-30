@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:async';
@@ -12,8 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
-import 'package:taxi_exam_app/core/constants/language_options.dart';
-import 'package:taxi_exam_app/core/models/image_viewer.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
@@ -22,18 +19,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:no_screenshot/no_screenshot.dart';
 import 'package:taxi_exam_app/core/widgets/navigation_controls.dart';
-import 'package:taxi_exam_app/core/widgets/option_tile.dart';
+import 'package:taxi_exam_app/core/widgets/app_bottom_sheet.dart';
 import 'package:taxi_exam_app/core/widgets/question_progress_header.dart';
-import 'package:taxi_exam_app/core/widgets/question_tabs_widget.dart';
 import 'package:taxi_exam_app/core/widgets/test_dialogs.dart';
-import 'package:taxi_exam_app/core/widgets/tts_button.dart';
 import 'package:taxi_exam_app/features/tests/test_attempt_save_service.dart';
 import 'package:taxi_exam_app/features/tests/test_progress_guard.dart';
 import 'package:taxi_exam_app/features/tests/widgets/question_chat_sheet.dart';
+import 'package:taxi_exam_app/features/tests/widgets/language_grid.dart';
+import 'package:taxi_exam_app/features/tests/widgets/question_navigation_grid.dart';
+import 'package:taxi_exam_app/features/tests/widgets/question_page_item.dart';
+import 'package:taxi_exam_app/features/tests/widgets/test_timer_chip.dart';
+import 'package:taxi_exam_app/features/tests/widgets/tutorial_card.dart';
+import 'package:taxi_exam_app/features/tests/widgets/tutorial_complete_overlay.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
-import 'package:taxi_exam_app/core/widgets/ai_action_button.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/core/services/home_data_cache.dart';
 import 'package:translator/translator.dart';
@@ -104,7 +104,6 @@ class _TestscreenState extends State<Testscreen> {
 
   // GlobalKeys for the translation tutorial.
   final _langMenuKey = GlobalKey<PopupMenuButtonState<String>>();
-  final _langButtonKey = GlobalKey();
   final _peekAreaKey = GlobalKey();
 
   // True while phase-1 of the tutorial is active (waiting for language pick).
@@ -138,6 +137,9 @@ class _TestscreenState extends State<Testscreen> {
   late bool _instantMarking;
   bool _timerVisible = true;
 
+  // Context captured inside CupertinoScaffold — needed for depth-effect sheets.
+  BuildContext? _sheetContext;
+
   // Saved questions
   Set<String> _savedQuestionIds = {};
 
@@ -150,6 +152,16 @@ class _TestscreenState extends State<Testscreen> {
   late final int _initialQuestionIndex;
 
   final _noScreenshot = kIsWeb ? null : NoScreenshot.instance;
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (kDebugMode && !widget.isReviewMode) {
+      _dismissTutorial();
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _checkAndShowTutorial());
+    }
+  }
 
   @override
   void initState() {
@@ -209,8 +221,8 @@ class _TestscreenState extends State<Testscreen> {
 
   Future<void> _checkAndShowTutorial() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(_kTranslationTutorialKey) == true) return;
-    await prefs.setBool(_kTranslationTutorialKey, true);
+    if (!kDebugMode && prefs.getBool(_kTranslationTutorialKey) == true) return;
+    if (!kDebugMode) await prefs.setBool(_kTranslationTutorialKey, true);
     if (!mounted) return;
     await Future.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
@@ -218,12 +230,10 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   TutorialCoachMark? _phase1Coach;
-  // Fine-grained tutorial state for phases 2 and 3.
+  // Fine-grained tutorial state for phase 2.
   bool _tutorialPhase2Active = false; // "press & hold" card visible
   bool _tutorialPhase2bActive =
       false; // user is holding — "now release" card visible
-  bool _tutorialPhase3aActive = false; // "swipe left" card visible
-  bool _tutorialPhase3bActive = false; // "now swipe right" card visible
 
   void _showTutorialPhase1() {
     setState(() => _tutorialPhase1Active = true);
@@ -234,14 +244,14 @@ class _TestscreenState extends State<Testscreen> {
       targets: [
         TargetFocus(
           identify: 'lang_button',
-          keyTarget: _langButtonKey,
+          keyTarget: _langMenuKey,
           shape: ShapeLightFocus.RRect,
           radius: 20,
           enableTargetTab: true,
           contents: [
             TargetContent(
               align: ContentAlign.bottom,
-              builder: (_, __) => _TutorialCard(
+              builder: (_, __) => TutorialCard(
                 icon: LucideIcons.languages,
                 title: t.tut_step1_title,
                 body: t.tut_step1_body,
@@ -256,7 +266,6 @@ class _TestscreenState extends State<Testscreen> {
       opacityShadow: 0.85,
       hideSkip: false,
       textSkip: t.intro_skip,
-      // Dismiss overlay on tap so dropdown can open immediately after.
       onClickTarget: (_) {
         _phase1Coach?.finish();
         Future.delayed(const Duration(milliseconds: 150), () {
@@ -279,7 +288,7 @@ class _TestscreenState extends State<Testscreen> {
     if (!mounted) return;
     _dismissLangPickHint();
     final t = Translations.of(context);
-    final theme = Theme.of(context);
+    final primary = Theme.of(context).colorScheme.primary;
     _langPickOverlay = OverlayEntry(
       builder: (_) => Positioned(
         left: 16,
@@ -288,11 +297,11 @@ class _TestscreenState extends State<Testscreen> {
         child: Material(
           color: Colors.transparent,
           child: IgnorePointer(
-            child: _TutorialCard(
+            child: TutorialCard(
               icon: Icons.translate,
               title: t.tut_step1b_title,
               body: t.tut_step1b_body,
-              primaryColor: theme.colorScheme.primary,
+              primaryColor: primary,
             ),
           ),
         ),
@@ -328,65 +337,35 @@ class _TestscreenState extends State<Testscreen> {
     });
     final t = Translations.of(context);
     final primary = Theme.of(context).colorScheme.primary;
-    _replaceOverlay(OverlayEntry(
-      builder: (_) => Positioned(
-        left: 16,
-        right: 16,
-        bottom: 120,
-        child: Material(
-          color: Colors.transparent,
-          child: IgnorePointer(
-            child: _TutorialCard(
-              icon: Icons.touch_app_outlined,
-              title: t.tut_step2a_title,
-              body: t.tut_step2a_body,
-              primaryColor: primary,
-            ),
-          ),
-        ),
-      ),
+    _replaceOverlay(_buildTutorialOverlay(
+      icon: Icons.touch_app_outlined,
+      title: t.tut_step2a_title,
+      body: t.tut_step2a_body,
+      primary: primary,
     ));
   }
 
   // Phase 2b — shown while user is holding: "Now release to go back".
   void _showReleaseHint() {
     if (!mounted) return;
-    setState(() {
-      _tutorialPhase2bActive = true;
-    });
+    setState(() => _tutorialPhase2bActive = true);
     final t = Translations.of(context);
     final primary = Theme.of(context).colorScheme.primary;
-    _replaceOverlay(OverlayEntry(
-      builder: (_) => Positioned(
-        left: 16,
-        right: 16,
-        bottom: 120,
-        child: Material(
-          color: Colors.transparent,
-          child: IgnorePointer(
-            child: _TutorialCard(
-              icon: Icons.pan_tool_outlined,
-              title: t.tut_step2b_title,
-              body: t.tut_step2b_body,
-              primaryColor: primary,
-            ),
-          ),
-        ),
-      ),
+    _replaceOverlay(_buildTutorialOverlay(
+      icon: Icons.pan_tool_outlined,
+      title: t.tut_step2b_title,
+      body: t.tut_step2b_body,
+      primary: primary,
     ));
   }
 
-  // Phase 3a — "Swipe left to go to the next question".
-  void _showTutorialPhase3a() {
-    if (!mounted) return;
-    setState(() {
-      _tutorialPhase3aActive = true;
-      _tutorialPhase2Active = false;
-      _tutorialPhase2bActive = false;
-    });
-    final t = Translations.of(context);
-    final primary = Theme.of(context).colorScheme.primary;
-    _replaceOverlay(OverlayEntry(
+  OverlayEntry _buildTutorialOverlay({
+    required IconData icon,
+    required String title,
+    required String body,
+    required Color primary,
+  }) {
+    return OverlayEntry(
       builder: (_) => Positioned(
         left: 16,
         right: 16,
@@ -394,45 +373,16 @@ class _TestscreenState extends State<Testscreen> {
         child: Material(
           color: Colors.transparent,
           child: IgnorePointer(
-            child: _TutorialCard(
-              icon: Icons.swipe_left_outlined,
-              title: t.tut_step3a_title,
-              body: t.tut_step3a_body,
+            child: TutorialCard(
+              icon: icon,
+              title: title,
+              body: body,
               primaryColor: primary,
             ),
           ),
         ),
       ),
-    ));
-  }
-
-  // Phase 3b — "Now swipe right to come back".
-  void _showTutorialPhase3b() {
-    if (!mounted) return;
-    setState(() {
-      _tutorialPhase3aActive = false;
-      _tutorialPhase3bActive = true;
-    });
-    final t = Translations.of(context);
-    final primary = Theme.of(context).colorScheme.primary;
-    _replaceOverlay(OverlayEntry(
-      builder: (_) => Positioned(
-        left: 16,
-        right: 16,
-        bottom: 120,
-        child: Material(
-          color: Colors.transparent,
-          child: IgnorePointer(
-            child: _TutorialCard(
-              icon: Icons.swipe_right_outlined,
-              title: t.tut_step3b_title,
-              body: t.tut_step3b_body,
-              primaryColor: primary,
-            ),
-          ),
-        ),
-      ),
-    ));
+    );
   }
 
   void _dismissTutorial({bool celebrate = false}) {
@@ -441,8 +391,6 @@ class _TestscreenState extends State<Testscreen> {
       _tutorialPhase1Active = false;
       _tutorialPhase2Active = false;
       _tutorialPhase2bActive = false;
-      _tutorialPhase3aActive = false;
-      _tutorialPhase3bActive = false;
     });
     if (celebrate && mounted) _showTutorialComplete();
   }
@@ -452,7 +400,7 @@ class _TestscreenState extends State<Testscreen> {
     entry = OverlayEntry(
       builder: (_) => Material(
         color: Colors.transparent,
-        child: _TutorialCompleteOverlay(
+        child: TutorialCompleteOverlay(
           onDone: () => entry?.remove(),
         ),
       ),
@@ -551,93 +499,6 @@ class _TestscreenState extends State<Testscreen> {
     );
   }
 
-  Widget _buildImageTile(BuildContext context, double s, String url) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: GestureDetector(
-          onTap: () => showImageViewer(context, url),
-          child: CachedNetworkImage(
-            imageUrl: url,
-            fit: BoxFit.cover,
-            errorWidget: (_, __, ___) => const _BrokenImagePlaceholder(),
-          ),
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildQuestionImages(
-    BuildContext context,
-    double s,
-    MediaQueryData mq,
-    List<String> urls,
-  ) {
-    if (urls.isEmpty) return [];
-
-    if (urls.length > 2) {
-      return [
-        GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 8 * s,
-          mainAxisSpacing: 8 * s,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          children:
-              urls.map((url) => _buildImageTile(context, s, url)).toList(),
-        ),
-        SizedBox(height: 12 * s),
-      ];
-    }
-
-    return [
-      ...urls.map(
-        (url) => Container(
-          margin: EdgeInsets.only(bottom: 12 * s),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.white.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: GestureDetector(
-              onTap: () => showImageViewer(context, url),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: mq.size.height * 0.32,
-                  maxWidth: mq.size.width * 0.9,
-                ),
-                child: CachedNetworkImage(
-                  imageUrl: url,
-                  fit: BoxFit.contain,
-                  errorWidget: (_, __, ___) => const _BrokenImagePlaceholder(),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-      SizedBox(height: 8 * s),
-    ];
-  }
-
   void _openAiChat(
     BuildContext context,
     int index, {
@@ -674,64 +535,6 @@ class _TestscreenState extends State<Testscreen> {
     );
   }
 
-  Widget _buildAiButtons(BuildContext context, int index, double s) {
-    if (!_aiEnabled) return const SizedBox.shrink();
-    final t = Translations.of(context);
-    final hasDismissed = _aiSessions.containsKey(index);
-
-    if (hasDismissed) {
-      return Padding(
-        padding: EdgeInsets.only(top: 8 * s, bottom: 4 * s),
-        child: Wrap(
-          spacing: 8 * s,
-          runSpacing: 6 * s,
-          children: [
-            AiActionButton(
-              label: t.ai_continue_button,
-              icon: Icons.auto_awesome,
-              onPressed: () => _openAiChat(context, index),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final uiLang =
-        LocaleSettings.currentLocale == AppLocale.sv ? 'Swedish' : 'English';
-
-    return Padding(
-      padding: EdgeInsets.only(top: 8 * s, bottom: 4 * s),
-      child: Wrap(
-        spacing: 8 * s,
-        runSpacing: 6 * s,
-        children: [
-          AiActionButton(
-            label: t.ai_hint_button,
-            icon: Icons.lightbulb_outline,
-            onPressed: () => _openAiChat(
-              context,
-              index,
-              displayText: t.ai_hint_button,
-              prompt:
-                  'Give me a short hint that helps me figure out the answer without telling me directly. You MUST reply in $uiLang only.',
-            ),
-          ),
-          AiActionButton(
-            label: t.ai_understand_button,
-            icon: Icons.auto_awesome,
-            onPressed: () => _openAiChat(
-              context,
-              index,
-              displayText: t.ai_understand_button,
-              prompt:
-                  'Help me understand this question. Explain the concept it is testing and why the correct answer is right. You MUST reply in $uiLang only.',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _countdownTimer?.cancel();
@@ -755,13 +558,6 @@ class _TestscreenState extends State<Testscreen> {
     ttsService.ttsState = TtsState.stopped;
     _preloadImagesForQuestion(index + 1);
     _preloadImagesForQuestion(index + 2);
-    if (_tutorialPhase3aActive && index > prevIndex) {
-      // Swiped left — show "now swipe right" card.
-      Future.delayed(const Duration(milliseconds: 300), _showTutorialPhase3b);
-    } else if (_tutorialPhase3bActive && index < prevIndex) {
-      // Swiped right — tutorial complete, celebrate.
-      _dismissTutorial(celebrate: true);
-    }
   }
 
   void _selectOption(String optionId, int index) {
@@ -1001,6 +797,68 @@ class _TestscreenState extends State<Testscreen> {
     }
   }
 
+  Future<void> _showLanguageSheet() async {
+    final t = Translations.of(context);
+    final langNotifier = ValueNotifier<String>(currentLanguageCode);
+    final wasInTutorial = _tutorialPhase1Active;
+
+    // Dismiss the popup-open hint before the sheet slides in.
+    _dismissLangPickHint();
+
+    await CupertinoScaffold.showCupertinoModalBottomSheet<void>(
+      context: _sheetContext ?? context,
+      builder: (ctx) => AppBottomSheetContainer(
+        title: t.test_question_language_title,
+        subtitle: t.test_question_language_subtitle,
+        heightFactor: 0.8,
+        hint: wasInTutorial ? _buildSheetTutorialHint(t) : null,
+        child: LanguageGrid(
+          selectedLanguage: langNotifier,
+          onSelected: (code) async {
+            await _onLanguageSelected(code);
+            langNotifier.value = code;
+          },
+        ),
+      ),
+    );
+
+    // Sheet was dismissed — if tutorial was active and a non-SV language
+    // was selected, advance to the press-and-hold phase.
+    if (wasInTutorial && mounted && currentLanguageCode.toLowerCase() != 'sv') {
+      await Future.delayed(const Duration(milliseconds: 400));
+      if (mounted) _showTutorialPhase2();
+    }
+  }
+
+  Widget _buildSheetTutorialHint(Translations t) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: primary.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.translate_rounded, size: 18, color: primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              t.tut_step1_grid_hint,
+              style: TextStyle(
+                fontSize: 13,
+                color: primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _showFeedbackDialog() async {
     final t = Translations.of(context);
     final q = widget.questions[currentQuestionIndex];
@@ -1219,12 +1077,6 @@ class _TestscreenState extends State<Testscreen> {
       return;
     }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: AppLoadingIndicator()),
-    );
-
     try {
       final translated = await translateQuestionsOnce(
         widget.questions,
@@ -1242,13 +1094,10 @@ class _TestscreenState extends State<Testscreen> {
       if (mounted) {
         showAppSnackBar(Translations.of(context).test_translation_failed);
       }
-    } finally {
-      if (mounted) Navigator.of(context).pop();
     }
   }
 
   Future<void> _onLanguageSelected(String value) async {
-    _dismissLangPickHint();
     ttsService.flutterTts.stop();
     ttsService.ttsState = TtsState.stopped;
 
@@ -1275,12 +1124,8 @@ class _TestscreenState extends State<Testscreen> {
         _previousLanguageCode = previousCode;
         currentLanguageCode = value;
       });
-      // Phase 1 of the tutorial just completed — user picked a language.
-      // Show phase 2 after a short delay so the translation appears first.
       if (_tutorialPhase1Active) {
         setState(() => _tutorialPhase1Active = false);
-        await Future.delayed(const Duration(milliseconds: 500));
-        _showTutorialPhase2();
       }
     }
   }
@@ -1297,7 +1142,6 @@ class _TestscreenState extends State<Testscreen> {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
-    final isSmallScreen = mq.size.width < 390;
     // Scale factor: 1.0 on standard screens (≥ 812 pt tall), shrinks on shorter ones
     final s = (mq.size.height / 812.0).clamp(0.72, 1.0);
     return PopScope(
@@ -1311,509 +1155,285 @@ class _TestscreenState extends State<Testscreen> {
         _showExitDialog();
       },
       child: CupertinoScaffold(
-        body: Scaffold(
-          appBar: AppBar(
-            elevation: 0,
-            leading: AppBackButton(
-              onPressed: () {
-                if (widget.isReviewMode) {
-                  Navigator.of(context).pop();
-                } else {
-                  _showExitDialog();
-                }
-              },
-            ),
-            title: QuestionProgressHeader(
-              currentIndex: currentQuestionIndex,
-              total: widget.questions.length,
-              onTap: _showQuestionNavigationSheet,
-            ),
-            centerTitle: true,
-            actions: [
-              // Timer display — ValueListenableBuilder isolates rebuilds to this
-              // widget only; the rest of the screen is unaffected by each tick.
-              if (_isTimed && !widget.isReviewMode)
-                ValueListenableBuilder<int>(
-                  valueListenable: _timerNotifier,
-                  builder: (_, secs, __) {
-                    final isUrgent = secs <= 60 && _timerVisible;
-                    final primary = Theme.of(context).colorScheme.primary;
-                    final m = secs ~/ 60;
-                    final s = secs % 60;
-                    final display =
-                        '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Center(
-                        child: GestureDetector(
-                          onTap: () =>
-                              setState(() => _timerVisible = !_timerVisible),
-                          child: Container(
-                            height: 26,
-                            padding: const EdgeInsets.symmetric(horizontal: 7),
-                            decoration: BoxDecoration(
-                              color: isUrgent
-                                  ? Colors.red.withValues(alpha: 0.12)
-                                  : primary.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isUrgent
-                                    ? Colors.red.withValues(alpha: 0.35)
-                                    : primary.withValues(alpha: 0.25),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _timerVisible
-                                      ? Icons.timer
-                                      : Icons.timer_off_outlined,
-                                  size: 13,
-                                  color: isUrgent ? Colors.red : primary,
-                                ),
-                                if (_timerVisible) ...[
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    display,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: secs <= 60 ? Colors.red : primary,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+        body: Builder(builder: (innerCtx) {
+          _sheetContext = innerCtx;
+          return Scaffold(
+            appBar: AppBar(
+              elevation: 0,
+              leading: IconButton(
+                icon: Icon(
+                  Icons.close,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-              if (!isSmallScreen)
-                Container(
-                  key: _langButtonKey,
-                  margin: const EdgeInsets.only(right: 8),
-                  child: PopupMenuButton<String>(
-                    key: _langMenuKey,
-                    onSelected: _onLanguageSelected,
-                    itemBuilder: (BuildContext context) => languageOptions
-                        .map((lang) => PopupMenuItem<String>(
-                              value: lang['code'],
-                              child: Text(lang['label']!),
-                            ))
-                        .toList(),
-                    child: Container(
-                      height: 26,
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withValues(alpha: 0.25),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 17,
-                            height: 17,
-                            alignment: Alignment.center,
-                            child: Text(
-                              ttsService.getLanguageFlag(currentLanguageCode),
-                              textScaler: TextScaler.noScaling,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                height: 1,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 3),
-                          Align(
-                            alignment: Alignment.center,
-                            child: Icon(
-                              LucideIcons.languages,
-                              size: 13,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert,
-                    color: Theme.of(context).colorScheme.onSurface),
-                onSelected: (value) {
-                  if (value == 'lang_en') {
-                    _onLanguageSelected('EN');
-                  } else if (value == 'lang_sv') {
-                    _onLanguageSelected('SV');
-                  } else if (value == 'feedback') {
-                    _showFeedbackDialog();
-                  } else if (value == 'toggle_timer') {
-                    setState(() {
-                      _isTimed = !_isTimed;
-                      if (_isTimed) {
-                        if (_remainingSeconds <= 0) {
-                          _remainingSeconds = widget.timeLimitMinutes * 60;
-                          _timerNotifier.value = _remainingSeconds;
-                        }
-                        _startTimer();
-                      } else {
-                        _countdownTimer?.cancel();
-                      }
-                    });
-                  } else if (value == 'toggle_instant') {
-                    setState(() => _instantMarking = !_instantMarking);
+                onPressed: () {
+                  if (widget.isReviewMode) {
+                    Navigator.of(context).pop();
+                  } else {
+                    _showExitDialog();
                   }
                 },
-                itemBuilder: (context) => [
-                  if (isSmallScreen)
-                    PopupMenuItem<String>(
-                      value: 'lang_en',
-                      child: Row(
-                        children: [
-                          Text('🇬🇧 ${t.test_language_english}'),
-                          const Spacer(),
-                          if (currentLanguageCode.toLowerCase() == 'en')
-                            const Icon(Icons.check, size: 16),
-                        ],
-                      ),
-                    ),
-                  if (isSmallScreen)
-                    PopupMenuItem<String>(
-                      value: 'lang_sv',
-                      child: Row(
-                        children: [
-                          Text('🇸🇪 ${t.test_language_swedish}'),
-                          const Spacer(),
-                          if (currentLanguageCode.toLowerCase() == 'sv')
-                            const Icon(Icons.check, size: 16),
-                        ],
-                      ),
-                    ),
-                  if (isSmallScreen)
-                    PopupMenuItem<String>(
-                      enabled: false,
-                      height: 1,
-                      padding: EdgeInsets.zero,
-                      child: Divider(
-                          color: Theme.of(context).dividerColor, height: 1),
-                    ),
-                  if (!widget.isReviewMode)
-                    PopupMenuItem<String>(
-                      value: 'toggle_timer',
-                      child: Row(
-                        children: [
-                          Icon(
-                              _isTimed
-                                  ? Icons.timer_off_outlined
-                                  : Icons.timer_outlined,
-                              size: 18),
-                          const SizedBox(width: 8),
-                          Text(_isTimed
-                              ? t.test_turn_off_timer
-                              : t.test_turn_on_timer),
-                          const Spacer(),
-                          if (_isTimed) const Icon(Icons.check, size: 16),
-                        ],
-                      ),
-                    ),
-                  if (!widget.isReviewMode)
-                    PopupMenuItem<String>(
-                      value: 'toggle_instant',
-                      child: Row(
-                        children: [
-                          Icon(
-                              _instantMarking
-                                  ? Icons.rule_outlined
-                                  : Icons.rule_outlined,
-                              size: 18),
-                          const SizedBox(width: 8),
-                          Text(_instantMarking
-                              ? t.test_turn_off_instant_marking
-                              : t.test_turn_on_instant_marking),
-                          const Spacer(),
-                          if (_instantMarking)
-                            const Icon(Icons.check, size: 16),
-                        ],
-                      ),
-                    ),
-                  if (!widget.isReviewMode)
-                    PopupMenuItem<String>(
-                      enabled: false,
-                      height: 1,
-                      padding: EdgeInsets.zero,
-                      child: Divider(
-                          color: Theme.of(context).dividerColor, height: 1),
-                    ),
-                  PopupMenuItem<String>(
-                    value: 'feedback',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline, size: 18),
-                        const SizedBox(width: 8),
-                        Text(t.test_feedback_title),
-                      ],
-                    ),
-                  ),
-                ],
               ),
-            ],
-          ),
-          body: PageView.builder(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            itemCount: widget.questions.length,
-            itemBuilder: (context, index) {
-              final translatedList = translatedQuestionsWithOptions[
-                  currentLanguageCode.toLowerCase()];
-              final question =
-                  (translatedList != null && translatedList.length > index)
-                      ? translatedList[index]
-                      : widget.questions[index];
-              var questionUrl = _apiService.fetchImage(
-                widget.licenceId,
-                widget.categoryId,
-                widget.questions[index].imageUrl,
-              );
-
-              // Get translated question text if available
-              String questionText = question.text;
-
-              // Get translated options if available
-              List<String> optionTexts = [];
-              optionTexts = question.options.map((e) => e.text).toList();
-
-              return GestureDetector(
-                onLongPress: () {
-                  _revertToPreviousLanguage();
-                  // Tutorial: user started holding — update card to "now release".
-                  if (_tutorialPhase2Active && !_tutorialPhase2bActive) {
-                    _showReleaseHint();
-                  }
-                },
-                onLongPressUp: () {
-                  _revertToPreviousLanguage();
-                  // Tutorial: user released — advance to "swipe left" step.
-                  if (_tutorialPhase2bActive) {
-                    Future.delayed(
-                      const Duration(milliseconds: 600),
-                      _showTutorialPhase3a,
-                    );
-                  }
-                },
-                child: Padding(
-                  padding: EdgeInsets.all(20.0 * s),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Question text with star bookmark
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              title: QuestionProgressHeader(
+                currentIndex: currentQuestionIndex,
+                total: widget.questions.length,
+                onTap: _showQuestionNavigationSheet,
+              ),
+              centerTitle: false,
+              titleSpacing: 0,
+              actions: [
+                // Timer display — ValueListenableBuilder isolates rebuilds to this
+                // widget only; the rest of the screen is unaffected by each tick.
+                if (_isTimed && !widget.isReviewMode)
+                  TestTimerChip(
+                    timerNotifier: _timerNotifier,
+                    visible: _timerVisible,
+                    onToggle: () =>
+                        setState(() => _timerVisible = !_timerVisible),
+                  ),
+                PopupMenuButton<String>(
+                  key: _langMenuKey,
+                  icon: Icon(Icons.more_vert,
+                      color: Theme.of(context).colorScheme.onSurface),
+                  onSelected: (value) {
+                    if (value == 'language') {
+                      _showLanguageSheet();
+                    } else if (value == 'feedback') {
+                      _showFeedbackDialog();
+                    } else if (value == 'toggle_timer') {
+                      setState(() {
+                        _isTimed = !_isTimed;
+                        if (_isTimed) {
+                          if (_remainingSeconds <= 0) {
+                            _remainingSeconds = widget.timeLimitMinutes * 60;
+                            _timerNotifier.value = _remainingSeconds;
+                          }
+                          _startTimer();
+                        } else {
+                          _countdownTimer?.cancel();
+                        }
+                      });
+                    } else if (value == 'toggle_instant') {
+                      setState(() => _instantMarking = !_instantMarking);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem<String>(
+                      value: 'language',
+                      child: Row(
+                        children: [
+                          Text(
+                            ttsService.getLanguageFlag(currentLanguageCode),
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(t.test_question_language_menu),
+                          const Spacer(),
+                          Icon(Icons.chevron_right,
+                              size: 16, color: Colors.grey[500]),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      enabled: false,
+                      height: 1,
+                      padding: EdgeInsets.zero,
+                      child: Divider(
+                          color: Theme.of(context).dividerColor, height: 1),
+                    ),
+                    if (!widget.isReviewMode)
+                      PopupMenuItem<String>(
+                        value: 'toggle_timer',
+                        child: Row(
                           children: [
-                            Expanded(
-                              child: RichText(
-                                text: TextSpan(
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                        fontSize: 22 * s,
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                        height: 1.3,
-                                      ),
-                                  children: [
-                                    TextSpan(text: questionText),
-                                    WidgetSpan(
-                                      alignment: PlaceholderAlignment.middle,
-                                      child: TtsButton(
-                                        textToSpeak: questionText,
-                                        languageCode: currentLanguageCode,
-                                        iconSize: 22 * s,
-                                        tooltip: Translations.of(context)
-                                            .ai_read_aloud,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (!widget.isReviewMode &&
-                                widget.questions[index].questionId.isNotEmpty)
-                              GestureDetector(
-                                onTap: () async {
-                                  HapticFeedback.lightImpact();
-                                  final qId =
-                                      widget.questions[index].questionId;
-                                  final isSaved = await SavedQuestionsService
-                                      .toggleSavedScoped(
-                                    qId,
-                                    questionText: widget.questions[index].text,
-                                    licenceId: widget.licenceId,
-                                    categoryId: widget.categoryId,
-                                    bcdCategoryId: widget.bcdCategoryId,
-                                  );
-                                  final ids = await SavedQuestionsService
-                                      .getSavedIdsScoped(
-                                    licenceId: widget.licenceId,
-                                    categoryId: widget.categoryId,
-                                    bcdCategoryId: widget.bcdCategoryId,
-                                  );
-                                  if (mounted) {
-                                    setState(() => _savedQuestionIds = ids);
-                                    showAppSnackBar(isSaved
-                                        ? t.test_question_saved
-                                        : t.test_question_removed);
-                                  }
-                                },
-                                child: Padding(
-                                  padding:
-                                      EdgeInsets.only(left: 8 * s, top: 2 * s),
-                                  child: Icon(
-                                    _savedQuestionIds.contains(
-                                            widget.questions[index].questionId)
-                                        ? Icons.star_rounded
-                                        : Icons.star_border_rounded,
-                                    color: _savedQuestionIds.contains(
-                                            widget.questions[index].questionId)
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey[400],
-                                    size: 28 * s,
-                                  ),
-                                ),
-                              ),
+                            Icon(
+                                _isTimed
+                                    ? Icons.timer_off_outlined
+                                    : Icons.timer_outlined,
+                                size: 18),
+                            const SizedBox(width: 8),
+                            Text(_isTimed
+                                ? t.test_turn_off_timer
+                                : t.test_turn_on_timer),
+                            const Spacer(),
+                            if (_isTimed) const Icon(Icons.check, size: 16),
                           ],
                         ),
-                        SizedBox(height: 14 * s),
-
-                        // Question images — use multi-image list if available,
-                        // fall back to legacy imageUrl for backward compatibility.
-                        ..._buildQuestionImages(
-                          context,
-                          s,
-                          mq,
-                          question.images.isNotEmpty
-                              ? question.images
-                              : (question.imageUrl.isNotEmpty
-                                  ? [questionUrl]
-                                  : []),
+                      ),
+                    if (!widget.isReviewMode)
+                      PopupMenuItem<String>(
+                        value: 'toggle_instant',
+                        child: Row(
+                          children: [
+                            Icon(
+                                _instantMarking
+                                    ? Icons.rule_outlined
+                                    : Icons.rule_outlined,
+                                size: 18),
+                            const SizedBox(width: 8),
+                            Text(_instantMarking
+                                ? t.test_turn_off_instant_marking
+                                : t.test_turn_on_instant_marking),
+                            const Spacer(),
+                            if (_instantMarking)
+                              const Icon(Icons.check, size: 16),
+                          ],
                         ),
-
-                        // Question tabs (BCD questions with tabbed image content)
-                        if (question.tabs.isNotEmpty) ...[
-                          SizedBox(height: 8 * s),
-                          QuestionTabsWidget(tabs: question.tabs),
+                      ),
+                    if (!widget.isReviewMode)
+                      PopupMenuItem<String>(
+                        enabled: false,
+                        height: 1,
+                        padding: EdgeInsets.zero,
+                        child: Divider(
+                            color: Theme.of(context).dividerColor, height: 1),
+                      ),
+                    PopupMenuItem<String>(
+                      value: 'feedback',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, size: 18),
+                          const SizedBox(width: 8),
+                          Text(t.test_feedback_title),
                         ],
-
-                        SizedBox(height: 12 * s),
-
-                        // Options
-                        ...question.options.asMap().entries.map((entry) {
-                          int optIndex = entry.key;
-                          var option = entry.value;
-                          String optionText = optionTexts[optIndex];
-                          bool isSelected =
-                              userSelections[index] == option.optionLabel;
-
-                          return Option(
-                            text: optionText,
-                            optionLabel: option.optionLabel,
-                            imageUrl: option.imageUrl,
-                            isSelected: isSelected,
-                            showInstantMarking: _instantMarking &&
-                                userSelections[index] != null,
-                            isCorrectAnswer:
-                                option.optionLabel == question.correctAnswer,
-                            onTap: () =>
-                                _selectOption(option.optionLabel, index),
-                            languageCode: currentLanguageCode,
-                            scale: s,
-                            // Show explanation inline inside the correct answer tile
-                            explanation:
-                                option.optionLabel == question.correctAnswer
-                                    ? question.answerExplanation
-                                    : null,
-                          );
-                        }),
-
-                        // AI hint / understand buttons (or continue chat)
-                        _buildAiButtons(context, index, s),
-
-                        // Peek-area anchor — only on the first question so the
-                        // tutorial key is stable and in the widget tree.
-                        if (index == 0)
-                          SizedBox(key: _peekAreaKey, height: 12 * s)
-                        else
-                          SizedBox(height: 12 * s),
-
-                        SizedBox(height: 8 * s),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              );
-            },
-          ), // PageView
-          bottomNavigationBar: NavigationControls(
-            atFirst: currentQuestionIndex == 0,
-            atLast: currentQuestionIndex == widget.questions.length - 1,
-            onBack: _previousQuestion,
-            // Decide at runtime whether we go to the next page or open the dialogs.
-            onNextOrFinish: () {
-              if (currentQuestionIndex < widget.questions.length - 1) {
-                _nextQuestion();
-                return;
-              }
+              ],
+            ),
+            body: PageView.builder(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              itemCount: widget.questions.length,
+              itemBuilder: (context, index) {
+                final translatedList = translatedQuestionsWithOptions[
+                    currentLanguageCode.toLowerCase()];
+                final question =
+                    (translatedList != null && translatedList.length > index)
+                        ? translatedList[index]
+                        : widget.questions[index];
+                final questionUrl = _apiService.fetchImage(
+                  widget.licenceId,
+                  widget.categoryId,
+                  widget.questions[index].imageUrl,
+                );
+                final uiLang = LocaleSettings.currentLocale == AppLocale.sv
+                    ? 'Swedish'
+                    : 'English';
+                return QuestionPageItem(
+                  index: index,
+                  question: question,
+                  legacyImageUrl: questionUrl,
+                  userSelections: userSelections,
+                  isReviewMode: widget.isReviewMode,
+                  instantMarking: _instantMarking,
+                  savedQuestionIds: _savedQuestionIds,
+                  aiEnabled: _aiEnabled,
+                  hasAiSession: _aiSessions.containsKey(index),
+                  currentLanguageCode: currentLanguageCode,
+                  scale: s,
+                  peekAreaKey: index == 0 ? _peekAreaKey : null,
+                  onOptionTap: (optionLabel) =>
+                      _selectOption(optionLabel, index),
+                  onLongPress: () {
+                    _revertToPreviousLanguage();
+                    if (_tutorialPhase2Active && !_tutorialPhase2bActive) {
+                      _showReleaseHint();
+                    }
+                  },
+                  onLongPressUp: () {
+                    _revertToPreviousLanguage();
+                    if (_tutorialPhase2bActive) {
+                      Future.delayed(
+                        const Duration(milliseconds: 600),
+                        () => _dismissTutorial(celebrate: true),
+                      );
+                    }
+                  },
+                  onAiContinue: () => _openAiChat(context, index),
+                  onAiHint: () => _openAiChat(
+                    context,
+                    index,
+                    displayText: t.ai_hint_button,
+                    prompt:
+                        'Give me a short hint that helps me figure out the answer without telling me directly. You MUST reply in $uiLang only.',
+                  ),
+                  onAiUnderstand: () => _openAiChat(
+                    context,
+                    index,
+                    displayText: t.ai_understand_button,
+                    prompt:
+                        'Help me understand this question. Explain the concept it is testing and why the correct answer is right. You MUST reply in $uiLang only.',
+                  ),
+                  onToggleSave: (qId, questionText) async {
+                    final isSaved =
+                        await SavedQuestionsService.toggleSavedScoped(
+                      qId,
+                      questionText: questionText,
+                      licenceId: widget.licenceId,
+                      categoryId: widget.categoryId,
+                      bcdCategoryId: widget.bcdCategoryId,
+                    );
+                    final ids = await SavedQuestionsService.getSavedIdsScoped(
+                      licenceId: widget.licenceId,
+                      categoryId: widget.categoryId,
+                      bcdCategoryId: widget.bcdCategoryId,
+                    );
+                    if (mounted) {
+                      setState(() => _savedQuestionIds = ids);
+                      showAppSnackBar(isSaved
+                          ? t.test_question_saved
+                          : t.test_question_removed);
+                    }
+                  },
+                );
+              },
+            ), // PageView
+            bottomNavigationBar: NavigationControls(
+              atFirst: currentQuestionIndex == 0,
+              atLast: currentQuestionIndex == widget.questions.length - 1,
+              onBack: _previousQuestion,
+              // Decide at runtime whether we go to the next page or open the dialogs.
+              onNextOrFinish: () {
+                if (currentQuestionIndex < widget.questions.length - 1) {
+                  _nextQuestion();
+                  return;
+                }
 
-              // Last question → show the confirmation dialog
-              showFinishConfirmationDialog(
-                context: context,
-                unansweredCount:
-                    widget.questions.length - userSelections.length,
-                onCancel: () {}, // nothing extra on “No”
-                onConfirm: () async {
-                  final saveResult = await _saveTestAttempt();
-                  if (!mounted) return;
-                  if (!saveResult.backendSynced) {
-                    showAppSnackBar(t.test_save_backend_failed);
-                  }
-                  final passed = _calculateResult();
-                  if (passed) {
-                    vibratePass();
-                  } else {
-                    vibrateFail();
-                  }
-                  showResultDialog(
-                    context: this.context,
-                    hasPassed: passed,
-                    score: _computeScorePercent(),
-                    passScorePercent: widget.passScorePercent,
-                    questions: widget.questions,
-                    userSelections: userSelections,
-                    licenceId: widget.licenceId,
-                    categoryId: widget.categoryId,
-                  );
-                },
-              );
-            },
-          ),
-        ), // Scaffold
+                // Last question → show the confirmation dialog
+                showFinishConfirmationDialog(
+                  context: context,
+                  unansweredCount:
+                      widget.questions.length - userSelections.length,
+                  onCancel: () {}, // nothing extra on “No”
+                  onConfirm: () async {
+                    final saveResult = await _saveTestAttempt();
+                    if (!mounted) return;
+                    if (!saveResult.backendSynced) {
+                      showAppSnackBar(t.test_save_backend_failed);
+                    }
+                    final passed = _calculateResult();
+                    if (passed) {
+                      vibratePass();
+                    } else {
+                      vibrateFail();
+                    }
+                    showResultDialog(
+                      context: this.context,
+                      hasPassed: passed,
+                      score: _computeScorePercent(),
+                      passScorePercent: widget.passScorePercent,
+                      questions: widget.questions,
+                      userSelections: userSelections,
+                      licenceId: widget.licenceId,
+                      categoryId: widget.categoryId,
+                    );
+                  },
+                );
+              },
+            ),
+          ); // Scaffold
+        }), // Builder
       ), // CupertinoScaffold
     ); // PopScope
   } // build
@@ -1822,505 +1442,27 @@ class _TestscreenState extends State<Testscreen> {
 
 // Add this method to show the question navigation sheet
   void _showQuestionNavigationSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.6,
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Text(
-                      t.test_questions_title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      t.test_question_progress
-                          .replaceAll(
-                              '{current}', '${currentQuestionIndex + 1}')
-                          .replaceAll('{total}', '${widget.questions.length}'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: widget.questions.length,
-                  itemBuilder: (context, index) {
-                    bool isAnswered = userSelections[index] != null;
-                    bool isCurrent = index == currentQuestionIndex;
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.pop(context);
-                            _pageController.animateToPage(
-                              index,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isCurrent
-                                  ? Theme.of(context)
-                                      .colorScheme
-                                      .primary
-                                      .withValues(alpha: 0.1)
-                                  : Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.04),
-                              border: Border.all(
-                                color: isCurrent
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Colors.transparent,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: isAnswered
-                                        ? Colors.green
-                                        : isCurrent
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withValues(alpha: 0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: isAnswered
-                                        ? const Icon(
-                                            Icons.check,
-                                            color: Colors.white,
-                                            size: 16,
-                                          )
-                                        : Text(
-                                            '${index + 1}',
-                                            style: TextStyle(
-                                              color: isCurrent || isAnswered
-                                                  ? Colors.white
-                                                  : Colors.grey[600],
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        t.test_question_label
-                                            .replaceAll('{n}', '${index + 1}'),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          color: isCurrent
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        isAnswered
-                                            ? t.test_answered
-                                            : t.test_not_answered,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: isAnswered
-                                              ? Colors.green
-                                              : Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _BrokenImagePlaceholder extends StatelessWidget {
-  const _BrokenImagePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 120,
-      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-      child: Center(
-        child: Icon(
-          Icons.image_not_supported_outlined,
-          size: 40,
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-        ),
-      ),
-    );
-  }
-}
-
-class _TutorialCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String body;
-  final Color? primaryColor;
-
-  const _TutorialCard({
-    required this.icon,
-    required this.title,
-    required this.body,
-    this.primaryColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final color = primaryColor ?? cs.primary;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final maxWidth = (screenWidth - 32).clamp(0.0, 420.0);
-
-    return Align(
-      alignment: Alignment.center,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.35),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 18),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        body,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.88),
-                          height: 1.4,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Tutorial completion overlay ───────────────────────────────────────────────
-
-class _TutorialCompleteOverlay extends StatefulWidget {
-  final VoidCallback onDone;
-  const _TutorialCompleteOverlay({required this.onDone});
-
-  @override
-  State<_TutorialCompleteOverlay> createState() =>
-      _TutorialCompleteOverlayState();
-}
-
-class _TutorialCompleteOverlayState extends State<_TutorialCompleteOverlay>
-    with SingleTickerProviderStateMixin {
-  // Single controller: sheet slides up first (0→0.3), then content staggers (0.3→1.0).
-  late final AnimationController _ctrl;
-
-  late final Animation<Offset> _sheetSlide;
-  late final Animation<double> _iconScale;
-  late final Animation<double> _iconFade;
-  late final Animation<double> _titleFade;
-  late final Animation<Offset> _titleSlide;
-  late final Animation<double> _bodyFade;
-  late final Animation<Offset> _bodySlide;
-  late final Animation<double> _subtitleFade;
-  late final Animation<Offset> _subtitleSlide;
-  late final Animation<double> _buttonFade;
-  late final Animation<Offset> _buttonSlide;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
-
-    Animation<double> curved(double begin, double end, Curve curve) =>
-        CurvedAnimation(
-            parent: _ctrl, curve: Interval(begin, end, curve: curve));
-
-    const upStart = Offset(0, 0.18);
-
-    _sheetSlide = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
-        .animate(CurvedAnimation(
-            parent: _ctrl,
-            curve: const Interval(0, 0.28, curve: Curves.easeOutCubic)));
-
-    _iconFade = curved(0.22, 0.40, Curves.easeOut);
-    _iconScale = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-        parent: _ctrl,
-        curve: const Interval(0.22, 0.45, curve: Curves.elasticOut)));
-
-    _titleFade = curved(0.40, 0.55, Curves.easeOut);
-    _titleSlide = Tween<Offset>(begin: upStart, end: Offset.zero).animate(
-        CurvedAnimation(
-            parent: _ctrl,
-            curve: const Interval(0.40, 0.55, curve: Curves.easeOutCubic)));
-
-    _bodyFade = curved(0.52, 0.67, Curves.easeOut);
-    _bodySlide = Tween<Offset>(begin: upStart, end: Offset.zero).animate(
-        CurvedAnimation(
-            parent: _ctrl,
-            curve: const Interval(0.52, 0.67, curve: Curves.easeOutCubic)));
-
-    _subtitleFade = curved(0.63, 0.78, Curves.easeOut);
-    _subtitleSlide = Tween<Offset>(begin: upStart, end: Offset.zero).animate(
-        CurvedAnimation(
-            parent: _ctrl,
-            curve: const Interval(0.63, 0.78, curve: Curves.easeOutCubic)));
-
-    _buttonFade = curved(0.78, 1.0, Curves.easeOut);
-    _buttonSlide = Tween<Offset>(begin: upStart, end: Offset.zero).animate(
-        CurvedAnimation(
-            parent: _ctrl,
-            curve: const Interval(0.78, 1.0, curve: Curves.easeOutCubic)));
-
-    _ctrl.forward();
-  }
-
-  void _dismiss() {
-    _ctrl.reverse().then((_) => widget.onDone());
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  Widget _staggered({
-    required Animation<double> fade,
-    required Animation<Offset> slide,
-    required Widget child,
-  }) {
-    return FadeTransition(
-      opacity: fade,
-      child: SlideTransition(position: slide, child: child),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final t = Translations.of(context);
-    final hPad = (MediaQuery.of(context).size.width * 0.07).clamp(20.0, 52.0);
-
-    return SlideTransition(
-      position: _sheetSlide,
-      child: Container(
-        color: cs.surface,
-        width: double.infinity,
-        height: double.infinity,
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Icon
-                  FadeTransition(
-                    opacity: _iconFade,
-                    child: ScaleTransition(
-                      scale: _iconScale,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: cs.primary.withValues(alpha: 0.1),
-                        ),
-                        child: Icon(
-                          Icons.check_circle_rounded,
-                          size: 80,
-                          color: cs.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Title
-                  _staggered(
-                    fade: _titleFade,
-                    slide: _titleSlide,
-                    child: Text(
-                      t.tut_complete_title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: cs.primary,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Body
-                  _staggered(
-                    fade: _bodyFade,
-                    slide: _bodySlide,
-                    child: Text(
-                      t.tut_complete_body,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: cs.onSurface.withValues(alpha: 0.6),
-                        height: 1.6,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Subtitle
-                  _staggered(
-                    fade: _subtitleFade,
-                    slide: _subtitleSlide,
-                    child: Text(
-                      t.tut_complete_subtitle,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: cs.onSurface.withValues(alpha: 0.85),
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // Button
-                  _staggered(
-                    fade: _buttonFade,
-                    slide: _buttonSlide,
-                    child: AppButton(
-                      label: t.tut_start_practicing,
-                      onPressed: _dismiss,
-                      height: 58,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+    final progressText = t.test_question_progress
+        .replaceAll('{current}', '${currentQuestionIndex + 1}')
+        .replaceAll('{total}', '${widget.questions.length}');
+    CupertinoScaffold.showCupertinoModalBottomSheet<void>(
+      context: _sheetContext ?? context,
+      builder: (ctx) => AppBottomSheetContainer(
+        title: t.test_questions_title,
+        subtitle: progressText,
+        heightFactor: 0.8,
+        child: QuestionNavigationGrid(
+          questionCount: widget.questions.length,
+          userSelections: userSelections,
+          currentIndex: currentQuestionIndex,
+          onTap: (index) {
+            Navigator.pop(ctx);
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          },
         ),
       ),
     );

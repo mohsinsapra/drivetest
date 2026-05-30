@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// A tappable progress indicator used as the title in the Testscreen AppBar.
 ///
-/// Shows a thin progress bar + the “current / total” counter.
+/// Shows a thin progress bar + the "current / total" counter.
 /// Call [onTap] to open the question-navigation sheet.
 class QuestionProgressHeader extends StatelessWidget {
   final int currentIndex; // zero-based
@@ -45,23 +45,19 @@ class QuestionProgressHeader extends StatelessWidget {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ── slim bar ────────────────────────────────────────────────
                 Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(3),
-                    child: LinearProgressIndicator(
-                      value: visibleProgress,
-                      minHeight: 6,
-                      backgroundColor:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white.withValues(alpha: 0.2)
-                              : Colors.grey[300],
-                      color: Theme.of(context).primaryColor,
-                    ),
+                  child: LinearProgressIndicator(
+                    value: visibleProgress,
+                    minHeight: 10,
+                    borderRadius: BorderRadius.circular(10),
+                    backgroundColor:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white.withValues(alpha: 0.2)
+                            : Colors.grey[300],
+                    color: Theme.of(context).primaryColor,
                   ),
                 ),
                 const SizedBox(width: 8),
-                // ── “x / n” counter ────────────────────────────────────────
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(

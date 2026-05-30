@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:expandable/expandable.dart';
+import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/models/image_viewer.dart';
 import '../models/question.dart';
@@ -187,16 +188,16 @@ class ExplanationWidget extends StatelessWidget {
               // Image
               if (parsed.hasImage)
                 GestureDetector(
-                  onTap: () => showImageViewer(context, parsed.imageUrl!),
+                  onTap: () => showImageViewer(context, [parsed.imageUrl!]),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       maxHeight: MediaQuery.of(context).size.height * 0.4,
                       maxWidth: MediaQuery.of(context).size.width,
                     ),
-                    child: Image.network(
-                      parsed.imageUrl!,
+                    child: CachedNetworkImage(
+                      imageUrl: parsed.imageUrl!,
                       fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      errorWidget: (_, __, ___) => const SizedBox.shrink(),
                     ),
                   ),
                 ),

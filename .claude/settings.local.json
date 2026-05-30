@@ -336,7 +336,8 @@
       "Bash(magick identify *)",
       "Bash(echo \"Upscaled: $\\(magick identify assets/icon/icon.png)",
       "Bash(magick assets/icon/icon.png -resize 650x650 -fuzz 5% -transparent white -gravity center -background none -extent 1024x1024 assets/icon/icon_foreground.png)",
-      "Bash(echo \"Foreground done: $\\(magick identify assets/icon/icon_foreground.png)"
+      "Bash(echo \"Foreground done: $\\(magick identify assets/icon/icon_foreground.png)",
+      "Bash(awk -F: '$2 > 1950 && $2 < 1980')"
     ],
     "deny": [],
     "ask": []

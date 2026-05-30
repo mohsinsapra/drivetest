@@ -577,26 +577,23 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get dash_previous_attempts => 'Previous attempts';
   String get dash_see_all => 'See all';
   String get dash_all_attempts => 'All Attempts';
-  String get tut_step1_title => 'Step 1 of 3 — Translate';
+  String get tut_step1_title => 'Step 1 of 2 — Translate';
   String get tut_step1_body =>
       'Tap the language button to open the list, then select English (or any other language).';
-  String get tut_step1b_title => 'Step 1 of 3 — Choose a language';
+  String get tut_step1b_title => 'Step 1 of 2 — Choose a language';
   String get tut_step1b_body =>
-      'Select a different language from the list, for example English.';
-  String get tut_step2a_title => 'Step 2 of 4 — Peek original';
+      'Tap \'Question Language\' in the menu, then select a language from the list.';
+  String get tut_step1_grid_hint =>
+      'Select a different language below, for example English.';
+  String get tut_step2a_title => 'Step 2 of 2 — Peek original';
   String get tut_step2a_body =>
       'Press and hold anywhere on the question (not the options) to temporarily see the original Swedish text.';
-  String get tut_step2b_title => 'Step 2 of 4 — Now release';
+  String get tut_step2b_title => 'Step 2 of 2 — Now release';
   String get tut_step2b_body =>
       'Release your finger to go back to the translated text.';
-  String get tut_step3a_title => 'Step 3 of 4 — Next question';
-  String get tut_step3a_body => 'Swipe left to go to the next question.';
-  String get tut_step3b_title => 'Step 4 of 4 — Come back';
-  String get tut_step3b_body =>
-      'Now swipe right to come back to the previous question.';
   String get tut_complete_title => 'You\'re all set!';
   String get tut_complete_body =>
-      'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
+      'Great job! You now know how to translate questions and peek at the original text.';
   String get tut_complete_subtitle =>
       'You\'re ready to prepare for your taxi exam!';
   String get tut_start_practicing => 'Start practicing!';
@@ -728,6 +725,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get test_translation_failed => 'Translation failed. Please try again.';
   String get test_language_english => 'English';
   String get test_language_swedish => 'Svenska';
+  String get test_question_language_title => 'Question Language';
+  String get test_question_language_subtitle =>
+      'Translate questions to your language';
+  String get test_question_language_menu => 'Question Language';
   String get test_turn_off_timer => 'Turn off timer';
   String get test_turn_on_timer => 'Turn on timer';
   String get test_turn_off_instant_marking => 'Turn off instant marking';
@@ -1815,33 +1816,27 @@ extension on Translations {
       case 'dash_all_attempts':
         return 'All Attempts';
       case 'tut_step1_title':
-        return 'Step 1 of 3 — Translate';
+        return 'Step 1 of 2 — Translate';
       case 'tut_step1_body':
         return 'Tap the language button to open the list, then select English (or any other language).';
       case 'tut_step1b_title':
-        return 'Step 1 of 3 — Choose a language';
+        return 'Step 1 of 2 — Choose a language';
       case 'tut_step1b_body':
-        return 'Select a different language from the list, for example English.';
+        return 'Tap \'Question Language\' in the menu, then select a language from the list.';
+      case 'tut_step1_grid_hint':
+        return 'Select a different language below, for example English.';
       case 'tut_step2a_title':
-        return 'Step 2 of 4 — Peek original';
+        return 'Step 2 of 2 — Peek original';
       case 'tut_step2a_body':
         return 'Press and hold anywhere on the question (not the options) to temporarily see the original Swedish text.';
       case 'tut_step2b_title':
-        return 'Step 2 of 4 — Now release';
+        return 'Step 2 of 2 — Now release';
       case 'tut_step2b_body':
         return 'Release your finger to go back to the translated text.';
-      case 'tut_step3a_title':
-        return 'Step 3 of 4 — Next question';
-      case 'tut_step3a_body':
-        return 'Swipe left to go to the next question.';
-      case 'tut_step3b_title':
-        return 'Step 4 of 4 — Come back';
-      case 'tut_step3b_body':
-        return 'Now swipe right to come back to the previous question.';
       case 'tut_complete_title':
         return 'You\'re all set!';
       case 'tut_complete_body':
-        return 'Great job completing the tutorial.\nYou now know how to translate questions, peek at the original text, and navigate between them.';
+        return 'Great job! You now know how to translate questions and peek at the original text.';
       case 'tut_complete_subtitle':
         return 'You\'re ready to prepare for your taxi exam!';
       case 'tut_start_practicing':
@@ -2066,6 +2061,12 @@ extension on Translations {
         return 'English';
       case 'test_language_swedish':
         return 'Svenska';
+      case 'test_question_language_title':
+        return 'Question Language';
+      case 'test_question_language_subtitle':
+        return 'Translate questions to your language';
+      case 'test_question_language_menu':
+        return 'Question Language';
       case 'test_turn_off_timer':
         return 'Turn off timer';
       case 'test_turn_on_timer':

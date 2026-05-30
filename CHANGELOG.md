@@ -10,13 +10,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- Reusable `AppBottomSheetContainer` component for consistent bottom sheet chrome across the app; supports optional `hint` slot for in-sheet tutorial banners
+- Language selection bottom sheet with 3-column grid, flag tiles, checkmark on active language, and spinner on tile while translating
+- Question navigation sheet redesigned as compact 8-column number grid with green tick on answered questions
+- `auth_apple_connecting` translation key added to EN and SV locales
+- Translation tutorial (2-step): spotlights three-dots menu → language sheet → press-and-hold peek; shows every session in debug builds via `reassemble()` override
+- Tutorial hint banner inside language sheet during tutorial flow (`tut_step1_grid_hint` EN + SV)
+- Extracted `TestTimerChip`, `QuestionPageItem`, `QuestionNavigationGrid`, `LanguageGrid`, `TutorialCard`, `TutorialCompleteOverlay` as standalone widgets under `features/tests/widgets/`
 
 ### Changed
--
+- Test screen header: replaced bordered back button with plain close (X) icon; progress bar pill now stretches to fill available space
+- Progress bar inner fill height increased to 10px with fully rounded ends for better visibility
+- Timer pill redesigned to match AI action button style (primary tint background, no border)
+- Language selector removed from AppBar actions; moved to three-dots menu as "Question Language" entry opening a sheet
+- Language sheet uses `CupertinoScaffold.showCupertinoModalBottomSheet` via captured inner context for depth effect
+- Question navigation sheet uses same Cupertino depth effect
+- Timer text uses tabular figures to prevent width shifts as digits change
+- `isSmallScreen` branch removed; language options always shown in three-dots menu
+- Tutorial reduced from 4 steps to 2: swipe-left/right navigation steps removed; only translation and peek-original remain
+- Tutorial step counters updated to "1 of 2" / "2 of 2" in both EN and SV
+- Phase 2 (press-and-hold) now fires after the language sheet is dismissed, not immediately on language selection
+- `test_screen.dart` reduced from ~2300 to ~1500 lines via component extraction
 
 ### Fixed
--
+- Timer no longer shifts surrounding layout as digits change (tabular figures)
+- Language sheet tick correctly moves to newly selected language via `ValueNotifier` (no parent rebuild needed)
+- Full-screen loading overlay removed during question translation; tile spinner used instead
+- Browser spell-check underlines removed from flag emoji and language names via `SelectionContainer.disabled()`
+- Tutorial `FormatException` on missing key target fixed by pointing spotlight at the three-dots `PopupMenuButton` (`_langMenuKey`) instead of the removed standalone language button
 
 ---
 

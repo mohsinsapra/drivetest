@@ -431,6 +431,7 @@ class TranslationsSv implements Translations {
   String get auth_reset_go_to_login => 'Gå till inloggning';
   @override
   String get auth_google_connecting => 'Ansluter till Google...';
+  @override
   String get auth_apple_connecting => 'Ansluter till Apple...';
   @override
   String get auth_google_verifying => 'Verifierar konto...';
@@ -1050,39 +1051,33 @@ class TranslationsSv implements Translations {
   @override
   String get dash_all_attempts => 'Alla försök';
   @override
-  String get tut_step1_title => 'Steg 1 av 3 — Översätt';
+  String get tut_step1_title => 'Steg 1 av 2 — Översätt';
   @override
   String get tut_step1_body =>
       'Tryck på språkknappen för att öppna listan och välj sedan engelska (eller valfritt annat språk).';
   @override
-  String get tut_step1b_title => 'Steg 1 av 3 — Välj ett språk';
+  String get tut_step1b_title => 'Steg 1 av 2 — Välj ett språk';
   @override
   String get tut_step1b_body =>
-      'Välj ett annat språk från listan, till exempel engelska.';
+      'Tryck på \'Frågespråk\' i menyn och välj sedan ett språk från listan.';
   @override
-  String get tut_step2a_title => 'Steg 2 av 4 — Kika på originalet';
+  String get tut_step1_grid_hint =>
+      'Välj ett annat språk nedan, till exempel engelska.';
+  @override
+  String get tut_step2a_title => 'Steg 2 av 2 — Kika på originalet';
   @override
   String get tut_step2a_body =>
       'Tryck och håll var som helst på frågan (inte svarsalternativen) för att tillfälligt se den ursprungliga svenska texten.';
   @override
-  String get tut_step2b_title => 'Steg 2 av 4 — Släpp nu';
+  String get tut_step2b_title => 'Steg 2 av 2 — Släpp nu';
   @override
   String get tut_step2b_body =>
       'Släpp fingret för att gå tillbaka till den översatta texten.';
   @override
-  String get tut_step3a_title => 'Steg 3 av 4 — Nästa fråga';
-  @override
-  String get tut_step3a_body => 'Svep åt vänster för att gå till nästa fråga.';
-  @override
-  String get tut_step3b_title => 'Steg 4 av 4 — Kom tillbaka';
-  @override
-  String get tut_step3b_body =>
-      'Svep nu åt höger för att gå tillbaka till föregående fråga.';
-  @override
   String get tut_complete_title => 'Klart!';
   @override
   String get tut_complete_body =>
-      'Bra jobbat med genomgången.\nDu vet nu hur du översätter frågor, kikar på originaltexten och navigerar mellan dem.';
+      'Bra jobbat! Du vet nu hur du översätter frågor och kikar på originaltexten.';
   @override
   String get tut_complete_subtitle =>
       'Du är redo att förbereda dig för ditt taxikörkortsprov!';
@@ -1327,6 +1322,13 @@ class TranslationsSv implements Translations {
   String get test_language_english => 'English';
   @override
   String get test_language_swedish => 'Svenska';
+  @override
+  String get test_question_language_title => 'Frågespråk';
+  @override
+  String get test_question_language_subtitle =>
+      'Översätt frågor till ditt språk';
+  @override
+  String get test_question_language_menu => 'Frågespråk';
   @override
   String get test_turn_off_timer => 'Stäng av timer';
   @override
@@ -2533,33 +2535,27 @@ extension on TranslationsSv {
       case 'dash_all_attempts':
         return 'Alla försök';
       case 'tut_step1_title':
-        return 'Steg 1 av 3 — Översätt';
+        return 'Steg 1 av 2 — Översätt';
       case 'tut_step1_body':
         return 'Tryck på språkknappen för att öppna listan och välj sedan engelska (eller valfritt annat språk).';
       case 'tut_step1b_title':
-        return 'Steg 1 av 3 — Välj ett språk';
+        return 'Steg 1 av 2 — Välj ett språk';
       case 'tut_step1b_body':
-        return 'Välj ett annat språk från listan, till exempel engelska.';
+        return 'Tryck på \'Frågespråk\' i menyn och välj sedan ett språk från listan.';
+      case 'tut_step1_grid_hint':
+        return 'Välj ett annat språk nedan, till exempel engelska.';
       case 'tut_step2a_title':
-        return 'Steg 2 av 4 — Kika på originalet';
+        return 'Steg 2 av 2 — Kika på originalet';
       case 'tut_step2a_body':
         return 'Tryck och håll var som helst på frågan (inte svarsalternativen) för att tillfälligt se den ursprungliga svenska texten.';
       case 'tut_step2b_title':
-        return 'Steg 2 av 4 — Släpp nu';
+        return 'Steg 2 av 2 — Släpp nu';
       case 'tut_step2b_body':
         return 'Släpp fingret för att gå tillbaka till den översatta texten.';
-      case 'tut_step3a_title':
-        return 'Steg 3 av 4 — Nästa fråga';
-      case 'tut_step3a_body':
-        return 'Svep åt vänster för att gå till nästa fråga.';
-      case 'tut_step3b_title':
-        return 'Steg 4 av 4 — Kom tillbaka';
-      case 'tut_step3b_body':
-        return 'Svep nu åt höger för att gå tillbaka till föregående fråga.';
       case 'tut_complete_title':
         return 'Klart!';
       case 'tut_complete_body':
-        return 'Bra jobbat med genomgången.\nDu vet nu hur du översätter frågor, kikar på originaltexten och navigerar mellan dem.';
+        return 'Bra jobbat! Du vet nu hur du översätter frågor och kikar på originaltexten.';
       case 'tut_complete_subtitle':
         return 'Du är redo att förbereda dig för ditt taxikörkortsprov!';
       case 'tut_start_practicing':
@@ -2784,6 +2780,12 @@ extension on TranslationsSv {
         return 'English';
       case 'test_language_swedish':
         return 'Svenska';
+      case 'test_question_language_title':
+        return 'Frågespråk';
+      case 'test_question_language_subtitle':
+        return 'Översätt frågor till ditt språk';
+      case 'test_question_language_menu':
+        return 'Frågespråk';
       case 'test_turn_off_timer':
         return 'Stäng av timer';
       case 'test_turn_on_timer':
