@@ -550,7 +550,6 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   void _onPageChanged(int index) {
-    final prevIndex = currentQuestionIndex;
     setState(() {
       currentQuestionIndex = index;
     });

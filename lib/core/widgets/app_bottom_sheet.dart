@@ -80,7 +80,7 @@ class AppBottomSheetContainer extends StatelessWidget {
             ],
             if (hint != null) hint!,
             Flexible(child: child),
-            SafeArea(top: false, child: const SizedBox(height: 8)),
+            const SafeArea(top: false, child: SizedBox(height: 8)),
           ],
         ),
       ),
