@@ -1064,16 +1064,13 @@ class _LandingView extends StatelessWidget {
                           opacity: loginError != null ? 1.0 : 0.0,
                           child: loginError != null
                               ? Padding(
-                                  padding:
-                                      const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.only(bottom: 12),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 16, vertical: 10),
                                     decoration: BoxDecoration(
-                                      color:
-                                          cs.error.withValues(alpha: 0.08),
-                                      borderRadius:
-                                          BorderRadius.circular(12),
+                                      color: cs.error.withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Row(
                                       children: [
@@ -1083,10 +1080,8 @@ class _LandingView extends StatelessWidget {
                                         Expanded(
                                           child: Text(
                                             loginError!,
-                                            style:
-                                                GoogleFonts.plusJakartaSans(
-                                                    fontSize: 13,
-                                                    color: cs.error),
+                                            style: GoogleFonts.plusJakartaSans(
+                                                fontSize: 13, color: cs.error),
                                           ),
                                         ),
                                       ],
@@ -1101,187 +1096,192 @@ class _LandingView extends StatelessWidget {
                         curve: Curves.easeInOutCubic,
                         alignment: Alignment.bottomCenter,
                         child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.06),
-                                end: Offset.zero,
-                              ).animate(animation),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: isSocialLoading
-                            ? SizedBox(
-                                key: const ValueKey('social-loading-only'),
-                                height: 54,
-                                child: Row(
+                          duration: const Duration(milliseconds: 200),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: (child, animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0, 0.06),
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: isSocialLoading
+                              ? SizedBox(
+                                  key: const ValueKey('social-loading-only'),
+                                  height: 54,
+                                  child: Row(
+                                    children: [
+                                      if (showGoogleAsLoadingButton)
+                                        AppSocialButton(
+                                          icon: FontAwesomeIcons.google,
+                                          iconSize: 18,
+                                          iconColor: const Color(0xFF4285F4),
+                                          label: t.auth_express_google,
+                                          loading: true,
+                                          loadingLabel:
+                                              googleLoadingStep.isNotEmpty
+                                                  ? googleLoadingStep
+                                                  : null,
+                                          onPressed: null,
+                                        )
+                                      else
+                                        AppSocialButton(
+                                          icon: FontAwesomeIcons.apple,
+                                          iconSize: 22,
+                                          iconColor:
+                                              Theme.of(context).brightness ==
+                                                      Brightness.dark
+                                                  ? cs.primary
+                                                  : cs.onSurface,
+                                          label: t.auth_express_apple,
+                                          loading: true,
+                                          loadingLabel: t.auth_apple_connecting,
+                                          onPressed: null,
+                                        ),
+                                    ],
+                                  ),
+                                )
+                              : Column(
+                                  key: const ValueKey('full-auth-actions'),
                                   children: [
-                                    if (showGoogleAsLoadingButton)
-                                      AppSocialButton(
-                                        icon: FontAwesomeIcons.google,
-                                        iconSize: 18,
-                                        iconColor: const Color(0xFF4285F4),
+                                    // Platform-adaptive button layout
+                                    if (AppleSignInHelper.isAvailable()) ...[
+                                      // iOS: Login first, then Apple + Google icon pair
+                                      Hero(
+                                        tag: 'auth_login_btn',
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(9999),
+                                          child: AppButton(
+                                            label: t.auth_tab_login,
+                                            onPressed: onLogin,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      SizedBox(
+                                        height: 54,
+                                        child: Row(
+                                          children: [
+                                            AppSocialButton(
+                                              icon: FontAwesomeIcons.apple,
+                                              iconSize: 22,
+                                              iconColor: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.dark
+                                                  ? cs.primary
+                                                  : cs.onSurface,
+                                              loading: isAppleLoading,
+                                              onPressed: isGoogleLoading
+                                                  ? null
+                                                  : onApple,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            AppSocialButton(
+                                              icon: FontAwesomeIcons.google,
+                                              iconSize: 18,
+                                              iconColor:
+                                                  const Color(0xFF4285F4),
+                                              loading: isGoogleLoading,
+                                              loadingLabel:
+                                                  googleLoadingStep.isNotEmpty
+                                                      ? googleLoadingStep
+                                                      : null,
+                                              onPressed: isAppleLoading
+                                                  ? null
+                                                  : onGoogle,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ] else ...[
+                                      // Android / Web: Google first, then Login (secondary style)
+                                      AppButton(
                                         label: t.auth_express_google,
-                                        loading: true,
+                                        icon: FaIcon(FontAwesomeIcons.google,
+                                            size: 18, color: cs.onPrimary),
+                                        loading: isGoogleLoading,
                                         loadingLabel:
                                             googleLoadingStep.isNotEmpty
                                                 ? googleLoadingStep
                                                 : null,
-                                        onPressed: null,
-                                      )
-                                    else
-                                      AppSocialButton(
-                                        icon: FontAwesomeIcons.apple,
-                                        iconSize: 22,
-                                        iconColor:
-                                            Theme.of(context).brightness ==
-                                                    Brightness.dark
-                                                ? cs.primary
-                                                : cs.onSurface,
-                                        label: t.auth_express_apple,
-                                        loading: true,
-                                        loadingLabel: t.auth_apple_connecting,
-                                        onPressed: null,
+                                        onPressed: onGoogle,
                                       ),
-                                  ],
-                                ),
-                              )
-                            : Column(
-                                key: const ValueKey('full-auth-actions'),
-                                children: [
-                                  // Platform-adaptive button layout
-                                  if (AppleSignInHelper.isAvailable()) ...[
-                                    // iOS: Login first, then Apple + Google icon pair
-                                    Hero(
-                                      tag: 'auth_login_btn',
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(9999),
-                                        child: AppButton(
-                                          label: t.auth_tab_login,
-                                          onPressed: onLogin,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    SizedBox(
-                                      height: 54,
-                                      child: Row(
-                                        children: [
-                                          AppSocialButton(
-                                            icon: FontAwesomeIcons.apple,
-                                            iconSize: 22,
-                                            iconColor:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? cs.primary
-                                                    : cs.onSurface,
-                                            loading: isAppleLoading,
-                                            onPressed: isGoogleLoading
-                                                ? null
-                                                : onApple,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          AppSocialButton(
-                                            icon: FontAwesomeIcons.google,
-                                            iconSize: 18,
-                                            iconColor: const Color(0xFF4285F4),
-                                            loading: isGoogleLoading,
-                                            loadingLabel:
-                                                googleLoadingStep.isNotEmpty
-                                                    ? googleLoadingStep
-                                                    : null,
-                                            onPressed: isAppleLoading
-                                                ? null
-                                                : onGoogle,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ] else ...[
-                                    // Android / Web: Google first, then Login (secondary style)
-                                    AppButton(
-                                      label: t.auth_express_google,
-                                      icon: FaIcon(FontAwesomeIcons.google,
-                                          size: 18, color: cs.onPrimary),
-                                      loading: isGoogleLoading,
-                                      loadingLabel: googleLoadingStep.isNotEmpty
-                                          ? googleLoadingStep
-                                          : null,
-                                      onPressed: onGoogle,
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Hero(
-                                      tag: 'auth_login_btn',
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(9999),
-                                        child: AppSecondaryButton(
-                                          label: t.auth_tab_login,
-                                          onPressed: onLogin,
-                                          height: 58,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                  const SizedBox(height: 20),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        '${t.auth_landing_new_here} ',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 14,
-                                          color: cs.onSurfaceVariant,
-                                        ),
-                                      ),
+                                      const SizedBox(height: 10),
                                       Hero(
-                                        tag: 'auth_signup_btn',
-                                        child: GestureDetector(
-                                          onTap: onSignup,
-                                          child: Text(
-                                            t.auth_create_account_link,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w700,
-                                              color: cs.primary,
-                                            ),
+                                        tag: 'auth_login_btn',
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(9999),
+                                          child: AppSecondaryButton(
+                                            label: t.auth_tab_login,
+                                            onPressed: onLogin,
+                                            height: 58,
                                           ),
                                         ),
                                       ),
                                     ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  isGuestLoading
-                                      ? SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: AppLoadingIndicator(
-                                            strokeWidth: 2,
+                                    const SizedBox(height: 20),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${t.auth_landing_new_here} ',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 14,
                                             color: cs.onSurfaceVariant,
                                           ),
-                                        )
-                                      : GestureDetector(
-                                          onTap: onContinueAsGuest,
-                                          child: Text(
-                                            t.auth_continue_as_guest,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                              color: cs.onSurfaceVariant
-                                                  .withValues(alpha: 0.7),
+                                        ),
+                                        Hero(
+                                          tag: 'auth_signup_btn',
+                                          child: GestureDetector(
+                                            onTap: onSignup,
+                                            child: Text(
+                                              t.auth_create_account_link,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w700,
+                                                color: cs.primary,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                ],
-                              ),
-                      ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    isGuestLoading
+                                        ? SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: AppLoadingIndicator(
+                                              strokeWidth: 2,
+                                              color: cs.onSurfaceVariant,
+                                            ),
+                                          )
+                                        : GestureDetector(
+                                            onTap: onContinueAsGuest,
+                                            child: Text(
+                                              t.auth_continue_as_guest,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                                color: cs.onSurfaceVariant
+                                                    .withValues(alpha: 0.7),
+                                              ),
+                                            ),
+                                          ),
+                                  ],
+                                ),
+                        ),
                       ),
                     ],
                   ),
