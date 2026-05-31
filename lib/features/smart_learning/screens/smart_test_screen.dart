@@ -88,6 +88,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   // Translation
   final _translator = GoogleTranslator();
   final Map<String, List<Question>> _translatedQuestions = {};
+  String? _previousLangCode;
 
   @override
   void initState() {
@@ -142,25 +143,82 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
 
   // ── Translation ────────────────────────────────────────────────────────────
 
+  bool _isTranslatableText(String s) {
+    if (s.isEmpty) return false;
+    if (s.startsWith('http://') || s.startsWith('https://')) return false;
+    if (!s.contains(' ') &&
+        RegExp(r'\.(png|jpg|jpeg|gif|webp)$', caseSensitive: false)
+            .hasMatch(s)) {
+      return false;
+    }
+    return true;
+  }
+
+  String _stripHtml(String s) {
+    s = s.replaceAll(RegExp(r'<[^>]+>'), ' ');
+    const entities = {
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&nbsp;': ' ',
+      '&auml;': 'ä',
+      '&Auml;': 'Ä',
+      '&ouml;': 'ö',
+      '&Ouml;': 'Ö',
+      '&aring;': 'å',
+      '&Aring;': 'Å',
+    };
+    for (final e in entities.entries) {
+      s = s.replaceAll(e.key, e.value);
+    }
+    return s.replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  Future<String> _safeTranslate(String text, String toLang) async {
+    try {
+      final result =
+          await _translator.translate(text, from: 'sv', to: toLang);
+      return result.text;
+    } catch (_) {
+      return text;
+    }
+  }
+
   Future<void> _translateToLanguage(String targetLang) async {
     if (_translatedQuestions.containsKey(targetLang)) return;
     try {
-      final List<String> texts = [];
+      final List<String> mainBuffer = [];
       for (final q in widget.initialQuestions) {
-        texts.add(q.text);
-        texts.addAll(q.options.map((o) => o.text));
+        mainBuffer.add(q.text);
+        mainBuffer.addAll(q.options.map((o) => o.text));
       }
-      final results = await Future.wait(
-        texts.map((s) => _translator.translate(s, from: 'sv', to: targetLang)),
+      final mainResults = await Future.wait(
+        mainBuffer
+            .map((s) => _translator.translate(s, from: 'sv', to: targetLang)),
       );
       var idx = 0;
-      final translated = <Question>[];
+      final partial = <Question>[];
       for (final q in widget.initialQuestions) {
-        final tText = results[idx++].text;
-        final tOpts = q.options
-            .map((o) => o.copyWith(text: results[idx++].text))
-            .toList();
-        translated.add(q.copyWith(text: tText, options: tOpts));
+        final tText = mainResults[idx++].text;
+        final tOpts =
+            q.options.map((o) => o.copyWith(text: mainResults[idx++].text)).toList();
+        partial.add(q.copyWith(text: tText, options: tOpts));
+      }
+
+      final expFutures = widget.initialQuestions.map((q) {
+        final t = _stripHtml(q.answerExplanation);
+        if (!_isTranslatableText(t)) return Future<String?>.value(null);
+        return _safeTranslate(t, targetLang).then<String?>((v) => v);
+      }).toList();
+      final expResults = await Future.wait(expFutures);
+
+      final translated = <Question>[];
+      for (var i = 0; i < partial.length; i++) {
+        final exp = expResults[i];
+        translated.add(exp != null
+            ? partial[i].copyWith(answerExplanation: exp)
+            : partial[i]);
       }
       _translatedQuestions[targetLang] = translated;
       if (mounted) setState(() {});
@@ -172,15 +230,32 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   }
 
   Future<void> _onLanguageSelected(String code) async {
+    _tts.flutterTts.stop();
     final targetLang = code.toLowerCase();
     if (targetLang == _langCode.toLowerCase()) return;
     HapticFeedback.selectionClick();
+    final previousCode = _langCode;
     if (targetLang == 'sv') {
-      if (mounted) setState(() => _langCode = code.toUpperCase());
+      if (mounted) {
+        setState(() {
+          _previousLangCode = previousCode;
+          _langCode = code.toUpperCase();
+        });
+      }
       return;
     }
     await _translateToLanguage(targetLang);
-    if (mounted) setState(() => _langCode = code.toUpperCase());
+    if (mounted) {
+      setState(() {
+        _previousLangCode = previousCode;
+        _langCode = code.toUpperCase();
+      });
+    }
+  }
+
+  Future<void> _revertToPreviousLanguage() async {
+    if (_previousLangCode == null) return;
+    await _onLanguageSelected(_previousLangCode!);
   }
 
   // Returns the current question with translations applied if a non-SV language is active.
@@ -479,8 +554,8 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                                 currentLanguageCode: _langCode,
                                 scale: 1.0,
                                 onOptionTap: _onOptionTap,
-                                onLongPress: () {},
-                                onLongPressUp: () {},
+                                onLongPress: _revertToPreviousLanguage,
+                                onLongPressUp: _revertToPreviousLanguage,
                                 onAiContinue: _openAiChat,
                                 onAiHint: () => _openAiChat(
                                   displayText: t.ai_hint_button,
