@@ -201,16 +201,15 @@ class _OptionState extends State<Option> with TickerProviderStateMixin {
       animation: _ctrl,
       builder: (_, __) {
         final t = _ctrl.value;
-        // Phase 1 (t < 0.35): old circle shrinks away
-        // Phase 2 (t >= 0.35): new result shape grows in
         final bool showResult = t >= 0.35;
         final double scaleFactor = showResult ? _grow.value : _shrink.value;
+
         final BoxDecoration decoration = isCorrect
             ? BoxDecoration(
                 color: showResult
                     ? Colors.green
                     : Colors.grey.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(5 * s),
               )
             : BoxDecoration(
                 shape: BoxShape.circle,
@@ -219,15 +218,21 @@ class _OptionState extends State<Option> with TickerProviderStateMixin {
 
         return Transform.scale(
           scale: scaleFactor.clamp(0.0, 1.0),
-          child: Container(
-            width: 24 * s,
-            height: 24 * s,
-            decoration: decoration,
-            child: Center(
-              child: Icon(
-                isCorrect ? Icons.check : Icons.close,
-                size: 14 * s,
-                color: Colors.white,
+          child: Transform.rotate(
+            angle: isCorrect ? 0.78539816339 : 0,
+            child: Container(
+              width: 24 * s,
+              height: 24 * s,
+              decoration: decoration,
+              child: Center(
+                child: Transform.rotate(
+                  angle: isCorrect ? -0.78539816339 : 0,
+                  child: Icon(
+                    isCorrect ? Icons.check : Icons.close,
+                    size: 14 * s,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ),

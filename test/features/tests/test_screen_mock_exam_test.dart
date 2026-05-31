@@ -44,7 +44,10 @@ void main() {
   });
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      'hearts_guide_shown_v1': true,
+      'translation_tutorial_shown_v1': true,
+    });
     AppStorage.clearCurrentUser();
     await DioClient().init();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -135,6 +138,7 @@ void main() {
     final wrongOption = find.byType(option_tile.Option).at(1);
     tester.widget<option_tile.Option>(wrongOption).onTap();
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
 
     expect(
       find.descendant(of: wrongOption, matching: find.byIcon(Icons.close)),
@@ -200,6 +204,7 @@ void main() {
     final wrongOption = find.byType(option_tile.Option).at(1);
     tester.widget<option_tile.Option>(wrongOption).onTap();
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
 
     expect(
       find.descendant(of: wrongOption, matching: find.byIcon(Icons.close)),
@@ -211,6 +216,17 @@ void main() {
         matching: find.byIcon(Icons.check),
       ),
       findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(option_tile.Option).at(0),
+        matching: find.byWidgetPredicate((widget) {
+          if (widget is! Transform) return false;
+          final storage = widget.transform.storage;
+          return storage[1].abs() > 0.0001 || storage[4].abs() > 0.0001;
+        }),
+      ),
+      findsWidgets,
     );
   });
 }

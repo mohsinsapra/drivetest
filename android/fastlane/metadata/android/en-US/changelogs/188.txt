@@ -1,0 +1,4 @@
+Added:
+- Activity Reminder Notifications: After each exam or Smart Learning session, a local notification is scheduled 24 hours later. Notification uses the exam title and a randomised hook phrase (EN/SV). Tapping the notification deep-links directly into the relevant Smart Exam or Test screen.
+- In-App Review prompt: Requests a store review after the user's first passed exam attempt and first passed Smart Learning session (reuses the existing 3–5 day throttle logic).
+- Hearts/Lives onboardin...
