@@ -20,6 +20,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.71+269] - 2026-05-31
+
+### Added
+- **Activity Reminder Notifications**: After each exam or Smart Learning session, a local notification is scheduled 24 hours later. Notification uses the exam title and a randomised hook phrase (EN/SV). Tapping the notification deep-links directly into the relevant Smart Exam or Test screen.
+- **In-App Review prompt**: Requests a store review after the user's first *passed* exam attempt and first *passed* Smart Learning session (reuses the existing 3–5 day throttle logic).
+- **Hearts/Lives onboarding guide**: First time a user enters a mock exam with the hearts system enabled, a TutorialCoachMark spotlight highlights the hearts chip and explains the lives mechanic.
+- **Upgrade alert moved to Dashboard**: `UpgradeAlert` now wraps `ExamDashboardScreen` instead of `HomeScreen` so update prompts appear at the natural entry point.
+
+### Changed
+- Option tile selection-to-result animation no longer bounces; the indicator smoothly scales from the circle to a check/cross with a two-phase shrink-then-grow transition.
+- Explanation text on correct-answer tiles now expands with a smooth `ClipRect`+`Align(heightFactor)` animation (900 ms, `easeInOut`) instead of an instant reveal — works reliably on every question in a `PageView`, not just the first.
+- Smart Exam chunk card subtitle no longer shows a bullet separator between question count and pass requirement.
+- Practice Mistakes card on the Smart Learning category screen no longer shows a solid border outline.
+
+### Fixed
+- Fixed `_elements.contains(element)` Flutter assertion crash on option tiles caused by using `SingleTickerProviderStateMixin` with two `AnimationController`s — changed to `TickerProviderStateMixin`.
+- Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
+
+---
+---
+---
+---
+---
+---
+
 ## [1.1.70+268] - 2026-05-31
 
 ### Added
