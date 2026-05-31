@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
+import 'package:taxi_exam_app/features/smart_learning/models/smart_progress.dart';
+import 'package:taxi_exam_app/features/smart_learning/models/weak_question.dart';
 import 'package:taxi_exam_app/core/services/home_data_cache.dart';
 import 'package:taxi_exam_app/core/services/saved_questions_service.dart';
 import 'package:taxi_exam_app/features/dashboard/models/subscribed_exam.dart';
@@ -46,6 +48,8 @@ class AppStorage {
   static const String kSubscribedExams = 'subscribed_exams';
   static const String kNotifications = 'notifications';
   static const String kReceipts = 'purchase_receipts';
+  static const String kSmartProgress = 'chunkProgress';
+  static const String kWeakQuestions = 'weakQuestions';
 
   // ── Hive box runtime names (user-scoped) ───────────────────────────────────
 
@@ -91,6 +95,14 @@ class AppStorage {
   /// Returns the current user's purchase receipts box, opening it if necessary.
   static Future<Box<String>> receiptsBox() => _openBox<String>(receiptsBoxName);
 
+  /// Chunk learning progress — not user-scoped (persists across logins on same device).
+  static Future<Box<SmartProgress>> smartProgressBox() =>
+      _openBox<SmartProgress>(kSmartProgress);
+
+  /// Weak question pool — not user-scoped (same reasoning as chunk progress).
+  static Future<Box<WeakQuestion>> weakQuestionsBox() =>
+      _openBox<WeakQuestion>(kWeakQuestions);
+
   // ── User-data wipe ──────────────────────────────────────────────────────────
 
   /// Clears user-specific state on logout.
@@ -118,6 +130,8 @@ class AppStorage {
       await Future.wait([
         _clearTestAttemptsBox(),
         _clearSubscribedExamsBox(),
+        _clearSmartProgressBox(),
+        _clearWeakQuestionsBox(),
       ]);
     }
 
@@ -175,6 +189,22 @@ class AppStorage {
       await (await _openBox<LocalNotification>(name)).clear();
     } catch (e) {
       debugPrint('[AppStorage] failed to clear box "$name": $e');
+    }
+  }
+
+  static Future<void> _clearSmartProgressBox() async {
+    try {
+      await (await _openBox<SmartProgress>(kSmartProgress)).clear();
+    } catch (e) {
+      debugPrint('[AppStorage] failed to clear box "$kSmartProgress": $e');
+    }
+  }
+
+  static Future<void> _clearWeakQuestionsBox() async {
+    try {
+      await (await _openBox<WeakQuestion>(kWeakQuestions)).clear();
+    } catch (e) {
+      debugPrint('[AppStorage] failed to clear box "$kWeakQuestions": $e');
     }
   }
 

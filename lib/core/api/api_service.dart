@@ -845,8 +845,20 @@ class ApiService {
     return _asList(response.data);
   }
 
-  Future<List<dynamic>> fetchBCDTestQuestions(int testId) async {
-    final response = await _dio.get('api/v2/tests/$testId/questions/');
+  Future<List<dynamic>> fetchBCDTestQuestions(
+    int testId, {
+    int? limit,
+    int? offset,
+    List<String>? ids,
+  }) async {
+    final params = <String, dynamic>{};
+    if (limit != null) params['limit'] = limit;
+    if (offset != null) params['offset'] = offset;
+    if (ids != null && ids.isNotEmpty) params['ids'] = ids.join(',');
+    final response = await _dio.get(
+      'api/v2/tests/$testId/questions/',
+      queryParameters: params.isEmpty ? null : params,
+    );
     return _asList(response.data);
   }
 

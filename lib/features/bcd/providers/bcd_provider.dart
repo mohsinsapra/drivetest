@@ -67,6 +67,28 @@ class BcdProvider extends ChangeNotifier {
     }
   }
 
+  /// Fetches a specific page of questions for Smart Learning chunk sessions.
+  ///
+  /// For chunk mode:  pass [limit] and [offset] computed from SmartUtils.
+  /// For mistakes mode: pass [ids] (the weak question IDs to practice).
+  ///
+  /// Unlike [loadTestQuestions] this does NOT update shared state — it is a
+  /// pure fetch that returns the question list directly to the caller.
+  Future<List<Question>> fetchChunkQuestions(
+    int testId, {
+    int? limit,
+    int? offset,
+    List<String>? ids,
+  }) async {
+    final raw = await _api.fetchBCDTestQuestions(
+      testId,
+      limit: limit,
+      offset: offset,
+      ids: ids,
+    );
+    return raw.map(toQuestion).toList();
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   Question toQuestion(dynamic raw) {

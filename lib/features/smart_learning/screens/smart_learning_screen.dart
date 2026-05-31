@@ -1,0 +1,566 @@
+import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/bcd_cache.dart';
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
+import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
+import 'package:taxi_exam_app/features/smart_learning/screens/smart_exam_screen.dart';
+import 'package:taxi_exam_app/features/smart_learning/screens/smart_category_mistakes_screen.dart';
+import 'package:taxi_exam_app/features/smart_learning/services/smart_progress_service.dart';
+import 'package:taxi_exam_app/features/smart_learning/utils/smart_utils.dart';
+
+/// One entry in the Smart Learning exam list.
+class SmartExamEntry {
+  final int testBcdId;
+  final String testName;
+  final String categoryName;
+  final int parentCategoryBcdId;
+  final int questionCount;
+  final int passScore;
+  final int timeLimit;
+  final List<int> chunkSizes;
+
+  const SmartExamEntry({
+    required this.testBcdId,
+    required this.testName,
+    required this.categoryName,
+    required this.parentCategoryBcdId,
+    required this.questionCount,
+    required this.passScore,
+    required this.timeLimit,
+    required this.chunkSizes,
+  });
+}
+
+/// Smart Learning entry screen.
+///
+/// [examBcdId] scopes the screen to one exam (the user's active exam).
+/// When null, all BCD categories are shown (fallback).
+///
+/// [categoryFilter] is set internally when drilling into a sub-category.
+class SmartLearningScreen extends StatefulWidget {
+  final int? examBcdId;
+  final String? categoryFilter;
+
+  const SmartLearningScreen({super.key, this.examBcdId, this.categoryFilter});
+
+  @override
+  State<SmartLearningScreen> createState() => _SmartLearningScreenState();
+}
+
+class _SmartLearningScreenState extends State<SmartLearningScreen> {
+  final _svc = SmartProgressService();
+  List<SmartExamEntry> _allEntries = [];
+  Map<int, int> _passedCounts = {}; // testBcdId → chunks passed
+  int _categoryWeakCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _allEntries = _buildEntries();
+    _loadProgress();
+  }
+
+  Future<void> _loadProgress() async {
+    final passed = <int, int>{};
+    for (final e in _allEntries) {
+      passed[e.testBcdId] =
+          await _svc.activeSmartIndex(e.testBcdId, e.chunkSizes.length);
+    }
+    // Load weak count for all entries visible at this level.
+    final weakCount = await _svc.weakQuestionCountForTests(
+        _filteredEntries.map((e) => e.testBcdId).toList());
+    if (!mounted) return;
+    setState(() {
+      _passedCounts = passed;
+      _categoryWeakCount = weakCount;
+    });
+  }
+
+  Future<void> _load() async {
+    _allEntries = _buildEntries();
+    await _loadProgress();
+  }
+
+  List<SmartExamEntry> _buildEntries() {
+    final entries = <SmartExamEntry>[];
+    final cache = BcdCache.instance;
+
+    final allCats = widget.examBcdId != null
+        ? cache.categories
+            .where((c) => c['bcd_id'] == widget.examBcdId)
+            .toList()
+        : cache.categories;
+
+    for (final cat in allCats) {
+      final catId = cat['bcd_id'] as int;
+      final catName = cat['name']?.toString() ?? '';
+      final hasSubs = cat['has_children'] == true;
+
+      if (hasSubs) {
+        for (final sub in cache.subcategoriesOf(catId)) {
+          final subId = sub['bcd_id'] as int;
+          final subName = sub['name']?.toString() ?? catName;
+          for (final test in cache.testsOf(subId)) {
+            final entry = _entryFromTest(test, subName, subId);
+            if (entry != null) entries.add(entry);
+          }
+        }
+      } else {
+        for (final test in cache.testsOf(catId)) {
+          final entry = _entryFromTest(test, catName, catId);
+          if (entry != null) entries.add(entry);
+        }
+      }
+    }
+    return entries;
+  }
+
+  SmartExamEntry? _entryFromTest(
+      Map<String, dynamic> test, String catName, int catId) {
+    final qc = test['question_count'] as int? ?? 0;
+    if (qc == 0) return null;
+    final sizes = SmartUtils.computeSmartSizes(qc);
+    return SmartExamEntry(
+      testBcdId: test['bcd_id'] as int,
+      testName: test['name']?.toString() ?? '',
+      categoryName: catName,
+      parentCategoryBcdId: catId,
+      questionCount: qc,
+      passScore: test['pass_score'] as int? ?? 0,
+      timeLimit: test['time_limit'] as int? ?? 0,
+      chunkSizes: sizes,
+    );
+  }
+
+  // ── Derived state ──────────────────────────────────────────────────────────
+
+  List<SmartExamEntry> get _filteredEntries {
+    if (widget.categoryFilter == null) return _allEntries;
+    return _allEntries
+        .where((e) => e.categoryName == widget.categoryFilter)
+        .toList();
+  }
+
+  List<String> get _distinctCategories =>
+      _allEntries.map((e) => e.categoryName).toSet().toList();
+
+  /// True when this screen should show category cards instead of test cards.
+  bool get _showCategoryLevel =>
+      widget.categoryFilter == null && _distinctCategories.length > 1;
+
+  // ── Build ──────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+
+    final scopeTitle = widget.categoryFilter ?? t.smart_learning_subtitle;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        leading: const AppBackButton(),
+        title: Text(
+          scopeTitle,
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+      ),
+      body: _allEntries.isEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(t.smart_no_exams,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: cs.onSurface.withValues(alpha: 0.5))),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: _showCategoryLevel
+                  ? _buildCategoryList(context)
+                  : _buildTestList(context),
+            ),
+    );
+  }
+
+  // ── Category list ──────────────────────────────────────────────────────────
+
+  Widget _buildCategoryList(BuildContext context) {
+    final categories = _distinctCategories;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Column(
+              children: categories.asMap().entries.map((entry) {
+                final catName = entry.value;
+                final catEntries =
+                    _allEntries.where((e) => e.categoryName == catName).toList();
+                final totalChunks = catEntries.fold<int>(
+                    0, (sum, e) => sum + e.chunkSizes.length);
+                final passedChunks = catEntries.fold<int>(
+                    0, (sum, e) => sum + (_passedCounts[e.testBcdId] ?? 0));
+                final isLast = entry.key == categories.length - 1;
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _CategoryRow(
+                      name: catName,
+                      testCount: catEntries.length,
+                      passedChunks: passedChunks,
+                      totalChunks: totalChunks,
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          AppPageRoute(
+                            builder: (_) => SmartLearningScreen(
+                              examBcdId: widget.examBcdId,
+                              categoryFilter: catName,
+                            ),
+                          ),
+                        );
+                        _load();
+                      },
+                    ),
+                    if (!isLast)
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: cs.onSurface.withValues(alpha: 0.07),
+                      ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Test list ──────────────────────────────────────────────────────────────
+
+  Widget _buildTestList(BuildContext context) {
+    final entries = _filteredEntries;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+      children: [
+        if (_categoryWeakCount > 0) ...[
+          _CategoryMistakesCard(
+            count: _categoryWeakCount,
+            onTap: () async {
+              await Navigator.push(
+                context,
+                AppPageRoute(
+                  builder: (_) => SmartCategoryMistakesScreen(
+                    categoryName: widget.categoryFilter ?? '',
+                    entries: entries,
+                  ),
+                ),
+              );
+              _load();
+            },
+          ),
+          const SizedBox(height: 12),
+        ],
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Column(
+              children: entries.asMap().entries.map((e) {
+                final isLast = e.key == entries.length - 1;
+                final entry = e.value;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ExamRow(
+                      entry: entry,
+                      passedCount: _passedCounts[entry.testBcdId] ?? 0,
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          AppPageRoute(
+                            builder: (_) => SmartExamScreen(entry: entry),
+                          ),
+                        );
+                        _load();
+                      },
+                    ),
+                    if (!isLast)
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: cs.onSurface.withValues(alpha: 0.07),
+                      ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Category row (Focus-Areas style) ─────────────────────────────────────────
+
+class _CategoryRow extends StatelessWidget {
+  final String name;
+  final int testCount;
+  final int passedChunks;
+  final int totalChunks;
+  final VoidCallback onTap;
+
+  const _CategoryRow({
+    required this.name,
+    required this.testCount,
+    required this.passedChunks,
+    required this.totalChunks,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final t = Translations.of(context);
+    final color = categoryColor(name);
+    final allDone = passedChunks >= totalChunks && totalChunks > 0;
+    final examLabel = testCount == 1 ? t.smart_category_exam : t.smart_category_exams;
+
+    final sub = allDone
+        ? t.smart_category_completed(count: testCount, examLabel: examLabel)
+        : passedChunks == 0
+            ? t.smart_category_not_started(count: testCount, examLabel: examLabel)
+            : t.smart_category_parts_done(
+                count: testCount,
+                examLabel: examLabel,
+                done: passedChunks,
+                total: totalChunks,
+              );
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: color.withValues(alpha: 0.08),
+        highlightColor: color.withValues(alpha: 0.05),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(categoryIcon(name), color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name,
+                        style: theme.textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(sub,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                            color: cs.onSurface.withValues(alpha: 0.5))),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded,
+                  color: cs.onSurface.withValues(alpha: 0.4)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Category mistakes card ────────────────────────────────────────────────────
+
+class _CategoryMistakesCard extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+
+  const _CategoryMistakesCard({required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final questionLabel =
+        count == 1 ? t.smart_category_question : t.smart_category_questions;
+    return Material(
+      color: cs.error.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: cs.error.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: cs.error, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.smart_mistakes_title,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: cs.error, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(
+                        t.smart_category_mistakes_subtitle(
+                          count: count,
+                          questionLabel: questionLabel,
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: cs.error.withValues(alpha: 0.7))),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded,
+                  size: 18, color: cs.error.withValues(alpha: 0.5)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Exam row (Focus-Areas style) ──────────────────────────────────────────────
+
+class _ExamRow extends StatelessWidget {
+  final SmartExamEntry entry;
+  final int passedCount;
+  final VoidCallback onTap;
+
+  const _ExamRow({
+    required this.entry,
+    required this.passedCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final total = entry.chunkSizes.length;
+    final allDone = passedCount >= total;
+    final color = allDone ? Colors.green.shade600 : categoryColor(entry.testName);
+
+    final statusLabel = allDone
+        ? t.smart_full_exam_ready
+        : passedCount == 0
+            ? t.smart_not_started
+            : t.smart_chunks_done(done: passedCount, total: total);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: color.withValues(alpha: 0.08),
+        highlightColor: color.withValues(alpha: 0.05),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  allDone
+                      ? Icons.check_circle_rounded
+                      : categoryIcon(entry.testName),
+                  color: color,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(entry.testName,
+                        style: theme.textTheme.titleSmall
+                            ?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(statusLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                            color: allDone
+                                ? Colors.green.shade600
+                                : cs.onSurface.withValues(alpha: 0.5))),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded,
+                  color: cs.onSurface.withValues(alpha: 0.4)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

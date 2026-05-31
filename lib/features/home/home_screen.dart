@@ -929,6 +929,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+
+
   Widget _buildSkeleton() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(

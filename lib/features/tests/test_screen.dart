@@ -63,6 +63,15 @@ class Testscreen extends StatefulWidget {
   /// BCD parent-category ID — only set for BCD tests; null for legacy tests.
   final int? bcdCategoryId;
 
+  /// Called after the attempt is saved (chunk/smart-learning hook).
+  /// Receives whether the attempt passed and a map of questionId → wasCorrect
+  /// for every question (based on first and only selection — unanswered = false).
+  final void Function(bool hasPassed, Map<String, bool> questionResults)?
+      onComplete;
+
+  /// When true, replaces the "Q X of N" progress header with a plain title.
+  final bool hideProgress;
+
   const Testscreen({
     super.key,
     required this.questions,
@@ -81,6 +90,8 @@ class Testscreen extends StatefulWidget {
     this.bcdCategoryId,
     this.bcdTestId,
     this.initiallySavedQuestionIds,
+    this.onComplete,
+    this.hideProgress = false,
   });
 
   @override
@@ -680,6 +691,17 @@ class _TestscreenState extends State<Testscreen> {
 
     final result = await _attemptSaveService.save(attempt);
     HomeDataCache.invalidate(); // force home to re-sync on next visit
+
+    if (widget.onComplete != null) {
+      final qResults = <String, bool>{};
+      for (int i = 0; i < widget.questions.length; i++) {
+        final sel = userSelections[i];
+        qResults[widget.questions[i].questionId] =
+            sel != null && sel == widget.questions[i].correctAnswer;
+      }
+      widget.onComplete!(hasPassed, qResults);
+    }
+
     return result;
   }
 
@@ -1172,11 +1194,15 @@ class _TestscreenState extends State<Testscreen> {
                   }
                 },
               ),
-              title: QuestionProgressHeader(
-                currentIndex: currentQuestionIndex,
-                total: widget.questions.length,
-                onTap: _showQuestionNavigationSheet,
-              ),
+              title: widget.hideProgress
+                  ? Text(widget.categoryName.isNotEmpty
+                      ? widget.categoryName
+                      : Translations.of(context).test_questions_title)
+                  : QuestionProgressHeader(
+                      currentIndex: currentQuestionIndex,
+                      total: widget.questions.length,
+                      onTap: _showQuestionNavigationSheet,
+                    ),
               centerTitle: false,
               titleSpacing: 0,
               actions: [

@@ -20,6 +20,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/models/test_attempt.dart';
 import 'package:taxi_exam_app/features/dashboard/models/exam_node.dart';
 import 'package:taxi_exam_app/features/dashboard/models/subscribed_exam.dart';
+import 'package:taxi_exam_app/features/smart_learning/models/smart_progress.dart';
+import 'package:taxi_exam_app/features/smart_learning/models/weak_question.dart';
 import 'package:taxi_exam_app/features/dashboard/providers/dashboard_provider.dart';
 import 'package:taxi_exam_app/features/dashboard/repository/hive_dashboard_repository.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
@@ -135,6 +137,8 @@ Future<void> _appMain() async {
     Hive.registerAdapter(SubscribedExamAdapter());
   }
   if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(ExamNodeAdapter());
+  if (!Hive.isAdapterRegistered(6)) Hive.registerAdapter(SmartProgressAdapter());
+  if (!Hive.isAdapterRegistered(7)) Hive.registerAdapter(WeakQuestionAdapter());
   final notificationProvider = await NotificationProvider.create();
   final dashboardProvider =
       DashboardProvider(repository: HiveDashboardRepository());

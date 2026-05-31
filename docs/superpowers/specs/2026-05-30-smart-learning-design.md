@@ -48,8 +48,8 @@ lib/features/smart_learning/
   utils/
     chunk_utils.dart
   models/
-    chunk_progress.dart + .g.dart  # Hive typeId: 3
-    weak_question.dart + .g.dart   # Hive typeId: 4
+    chunk_progress.dart + .g.dart  # Hive typeId: 6
+    weak_question.dart + .g.dart   # Hive typeId: 7
 ```
 
 **Zero changes to existing screens.** All new code is fully self-contained under `lib/features/smart_learning/`.
@@ -59,10 +59,10 @@ lib/features/smart_learning/
 
 ## Section 1 — Data Layer
 
-### Hive model: `ChunkProgress` (typeId: 3)
+### Hive model: `ChunkProgress` (typeId: 6)
 
 ```dart
-@HiveType(typeId: 3)
+@HiveType(typeId: 6)
 class ChunkProgress {
   @HiveField(0) final int      testBcdId;
   @HiveField(1) final int      chunkIndex;    // 0-based
@@ -74,10 +74,10 @@ class ChunkProgress {
 Box name: `'chunkProgress'`
 Box key: `'$testBcdId-$chunkIndex'`
 
-### Hive model: `WeakQuestion` (typeId: 4)
+### Hive model: `WeakQuestion` (typeId: 7)
 
 ```dart
-@HiveType(typeId: 4)
+@HiveType(typeId: 7)
 class WeakQuestion {
   @HiveField(0) final int      testBcdId;
   @HiveField(1) final String   questionId;    // BCD question ID

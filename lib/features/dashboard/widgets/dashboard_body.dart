@@ -19,6 +19,8 @@ import 'category_list_item.dart';
 import 'exam_carousel_section.dart';
 import 'exam_nav_helpers.dart';
 import 'hero_section.dart';
+import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
 import 'performance_overview_section.dart';
 import 'weekly_streak_section.dart';
 
@@ -159,6 +161,13 @@ class _DashboardBodyState extends State<DashboardBody> {
               loading: _checklistLoading,
             ),
           ),
+
+        // Smart Learning entry point — above Focus Areas
+        SliverToBoxAdapter(
+          child: _SmartLearningBanner(
+            examBcdId: int.tryParse(widget.provider.selectedExam?.id ?? ''),
+          ),
+        ),
 
         if (stats != null)
           SliverToBoxAdapter(
@@ -877,6 +886,72 @@ class _WeeklyStreakShimmer extends StatelessWidget {
           ? cs.onSurface.withValues(alpha: 0.28)
           : cs.onSurface.withValues(alpha: 0.15),
       child: WeeklyStreakSection(streak: _loadingStreak()),
+    );
+  }
+}
+
+class _SmartLearningBanner extends StatelessWidget {
+  final int? examBcdId;
+
+  const _SmartLearningBanner({this.examBcdId});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        AppPageRoute(builder: (_) => SmartLearningScreen(examBcdId: examBcdId)),
+      ),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              cs.primary.withValues(alpha: 0.14),
+              cs.primary.withValues(alpha: 0.04),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: cs.primary.withValues(alpha: 0.22)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+              child:
+                  Icon(Icons.psychology_rounded, color: cs.primary, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(t.smart_learning_title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold, color: cs.primary)),
+                  const SizedBox(height: 2),
+                  Text(t.smart_learning_subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurface.withValues(alpha: 0.6))),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded,
+                size: 18, color: cs.primary.withValues(alpha: 0.5)),
+          ],
+        ),
+      ),
     );
   }
 }
