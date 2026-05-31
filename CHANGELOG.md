@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.65+263] - 2026-05-31
+
+### Added
 - **Smart Learning Feature**: A new structured learning path for BCD tests.
   - Auto-chunking of large question sets into manageable sessions (10-15 questions).
   - Weak Question Pool: Questions answered incorrectly are tracked and re-introduced in subsequent sessions for reinforcement.
@@ -36,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed layout overflows in dashboard carousels on smaller devices.
 - Resolved issue where tutorial overlays could reappear in review modes.
 
+---
 ---
 
 ### Added
