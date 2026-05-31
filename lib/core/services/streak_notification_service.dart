@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/services/activity_reminder_service.dart';
+import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -27,7 +29,11 @@ class StreakNotificationService {
   static const _keyEveningHour = 'notif_evening_hour';
   static const _keyEveningMinute = 'notif_evening_minute';
 
-  static final _plugin = FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
+
+  /// Exposed so ActivityReminderService can schedule without a second init().
+  static FlutterLocalNotificationsPlugin get plugin => _plugin;
   static bool _initialised = false;
   static final _rng = Random();
 
@@ -47,8 +53,25 @@ class StreakNotificationService {
       requestSoundPermission: false,
     );
     await _plugin.initialize(
-      const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      const InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      ),
+      onDidReceiveNotificationResponse: _onNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse:
+          _onBackgroundNotificationResponse,
     );
+
+    // Cold-start: app was terminated when user tapped notification
+    final launchDetails = await _plugin.getNotificationAppLaunchDetails();
+    if (launchDetails?.didNotificationLaunchApp == true) {
+      final resp = launchDetails!.notificationResponse;
+      final id = resp?.id ?? -1;
+      if (resp?.payload != null && id >= 200 && id < 205) {
+        await ActivityReminderService.savePendingDeepLink(resp!.payload!);
+      }
+    }
+
     _initialised = true;
   }
 
@@ -215,5 +238,31 @@ class StreakNotificationService {
       eveningHour: eH,
       eveningMinute: eMin
     );
+  }
+
+  // ─── Notification tap handlers ────────────────────────────────────────────
+
+  static void _onNotificationResponse(NotificationResponse response) {
+    final payload = response.payload;
+    final id = response.id ?? -1;
+    if (payload == null || payload.isEmpty) return;
+    if (id < 200 || id >= 205) return; // only activity reminders
+
+    final nav = NavigationService.navigatorKey.currentState;
+    if (nav != null) {
+      ActivityReminderService.navigateFromPayload(nav, payload);
+    } else {
+      ActivityReminderService.savePendingDeepLink(payload).ignore();
+    }
+  }
+
+  @pragma('vm:entry-point')
+  static void _onBackgroundNotificationResponse(NotificationResponse response) {
+    // Background isolate — only save; navigation happens on next foreground open.
+    final payload = response.payload;
+    final id = response.id ?? -1;
+    if (payload == null || payload.isEmpty) return;
+    if (id < 200 || id >= 205) return;
+    ActivityReminderService.savePendingDeepLink(payload).ignore();
   }
 }

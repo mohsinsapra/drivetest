@@ -129,6 +129,8 @@ class _TestscreenState extends State<Testscreen> {
   // GlobalKeys for the translation tutorial.
   final _langMenuKey = GlobalKey<PopupMenuButtonState<String>>();
   final _peekAreaKey = GlobalKey();
+  // GlobalKey for the hearts guide tutorial.
+  final _heartsKey = GlobalKey();
 
   // True while phase-1 of the tutorial is active (waiting for language pick).
   bool _tutorialPhase1Active = false;
@@ -185,6 +187,10 @@ class _TestscreenState extends State<Testscreen> {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _checkAndShowTutorial());
     }
+    if (widget.maxWrongAnswers != null) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _showHeartsGuideIfNeeded());
+    }
   }
 
   @override
@@ -231,6 +237,10 @@ class _TestscreenState extends State<Testscreen> {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _checkAndShowTutorial());
     }
+    if (widget.maxWrongAnswers != null) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _showHeartsGuideIfNeeded());
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _preloadImagesForQuestion(currentQuestionIndex);
@@ -255,6 +265,55 @@ class _TestscreenState extends State<Testscreen> {
     await Future.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
     _showTutorialPhase1();
+  }
+
+  static const _kHeartsGuideKey = 'hearts_guide_shown_v1';
+
+  Future<void> _showHeartsGuideIfNeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_kHeartsGuideKey) == true) return;
+    if (!mounted) return;
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    final t = Translations.of(context);
+    final primary = Theme.of(context).colorScheme.primary;
+
+    void markSeen() => prefs.setBool(_kHeartsGuideKey, true).ignore();
+
+    TutorialCoachMark? coach;
+    coach = TutorialCoachMark(
+      targets: [
+        TargetFocus(
+          identify: 'hearts_chip',
+          keyTarget: _heartsKey,
+          shape: ShapeLightFocus.RRect,
+          radius: 20,
+          enableTargetTab: true,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (_, __) => TutorialCard(
+                icon: Icons.favorite_rounded,
+                title: t.smart_hearts_guide_title,
+                body: t.smart_hearts_guide_body,
+                primaryColor: primary,
+              ),
+            ),
+          ],
+        ),
+      ],
+      colorShadow: Colors.black87,
+      paddingFocus: 12,
+      opacityShadow: 0.85,
+      hideSkip: true,
+      onClickTarget: (_) => coach?.finish(),
+      onClickOverlay: (_) => coach?.finish(),
+      onFinish: markSeen,
+      onSkip: () {
+        markSeen();
+        return true;
+      },
+    )..show(context: context);
   }
 
   TutorialCoachMark? _phase1Coach;
@@ -524,6 +583,7 @@ class _TestscreenState extends State<Testscreen> {
       userSelections: userSelections,
       licenceId: widget.licenceId,
       categoryId: widget.categoryId,
+      categoryName: widget.categoryName,
     );
   }
 
@@ -659,6 +719,7 @@ class _TestscreenState extends State<Testscreen> {
             userSelections: userSelections,
             licenceId: widget.licenceId,
             categoryId: widget.categoryId,
+            categoryName: widget.categoryName,
           );
         },
       );
@@ -1215,35 +1276,41 @@ class _TestscreenState extends State<Testscreen> {
         body: Builder(builder: (innerCtx) {
           _sheetContext = innerCtx;
           return Scaffold(
-            appBar: AppBar(
-              elevation: 0,
-              leading: IconButton(
-                icon: Icon(
-                  Icons.close,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                onPressed: () {
-                  if (widget.isReviewMode) {
-                    Navigator.of(context).pop();
-                  } else {
-                    _showExitDialog();
-                  }
-                },
-              ),
-              title: widget.hideProgress
-                  ? Text(widget.categoryName.isNotEmpty
-                      ? widget.categoryName
-                      : Translations.of(context).test_questions_title)
-                  : QuestionProgressHeader(
-                      currentIndex: currentQuestionIndex,
-                      total: widget.questions.length,
-                      onTap: _showQuestionNavigationSheet,
+            appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(44),
+              child: ClipRect(
+                child: AppBar(
+                  elevation: 0,
+                  toolbarHeight: 56,
+                  leading: IconButton(
+                    icon: Icon(
+                      Icons.close,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-              centerTitle: false,
-              titleSpacing: 0,
-              actions: widget.isMockExamMode
-                  ? _buildMockExamActions()
-                  : _buildStandardActions(t),
+                    onPressed: () {
+                      if (widget.isReviewMode) {
+                        Navigator.of(context).pop();
+                      } else {
+                        _showExitDialog();
+                      }
+                    },
+                  ),
+                  title: widget.hideProgress
+                      ? Text(widget.categoryName.isNotEmpty
+                          ? widget.categoryName
+                          : Translations.of(context).test_questions_title)
+                      : QuestionProgressHeader(
+                          currentIndex: currentQuestionIndex,
+                          total: widget.questions.length,
+                          onTap: _showQuestionNavigationSheet,
+                        ),
+                  centerTitle: false,
+                  titleSpacing: 0,
+                  actions: widget.isMockExamMode
+                      ? _buildMockExamActions()
+                      : _buildStandardActions(t),
+                ),
+              ),
             ),
             body: PageView.builder(
               controller: _pageController,
@@ -1371,6 +1438,7 @@ class _TestscreenState extends State<Testscreen> {
                       userSelections: userSelections,
                       licenceId: widget.licenceId,
                       categoryId: widget.categoryId,
+                      categoryName: widget.categoryName,
                     );
                   },
                 );
@@ -1389,6 +1457,7 @@ class _TestscreenState extends State<Testscreen> {
           padding: const EdgeInsets.only(left: 4, right: 8),
           child: Center(
             child: _HeartLivesChip(
+              key: _heartsKey,
               remaining: (widget.maxWrongAnswers! - _wrongCount)
                   .clamp(0, widget.maxWrongAnswers!),
             ),
@@ -1452,7 +1521,7 @@ class _TestscreenState extends State<Testscreen> {
                 const SizedBox(width: 8),
                 Text(t.test_question_language_menu),
                 const Spacer(),
-                Icon(Icons.chevron_right, size: 16, color: Colors.grey[500]),
+                Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45)),
               ],
             ),
           ),
@@ -1555,7 +1624,7 @@ class _AiSession {
 }
 
 class _HeartLivesChip extends StatelessWidget {
-  const _HeartLivesChip({required this.remaining});
+  const _HeartLivesChip({super.key, required this.remaining});
 
   final int remaining;
 

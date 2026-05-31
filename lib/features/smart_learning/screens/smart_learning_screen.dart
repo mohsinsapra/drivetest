@@ -456,7 +456,6 @@ class _CategoryMistakesCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: cs.error.withValues(alpha: 0.25)),
           ),
           child: Row(
             children: [

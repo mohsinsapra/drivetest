@@ -337,7 +337,8 @@
       "Bash(echo \"Upscaled: $\\(magick identify assets/icon/icon.png)",
       "Bash(magick assets/icon/icon.png -resize 650x650 -fuzz 5% -transparent white -gravity center -background none -extent 1024x1024 assets/icon/icon_foreground.png)",
       "Bash(echo \"Foreground done: $\\(magick identify assets/icon/icon_foreground.png)",
-      "Bash(awk -F: '$2 > 1950 && $2 < 1980')"
+      "Bash(awk -F: '$2 > 1950 && $2 < 1980')",
+      "Bash(grep -rn \"smart_part_pass\\\\|questions.*bullet\\\\|• \\\\$\\\\|' • '\\\\|\\\\\" • \\\\\"\" --include=\"*.dart\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/)"
     ],
     "deny": [],
     "ask": []

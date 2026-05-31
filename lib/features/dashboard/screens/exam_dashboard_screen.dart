@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
+import 'package:upgrader/upgrader.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_body.dart';
 import '../widgets/dashboard_error_view.dart';
@@ -16,9 +18,12 @@ class ExamDashboardScreen extends StatefulWidget {
 }
 
 class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
+  late final Upgrader _upgrader;
+
   @override
   void initState() {
     super.initState();
+    _upgrader = Upgrader();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DashboardProvider>().init();
     });
@@ -54,18 +59,26 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<DashboardProvider>();
 
-    return Scaffold(
-      appBar: AppBar(toolbarHeight: 0),
-      body: provider.status == DashboardStatus.error
-          ? DashboardErrorView(
-              errorKind: provider.errorKind,
-              onRetry: () => context.read<DashboardProvider>().init(),
-            )
-          : DashboardBody(
-              provider: provider,
-              onSubscribe: _handleSubscribe,
-              onRefresh: () => context.read<DashboardProvider>().syncNow(),
-            ),
+    return UpgradeAlert(
+      upgrader: _upgrader,
+      dialogStyle: defaultTargetPlatform == TargetPlatform.iOS
+          ? UpgradeDialogStyle.cupertino
+          : UpgradeDialogStyle.material,
+      showIgnore: false,
+      showLater: true,
+      child: Scaffold(
+        appBar: AppBar(toolbarHeight: 0),
+        body: provider.status == DashboardStatus.error
+            ? DashboardErrorView(
+                errorKind: provider.errorKind,
+                onRetry: () => context.read<DashboardProvider>().init(),
+              )
+            : DashboardBody(
+                provider: provider,
+                onSubscribe: _handleSubscribe,
+                onRefresh: () => context.read<DashboardProvider>().syncNow(),
+              ),
+      ),
     );
   }
 }

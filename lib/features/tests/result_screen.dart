@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:taxi_exam_app/core/services/activity_reminder_service.dart';
 import 'package:taxi_exam_app/core/services/app_review_service.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +14,7 @@ class ResultScreen extends StatefulWidget {
   final Map<int, String> userSelections;
   final String licenceId;
   final String categoryId;
+  final String categoryName;
   final bool hasPassed;
   final double passScorePercent;
 
@@ -21,6 +25,7 @@ class ResultScreen extends StatefulWidget {
     required this.licenceId,
     required this.categoryId,
     required this.hasPassed,
+    this.categoryName = '',
     this.passScorePercent = 70,
   });
 
@@ -55,7 +60,19 @@ class _ResultScreenState extends State<ResultScreen>
       CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic),
     );
     _ctrl.forward();
-    AppReviewService.instance.maybeRequestAfterExam();
+    unawaited(AppReviewService.instance
+        .maybeRequestAfterExam(hasPassed: widget.hasPassed));
+    unawaited(ActivityReminderService.schedule(
+      examTitle: widget.categoryName.isNotEmpty
+          ? widget.categoryName
+          : widget.categoryId,
+      payloadJson: ActivityReminderService.buildTestPayload(
+        licenceId: widget.licenceId,
+        categoryId: widget.categoryId,
+        categoryName: widget.categoryName,
+      ),
+      locale: LocaleSettings.currentLocale.flutterLocale.languageCode,
+    ));
   }
 
   @override

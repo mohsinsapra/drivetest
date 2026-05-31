@@ -27,7 +27,7 @@ void main() {
     test('requests review and sets flag on first call', () async {
       final fake = _FakeReview();
       final svc = AppReviewService.forTest(fake);
-      await svc.maybeRequestAfterExam();
+      await svc.maybeRequestAfterExam(hasPassed: true);
 
       expect(fake.requestCount, 1);
 
@@ -41,9 +41,20 @@ void main() {
       });
       final fake = _FakeReview();
       final svc = AppReviewService.forTest(fake);
-      await svc.maybeRequestAfterExam();
+      await svc.maybeRequestAfterExam(hasPassed: true);
 
       expect(fake.requestCount, 0);
+    });
+
+    test('does NOT request review when hasPassed is false', () async {
+      final fake = _FakeReview();
+      final svc = AppReviewService.forTest(fake);
+      await svc.maybeRequestAfterExam(hasPassed: false);
+
+      expect(fake.requestCount, 0);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('review_first_exam_shown'), isNull);
     });
   });
 
@@ -99,7 +110,7 @@ void main() {
 
     test('review does not propagate exceptions', () async {
       final svc = AppReviewService.forTest(_ThrowingReview());
-      await expectLater(svc.maybeRequestAfterExam(), completes);
+      await expectLater(svc.maybeRequestAfterExam(hasPassed: true), completes);
     });
   });
 }

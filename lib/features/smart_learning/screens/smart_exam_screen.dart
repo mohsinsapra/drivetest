@@ -327,7 +327,7 @@ class _ChunkCard extends StatelessWidget {
                             ?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     Text(
-                      '${t.smart_questions_count(count: questionCount)} • ${t.smart_part_pass_requirement}',
+                      '${t.smart_questions_count(count: questionCount)}  ${t.smart_part_pass_requirement}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: cs.onSurface.withValues(alpha: 0.55)),
                     ),

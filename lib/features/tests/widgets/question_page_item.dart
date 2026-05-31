@@ -69,7 +69,7 @@ class QuestionPageItem extends StatelessWidget {
       onLongPress: onLongPress,
       onLongPressUp: onLongPressUp,
       child: Padding(
-        padding: EdgeInsets.all(20.0 * s),
+        padding: EdgeInsets.fromLTRB(20.0 * s, 12.0 * s, 20.0 * s, 20.0 * s),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

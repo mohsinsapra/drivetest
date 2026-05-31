@@ -16,6 +16,7 @@ class AppReviewService {
   final InAppReview _review;
 
   static const _keyFirstExamShown = 'review_first_exam_shown';
+  static const _keyFirstSmartShown = 'review_first_smart_shown';
   static const _keyLastOpenDate = 'review_last_open_date';
   static const _keyUsageDayCount = 'review_usage_day_count';
   static const _keyLastPromptedDayCount = 'review_last_prompted_day_count';
@@ -49,13 +50,25 @@ class AppReviewService {
     } catch (_) {}
   }
 
-  /// Called from ResultScreen after the first ever exam completion.
-  Future<void> maybeRequestAfterExam() async {
+  /// Called from ResultScreen after the first ever passed exam.
+  Future<void> maybeRequestAfterExam({required bool hasPassed}) async {
+    if (!hasPassed) return;
     try {
       final prefs = await SharedPreferences.getInstance();
       if (prefs.getBool(_keyFirstExamShown) ?? false) return;
       await _request();
       await prefs.setBool(_keyFirstExamShown, true);
+    } catch (_) {}
+  }
+
+  /// Called from SmartResultScreen after the first ever passed Smart Learning session.
+  Future<void> maybeRequestAfterSmartSession({required bool hasPassed}) async {
+    if (!hasPassed) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_keyFirstSmartShown) ?? false) return;
+      await _request();
+      await prefs.setBool(_keyFirstSmartShown, true);
     } catch (_) {}
   }
 

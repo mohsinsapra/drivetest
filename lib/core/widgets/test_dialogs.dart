@@ -65,6 +65,7 @@ Future<void> showResultDialog({
   required Map<int, String> userSelections,
   required String licenceId,
   required String categoryId,
+  required String categoryName,
   double score = 0,
   double passScorePercent = 70,
 }) {
@@ -205,6 +206,7 @@ Future<void> showResultDialog({
                             userSelections: userSelections,
                             licenceId: licenceId,
                             categoryId: categoryId,
+                            categoryName: categoryName,
                             hasPassed: hasPassed,
                             passScorePercent: passScorePercent,
                           ),

@@ -12,7 +12,9 @@ import 'package:taxi_exam_app/features/auth/auth_screen.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/features/consent/gdpr_consent_sheet.dart';
 import 'package:taxi_exam_app/features/onboarding/onboarding_screen.dart';
+import 'package:taxi_exam_app/core/services/activity_reminder_service.dart';
 import 'package:taxi_exam_app/core/services/app_review_service.dart';
+import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -124,6 +126,7 @@ class _SplashScreenState extends State<SplashScreen>
     } catch (_) {}
 
     unawaited(AppReviewService.instance.recordOpenAndMaybeRequest());
+    unawaited(ActivityReminderService.cancelAll());
 
     final hasTokens =
         DioClient().refreshToken != null && DioClient().accessToken != null;
@@ -160,9 +163,38 @@ class _SplashScreenState extends State<SplashScreen>
     } else if (!isAuthenticated) {
       next = const AuthScreen();
     } else {
+      final deepLinkPayload =
+          await ActivityReminderService.consumePendingDeepLink();
+      if (deepLinkPayload != null && mounted) {
+        Navigator.of(context).pushReplacement(PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const MainScreen(),
+          transitionDuration: const Duration(milliseconds: 320),
+          reverseTransitionDuration: const Duration(milliseconds: 180),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            final slideTween = Tween(begin: begin, end: end)
+                .chain(CurveTween(curve: Curves.easeOutCubic));
+            return FadeTransition(
+              opacity:
+                  CurvedAnimation(parent: animation, curve: Curves.easeOut),
+              child: SlideTransition(
+                  position: animation.drive(slideTween), child: child),
+            );
+          },
+        ));
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final nav = NavigationService.navigatorKey.currentState;
+          if (nav != null) {
+            ActivityReminderService.navigateFromPayload(nav, deepLinkPayload);
+          }
+        });
+        return;
+      }
       next = const MainScreen();
     }
 
+    if (!mounted) return;
     final isAuthRoute = next is AuthScreen;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(

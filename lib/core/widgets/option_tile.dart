@@ -1,7 +1,6 @@
-import 'dart:math';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'tts_button.dart';
 
 class Option extends StatefulWidget {
@@ -44,14 +43,15 @@ class Option extends StatefulWidget {
   State<Option> createState() => _OptionState();
 }
 
-class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
+class _OptionState extends State<Option> with TickerProviderStateMixin {
   late AnimationController _ctrl;
+  late AnimationController _explanationCtrl;
 
-  // Phase 1 (0→0.35): circle shrinks to 0  — old shape disappears
-  // Phase 2 (0.35→1): new shape grows from 0 → 1.25 → 1.0  — result pops in
+  // Phase 1 (0→0.35): circle shrinks away
+  // Phase 2 (0.35→1): result icon grows in smoothly — no bounce
   late Animation<double> _shrink; // 1.0 → 0.0
-  late Animation<double> _grow; // 0.0 → 1.25 → 1.0
-  late Animation<double> _rotation; // 0 → pi/4 only for correct (diamond)
+  late Animation<double> _grow; // 0.0 → 1.0
+  late Animation<double> _explanationReveal; // 0.0 → 1.0 (height factor)
 
   bool _wasMarking = false;
 
@@ -60,7 +60,11 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 550),
+      duration: const Duration(milliseconds: 380),
+    );
+    _explanationCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
     );
     _buildAnimations();
 
@@ -68,6 +72,9 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
         (widget.isCorrectAnswer || widget.isSelected)) {
       _ctrl.value = 1.0;
       _wasMarking = true;
+    }
+    if (widget.showInstantMarking && widget.isCorrectAnswer) {
+      _explanationCtrl.value = 1.0;
     }
   }
 
@@ -79,20 +86,17 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
       ),
     );
 
-    _grow = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.25), weight: 65),
-      TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 35),
-    ]).animate(
+    _grow = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _ctrl,
         curve: const Interval(0.35, 1.0, curve: Curves.easeOut),
       ),
     );
 
-    _rotation = Tween<double>(begin: 0, end: pi / 4).animate(
+    _explanationReveal = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _ctrl,
-        curve: const Interval(0.35, 0.85, curve: Curves.easeOut),
+        parent: _explanationCtrl,
+        curve: Curves.easeInOut,
       ),
     );
   }
@@ -108,14 +112,15 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
     if (nowActive && !wasActive && !_wasMarking) {
       if (MediaQuery.of(context).disableAnimations) {
         _ctrl.value = 1.0;
+        if (widget.isCorrectAnswer) _explanationCtrl.value = 1.0;
       } else {
-        // Start at 0.35 to skip Phase 1 (the blue/grey shrink) and jump
-        // directly into Phase 2 (the green/red grow with check/cross icon).
         _ctrl.forward(from: 0.35);
+        if (widget.isCorrectAnswer) _explanationCtrl.forward(from: 0.0);
       }
       _wasMarking = true;
     } else if (!nowActive && wasActive) {
       _ctrl.value = 0;
+      _explanationCtrl.value = 0;
       _wasMarking = false;
     }
   }
@@ -123,6 +128,7 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     _ctrl.dispose();
+    _explanationCtrl.dispose();
     super.dispose();
   }
 
@@ -199,15 +205,12 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
         // Phase 2 (t >= 0.35): new result shape grows in
         final bool showResult = t >= 0.35;
         final double scaleFactor = showResult ? _grow.value : _shrink.value;
-        final double rotAngle =
-            (isCorrect && showResult) ? _rotation.value : 0.0;
-
         final BoxDecoration decoration = isCorrect
             ? BoxDecoration(
                 color: showResult
                     ? Colors.green
                     : Colors.grey.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(5 * s),
+                shape: BoxShape.circle,
               )
             : BoxDecoration(
                 shape: BoxShape.circle,
@@ -215,22 +218,16 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
               );
 
         return Transform.scale(
-          scale: scaleFactor.clamp(0.0, 2.0),
-          child: Transform.rotate(
-            angle: rotAngle,
-            child: Container(
-              width: 24 * s,
-              height: 24 * s,
-              decoration: decoration,
-              child: Center(
-                child: Transform.rotate(
-                  angle: -rotAngle, // keep icon upright inside diamond
-                  child: Icon(
-                    isCorrect ? Icons.check : Icons.close,
-                    size: 14 * s,
-                    color: Colors.white,
-                  ),
-                ),
+          scale: scaleFactor.clamp(0.0, 1.0),
+          child: Container(
+            width: 24 * s,
+            height: 24 * s,
+            decoration: decoration,
+            child: Center(
+              child: Icon(
+                isCorrect ? Icons.check : Icons.close,
+                size: 14 * s,
+                color: Colors.white,
               ),
             ),
           ),
@@ -298,9 +295,13 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
                                     : FontWeight.normal,
                                 color: widget.showInstantMarking
                                     ? (widget.isCorrectAnswer
-                                        ? Colors.green[700]
+                                        ? (Theme.of(context).brightness == Brightness.dark
+                                            ? Colors.green.shade400
+                                            : Colors.green.shade700)
                                         : (widget.isSelected
-                                            ? Colors.red[700]
+                                            ? (Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.red.shade400
+                                                : Colors.red.shade700)
                                             : Theme.of(context)
                                                 .colorScheme
                                                 .onSurface))
@@ -313,7 +314,7 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
                             textToSpeak: widget.text,
                             languageCode: widget.languageCode,
                             iconSize: 18 * s,
-                            tooltip: 'Read option aloud',
+                            tooltip: Translations.of(context).ai_read_aloud,
                           ),
                         ],
                       ),
@@ -322,21 +323,29 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
                 ),
 
                 // ── explanation (correct answer only) ──────────────────────
-                if (widget.showInstantMarking &&
-                    widget.isCorrectAnswer &&
-                    widget.explanation != null &&
+                if (widget.explanation != null &&
                     widget.explanation!.isNotEmpty)
-                  Padding(
-                    padding: EdgeInsets.only(top: 10 * s, left: 36 * s),
-                    child: Text(
-                      Option.stripHtml(widget.explanation!),
-                      style: TextStyle(
-                        fontSize: 14 * s,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.75),
-                        height: 1.5,
+                  AnimatedBuilder(
+                    animation: _explanationReveal,
+                    builder: (_, child) => ClipRect(
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        heightFactor: _explanationReveal.value,
+                        child: child,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 10 * s, left: 36 * s),
+                      child: Text(
+                        Option.stripHtml(widget.explanation!),
+                        style: TextStyle(
+                          fontSize: 14 * s,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.75),
+                          height: 1.5,
+                        ),
                       ),
                     ),
                   ),
@@ -384,7 +393,7 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
                                       .onSurface
                                       .withValues(alpha: 0.4)),
                               const SizedBox(height: 4),
-                              Text('Image not available',
+                              Text(Translations.of(c).option_image_unavailable,
                                   style: TextStyle(
                                       color: Theme.of(c)
                                           .colorScheme

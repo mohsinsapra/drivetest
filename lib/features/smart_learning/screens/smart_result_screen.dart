@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/activity_reminder_service.dart';
+import 'package:taxi_exam_app/core/services/app_review_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
@@ -61,6 +65,14 @@ class _SmartResultScreenState extends State<SmartResultScreen>
     _masteryAnim = Tween<double>(begin: 0, end: _masteryPercent)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
     _ctrl.forward();
+    unawaited(AppReviewService.instance
+        .maybeRequestAfterSmartSession(hasPassed: widget.hasPassed));
+    unawaited(ActivityReminderService.schedule(
+      examTitle: widget.entry.testName,
+      payloadJson:
+          ActivityReminderService.buildSmartPayload(widget.entry.testBcdId),
+      locale: LocaleSettings.currentLocale.flutterLocale.languageCode,
+    ));
   }
 
   @override
