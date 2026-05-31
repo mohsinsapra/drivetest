@@ -21,12 +21,14 @@ class SmartSessionScreen extends StatefulWidget {
   final SmartExamEntry entry;
   final int chunkIndex; // -1 for Train Mistakes mode
   final bool isMistakesMode;
+  final VoidCallback? onProgressSaved;
 
   const SmartSessionScreen({
     super.key,
     required this.entry,
     required this.chunkIndex,
     required this.isMistakesMode,
+    this.onProgressSaved,
   });
 
   @override
@@ -123,6 +125,7 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
               await _svc.recordSmartResult(testBcdId, chunkIdx, hasPassed);
             }
             await _svc.recordSessionResults(testBcdId, finalResults);
+            widget.onProgressSaved?.call();
             final mastered = await _svc.masteredQuestionCount(
                 testBcdId, widget.entry.chunkSizes);
             final correct = finalResults.values.where((v) => v).length;

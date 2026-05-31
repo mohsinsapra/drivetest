@@ -58,10 +58,10 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
           entry: widget.entry,
           chunkIndex: chunkIndex,
           isMistakesMode: false,
+          onProgressSaved: _load,
         ),
       ),
     );
-    _load();
   }
 
   Future<void> _startMistakes() async {
@@ -72,10 +72,10 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
           entry: widget.entry,
           chunkIndex: -1,
           isMistakesMode: true,
+          onProgressSaved: _load,
         ),
       ),
     );
-    _load();
   }
 
   void _launchFullExam() {

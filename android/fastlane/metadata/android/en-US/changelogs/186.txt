@@ -1,0 +1,7 @@
+Added:
+- Smart Learning Feature: A new structured learning path for BCD tests.
+- Auto-chunking of large question sets into manageable sessions (10-15 questions).
+- Weak Question Pool: Questions answered incorrectly are tracked and re-introduced in subsequent sessions for reinforcement.
+- Mastery Progress: Visual tracking of "Mastered" questions based on passed chunks.
+- Spaced Repetition: Graduating questions from the weak pool after consecutive correct answers.
+- Mock Exam Mode: Enhanced Tes...

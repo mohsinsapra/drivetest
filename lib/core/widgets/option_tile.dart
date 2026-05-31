@@ -106,12 +106,12 @@ class _OptionState extends State<Option> with SingleTickerProviderStateMixin {
         old.showInstantMarking && (old.isCorrectAnswer || old.isSelected);
 
     if (nowActive && !wasActive && !_wasMarking) {
-      // Skip animation if system has reduced-motion enabled or on very slow
-      // devices where animations cause jank.
       if (MediaQuery.of(context).disableAnimations) {
         _ctrl.value = 1.0;
       } else {
-        _ctrl.forward(from: 0);
+        // Start at 0.35 to skip Phase 1 (the blue/grey shrink) and jump
+        // directly into Phase 2 (the green/red grow with check/cross icon).
+        _ctrl.forward(from: 0.35);
       }
       _wasMarking = true;
     } else if (!nowActive && wasActive) {

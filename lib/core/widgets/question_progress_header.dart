@@ -8,12 +8,14 @@ class QuestionProgressHeader extends StatelessWidget {
   final int currentIndex; // zero-based
   final int total;
   final VoidCallback onTap;
+  final bool showLabel;
 
   const QuestionProgressHeader({
     super.key,
     required this.currentIndex,
     required this.total,
     required this.onTap,
+    this.showLabel = true,
   });
 
   @override
@@ -57,25 +59,27 @@ class QuestionProgressHeader extends StatelessWidget {
                     color: Theme.of(context).primaryColor,
                   ),
                 ),
-                const SizedBox(width: 8),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    '${currentIndex + 1}/$safeTotal',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
+                if (showLabel) ...[
+                  const SizedBox(width: 8),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '${currentIndex + 1}/$safeTotal',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                   ),
-                ),
-                if (showChevron) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 16,
-                    color: Colors.grey[500],
-                  ),
+                  if (showChevron) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 16,
+                      color: Colors.grey[500],
+                    ),
+                  ],
                 ],
               ],
             );

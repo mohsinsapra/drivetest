@@ -195,9 +195,15 @@ platform :ios do
 
   private_lane :build_ios_archive do |options|
     options ||= {}
+
+    pubspec_content = File.read(File.expand_path("../../pubspec.yaml", __dir__))
+    version_match = pubspec_content.match(/^version:\s*(.+)\+(\d+)/)
+    build_name   = version_match ? version_match[1].strip : ""
+    build_number = version_match ? version_match[2].strip : ""
+
     build_options = {
       scheme: "Runner",
-      xcargs: "DART_DEFINES=#{resolve_xcode_dart_defines}"
+      xcargs: "DART_DEFINES=#{resolve_xcode_dart_defines} FLUTTER_BUILD_NAME=#{build_name} FLUTTER_BUILD_NUMBER=#{build_number}"
     }
 
     if options[:export_options]

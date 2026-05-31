@@ -14,6 +14,7 @@ import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/widgets/app_bottom_sheet.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/core/widgets/question_progress_header.dart';
 import 'package:taxi_exam_app/features/tests/widgets/language_grid.dart';
 import 'package:taxi_exam_app/features/tests/widgets/question_chat_sheet.dart';
 import 'package:taxi_exam_app/features/tests/widgets/question_page_item.dart';
@@ -214,7 +215,10 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       _doneCount++;
     } else {
       _wrongCounts[id] = (_wrongCounts[id] ?? 0) + 1;
-      if (_wrongCounts[id]! >= 2) _doneCount++;
+      if (_wrongCounts[id]! >= 2) {
+        _doneCount++;
+        vibrateFail();
+      }
     }
 
     _queue.removeAt(0);
@@ -232,6 +236,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
           .length;
       final hasPassed = _total > 0 &&
           (correctCount / _total * 100) >= widget.passScorePercent;
+      if (!hasPassed) vibrateFail();
       final finalResults = {
         for (final q in widget.initialQuestions)
           q.questionId: _correctOnce.contains(q.questionId),
@@ -327,7 +332,9 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
         ],
       ),
     );
-    return shouldExit ?? false;
+    final confirmed = shouldExit ?? false;
+    if (confirmed) vibrateFail();
+    return confirmed;
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -363,7 +370,12 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                     nav.pop();
                   },
                 ),
-                title: _PillProgressBar(done: _doneCount, total: _total),
+                title: QuestionProgressHeader(
+                  currentIndex: _doneCount,
+                  total: _total,
+                  onTap: () {},
+                  showLabel: false,
+                ),
                 centerTitle: false,
                 titleSpacing: 0,
                 backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -465,68 +477,6 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
             )); // PopScope + Scaffold
       }), // Builder
     ); // CupertinoScaffold
-  }
-}
-
-// ── Pill-shaped progress bar (matches QuestionProgressHeader style) ───────────
-
-class _PillProgressBar extends StatelessWidget {
-  final int done;
-  final int total;
-
-  const _PillProgressBar({required this.done, required this.total});
-
-  @override
-  Widget build(BuildContext context) {
-    final value = total <= 0 ? 0.0 : (done / total).clamp(0.0, 1.0);
-    final visibleValue = value == 0 ? 0.0 : value.clamp(0.04, 1.0);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-
-    if (isIOS) {
-      // iOS: thin, clean UIProgressView-style bar
-      return Container(
-        margin: const EdgeInsets.only(right: 12),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(2),
-          child: LinearProgressIndicator(
-            value: visibleValue,
-            minHeight: 4,
-            borderRadius: BorderRadius.circular(2),
-            backgroundColor: isDark
-                ? Colors.white.withValues(alpha: 0.2)
-                : Colors.grey.shade200,
-            color: Theme.of(context).primaryColor,
-          ),
-        ),
-      );
-    }
-
-    // Android / Web: pill container
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.08)
-            : Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.15)
-              : Colors.grey.shade200,
-          width: 1,
-        ),
-      ),
-      child: LinearProgressIndicator(
-        value: visibleValue,
-        minHeight: 10,
-        borderRadius: BorderRadius.circular(10),
-        backgroundColor:
-            isDark ? Colors.white.withValues(alpha: 0.2) : Colors.grey[300],
-        color: Theme.of(context).primaryColor,
-      ),
-    );
   }
 }
 
