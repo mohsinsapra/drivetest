@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
@@ -93,6 +94,11 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     super.initState();
     _queue = List<Question>.from(widget.initialQuestions);
     _loadAiEnabled();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preloadQueueImages(0);
+      _preloadQueueImages(1);
+      _preloadQueueImages(2);
+    });
   }
 
   @override
@@ -109,6 +115,29 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       final map = jsonDecode(stored) as Map<String, dynamic>;
       if (mounted) setState(() => _aiEnabled = map['ai_enabled'] == true);
     } catch (_) {}
+  }
+
+  // ── Image preloading ───────────────────────────────────────────────────────
+
+  void _preloadQueueImages(int queueIndex) {
+    if (!mounted) return;
+    if (queueIndex < 0 || queueIndex >= _queue.length) return;
+    final q = _queue[queueIndex];
+
+    final urls = <String>[
+      if (q.images.isNotEmpty)
+        ...q.images
+      else if (q.imageUrl.isNotEmpty)
+        _api.fetchImage(widget.licenceId, widget.categoryId, q.imageUrl),
+      for (final tab in q.tabs) ...tab.images,
+      for (final opt in q.options)
+        if (opt.imageUrl.isNotEmpty) opt.imageUrl,
+    ];
+
+    for (final url in urls) {
+      if (url.isEmpty) continue;
+      precacheImage(CachedNetworkImageProvider(url), context);
+    }
   }
 
   // ── Translation ────────────────────────────────────────────────────────────
@@ -228,6 +257,9 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       final pos = len <= 1 ? len : 1 + _random.nextInt(len - 1);
       _queue.insert(pos, q);
     }
+
+    _preloadQueueImages(1);
+    _preloadQueueImages(2);
 
     if (_queue.isEmpty) {
       setState(() => _finishing = true);
