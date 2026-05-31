@@ -178,8 +178,10 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
                 padding: const EdgeInsets.all(32),
                 child: Text(t.smart_no_exams,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: cs.onSurface.withValues(alpha: 0.5))),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: cs.onSurface.withValues(alpha: 0.5))),
               ),
             )
           : RefreshIndicator(
@@ -220,8 +222,9 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
             child: Column(
               children: categories.asMap().entries.map((entry) {
                 final catName = entry.value;
-                final catEntries =
-                    _allEntries.where((e) => e.categoryName == catName).toList();
+                final catEntries = _allEntries
+                    .where((e) => e.categoryName == catName)
+                    .toList();
                 final totalChunks = catEntries.fold<int>(
                     0, (sum, e) => sum + e.chunkSizes.length);
                 final passedChunks = catEntries.fold<int>(
@@ -370,12 +373,14 @@ class _CategoryRow extends StatelessWidget {
     final t = Translations.of(context);
     final color = categoryColor(name);
     final allDone = passedChunks >= totalChunks && totalChunks > 0;
-    final examLabel = testCount == 1 ? t.smart_category_exam : t.smart_category_exams;
+    final examLabel =
+        testCount == 1 ? t.smart_category_exam : t.smart_category_exams;
 
     final sub = allDone
         ? t.smart_category_completed(count: testCount, examLabel: examLabel)
         : passedChunks == 0
-            ? t.smart_category_not_started(count: testCount, examLabel: examLabel)
+            ? t.smart_category_not_started(
+                count: testCount, examLabel: examLabel)
             : t.smart_category_parts_done(
                 count: testCount,
                 examLabel: examLabel,
@@ -470,8 +475,10 @@ class _CategoryMistakesCard extends StatelessWidget {
                           count: count,
                           questionLabel: questionLabel,
                         ),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: cs.error.withValues(alpha: 0.7))),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: cs.error.withValues(alpha: 0.7))),
                   ],
                 ),
               ),
@@ -505,7 +512,8 @@ class _ExamRow extends StatelessWidget {
     final cs = theme.colorScheme;
     final total = entry.chunkSizes.length;
     final allDone = passedCount >= total;
-    final color = allDone ? Colors.green.shade600 : categoryColor(entry.testName);
+    final color =
+        allDone ? Colors.green.shade600 : categoryColor(entry.testName);
 
     final statusLabel = allDone
         ? t.smart_full_exam_ready

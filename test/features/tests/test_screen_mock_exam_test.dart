@@ -171,7 +171,8 @@ void main() {
     );
   });
 
-  testWidgets('mock exam hearts mode triggers game over at the wrong-answer limit',
+  testWidgets(
+      'mock exam hearts mode triggers game over at the wrong-answer limit',
       (tester) async {
     var gameOverCalls = 0;
     await pumpScreen(

@@ -1416,8 +1416,8 @@ class _TestscreenState extends State<Testscreen> {
         ),
       PopupMenuButton<String>(
         key: _langMenuKey,
-        icon:
-            Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
+        icon: Icon(Icons.more_vert,
+            color: Theme.of(context).colorScheme.onSurface),
         onSelected: (value) {
           if (value == 'language') {
             _showLanguageSheet();
@@ -1473,9 +1473,7 @@ class _TestscreenState extends State<Testscreen> {
                           : Icons.timer_outlined,
                       size: 18),
                   const SizedBox(width: 8),
-                  Text(_isTimed
-                      ? t.test_turn_off_timer
-                      : t.test_turn_on_timer),
+                  Text(_isTimed ? t.test_turn_off_timer : t.test_turn_on_timer),
                   const Spacer(),
                   if (_isTimed) const Icon(Icons.check, size: 16),
                 ],

@@ -342,125 +342,127 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       body: Builder(builder: (innerCtx) {
         _sheetContext = innerCtx;
         return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, _) async {
-            if (didPop) return;
-            final nav = Navigator.of(innerCtx);
-            final shouldExit = await _confirmExitSession();
-            if (!mounted || !shouldExit) return;
-            nav.pop();
-          },
-          child: Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.close,
-              color: Theme.of(context).colorScheme.onSurface),
-          onPressed: () async {
-            final nav = Navigator.of(context);
-            final shouldExit = await _confirmExitSession();
-            if (!mounted || !shouldExit) return;
-            nav.pop();
-          },
-        ),
-        title: _PillProgressBar(done: _doneCount, total: _total),
-        centerTitle: false,
-        titleSpacing: 0,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-        actions: [
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert,
-                color: Theme.of(context).colorScheme.onSurface),
-            onSelected: (value) {
-              if (value == 'language') _showLanguageSheet();
+            canPop: false,
+            onPopInvokedWithResult: (didPop, _) async {
+              if (didPop) return;
+              final nav = Navigator.of(innerCtx);
+              final shouldExit = await _confirmExitSession();
+              if (!mounted || !shouldExit) return;
+              nav.pop();
             },
-            itemBuilder: (_) => [
-              PopupMenuItem<String>(
-                value: 'language',
-                child: Row(
-                  children: [
-                    Text(_tts.getLanguageFlag(_langCode),
-                        style: const TextStyle(fontSize: 16)),
-                    const SizedBox(width: 8),
-                    Text(t.test_question_language_menu),
-                    const Spacer(),
-                    Icon(Icons.chevron_right,
-                        size: 16,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.4)),
-                  ],
+            child: Scaffold(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              appBar: AppBar(
+                leading: IconButton(
+                  icon: Icon(Icons.close,
+                      color: Theme.of(context).colorScheme.onSurface),
+                  onPressed: () async {
+                    final nav = Navigator.of(context);
+                    final shouldExit = await _confirmExitSession();
+                    if (!mounted || !shouldExit) return;
+                    nav.pop();
+                  },
                 ),
+                title: _PillProgressBar(done: _doneCount, total: _total),
+                centerTitle: false,
+                titleSpacing: 0,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                elevation: 0,
+                actions: [
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert,
+                        color: Theme.of(context).colorScheme.onSurface),
+                    onSelected: (value) {
+                      if (value == 'language') _showLanguageSheet();
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem<String>(
+                        value: 'language',
+                        child: Row(
+                          children: [
+                            Text(_tts.getLanguageFlag(_langCode),
+                                style: const TextStyle(fontSize: 16)),
+                            const SizedBox(width: 8),
+                            Text(t.test_question_language_menu),
+                            const Spacer(),
+                            Icon(Icons.chevron_right,
+                                size: 16,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.4)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
-      body: q == null
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    transitionBuilder: (child, anim) =>
-                        FadeTransition(opacity: anim, child: child),
-                    layoutBuilder: (currentChild, previousChildren) => Stack(
-                      alignment: Alignment.topCenter,
+              body: q == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
                       children: [
-                        ...previousChildren,
-                        if (currentChild != null) currentChild,
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            transitionBuilder: (child, anim) =>
+                                FadeTransition(opacity: anim, child: child),
+                            layoutBuilder: (currentChild, previousChildren) =>
+                                Stack(
+                              alignment: Alignment.topCenter,
+                              children: [
+                                ...previousChildren,
+                                if (currentChild != null) currentChild,
+                              ],
+                            ),
+                            child: KeyedSubtree(
+                              key: ValueKey(_pageKey),
+                              child: QuestionPageItem(
+                                index: 0,
+                                question: q,
+                                legacyImageUrl: _api.fetchImage(
+                                  widget.licenceId,
+                                  widget.categoryId,
+                                  q.imageUrl,
+                                ),
+                                userSelections: _selection,
+                                isReviewMode: false,
+                                instantMarking: true,
+                                savedQuestionIds: const {},
+                                aiEnabled: _aiEnabled,
+                                hasAiSession:
+                                    id != null && _aiSessions.containsKey(id),
+                                currentLanguageCode: _langCode,
+                                scale: 1.0,
+                                onOptionTap: _onOptionTap,
+                                onLongPress: () {},
+                                onLongPressUp: () {},
+                                onAiContinue: _openAiChat,
+                                onAiHint: () => _openAiChat(
+                                  displayText: t.ai_hint_button,
+                                  prompt:
+                                      'Give me a short hint that helps me figure out the answer without telling me directly. You MUST reply in $_uiLang only.',
+                                ),
+                                onAiUnderstand: () => _openAiChat(
+                                  displayText: t.ai_understand_button,
+                                  prompt:
+                                      'Help me understand this question. Explain the concept it is testing and why the correct answer is right. You MUST reply in $_uiLang only.',
+                                ),
+                                onToggleSave: (_, __) {},
+                              ),
+                            ),
+                          ),
+                        ),
+                        _NextButton(
+                          enabled: _isAnswered && !_finishing,
+                          label: _isLastAction
+                              ? t.smart_result_continue
+                              : t.bcd_next,
+                          onPressed: _advance,
+                        ),
                       ],
                     ),
-                    child: KeyedSubtree(
-                      key: ValueKey(_pageKey),
-                      child: QuestionPageItem(
-                        index: 0,
-                        question: q,
-                        legacyImageUrl: _api.fetchImage(
-                          widget.licenceId,
-                          widget.categoryId,
-                          q.imageUrl,
-                        ),
-                        userSelections: _selection,
-                        isReviewMode: false,
-                        instantMarking: true,
-                        savedQuestionIds: const {},
-                        aiEnabled: _aiEnabled,
-                        hasAiSession:
-                            id != null && _aiSessions.containsKey(id),
-                        currentLanguageCode: _langCode,
-                        scale: 1.0,
-                        onOptionTap: _onOptionTap,
-                        onLongPress: () {},
-                        onLongPressUp: () {},
-                        onAiContinue: _openAiChat,
-                        onAiHint: () => _openAiChat(
-                          displayText: t.ai_hint_button,
-                          prompt:
-                              'Give me a short hint that helps me figure out the answer without telling me directly. You MUST reply in $_uiLang only.',
-                        ),
-                        onAiUnderstand: () => _openAiChat(
-                          displayText: t.ai_understand_button,
-                          prompt:
-                              'Help me understand this question. Explain the concept it is testing and why the correct answer is right. You MUST reply in $_uiLang only.',
-                        ),
-                        onToggleSave: (_, __) {},
-                      ),
-                    ),
-                  ),
-                ),
-                _NextButton(
-                  enabled: _isAnswered && !_finishing,
-                  label:
-                      _isLastAction ? t.smart_result_continue : t.bcd_next,
-                  onPressed: _advance,
-                ),
-              ],
-            ),
-        )); // PopScope + Scaffold
+            )); // PopScope + Scaffold
       }), // Builder
     ); // CupertinoScaffold
   }
@@ -554,8 +556,7 @@ class _NextButton extends StatelessWidget {
             onPressed: enabled ? onPressed : null,
             child: Text(
               label,
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
         ),

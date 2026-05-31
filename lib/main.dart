@@ -137,7 +137,8 @@ Future<void> _appMain() async {
     Hive.registerAdapter(SubscribedExamAdapter());
   }
   if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(ExamNodeAdapter());
-  if (!Hive.isAdapterRegistered(6)) Hive.registerAdapter(SmartProgressAdapter());
+  if (!Hive.isAdapterRegistered(6))
+    Hive.registerAdapter(SmartProgressAdapter());
   if (!Hive.isAdapterRegistered(7)) Hive.registerAdapter(WeakQuestionAdapter());
   final notificationProvider = await NotificationProvider.create();
   final dashboardProvider =

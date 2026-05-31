@@ -122,7 +122,10 @@ void main() {
       // No wrong answers: 3 questions total
       final mgrClean = SmartQueueManager(makeQuestions(3));
       int count = 0;
-      while (!mgrClean.isDone) { mgrClean.answer(true); count++; }
+      while (!mgrClean.isDone) {
+        mgrClean.answer(true);
+        count++;
+      }
       expect(count, 3);
 
       // One wrong answer: 3 + 1 re-ask = 4
@@ -130,8 +133,12 @@ void main() {
       int count2 = 0;
       bool didWrong = false;
       while (!mgr.isDone) {
-        if (!didWrong) { mgr.answer(false); didWrong = true; }
-        else { mgr.answer(true); }
+        if (!didWrong) {
+          mgr.answer(false);
+          didWrong = true;
+        } else {
+          mgr.answer(true);
+        }
         count2++;
         if (count2 > 10) break; // safety
       }
@@ -150,8 +157,8 @@ void main() {
     test('firstAttempts records only first answer', () {
       final mgr = SmartQueueManager(makeQuestions(2));
       mgr.answer(false); // q0 wrong first attempt
-      mgr.answer(true);  // q1 correct
-      mgr.answer(true);  // q0 re-ask correct -- must NOT overwrite firstAttempts
+      mgr.answer(true); // q1 correct
+      mgr.answer(true); // q0 re-ask correct -- must NOT overwrite firstAttempts
       expect(mgr.firstAttempts['q0'], false);
       expect(mgr.firstAttempts['q1'], true);
     });

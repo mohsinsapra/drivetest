@@ -76,10 +76,8 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
         final weakIds = await _svc.allWeakQuestionIds(testBcdId);
         final baseIds = base.map((q) => q.questionId).toSet();
         final cap = (limit * 0.3).floor();
-        final injectIds = weakIds
-            .where((id) => !baseIds.contains(id))
-            .take(cap)
-            .toList();
+        final injectIds =
+            weakIds.where((id) => !baseIds.contains(id)).take(cap).toList();
 
         if (injectIds.isNotEmpty) {
           final injected =
@@ -127,8 +125,7 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
             await _svc.recordSessionResults(testBcdId, finalResults);
             final mastered = await _svc.masteredQuestionCount(
                 testBcdId, widget.entry.chunkSizes);
-            final correct =
-                finalResults.values.where((v) => v).length;
+            final correct = finalResults.values.where((v) => v).length;
             return SmartResultScreen(
               entry: widget.entry,
               chunkIndex: chunkIdx,

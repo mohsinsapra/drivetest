@@ -15,7 +15,7 @@ import 'package:taxi_exam_app/features/smart_learning/screens/smart_session_scre
 ///  - Continue button (pops back to SmartExamScreen)
 class SmartResultScreen extends StatefulWidget {
   final SmartExamEntry entry;
-  final int chunkIndex;   // -1 = mistakes mode
+  final int chunkIndex; // -1 = mistakes mode
   final bool isMistakesMode;
   final bool hasPassed;
   final int correct;
@@ -45,10 +45,9 @@ class _SmartResultScreenState extends State<SmartResultScreen>
 
   double get _scorePercent =>
       widget.total == 0 ? 0 : widget.correct / widget.total;
-  double get _masteryPercent =>
-      widget.entry.questionCount == 0
-          ? 0
-          : widget.masteredCount / widget.entry.questionCount;
+  double get _masteryPercent => widget.entry.questionCount == 0
+      ? 0
+      : widget.masteredCount / widget.entry.questionCount;
 
   @override
   void initState() {
@@ -76,9 +75,8 @@ class _SmartResultScreenState extends State<SmartResultScreen>
     final cs = theme.colorScheme;
     final t = Translations.of(context);
 
-    final headerColor = widget.hasPassed
-        ? const Color(0xFF16A34A)
-        : const Color(0xFFDC2626);
+    final headerColor =
+        widget.hasPassed ? const Color(0xFF16A34A) : const Color(0xFFDC2626);
 
     final totalQ = widget.entry.questionCount;
     final needed = (totalQ * 0.70).ceil();
@@ -188,7 +186,8 @@ class _SmartResultScreenState extends State<SmartResultScreen>
                           ),
                         ),
                         child: Text(t.smart_chunk_retry,
-                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],
@@ -280,13 +279,11 @@ class _ScoreHeader extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
-              border:
-                  Border.all(color: Colors.white.withValues(alpha: 0.4)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
             ),
             child: Text(
               hasPassed
@@ -361,8 +358,7 @@ class _StatChip extends StatelessWidget {
                   color: Colors.white)),
           Text(label,
               style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.8))),
+                  fontSize: 11, color: Colors.white.withValues(alpha: 0.8))),
         ],
       ),
     );
@@ -396,8 +392,7 @@ class _MasteryCard extends StatelessWidget {
     final cs = theme.colorScheme;
     final t = Translations.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final barColor =
-        masteryPassed ? Colors.green.shade500 : cs.primary;
+    final barColor = masteryPassed ? Colors.green.shade500 : cs.primary;
     const passThreshold = 0.70;
 
     return Container(
@@ -430,8 +425,8 @@ class _MasteryCard extends StatelessWidget {
                       ?.copyWith(fontWeight: FontWeight.w700)),
               const Spacer(),
               Text('$mastered / $total',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color: cs.onSurface.withValues(alpha: 0.55))),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: cs.onSurface.withValues(alpha: 0.55))),
             ],
           ),
           const SizedBox(height: 14),
@@ -449,8 +444,7 @@ class _MasteryCard extends StatelessWidget {
                         ? 0.0
                         : masteryProgress.clamp(0.04, 1.0),
                     minHeight: 12,
-                    backgroundColor:
-                        cs.onSurface.withValues(alpha: 0.08),
+                    backgroundColor: cs.onSurface.withValues(alpha: 0.08),
                     valueColor: AlwaysStoppedAnimation<Color>(barColor),
                   ),
                 ),
@@ -476,15 +470,13 @@ class _MasteryCard extends StatelessWidget {
                 '${(masteryProgress * 100).round()}%',
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: masteryPassed
-                      ? Colors.green.shade600
-                      : cs.primary,
+                  color: masteryPassed ? Colors.green.shade600 : cs.primary,
                 ),
               ),
               const Spacer(),
               Text(t.smart_result_threshold,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color: cs.onSurface.withValues(alpha: 0.45))),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: cs.onSurface.withValues(alpha: 0.45))),
             ],
           ),
 

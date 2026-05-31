@@ -25,10 +25,12 @@ class SmartCategoryMistakesScreen extends StatefulWidget {
   });
 
   @override
-  State<SmartCategoryMistakesScreen> createState() => _SmartCategoryMistakesScreenState();
+  State<SmartCategoryMistakesScreen> createState() =>
+      _SmartCategoryMistakesScreenState();
 }
 
-class _SmartCategoryMistakesScreenState extends State<SmartCategoryMistakesScreen> {
+class _SmartCategoryMistakesScreenState
+    extends State<SmartCategoryMistakesScreen> {
   final _provider = BcdProvider();
   final _svc = SmartProgressService();
 
@@ -61,8 +63,7 @@ class _SmartCategoryMistakesScreenState extends State<SmartCategoryMistakesScree
       final testId = entry.key;
       final ids = entry.value;
       try {
-        final questions =
-            await _provider.fetchChunkQuestions(testId, ids: ids);
+        final questions = await _provider.fetchChunkQuestions(testId, ids: ids);
         for (final q in questions) {
           questionTestMap[q.questionId] = testId;
         }
@@ -104,8 +105,8 @@ class _SmartCategoryMistakesScreenState extends State<SmartCategoryMistakesScree
             }
 
             // Find the entry with the most questions for the result screen context.
-            final primaryEntry = widget.entries.reduce((a, b) =>
-                a.questionCount >= b.questionCount ? a : b);
+            final primaryEntry = widget.entries
+                .reduce((a, b) => a.questionCount >= b.questionCount ? a : b);
             final mastered = await _svc.masteredQuestionCount(
                 primaryEntry.testBcdId, primaryEntry.chunkSizes);
             final correct = finalResults.values.where((v) => v).length;

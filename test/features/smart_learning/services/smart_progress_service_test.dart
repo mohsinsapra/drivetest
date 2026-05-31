@@ -101,7 +101,8 @@ void main() {
       expect(ids, isNot(contains('q3')));
     });
 
-    test('wrong answer resets streak; two new correct answers graduate', () async {
+    test('wrong answer resets streak; two new correct answers graduate',
+        () async {
       await svc.recordSessionResults(400, {'q4': false});
       await svc.recordSessionResults(400, {'q4': true});
       await svc.recordSessionResults(400, {'q4': true});

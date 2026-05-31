@@ -35,7 +35,8 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
     // Start all futures in parallel, then await each with a named variable.
     final activeChunkF = _svc.activeSmartIndex(widget.entry.testBcdId, total);
     final weakCountF = _svc.weakQuestionCount(widget.entry.testBcdId);
-    final masteredCountF = _svc.masteredQuestionCount(widget.entry.testBcdId, widget.entry.chunkSizes);
+    final masteredCountF = _svc.masteredQuestionCount(
+        widget.entry.testBcdId, widget.entry.chunkSizes);
     final activeChunk = await activeChunkF;
     final weakCount = await weakCountF;
     final masteredCount = await masteredCountF;
@@ -339,8 +340,10 @@ class _ChunkCard extends StatelessWidget {
                     : isActive
                         ? t.smart_chunk_active
                         : t.smart_chunk_locked,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: color, fontWeight: FontWeight.w600),
+                style: Theme.of(context)
+                    .textTheme
+                    .labelMedium
+                    ?.copyWith(color: color, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -379,8 +382,10 @@ class _TrainMistakesCard extends StatelessWidget {
             Expanded(
               child: Text(
                 t.smart_train_mistakes(count: count),
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: cs.error, fontWeight: FontWeight.w600),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(color: cs.error, fontWeight: FontWeight.w600),
               ),
             ),
             Icon(Icons.chevron_right_rounded,
@@ -456,8 +461,10 @@ class _FullExamCard extends StatelessWidget {
               hasCompletedPreviousParts
                   ? t.smart_full_exam_completed_parts
                   : t.smart_full_exam_early_attempt,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: cs.onSurface.withValues(alpha: 0.55)),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: cs.onSurface.withValues(alpha: 0.55)),
             ),
             const SizedBox(height: 8),
             Text(

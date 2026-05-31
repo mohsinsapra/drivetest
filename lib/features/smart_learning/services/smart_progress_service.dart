@@ -84,13 +84,10 @@ class SmartProgressService {
 
   /// Returns up to `floor(chunkSize * 0.3)` weak question IDs for [testBcdId],
   /// sorted by wrongCount descending (most-wrong first).
-  Future<List<String>> weakQuestionIdsFor(
-      int testBcdId, int chunkSize) async {
+  Future<List<String>> weakQuestionIdsFor(int testBcdId, int chunkSize) async {
     final box = await AppStorage.weakQuestionsBox();
     final cap = (chunkSize * 0.3).floor();
-    final weak = box.values
-        .where((wq) => wq.testBcdId == testBcdId)
-        .toList()
+    final weak = box.values.where((wq) => wq.testBcdId == testBcdId).toList()
       ..sort((a, b) => b.wrongCount.compareTo(a.wrongCount));
     return weak.take(cap).map((wq) => wq.questionId).toList();
   }
@@ -98,9 +95,7 @@ class SmartProgressService {
   /// Returns all weak question IDs for [testBcdId] (for Train Mistakes mode).
   Future<List<String>> allWeakQuestionIds(int testBcdId) async {
     final box = await AppStorage.weakQuestionsBox();
-    final weak = box.values
-        .where((wq) => wq.testBcdId == testBcdId)
-        .toList()
+    final weak = box.values.where((wq) => wq.testBcdId == testBcdId).toList()
       ..sort((a, b) => b.wrongCount.compareTo(a.wrongCount));
     return weak.map((wq) => wq.questionId).toList();
   }
@@ -124,8 +119,7 @@ class SmartProgressService {
     final box = await AppStorage.weakQuestionsBox();
     final idSet = testBcdIds.toSet();
     final result = <int, List<String>>{};
-    for (final wq
-        in box.values.where((wq) => idSet.contains(wq.testBcdId))) {
+    for (final wq in box.values.where((wq) => idSet.contains(wq.testBcdId))) {
       result.putIfAbsent(wq.testBcdId, () => []).add(wq.questionId);
     }
     return result;
@@ -135,8 +129,7 @@ class SmartProgressService {
   ///
   /// A question is considered mastered when its chunk has been passed (≥70%
   /// correct). Returns the sum of question counts for all passed chunks.
-  Future<int> masteredQuestionCount(
-      int testBcdId, List<int> chunkSizes) async {
+  Future<int> masteredQuestionCount(int testBcdId, List<int> chunkSizes) async {
     final box = await AppStorage.smartProgressBox();
     int count = 0;
     for (int i = 0; i < chunkSizes.length; i++) {
