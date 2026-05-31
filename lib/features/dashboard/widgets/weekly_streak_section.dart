@@ -3,21 +3,37 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import '../models/dashboard_stats.dart';
 import 'streak_stat_label.dart';
 
-class WeeklyStreakSection extends StatelessWidget {
+class WeeklyStreakSection extends StatefulWidget {
   const WeeklyStreakSection({super.key, required this.streak});
 
   final StreakSummary streak;
 
   @override
+  State<WeeklyStreakSection> createState() => _WeeklyStreakSectionState();
+}
+
+class _WeeklyStreakSectionState extends State<WeeklyStreakSection> {
+  late final DateTime _now;
+  late final List<DateTime> _days;
+
+  @override
+  void initState() {
+    super.initState();
+    _now = DateTime.now();
+    final monday = DateTime(_now.year, _now.month, _now.day)
+        .subtract(Duration(days: _now.weekday - 1));
+    _days = List.generate(7, (i) => monday.add(Duration(days: i)));
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final streak = widget.streak;
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final t = Translations.of(context);
-    final now = DateTime.now();
-    final monday = DateTime(now.year, now.month, now.day)
-        .subtract(Duration(days: now.weekday - 1));
-    final days = List.generate(7, (i) => monday.add(Duration(days: i)));
+    final now = _now;
+    final days = _days;
     final dayLabels = [
       t.dash_day_mon,
       t.dash_day_tue,
@@ -99,61 +115,65 @@ class WeeklyStreakSection extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(7, (i) {
-                final day = days[i];
-                final isActive = streak.isActiveDay(day);
-                final isToday = day.year == now.year &&
-                    day.month == now.month &&
-                    day.day == now.day;
-                final isFuture = day.isAfter(now);
+            RepaintBoundary(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: List.generate(7, (i) {
+                  final day = days[i];
+                  final isActive = streak.isActiveDay(day);
+                  final isToday = day.year == now.year &&
+                      day.month == now.month &&
+                      day.day == now.day;
+                  final isFuture = day.isAfter(now);
 
-                return Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: cs.onSurface.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 400),
-                            height:
-                                isActive ? 40 : (isToday && !isFuture ? 18 : 0),
-                            decoration: BoxDecoration(
-                              color: isActive
-                                  ? Colors.amber
-                                  : Colors.amber.withValues(alpha: 0.35),
-                              borderRadius: BorderRadius.circular(4),
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: cs.onSurface.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 400),
+                              height: isActive
+                                  ? 40
+                                  : (isToday && !isFuture ? 18 : 0),
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? Colors.amber
+                                    : Colors.amber.withValues(alpha: 0.35),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        dayLabels[i],
-                        style: TextStyle(
-                          color: isToday
-                              ? Colors.amber
-                              : isDark
-                                  ? cs.onSurface
-                                  : cs.onInverseSurface.withValues(alpha: 0.5),
-                          fontSize: 9,
-                          fontWeight:
-                              isToday ? FontWeight.w800 : FontWeight.w600,
+                        const SizedBox(height: 6),
+                        Text(
+                          dayLabels[i],
+                          style: TextStyle(
+                            color: isToday
+                                ? Colors.amber
+                                : isDark
+                                    ? cs.onSurface
+                                    : cs.onInverseSurface
+                                        .withValues(alpha: 0.5),
+                            fontSize: 9,
+                            fontWeight:
+                                isToday ? FontWeight.w800 : FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
+                      ],
+                    ),
+                  );
+                }),
+              ),
             ),
           ],
         ),

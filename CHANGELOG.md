@@ -10,17 +10,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Smart Learning Feature**: A new structured learning path for BCD tests.
+  - Auto-chunking of large question sets into manageable sessions (10-15 questions).
+  - Weak Question Pool: Questions answered incorrectly are tracked and re-introduced in subsequent sessions for reinforcement.
+  - Mastery Progress: Visual tracking of "Mastered" questions based on passed chunks.
+  - Spaced Repetition: Graduating questions from the weak pool after consecutive correct answers.
+- **Mock Exam Mode**: Enhanced `Testscreen` with a dedicated "Mock Exam" variant.
+  - Conditional Hearts/Lives system (3 hearts) for early mock exam attempts.
+  - Game-over state when hearts are depleted, with a specialized summary sheet.
+  - Clean UI: Hides standard test controls (translation, feedback, timer toggles) in mock mode to simulate a real exam.
+- **New Dashboard Components**:
+  - `SmartJourneySection`: A visual progression map for the Smart Learning path.
+  - Updated `PerformanceInsightCard` and `WeeklyStreakSection` for better visual consistency.
+- **Testing**:
+  - Added comprehensive widget tests for the new Mock Exam header and hearts behavior.
+  - Unit tests for `SmartProgressService`, `SmartSessionBuilder`, and `SmartUtils`.
 
 ### Changed
--
+- Refactored `Testscreen` to support modular headers and "Real-exam" constraints.
+- Optimized `ApiService` with support for paginated and ID-specific question fetching.
+- Enhanced question navigation grid with "Answered" count summary.
+- Improved localized string support for Smart Learning feedback.
 
 ### Fixed
--
+- Fixed layout overflows in dashboard carousels on smaller devices.
+- Resolved issue where tutorial overlays could reappear in review modes.
 
 ---
 
-## [1.1.64+262] - 2026-05-30
+### Added
+-
 
 ### Added
 - Reusable `AppBottomSheetContainer` component for consistent bottom sheet chrome across the app; supports optional `hint` slot for in-sheet tutorial banners

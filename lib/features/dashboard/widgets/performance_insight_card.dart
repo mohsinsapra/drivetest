@@ -5,7 +5,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import '../models/dashboard_stats.dart';
 import 'mini_bar_chart.dart';
 
-class PerformanceInsightCard extends StatelessWidget {
+class PerformanceInsightCard extends StatefulWidget {
   const PerformanceInsightCard({
     super.key,
     required this.stats,
@@ -15,16 +15,36 @@ class PerformanceInsightCard extends StatelessWidget {
   final ExamDashboardStats stats;
   final bool isLoading;
 
-  /// Normalized bar heights representing the last 5 days of streak activity.
-  /// Full bar (1.0) = active day, dim stub (0.08) = no activity.
-  List<double> _streakBars() {
-    final streak = stats.streak.currentStreak.clamp(0, 5);
-    return List.generate(5, (i) => i >= (5 - streak) ? 1.0 : 0.08);
+  @override
+  State<PerformanceInsightCard> createState() => _PerformanceInsightCardState();
+}
+
+class _PerformanceInsightCardState extends State<PerformanceInsightCard> {
+  late List<double> _streakBars;
+  int? _lastStreakValue;
+
+  @override
+  void didUpdateWidget(PerformanceInsightCard old) {
+    super.didUpdateWidget(old);
+    final newStreak = widget.stats.streak.currentStreak;
+    if (newStreak != _lastStreakValue) {
+      _lastStreakValue = newStreak;
+      final clamped = newStreak.clamp(0, 5);
+      _streakBars = List.generate(5, (i) => i >= (5 - clamped) ? 1.0 : 0.08);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final streak = widget.stats.streak.currentStreak.clamp(0, 5);
+    _lastStreakValue = widget.stats.streak.currentStreak;
+    _streakBars = List.generate(5, (i) => i >= (5 - streak) ? 1.0 : 0.08);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return _buildShimmer(context);
+    if (widget.isLoading) return _buildShimmer(context);
     return _buildContent(context);
   }
 
@@ -32,10 +52,10 @@ class PerformanceInsightCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final t = Translations.of(context);
 
-    final streak = stats.streak.currentStreak;
-    final avgScore = stats.overallAverageScore;
-    final completed = stats.completedBatchCount;
-    final total = stats.totalBatchCount;
+    final streak = widget.stats.streak.currentStreak;
+    final avgScore = widget.stats.overallAverageScore;
+    final completed = widget.stats.completedBatchCount;
+    final total = widget.stats.totalBatchCount;
 
     final subtitle = streak > 0
         ? t.dash_streak_msg_amazing.replaceAll('{n}', '$streak')
@@ -87,9 +107,11 @@ class PerformanceInsightCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              MiniBarChart(
-                color: cs.primary.withValues(alpha: 0.6),
-                heights: _streakBars(),
+              RepaintBoundary(
+                child: MiniBarChart(
+                  color: cs.primary.withValues(alpha: 0.6),
+                  heights: _streakBars,
+                ),
               ),
             ],
           ),

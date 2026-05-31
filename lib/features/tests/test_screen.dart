@@ -69,6 +69,15 @@ class Testscreen extends StatefulWidget {
   final void Function(bool hasPassed, Map<String, bool> questionResults)?
       onComplete;
 
+  /// Real-exam variant used by Smart Learning full mock exams.
+  final bool isMockExamMode;
+
+  /// Optional hearts/lives limit for mock exams. `null` disables hearts.
+  final int? maxWrongAnswers;
+
+  /// Called when the mock-exam hearts reach zero.
+  final VoidCallback? onGameOver;
+
   /// When true, replaces the "Q X of N" progress header with a plain title.
   final bool hideProgress;
 
@@ -91,6 +100,9 @@ class Testscreen extends StatefulWidget {
     this.bcdTestId,
     this.initiallySavedQuestionIds,
     this.onComplete,
+    this.isMockExamMode = false,
+    this.maxWrongAnswers,
+    this.onGameOver,
     this.hideProgress = false,
   });
 
@@ -112,6 +124,7 @@ class _TestscreenState extends State<Testscreen> {
   final Map<int, _AiSession> _aiSessions = {};
 
   bool _aiEnabled = false;
+  int _wrongCount = 0;
 
   // GlobalKeys for the translation tutorial.
   final _langMenuKey = GlobalKey<PopupMenuButtonState<String>>();
@@ -167,7 +180,7 @@ class _TestscreenState extends State<Testscreen> {
   @override
   void reassemble() {
     super.reassemble();
-    if (kDebugMode && !widget.isReviewMode) {
+    if (kDebugMode && !widget.isReviewMode && !widget.isMockExamMode) {
       _dismissTutorial();
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _checkAndShowTutorial());
@@ -188,7 +201,9 @@ class _TestscreenState extends State<Testscreen> {
     disableScreenshot();
 
     _isTimed = widget.isTimed;
-    _instantMarking = widget.instantMarking;
+    _instantMarking = widget.isMockExamMode && widget.maxWrongAnswers != null
+        ? true
+        : widget.instantMarking;
 
     if (_isTimed && !widget.isReviewMode) {
       _remainingSeconds = widget.timeLimitMinutes * 60;
@@ -204,13 +219,15 @@ class _TestscreenState extends State<Testscreen> {
     _savedQuestionIds =
         Set<String>.from(widget.initiallySavedQuestionIds ?? {});
 
-    _loadSavedQuestionIds();
-    _loadAiEnabled();
+    if (!widget.isMockExamMode) {
+      _loadSavedQuestionIds();
+      _loadAiEnabled();
+    }
     // Pre-open the Hive box so saves never hang waiting for it to open
     AppStorage.testAttemptsBox();
     if (!widget.isReviewMode) _applyShuffleIfEnabled();
 
-    if (!widget.isReviewMode) {
+    if (!widget.isReviewMode && !widget.isMockExamMode) {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _checkAndShowTutorial());
     }
@@ -575,22 +592,41 @@ class _TestscreenState extends State<Testscreen> {
       // Do not allow selection in review mode
       return;
     }
+    final isHeartsMode =
+        widget.isMockExamMode && widget.maxWrongAnswers != null;
     // Prevent re-selection if already answered in instant marking mode
-    if (_instantMarking && userSelections[index] != null) {
+    if ((_instantMarking || isHeartsMode) && userSelections[index] != null) {
       return;
     }
+    final isCorrect = optionId == widget.questions[index].correctAnswer;
     if (_instantMarking) {
-      if (optionId == widget.questions[index].correctAnswer) {
+      if (isCorrect) {
         vibrateCorrectAnswer();
       } else {
         vibrateWrongAnswer();
+      }
+    } else if (isHeartsMode) {
+      if (!isCorrect) {
+        vibrateWrongAnswer();
+      } else {
+        playNavigationFeedback();
       }
     } else {
       playNavigationFeedback();
     }
     setState(() {
       userSelections[index] = optionId;
+      if (isHeartsMode && !isCorrect) {
+        _wrongCount++;
+      }
     });
+    if (isHeartsMode &&
+        !isCorrect &&
+        widget.maxWrongAnswers != null &&
+        _wrongCount >= widget.maxWrongAnswers!) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => widget.onGameOver?.call());
+    }
   }
 
   void _nextQuestion() async {
@@ -1205,126 +1241,9 @@ class _TestscreenState extends State<Testscreen> {
                     ),
               centerTitle: false,
               titleSpacing: 0,
-              actions: [
-                // Timer display — ValueListenableBuilder isolates rebuilds to this
-                // widget only; the rest of the screen is unaffected by each tick.
-                if (_isTimed && !widget.isReviewMode)
-                  TestTimerChip(
-                    timerNotifier: _timerNotifier,
-                    visible: _timerVisible,
-                    onToggle: () =>
-                        setState(() => _timerVisible = !_timerVisible),
-                  ),
-                PopupMenuButton<String>(
-                  key: _langMenuKey,
-                  icon: Icon(Icons.more_vert,
-                      color: Theme.of(context).colorScheme.onSurface),
-                  onSelected: (value) {
-                    if (value == 'language') {
-                      _showLanguageSheet();
-                    } else if (value == 'feedback') {
-                      _showFeedbackDialog();
-                    } else if (value == 'toggle_timer') {
-                      setState(() {
-                        _isTimed = !_isTimed;
-                        if (_isTimed) {
-                          if (_remainingSeconds <= 0) {
-                            _remainingSeconds = widget.timeLimitMinutes * 60;
-                            _timerNotifier.value = _remainingSeconds;
-                          }
-                          _startTimer();
-                        } else {
-                          _countdownTimer?.cancel();
-                        }
-                      });
-                    } else if (value == 'toggle_instant') {
-                      setState(() => _instantMarking = !_instantMarking);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem<String>(
-                      value: 'language',
-                      child: Row(
-                        children: [
-                          Text(
-                            ttsService.getLanguageFlag(currentLanguageCode),
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(t.test_question_language_menu),
-                          const Spacer(),
-                          Icon(Icons.chevron_right,
-                              size: 16, color: Colors.grey[500]),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      enabled: false,
-                      height: 1,
-                      padding: EdgeInsets.zero,
-                      child: Divider(
-                          color: Theme.of(context).dividerColor, height: 1),
-                    ),
-                    if (!widget.isReviewMode)
-                      PopupMenuItem<String>(
-                        value: 'toggle_timer',
-                        child: Row(
-                          children: [
-                            Icon(
-                                _isTimed
-                                    ? Icons.timer_off_outlined
-                                    : Icons.timer_outlined,
-                                size: 18),
-                            const SizedBox(width: 8),
-                            Text(_isTimed
-                                ? t.test_turn_off_timer
-                                : t.test_turn_on_timer),
-                            const Spacer(),
-                            if (_isTimed) const Icon(Icons.check, size: 16),
-                          ],
-                        ),
-                      ),
-                    if (!widget.isReviewMode)
-                      PopupMenuItem<String>(
-                        value: 'toggle_instant',
-                        child: Row(
-                          children: [
-                            Icon(
-                                _instantMarking
-                                    ? Icons.rule_outlined
-                                    : Icons.rule_outlined,
-                                size: 18),
-                            const SizedBox(width: 8),
-                            Text(_instantMarking
-                                ? t.test_turn_off_instant_marking
-                                : t.test_turn_on_instant_marking),
-                            const Spacer(),
-                            if (_instantMarking)
-                              const Icon(Icons.check, size: 16),
-                          ],
-                        ),
-                      ),
-                    if (!widget.isReviewMode)
-                      PopupMenuItem<String>(
-                        enabled: false,
-                        height: 1,
-                        padding: EdgeInsets.zero,
-                        child: Divider(
-                            color: Theme.of(context).dividerColor, height: 1),
-                      ),
-                    PopupMenuItem<String>(
-                      value: 'feedback',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline, size: 18),
-                          const SizedBox(width: 8),
-                          Text(t.test_feedback_title),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              actions: widget.isMockExamMode
+                  ? _buildMockExamActions()
+                  : _buildStandardActions(t),
             ),
             body: PageView.builder(
               controller: _pageController,
@@ -1463,18 +1382,154 @@ class _TestscreenState extends State<Testscreen> {
     ); // PopScope
   } // build
 
-// Add this helper method for language flags
+  List<Widget> _buildMockExamActions() {
+    return [
+      if (widget.maxWrongAnswers != null)
+        Padding(
+          padding: const EdgeInsets.only(left: 4, right: 8),
+          child: Center(
+            child: _HeartLivesChip(
+              remaining: (widget.maxWrongAnswers! - _wrongCount)
+                  .clamp(0, widget.maxWrongAnswers!),
+            ),
+          ),
+        ),
+      if (_isTimed && !widget.isReviewMode)
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: TestTimerChip(
+            timerNotifier: _timerNotifier,
+            visible: true,
+            onToggle: () {},
+          ),
+        ),
+    ];
+  }
+
+  List<Widget> _buildStandardActions(Translations t) {
+    return [
+      if (_isTimed && !widget.isReviewMode)
+        TestTimerChip(
+          timerNotifier: _timerNotifier,
+          visible: _timerVisible,
+          onToggle: () => setState(() => _timerVisible = !_timerVisible),
+        ),
+      PopupMenuButton<String>(
+        key: _langMenuKey,
+        icon:
+            Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
+        onSelected: (value) {
+          if (value == 'language') {
+            _showLanguageSheet();
+          } else if (value == 'feedback') {
+            _showFeedbackDialog();
+          } else if (value == 'toggle_timer') {
+            setState(() {
+              _isTimed = !_isTimed;
+              if (_isTimed) {
+                if (_remainingSeconds <= 0) {
+                  _remainingSeconds = widget.timeLimitMinutes * 60;
+                  _timerNotifier.value = _remainingSeconds;
+                }
+                _startTimer();
+              } else {
+                _countdownTimer?.cancel();
+              }
+            });
+          } else if (value == 'toggle_instant') {
+            setState(() => _instantMarking = !_instantMarking);
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem<String>(
+            value: 'language',
+            child: Row(
+              children: [
+                Text(
+                  ttsService.getLanguageFlag(currentLanguageCode),
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(width: 8),
+                Text(t.test_question_language_menu),
+                const Spacer(),
+                Icon(Icons.chevron_right, size: 16, color: Colors.grey[500]),
+              ],
+            ),
+          ),
+          PopupMenuItem<String>(
+            enabled: false,
+            height: 1,
+            padding: EdgeInsets.zero,
+            child: Divider(color: Theme.of(context).dividerColor, height: 1),
+          ),
+          if (!widget.isReviewMode)
+            PopupMenuItem<String>(
+              value: 'toggle_timer',
+              child: Row(
+                children: [
+                  Icon(
+                      _isTimed
+                          ? Icons.timer_off_outlined
+                          : Icons.timer_outlined,
+                      size: 18),
+                  const SizedBox(width: 8),
+                  Text(_isTimed
+                      ? t.test_turn_off_timer
+                      : t.test_turn_on_timer),
+                  const Spacer(),
+                  if (_isTimed) const Icon(Icons.check, size: 16),
+                ],
+              ),
+            ),
+          if (!widget.isReviewMode)
+            PopupMenuItem<String>(
+              value: 'toggle_instant',
+              child: Row(
+                children: [
+                  const Icon(Icons.rule_outlined, size: 18),
+                  const SizedBox(width: 8),
+                  Text(_instantMarking
+                      ? t.test_turn_off_instant_marking
+                      : t.test_turn_on_instant_marking),
+                  const Spacer(),
+                  if (_instantMarking) const Icon(Icons.check, size: 16),
+                ],
+              ),
+            ),
+          if (!widget.isReviewMode)
+            PopupMenuItem<String>(
+              enabled: false,
+              height: 1,
+              padding: EdgeInsets.zero,
+              child: Divider(color: Theme.of(context).dividerColor, height: 1),
+            ),
+          PopupMenuItem<String>(
+            value: 'feedback',
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, size: 18),
+                const SizedBox(width: 8),
+                Text(t.test_feedback_title),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
 
 // Add this method to show the question navigation sheet
   void _showQuestionNavigationSheet() {
     final progressText = t.test_question_progress
         .replaceAll('{current}', '${currentQuestionIndex + 1}')
         .replaceAll('{total}', '${widget.questions.length}');
+    final answeredText =
+        '${userSelections.length}/${widget.questions.length} ${t.test_answered}';
     CupertinoScaffold.showCupertinoModalBottomSheet<void>(
       context: _sheetContext ?? context,
       builder: (ctx) => AppBottomSheetContainer(
         title: t.test_questions_title,
-        subtitle: progressText,
+        subtitle: '$progressText • $answeredText',
         heightFactor: 0.8,
         child: QuestionNavigationGrid(
           questionCount: widget.questions.length,
@@ -1499,4 +1554,40 @@ class _AiSession {
   const _AiSession(this.messages);
   // Placeholder set immediately on first message — history arrives on sheet close.
   const _AiSession._pending() : messages = const [];
+}
+
+class _HeartLivesChip extends StatelessWidget {
+  const _HeartLivesChip({required this.remaining});
+
+  final int remaining;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.favorite_rounded,
+            size: 16,
+            color: Colors.red,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$remaining',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: Colors.red,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

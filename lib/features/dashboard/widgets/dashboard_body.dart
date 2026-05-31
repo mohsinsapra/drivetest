@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/constants/app_text_styles.dart';
 import 'package:taxi_exam_app/core/constants/language_options.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
@@ -45,6 +44,10 @@ class _DashboardBodyState extends State<DashboardBody> {
   final Set<String> _expandedCategories = {};
   String? _lastExamId;
 
+  // Cached sorted category list — rebuilt only when exam changes.
+  List<CategoryStats>? _sortedCategories;
+  List<CategoryStats>? _lastCategoryStats;
+
   // Checklist state
   final _api = ApiService();
   List<dynamic> _checklists = [];
@@ -59,6 +62,8 @@ class _DashboardBodyState extends State<DashboardBody> {
     _lastExamId = newId;
     _expandedCategories.clear();
     _checklistExamId = null;
+    _sortedCategories = null;
+    _lastCategoryStats = null;
     final cats = stats?.categoryStats;
     if (cats != null && cats.isNotEmpty) {
       _expandedCategories.add(cats.first.node.id);
@@ -140,10 +145,12 @@ class _DashboardBodyState extends State<DashboardBody> {
 
         if (stats != null)
           SliverToBoxAdapter(
-            child: PerformanceOverviewSection(
-              stats: stats,
-              provider: widget.provider,
-              isLoading: widget.provider.switching,
+            child: RepaintBoundary(
+              child: PerformanceOverviewSection(
+                stats: stats,
+                provider: widget.provider,
+                isLoading: widget.provider.switching,
+              ),
             ),
           )
         else if (showShimmer)
@@ -164,26 +171,15 @@ class _DashboardBodyState extends State<DashboardBody> {
 
         // Smart Learning entry point — above Focus Areas
         SliverToBoxAdapter(
-          child: _SmartLearningBanner(
-            examBcdId: int.tryParse(widget.provider.selectedExam?.id ?? ''),
-          ),
+          child: showShimmer
+              ? const _SmartLearningShimmer()
+              : _SmartLearningBanner(
+                  examBcdId:
+                      int.tryParse(widget.provider.selectedExam?.id ?? ''),
+                ),
         ),
 
-        if (stats != null)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
-              child: Text(
-                t.dash_focus_areas,
-                style: GoogleFonts.lexend(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ),
-          )
-        else if (showShimmer)
+        if (stats != null || showShimmer)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
@@ -231,33 +227,43 @@ class _DashboardBodyState extends State<DashboardBody> {
           ),
           if (stats != null && !widget.provider.switching)
             SliverToBoxAdapter(
-              child: WeeklyStreakSection(streak: stats.streak),
+              child: RepaintBoundary(
+                child: WeeklyStreakSection(streak: stats.streak),
+              ),
             )
           else
             const SliverToBoxAdapter(child: _WeeklyStreakShimmer()),
         ],
 
-        const SliverToBoxAdapter(child: SizedBox(height: 40)),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: MediaQuery.of(context).padding.bottom + 80,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildCategorySlivers(ExamDashboardStats stats) {
-    DateTime? latestDate(CategoryStats cat) => cat.batchStats
-        .map((b) => b.lastAttemptDate)
-        .whereType<DateTime>()
-        .fold<DateTime?>(
-            null, (best, d) => best == null || d.isAfter(best) ? d : best);
-
-    final cats = List.of(stats.categoryStats!)
-      ..sort((a, b) {
-        final dateA = latestDate(a);
-        final dateB = latestDate(b);
-        if (dateA == null && dateB == null) return 0;
-        if (dateA == null) return 1;
-        if (dateB == null) return -1;
-        return dateB.compareTo(dateA);
-      });
+    final rawCats = stats.categoryStats!;
+    if (!identical(_lastCategoryStats, rawCats)) {
+      _lastCategoryStats = rawCats;
+      DateTime? latestDate(CategoryStats cat) => cat.batchStats
+          .map((b) => b.lastAttemptDate)
+          .whereType<DateTime>()
+          .fold<DateTime?>(
+              null, (best, d) => best == null || d.isAfter(best) ? d : best);
+      _sortedCategories = List.of(rawCats)
+        ..sort((a, b) {
+          final dateA = latestDate(a);
+          final dateB = latestDate(b);
+          if (dateA == null && dateB == null) return 0;
+          if (dateA == null) return 1;
+          if (dateB == null) return -1;
+          return dateB.compareTo(dateA);
+        });
+    }
+    final cats = _sortedCategories!;
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList.builder(
@@ -656,7 +662,11 @@ class _ChecklistCardState extends State<_ChecklistCard>
                     width: double.infinity,
                     child: Text(
                       widget.content,
-                      style: AppTextStyles.bodyMedium().copyWith(height: 1.5),
+                      style: GoogleFonts.lexend(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        height: 1.5,
+                      ),
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -890,6 +900,32 @@ class _WeeklyStreakShimmer extends StatelessWidget {
   }
 }
 
+class _SmartLearningShimmer extends StatelessWidget {
+  const _SmartLearningShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+    return Shimmer.fromColors(
+      baseColor: isDark
+          ? cs.onSurface.withValues(alpha: 0.15)
+          : cs.onSurface.withValues(alpha: 0.08),
+      highlightColor: isDark
+          ? cs.onSurface.withValues(alpha: 0.28)
+          : cs.onSurface.withValues(alpha: 0.15),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        height: 68,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
+}
+
 class _SmartLearningBanner extends StatelessWidget {
   final int? examBcdId;
 
@@ -918,7 +954,6 @@ class _SmartLearningBanner extends StatelessWidget {
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: cs.primary.withValues(alpha: 0.22)),
         ),
         child: Row(
           children: [

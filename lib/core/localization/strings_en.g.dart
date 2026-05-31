@@ -765,9 +765,20 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get smart_full_exam => 'Full Exam';
 	String get smart_full_exam_locked => 'Complete all parts to unlock';
 	String get smart_full_exam_ready => 'Full exam ready';
+	String get smart_hearts_game_over_title => 'Sorry, practice more!';
+	String get smart_hearts_game_over_body => 'You made 3 mistakes. Keep practising the parts before trying the full exam again.';
+	String get smart_hearts_keep_practising => 'Keep Practising';
+	String get smart_hearts_3_left => '3 left';
+	String get smart_hearts_2_left => '2 left';
+	String get smart_hearts_1_left => '1 left';
+	String get smart_hearts_0_left => '0 left';
+	String smart_full_exam_q_of({required Object current, required Object total}) => '${current} / ${total}';
 	String smart_train_mistakes({required Object count}) => 'Train Mistakes (${count})';
 	String get smart_practice_mode => 'Practice';
 	String get smart_timed_mode => 'Timed Exam';
+	String get smart_attempt_final_exam => 'Attempt Final Exam';
+	String smart_questions_count({required Object count}) => '${count} questions';
+	String get smart_part_pass_requirement => 'Pass this part with 70%';
 	String get smart_not_started => 'Not started';
 	String smart_chunks_done({required Object done, required Object total}) => '${done} of ${total} parts done';
 	String get smart_result_passed => 'Part passed!';
@@ -778,9 +789,14 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
 	String get smart_mistakes_title => 'Practice Mistakes';
 	String get smart_mistakes_none_category => 'No mistakes to practice in this category.';
 	String get smart_mistakes_load_failed => 'Could not load mistake questions.';
+	String smart_mistakes_to_review({required Object count}) => '${count} mistake to review';
 	String get smart_progress_title => 'Your Progress';
 	String get smart_progress_ready_full_exam => 'Ready for full exam!';
 	String get smart_progress_required_to_pass => '70% required to pass';
+	String get smart_full_exam_early_attempt => 'You can attempt the final timed exam now, even before completing all parts.';
+	String get smart_full_exam_early_rules => 'You will get 3 lives and instant marking until you complete every part.';
+	String get smart_full_exam_completed_parts => 'You completed the parts.';
+	String get smart_full_exam_completed_rules => 'Your answers will be checked at the end.';
 	String smart_category_completed({required Object count, required Object examLabel}) => '${count} ${examLabel} • Completed';
 	String smart_category_not_started({required Object count, required Object examLabel}) => '${count} ${examLabel} • Not started';
 	String smart_category_parts_done({required Object count, required Object examLabel, required Object done, required Object total}) => '${count} ${examLabel} • ${done}/${total} parts done';
@@ -1531,9 +1547,20 @@ extension on Translations {
 			case 'smart_full_exam': return 'Full Exam';
 			case 'smart_full_exam_locked': return 'Complete all parts to unlock';
 			case 'smart_full_exam_ready': return 'Full exam ready';
+			case 'smart_hearts_game_over_title': return 'Sorry, practice more!';
+			case 'smart_hearts_game_over_body': return 'You made 3 mistakes. Keep practising the parts before trying the full exam again.';
+			case 'smart_hearts_keep_practising': return 'Keep Practising';
+			case 'smart_hearts_3_left': return '3 left';
+			case 'smart_hearts_2_left': return '2 left';
+			case 'smart_hearts_1_left': return '1 left';
+			case 'smart_hearts_0_left': return '0 left';
+			case 'smart_full_exam_q_of': return ({required Object current, required Object total}) => '${current} / ${total}';
 			case 'smart_train_mistakes': return ({required Object count}) => 'Train Mistakes (${count})';
 			case 'smart_practice_mode': return 'Practice';
 			case 'smart_timed_mode': return 'Timed Exam';
+			case 'smart_attempt_final_exam': return 'Attempt Final Exam';
+			case 'smart_questions_count': return ({required Object count}) => '${count} questions';
+			case 'smart_part_pass_requirement': return 'Pass this part with 70%';
 			case 'smart_not_started': return 'Not started';
 			case 'smart_chunks_done': return ({required Object done, required Object total}) => '${done} of ${total} parts done';
 			case 'smart_result_passed': return 'Part passed!';
@@ -1544,9 +1571,14 @@ extension on Translations {
 			case 'smart_mistakes_title': return 'Practice Mistakes';
 			case 'smart_mistakes_none_category': return 'No mistakes to practice in this category.';
 			case 'smart_mistakes_load_failed': return 'Could not load mistake questions.';
+			case 'smart_mistakes_to_review': return ({required Object count}) => '${count} mistake to review';
 			case 'smart_progress_title': return 'Your Progress';
 			case 'smart_progress_ready_full_exam': return 'Ready for full exam!';
 			case 'smart_progress_required_to_pass': return '70% required to pass';
+			case 'smart_full_exam_early_attempt': return 'You can attempt the final timed exam now, even before completing all parts.';
+			case 'smart_full_exam_early_rules': return 'You will get 3 lives and instant marking until you complete every part.';
+			case 'smart_full_exam_completed_parts': return 'You completed the parts.';
+			case 'smart_full_exam_completed_rules': return 'Your answers will be checked at the end.';
 			case 'smart_category_completed': return ({required Object count, required Object examLabel}) => '${count} ${examLabel} • Completed';
 			case 'smart_category_not_started': return ({required Object count, required Object examLabel}) => '${count} ${examLabel} • Not started';
 			case 'smart_category_parts_done': return ({required Object count, required Object examLabel, required Object done, required Object total}) => '${count} ${examLabel} • ${done}/${total} parts done';
@@ -1568,4 +1600,3 @@ extension on Translations {
 		}
 	}
 }
-

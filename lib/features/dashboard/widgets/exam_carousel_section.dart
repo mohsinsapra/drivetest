@@ -8,6 +8,7 @@ import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_traffic_signs_screen.dart';
 import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
+import '../models/dashboard_stats.dart';
 import '../models/subscribed_exam.dart';
 import '../providers/dashboard_provider.dart';
 import 'exam_card.dart';
@@ -75,6 +76,11 @@ class _ExamCarouselShimmer extends StatelessWidget {
 class _ExamCarouselSectionState extends State<ExamCarouselSection> {
   final ScrollController _scrollController = ScrollController();
 
+  // Cached sorted list — only recomputed when exams/statsCache identity changes.
+  List<SubscribedExam> _sortedExams = [];
+  List<SubscribedExam>? _lastExams;
+  Map<String, ExamDashboardStats>? _lastStatsCache;
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -93,25 +99,22 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final provider = widget.provider;
-    final statsCache = provider.statsCache;
-    final exams = List.of(provider.exams);
-
-    // Find the "active" exam: the one with the most recent attempt.
+  List<SubscribedExam> _computeSortedExams(
+    List<SubscribedExam> exams,
+    Map<String, ExamDashboardStats> statsCache,
+  ) {
+    final sorted = List.of(exams);
     SubscribedExam? activeExam;
     DateTime? latestDate;
-    for (final e in exams) {
+    for (final e in sorted) {
       final d = statsCache[e.id]?.lastAttemptDate;
       if (d != null && (latestDate == null || d.isAfter(latestDate))) {
         latestDate = d;
         activeExam = e;
       }
     }
-
     final activeId = activeExam?.id;
-    exams.sort((a, b) {
+    sorted.sort((a, b) {
       if (activeId != null) {
         if (a.id == activeId) return -1;
         if (b.id == activeId) return 1;
@@ -120,6 +123,23 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
       final attB = statsCache[b.id]?.totalAttempts ?? 0;
       return attB.compareTo(attA);
     });
+    return sorted;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = widget.provider;
+    final statsCache = provider.statsCache;
+    final rawExams = provider.exams;
+
+    // Only re-sort when the underlying data actually changes.
+    if (!identical(_lastExams, rawExams) ||
+        !identical(_lastStatsCache, statsCache)) {
+      _lastExams = rawExams;
+      _lastStatsCache = statsCache;
+      _sortedExams = _computeSortedExams(rawExams, statsCache);
+    }
+    final exams = _sortedExams;
     final t = Translations.of(context);
 
     return Column(

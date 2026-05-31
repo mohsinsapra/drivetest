@@ -21,7 +21,6 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
   int _activeChunk = 0;
   int _weakCount = 0;
   int _masteredCount = 0;
-  bool _fullUnlocked = false;
   bool _loading = true;
 
   @override
@@ -36,17 +35,14 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
     // Start all futures in parallel, then await each with a named variable.
     final activeChunkF = _svc.activeSmartIndex(widget.entry.testBcdId, total);
     final weakCountF = _svc.weakQuestionCount(widget.entry.testBcdId);
-    final fullUnlockedF = _svc.isFullExamUnlocked(widget.entry.testBcdId, total);
     final masteredCountF = _svc.masteredQuestionCount(widget.entry.testBcdId, widget.entry.chunkSizes);
     final activeChunk = await activeChunkF;
     final weakCount = await weakCountF;
-    final fullUnlocked = await fullUnlockedF;
     final masteredCount = await masteredCountF;
     if (mounted) {
       setState(() {
         _activeChunk = activeChunk;
         _weakCount = weakCount;
-        _fullUnlocked = fullUnlocked;
         _masteredCount = masteredCount;
         _loading = false;
       });
@@ -81,8 +77,9 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
     _load();
   }
 
-  void _launchFullExam({required bool timed}) {
+  void _launchFullExam() {
     final e = widget.entry;
+    final hasCompletedPreviousParts = _activeChunk >= e.chunkSizes.length;
     Navigator.push(
       context,
       AppPageRoute(
@@ -90,9 +87,95 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
           testId: e.testBcdId,
           testName: e.testName,
           passScore: e.passScore,
-          timeLimit: timed ? e.timeLimit : 0,
+          timeLimit: e.timeLimit,
           parentCategoryName: e.categoryName,
           parentCategoryBcdId: e.parentCategoryBcdId,
+          isMockExamMode: true,
+          maxWrongAnswers: hasCompletedPreviousParts ? null : 3,
+          onGameOver: hasCompletedPreviousParts ? null : _onHeartsDepleted,
+        ),
+      ),
+    );
+  }
+
+  void _onHeartsDepleted() {
+    if (Navigator.canPop(context)) Navigator.pop(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showGameOverSheet();
+    });
+  }
+
+  void _showGameOverSheet() {
+    final t = Translations.of(context);
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor:
+          isDark ? cs.surfaceContainerHighest : theme.scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.heart_broken_rounded,
+                size: 36,
+                color: Colors.red,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              t.smart_hearts_game_over_title,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: cs.onSurface,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              t.smart_hearts_game_over_body,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: cs.onSurface.withValues(alpha: 0.6),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context),
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: Text(
+                  t.smart_hearts_keep_practising,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: cs.onPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -123,11 +206,6 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
                 children: [
-                  _MasteryProgressCard(
-                    mastered: _masteredCount,
-                    total: widget.entry.questionCount,
-                  ),
-                  const SizedBox(height: 16),
                   ...List.generate(widget.entry.chunkSizes.length, (i) {
                     final isPassed = i < _activeChunk;
                     final isActive = i == _activeChunk;
@@ -136,6 +214,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
                       padding: const EdgeInsets.only(bottom: 10),
                       child: _ChunkCard(
                         label: t.smart_chunk_n(n: i + 1),
+                        questionCount: widget.entry.chunkSizes[i],
                         isPassed: isPassed,
                         isActive: isActive,
                         isLocked: isLocked,
@@ -150,13 +229,12 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
                     const SizedBox(height: 10),
                   ],
                   _FullExamCard(
-                    unlocked: _fullUnlocked,
-                    onPractice: _fullUnlocked
-                        ? () => _launchFullExam(timed: false)
-                        : null,
-                    onTimed: _fullUnlocked
-                        ? () => _launchFullExam(timed: true)
-                        : null,
+                    onStart: _launchFullExam,
+                    hasCompletedPreviousParts:
+                        _activeChunk >= widget.entry.chunkSizes.length,
+                    mastered: _masteredCount,
+                    totalQuestions: widget.entry.questionCount,
+                    weakCount: _weakCount,
                   ),
                 ],
               ),
@@ -169,6 +247,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
 
 class _ChunkCard extends StatelessWidget {
   final String label;
+  final int questionCount;
   final bool isPassed;
   final bool isActive;
   final bool isLocked;
@@ -176,6 +255,7 @@ class _ChunkCard extends StatelessWidget {
 
   const _ChunkCard({
     required this.label,
+    required this.questionCount,
     required this.isPassed,
     required this.isActive,
     required this.isLocked,
@@ -244,6 +324,12 @@ class _ChunkCard extends StatelessWidget {
                             .textTheme
                             .titleSmall
                             ?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${t.smart_questions_count(count: questionCount)} • ${t.smart_part_pass_requirement}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurface.withValues(alpha: 0.55)),
+                    ),
                   ],
                 ),
               ),
@@ -309,14 +395,18 @@ class _TrainMistakesCard extends StatelessWidget {
 // ── Full Exam card ───────────────────────────────────────────────────────────
 
 class _FullExamCard extends StatelessWidget {
-  final bool unlocked;
-  final VoidCallback? onPractice;
-  final VoidCallback? onTimed;
+  final VoidCallback onStart;
+  final bool hasCompletedPreviousParts;
+  final int mastered;
+  final int totalQuestions;
+  final int weakCount;
 
   const _FullExamCard({
-    required this.unlocked,
-    this.onPractice,
-    this.onTimed,
+    required this.onStart,
+    required this.hasCompletedPreviousParts,
+    required this.mastered,
+    required this.totalQuestions,
+    required this.weakCount,
   });
 
   @override
@@ -326,16 +416,14 @@ class _FullExamCard extends StatelessWidget {
 
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 300),
-      opacity: unlocked ? 1.0 : 0.45,
+      opacity: 1.0,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: cs.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: unlocked
-                ? Colors.green.shade400.withValues(alpha: 0.4)
-                : cs.outlineVariant,
+            color: Colors.green.shade400.withValues(alpha: 0.4),
           ),
           boxShadow: [
             BoxShadow(
@@ -351,12 +439,8 @@ class _FullExamCard extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  unlocked
-                      ? Icons.emoji_events_rounded
-                      : Icons.lock_outline_rounded,
-                  color: unlocked
-                      ? Colors.amber.shade600
-                      : cs.onSurface.withValues(alpha: 0.3),
+                  Icons.emoji_events_rounded,
+                  color: Colors.amber.shade600,
                   size: 22,
                 ),
                 const SizedBox(width: 10),
@@ -369,30 +453,48 @@ class _FullExamCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              unlocked ? t.smart_full_exam_ready : t.smart_full_exam_locked,
+              hasCompletedPreviousParts
+                  ? t.smart_full_exam_completed_parts
+                  : t.smart_full_exam_early_attempt,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: cs.onSurface.withValues(alpha: 0.55)),
             ),
-            if (unlocked) ...[
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: onPractice,
-                      child: Text(t.smart_practice_mode),
-                    ),
+            const SizedBox(height: 8),
+            Text(
+              hasCompletedPreviousParts
+                  ? t.smart_full_exam_completed_rules
+                  : t.smart_full_exam_early_rules,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: cs.onSurface.withValues(alpha: 0.55), height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _StatChip(
+                  icon: Icons.verified_rounded,
+                  color: Colors.green.shade600,
+                  label: t.smart_mastered_of(
+                    mastered: mastered,
+                    total: totalQuestions,
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: onTimed,
-                      child: Text(t.smart_timed_mode),
-                    ),
-                  ),
-                ],
+                ),
+                _StatChip(
+                  icon: Icons.warning_amber_rounded,
+                  color: cs.error,
+                  label: t.smart_mistakes_to_review(count: weakCount),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: onStart,
+                child: Text(t.smart_attempt_final_exam),
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -400,122 +502,36 @@ class _FullExamCard extends StatelessWidget {
   }
 }
 
-// ── Mastery progress card ────────────────────────────────────────────────────
+class _StatChip extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
 
-class _MasteryProgressCard extends StatelessWidget {
-  final int mastered;
-  final int total;
-
-  const _MasteryProgressCard({required this.mastered, required this.total});
+  const _StatChip({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final t = Translations.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    final progress = total == 0 ? 0.0 : (mastered / total).clamp(0.0, 1.0);
-    final percent = (progress * 100).round();
-    const passThreshold = 0.70;
-    final passed = progress >= passThreshold;
-    final barColor = passed ? Colors.green.shade500 : cs.primary;
-
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: passed
-              ? Colors.green.shade400.withValues(alpha: 0.4)
-              : cs.onSurface.withValues(alpha: 0.08),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Icon(
-                passed ? Icons.verified_rounded : Icons.trending_up_rounded,
-                size: 18,
-                color: passed ? Colors.green.shade500 : cs.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                t.smart_progress_title,
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const Spacer(),
-              Text(
-                t.smart_mastered_of(mastered: mastered, total: total),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: cs.onSurface.withValues(alpha: 0.55),
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          LayoutBuilder(builder: (_, constraints) {
-            final barWidth = constraints.maxWidth;
-            final markerX = barWidth * passThreshold;
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: progress == 0 ? 0.0 : progress.clamp(0.04, 1.0),
-                    minHeight: 10,
-                    backgroundColor: cs.onSurface.withValues(alpha: 0.08),
-                    valueColor: AlwaysStoppedAnimation<Color>(barColor),
-                  ),
-                ),
-                // 70% threshold marker
-                Positioned(
-                  left: markerX - 1,
-                  top: -3,
-                  bottom: -3,
-                  child: Container(
-                    width: 2,
-                    decoration: BoxDecoration(
-                      color: cs.onSurface.withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                '$percent%',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: passed ? Colors.green.shade600 : cs.primary,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                passed
-                    ? t.smart_progress_ready_full_exam
-                    : t.smart_progress_required_to_pass,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: cs.onSurface.withValues(alpha: 0.5),
-                ),
-              ),
-            ],
           ),
         ],
       ),

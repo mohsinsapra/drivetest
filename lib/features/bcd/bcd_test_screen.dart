@@ -16,6 +16,9 @@ class BCDTestScreen extends StatefulWidget {
   final int timeLimit; // minutes; 0 = untimed
   final String parentCategoryName;
   final int? parentCategoryBcdId;
+  final bool isMockExamMode;
+  final int? maxWrongAnswers;
+  final VoidCallback? onGameOver;
 
   const BCDTestScreen({
     super.key,
@@ -25,6 +28,9 @@ class BCDTestScreen extends StatefulWidget {
     required this.timeLimit,
     this.parentCategoryName = '',
     this.parentCategoryBcdId,
+    this.isMockExamMode = false,
+    this.maxWrongAnswers,
+    this.onGameOver,
   });
 
   @override
@@ -68,7 +74,8 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
         AppPageRoute(
           builder: (_) => Testscreen(
             questions: _provider.testQuestions,
-            instantMarking: true,
+            instantMarking: !widget.isMockExamMode ||
+                (widget.isMockExamMode && widget.maxWrongAnswers != null),
             licenceId: '',
             categoryId: widget.testId.toString(),
             licenceName: widget.parentCategoryName,
@@ -78,6 +85,9 @@ class _BCDTestScreenState extends State<BCDTestScreen> {
             passScorePercent: widget.passScore.toDouble(),
             isTimed: widget.timeLimit > 0,
             timeLimitMinutes: widget.timeLimit > 0 ? widget.timeLimit : 10,
+            isMockExamMode: widget.isMockExamMode,
+            maxWrongAnswers: widget.maxWrongAnswers,
+            onGameOver: widget.onGameOver,
           ),
         ),
       );

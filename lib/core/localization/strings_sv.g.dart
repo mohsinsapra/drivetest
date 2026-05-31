@@ -762,9 +762,20 @@ class TranslationsSv implements Translations {
 	@override String get smart_full_exam => 'Fullständigt prov';
 	@override String get smart_full_exam_locked => 'Slutför alla delar för att låsa upp';
 	@override String get smart_full_exam_ready => 'Fullständigt prov redo';
+	@override String get smart_hearts_game_over_title => 'Tyvärr, öva mer!';
+	@override String get smart_hearts_game_over_body => 'Du gjorde 3 misstag. Fortsätt träna delarna innan du försöker med hela provet igen.';
+	@override String get smart_hearts_keep_practising => 'Fortsätt öva';
+	@override String get smart_hearts_3_left => '3 kvar';
+	@override String get smart_hearts_2_left => '2 kvar';
+	@override String get smart_hearts_1_left => '1 kvar';
+	@override String get smart_hearts_0_left => '0 kvar';
+	@override String smart_full_exam_q_of({required Object current, required Object total}) => '${current} / ${total}';
 	@override String smart_train_mistakes({required Object count}) => 'Träna misstag (${count})';
 	@override String get smart_practice_mode => 'Övning';
 	@override String get smart_timed_mode => 'Tidsbegränsat prov';
+	@override String get smart_attempt_final_exam => 'Gör slutprovet';
+	@override String smart_questions_count({required Object count}) => '${count} frågor';
+	@override String get smart_part_pass_requirement => 'Klara denna del med 70%';
 	@override String get smart_not_started => 'Ej påbörjad';
 	@override String smart_chunks_done({required Object done, required Object total}) => '${done} av ${total} delar klara';
 	@override String get smart_result_passed => 'Del godkänd!';
@@ -775,9 +786,14 @@ class TranslationsSv implements Translations {
 	@override String get smart_mistakes_title => 'Träna misstag';
 	@override String get smart_mistakes_none_category => 'Inga misstag att träna i den här kategorin.';
 	@override String get smart_mistakes_load_failed => 'Kunde inte ladda misstagsfrågor.';
+	@override String smart_mistakes_to_review({required Object count}) => '${count} misstag att repetera';
 	@override String get smart_progress_title => 'Dina framsteg';
 	@override String get smart_progress_ready_full_exam => 'Redo för fullständigt prov!';
 	@override String get smart_progress_required_to_pass => '70% krävs för att bli godkänd';
+	@override String get smart_full_exam_early_attempt => 'Du kan göra det tidsbegränsade slutprovet nu, även innan alla delar är klara.';
+	@override String get smart_full_exam_early_rules => 'Du får 3 liv och direkt rättning tills du har klarat alla delar.';
+	@override String get smart_full_exam_completed_parts => 'Du har klarat delarna.';
+	@override String get smart_full_exam_completed_rules => 'Dina svar rättas i slutet.';
 	@override String smart_category_completed({required Object count, required Object examLabel}) => '${count} ${examLabel} • Klart';
 	@override String smart_category_not_started({required Object count, required Object examLabel}) => '${count} ${examLabel} • Ej påbörjad';
 	@override String smart_category_parts_done({required Object count, required Object examLabel, required Object done, required Object total}) => '${count} ${examLabel} • ${done}/${total} delar klara';
@@ -1528,9 +1544,20 @@ extension on TranslationsSv {
 			case 'smart_full_exam': return 'Fullständigt prov';
 			case 'smart_full_exam_locked': return 'Slutför alla delar för att låsa upp';
 			case 'smart_full_exam_ready': return 'Fullständigt prov redo';
+			case 'smart_hearts_game_over_title': return 'Tyvärr, öva mer!';
+			case 'smart_hearts_game_over_body': return 'Du gjorde 3 misstag. Fortsätt träna delarna innan du försöker med hela provet igen.';
+			case 'smart_hearts_keep_practising': return 'Fortsätt öva';
+			case 'smart_hearts_3_left': return '3 kvar';
+			case 'smart_hearts_2_left': return '2 kvar';
+			case 'smart_hearts_1_left': return '1 kvar';
+			case 'smart_hearts_0_left': return '0 kvar';
+			case 'smart_full_exam_q_of': return ({required Object current, required Object total}) => '${current} / ${total}';
 			case 'smart_train_mistakes': return ({required Object count}) => 'Träna misstag (${count})';
 			case 'smart_practice_mode': return 'Övning';
 			case 'smart_timed_mode': return 'Tidsbegränsat prov';
+			case 'smart_attempt_final_exam': return 'Gör slutprovet';
+			case 'smart_questions_count': return ({required Object count}) => '${count} frågor';
+			case 'smart_part_pass_requirement': return 'Klara denna del med 70%';
 			case 'smart_not_started': return 'Ej påbörjad';
 			case 'smart_chunks_done': return ({required Object done, required Object total}) => '${done} av ${total} delar klara';
 			case 'smart_result_passed': return 'Del godkänd!';
@@ -1541,9 +1568,14 @@ extension on TranslationsSv {
 			case 'smart_mistakes_title': return 'Träna misstag';
 			case 'smart_mistakes_none_category': return 'Inga misstag att träna i den här kategorin.';
 			case 'smart_mistakes_load_failed': return 'Kunde inte ladda misstagsfrågor.';
+			case 'smart_mistakes_to_review': return ({required Object count}) => '${count} misstag att repetera';
 			case 'smart_progress_title': return 'Dina framsteg';
 			case 'smart_progress_ready_full_exam': return 'Redo för fullständigt prov!';
 			case 'smart_progress_required_to_pass': return '70% krävs för att bli godkänd';
+			case 'smart_full_exam_early_attempt': return 'Du kan göra det tidsbegränsade slutprovet nu, även innan alla delar är klara.';
+			case 'smart_full_exam_early_rules': return 'Du får 3 liv och direkt rättning tills du har klarat alla delar.';
+			case 'smart_full_exam_completed_parts': return 'Du har klarat delarna.';
+			case 'smart_full_exam_completed_rules': return 'Dina svar rättas i slutet.';
 			case 'smart_category_completed': return ({required Object count, required Object examLabel}) => '${count} ${examLabel} • Klart';
 			case 'smart_category_not_started': return ({required Object count, required Object examLabel}) => '${count} ${examLabel} • Ej påbörjad';
 			case 'smart_category_parts_done': return ({required Object count, required Object examLabel, required Object done, required Object total}) => '${count} ${examLabel} • ${done}/${total} delar klara';
@@ -1565,4 +1597,3 @@ extension on TranslationsSv {
 		}
 	}
 }
-
