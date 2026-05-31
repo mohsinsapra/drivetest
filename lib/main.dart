@@ -127,19 +127,30 @@ Future<void> _appMain() async {
   ]);
 
   // Hive adapters are synchronous and must follow Hive.initFlutter()
-  if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(TestAttemptAdapter());
-  if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(QuestionAdapter());
-  if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(OptionAdapter());
+  if (!Hive.isAdapterRegistered(0)) {
+    Hive.registerAdapter(TestAttemptAdapter());
+  }
+  if (!Hive.isAdapterRegistered(1)) {
+    Hive.registerAdapter(QuestionAdapter());
+  }
+  if (!Hive.isAdapterRegistered(2)) {
+    Hive.registerAdapter(OptionAdapter());
+  }
   if (!Hive.isAdapterRegistered(3)) {
     Hive.registerAdapter(LocalNotificationAdapter());
   }
   if (!Hive.isAdapterRegistered(4)) {
     Hive.registerAdapter(SubscribedExamAdapter());
   }
-  if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(ExamNodeAdapter());
-  if (!Hive.isAdapterRegistered(6))
+  if (!Hive.isAdapterRegistered(5)) {
+    Hive.registerAdapter(ExamNodeAdapter());
+  }
+  if (!Hive.isAdapterRegistered(6)) {
     Hive.registerAdapter(SmartProgressAdapter());
-  if (!Hive.isAdapterRegistered(7)) Hive.registerAdapter(WeakQuestionAdapter());
+  }
+  if (!Hive.isAdapterRegistered(7)) {
+    Hive.registerAdapter(WeakQuestionAdapter());
+  }
   final notificationProvider = await NotificationProvider.create();
   final dashboardProvider =
       DashboardProvider(repository: HiveDashboardRepository());
