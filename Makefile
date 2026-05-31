@@ -1,7 +1,7 @@
 # DriveTest App - Makefile
 # Usage: make [target]
 
-.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-all-docker deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog _notify-app-update _prepare-deploy _prepare-flutter-deps _prepare-android-ruby _prepare-ios-ruby _prepare-ios-pods _cleanup-deploy-artifacts
+.PHONY: help fmt lint check web-build _web-build-core web-deploy web-run web-tunnel tunnel restart-flutter restart-backend clean version-build version-patch version-minor version-major android-beta android-deploy ios-beta release-all deploy-all deploy-all-docker deploy-web-android _commit-and-push _commit-before-build _deploy-to-web-repo _write-web-version-file _web-deploy-core _android-deploy-core _android-beta-core _ios-beta-core _web-android-sequence _bump-version _cloudflare-purge _web-build-docker _android-build-docker _web-deploy-docker-core _android-deploy-docker-core _ensure-changelog _notify-app-update _prepare-deploy _prepare-flutter-deps _prepare-flutter-release _prepare-android-ruby _prepare-ios-ruby _prepare-ios-pods _cleanup-deploy-artifacts
 
 # Bump type for deploy commands: fix | patch | minor | major (default: patch)
 # Usage: make deploy-all BUMP=minor
@@ -429,6 +429,11 @@ _prepare-flutter-deps:
 	@echo "$(COLOR_BLUE)Preparing Flutter dependencies...$(COLOR_RESET)"
 	@flutter pub get
 
+## _prepare-flutter-release: Warm Flutter release artifacts once before parallel deploy jobs
+_prepare-flutter-release:
+	@echo "$(COLOR_BLUE)Warming Flutter release artifacts...$(COLOR_RESET)"
+	@flutter precache --android --ios --web
+
 ## _prepare-android-ruby: Ensure Android fastlane gems are installed
 _prepare-android-ruby:
 	@echo "$(COLOR_BLUE)Preparing Android Ruby gems...$(COLOR_RESET)"
@@ -454,7 +459,7 @@ _prepare-ios-pods:
 ## _prepare-deploy: Parallel preflight for deploy targets
 _prepare-deploy:
 	@echo "$(COLOR_BLUE)Running deploy preflight in parallel...$(COLOR_RESET)"
-	@gmake -s -j4 _prepare-flutter-deps _prepare-android-ruby _prepare-ios-ruby _prepare-ios-pods
+	@gmake -s -j5 _prepare-flutter-deps _prepare-flutter-release _prepare-android-ruby _prepare-ios-ruby _prepare-ios-pods
 
 ## _cleanup-deploy-artifacts: Keep git working tree clean after deploy commands
 _cleanup-deploy-artifacts:
