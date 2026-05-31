@@ -1521,7 +1521,12 @@ class _TestscreenState extends State<Testscreen> {
                 const SizedBox(width: 8),
                 Text(t.test_question_language_menu),
                 const Spacer(),
-                Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45)),
+                Icon(Icons.chevron_right,
+                    size: 16,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.45)),
               ],
             ),
           ),

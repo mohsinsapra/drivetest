@@ -295,11 +295,13 @@ class _OptionState extends State<Option> with TickerProviderStateMixin {
                                     : FontWeight.normal,
                                 color: widget.showInstantMarking
                                     ? (widget.isCorrectAnswer
-                                        ? (Theme.of(context).brightness == Brightness.dark
+                                        ? (Theme.of(context).brightness ==
+                                                Brightness.dark
                                             ? Colors.green.shade400
                                             : Colors.green.shade700)
                                         : (widget.isSelected
-                                            ? (Theme.of(context).brightness == Brightness.dark
+                                            ? (Theme.of(context).brightness ==
+                                                    Brightness.dark
                                                 ? Colors.red.shade400
                                                 : Colors.red.shade700)
                                             : Theme.of(context)

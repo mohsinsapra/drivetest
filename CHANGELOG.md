@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.1.67+265] - 2026-05-31
+
+### Added
 - **Activity Reminder Notifications**: After each exam or Smart Learning session, a local notification is scheduled 24 hours later. Notification uses the exam title and a randomised hook phrase (EN/SV). Tapping the notification deep-links directly into the relevant Smart Exam or Test screen.
 - **In-App Review prompt**: Requests a store review after the user's first *passed* exam attempt and first *passed* Smart Learning session (reuses the existing 3–5 day throttle logic).
 - **Hearts/Lives onboarding guide**: First time a user enters a mock exam with the hearts system enabled, a TutorialCoachMark spotlight highlights the hearts chip and explains the lives mechanic.
@@ -25,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `_elements.contains(element)` Flutter assertion crash on option tiles caused by using `SingleTickerProviderStateMixin` with two `AnimationController`s — changed to `TickerProviderStateMixin`.
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
+---
 ---
 
 ## [1.1.66+264] - 2026-05-31
