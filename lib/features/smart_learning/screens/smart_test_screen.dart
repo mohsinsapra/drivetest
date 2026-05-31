@@ -177,8 +177,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
 
   Future<String> _safeTranslate(String text, String toLang) async {
     try {
-      final result =
-          await _translator.translate(text, from: 'sv', to: toLang);
+      final result = await _translator.translate(text, from: 'sv', to: toLang);
       return result.text;
     } catch (_) {
       return text;
@@ -201,8 +200,9 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       final partial = <Question>[];
       for (final q in widget.initialQuestions) {
         final tText = mainResults[idx++].text;
-        final tOpts =
-            q.options.map((o) => o.copyWith(text: mainResults[idx++].text)).toList();
+        final tOpts = q.options
+            .map((o) => o.copyWith(text: mainResults[idx++].text))
+            .toList();
         partial.add(q.copyWith(text: tText, options: tOpts));
       }
 
