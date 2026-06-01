@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart' as enc;
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -26,6 +28,26 @@ const String _kSelfEncKey = String.fromEnvironment(
 class ApiService {
   final Dio _dio = DioClient().dio;
   final DioClient _dioClient = DioClient();
+
+  static String? _cachedAppVersion;
+
+  static Future<String> _getAppVersion() async {
+    if (_cachedAppVersion != null) return _cachedAppVersion!;
+    try {
+      final info = await PackageInfo.fromPlatform();
+      _cachedAppVersion = info.version;
+    } catch (_) {
+      _cachedAppVersion = '';
+    }
+    return _cachedAppVersion!;
+  }
+
+  static String get _platformString {
+    if (kIsWeb) return 'web';
+    if (Platform.isAndroid) return 'android';
+    if (Platform.isIOS) return 'ios';
+    return 'other';
+  }
 
   // Deduplicates simultaneous fetchCurrentUser calls — all callers share
   // one in-flight request and receive the same result.
@@ -427,6 +449,7 @@ class ApiService {
       final selections =
           attempt.userSelections.map((k, v) => MapEntry(k.toString(), v));
       final questionIds = attempt.questions.map((q) => q.questionId).toList();
+      final appVersion = await _getAppVersion();
 
       await _dio.post('api/user/test-attempts/', data: {
         'bcd_test_id': attempt.bcdCategoryId != null
@@ -447,11 +470,48 @@ class ApiService {
         'user_selections': selections,
         'question_ids': questionIds,
         'duration_seconds': attempt.durationSeconds ?? 0,
+        'app_version': appVersion,
+        'platform': _platformString,
       });
       return true;
     } catch (e) {
       debugPrint('[syncTestAttempt] backend sync failed: $e');
       // Local Hive is the primary store — caller decides how to handle sync failure.
+      return false;
+    }
+  }
+
+  /// Push all chunk progress for one BCD test to the backend.
+  /// [chunks] is a list of maps: {chunk_index, is_passed, completed_at (ISO string)}.
+  Future<bool> syncSmartProgress(
+      int testBcdId, List<Map<String, dynamic>> chunks) async {
+    try {
+      final appVersion = await _getAppVersion();
+      await _dio.post('api/user/smart-progress/', data: {
+        'test_bcd_id': testBcdId,
+        'app_version': appVersion,
+        'platform': _platformString,
+        'chunks': chunks,
+      });
+      return true;
+    } catch (e) {
+      debugPrint('[syncSmartProgress] failed: $e');
+      return false;
+    }
+  }
+
+  /// Replace the full weak question pool for one BCD test on the backend.
+  /// [questions] is a list of maps: {question_id, wrong_count, correct_streak, last_seen (ISO string)}.
+  Future<bool> syncWeakQuestions(
+      int testBcdId, List<Map<String, dynamic>> questions) async {
+    try {
+      await _dio.post('api/user/smart-weak-questions/sync/', data: {
+        'test_bcd_id': testBcdId,
+        'questions': questions,
+      });
+      return true;
+    } catch (e) {
+      debugPrint('[syncWeakQuestions] failed: $e');
       return false;
     }
   }

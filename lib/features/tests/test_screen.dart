@@ -231,6 +231,11 @@ class _TestscreenState extends State<Testscreen> {
     }
     // Pre-open the Hive box so saves never hang waiting for it to open
     AppStorage.testAttemptsBox();
+    // Mark this exam as started immediately so even app-kill is recorded.
+    // Skip for review mode (no new attempt) and resumed tests (already recorded).
+    if (!widget.isReviewMode && widget.resumeTestId == null) {
+      _saveStartedAttempt();
+    }
     if (!widget.isReviewMode) _applyShuffleIfEnabled();
 
     if (!widget.isReviewMode && !widget.isMockExamMode) {
@@ -751,6 +756,27 @@ class _TestscreenState extends State<Testscreen> {
       }
     }
     return (correctAnswers / widget.questions.length) * 100;
+  }
+
+  Future<void> _saveStartedAttempt() async {
+    final attempt = TestAttempt(
+      testId: _testId,
+      dateTime: _startTime,
+      userSelections: {},
+      score: 0,
+      hasPassed: false,
+      questions: widget.questions,
+      licenceName: widget.licenceName,
+      categoryName: widget.categoryName,
+      status: 'started',
+      currentQuestionIndex: 0,
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+      durationSeconds: 0,
+      bcdCategoryId: widget.bcdCategoryId,
+    );
+    await _attemptSaveService.save(attempt);
+    HomeDataCache.invalidate();
   }
 
   Future<TestAttemptSaveResult> _saveTestAttempt() async {

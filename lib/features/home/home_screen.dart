@@ -124,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen>
     if (!mounted) return;
     final all = box.values.toList().cast<TestAttempt>();
     setState(() {
-      _pausedAttempts = all.where((a) => a.isPaused).toList()
+      _pausedAttempts = all.where((a) => a.isResumable).toList()
         ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
       _previousAttempts = all.where((a) => a.isCompleted).toList();
       _stats = calculateStats(_previousAttempts);
@@ -148,20 +148,36 @@ class _HomeScreenState extends State<HomeScreen>
     final apiService = ApiService();
     final remoteList = await apiService.fetchTestAttempts();
     bool changed = false;
+
     for (final data in remoteList) {
       final id = data['attempt_id'] as String? ?? '';
-      if (id.isEmpty || box.containsKey(id)) continue;
-      List<Question> questions = const [];
-      if ((data['status'] as String? ?? '') == 'paused') {
+      if (id.isEmpty) continue;
+
+      final existing = box.get(id);
+      final remoteStatus = data['status'] as String? ?? '';
+
+      // Completed is the final state — skip entirely, never needs updating.
+      if (existing != null && existing.isCompleted) continue;
+
+      // Same status locally and remotely — nothing has changed, skip.
+      if (existing != null && existing.status == remoteStatus) continue;
+
+      // Need to create or update this record.
+      // Reuse questions already in Hive to avoid an extra network call.
+      // Only fetch from backend when the attempt is resumable and we have no questions yet.
+      List<Question> questions = existing?.questions ?? const [];
+      if (questions.isEmpty &&
+          (remoteStatus == 'paused' || remoteStatus == 'started')) {
         questions = await apiService.fetchQuestionsForAttempt(id);
       }
-      final attempt =
-          apiService.testAttemptFromJson(data, questions: questions);
+
+      final attempt = apiService.testAttemptFromJson(data, questions: questions);
       if (attempt != null) {
         await box.put(id, attempt);
         changed = true;
       }
     }
+
     if (changed) _refreshFromBox(box);
   }
 
@@ -1203,14 +1219,27 @@ class _InProgressCardState extends State<_InProgressCard>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.pause_circle_outline,
-                          size: 11, color: Colors.orange.shade700),
+                      Icon(
+                        a.isStarted
+                            ? Icons.play_circle_outline
+                            : Icons.pause_circle_outline,
+                        size: 11,
+                        color: a.isStarted
+                            ? Colors.blue.shade600
+                            : Colors.orange.shade700,
+                      ),
                       const SizedBox(width: 3),
-                      Text(Translations.of(context).home_paused,
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.orange.shade700,
-                              fontWeight: FontWeight.w600)),
+                      Text(
+                        a.isStarted
+                            ? Translations.of(context).home_started
+                            : Translations.of(context).home_paused,
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: a.isStarted
+                                ? Colors.blue.shade600
+                                : Colors.orange.shade700,
+                            fontWeight: FontWeight.w600),
+                      ),
                     ],
                   ),
                 ),

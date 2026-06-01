@@ -148,6 +148,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
       'Once you complete a quiz, your results will show up here.';
   String get home_take_quiz => 'Take Your First Quiz';
   String get home_paused => 'Paused';
+  String get home_started => 'Started';
   String get home_resume => 'Resume';
   String get home_attempts => 'attempts';
   String get home_active => 'active';
@@ -1144,6 +1145,8 @@ extension on Translations {
         return 'Take Your First Quiz';
       case 'home_paused':
         return 'Paused';
+      case 'home_started':
+        return 'Started';
       case 'home_resume':
         return 'Resume';
       case 'home_attempts':

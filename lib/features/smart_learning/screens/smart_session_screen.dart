@@ -1,8 +1,11 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -38,6 +41,7 @@ class SmartSessionScreen extends StatefulWidget {
 class _SmartSessionScreenState extends State<SmartSessionScreen> {
   final _provider = BcdProvider();
   final _svc = SmartProgressService();
+  final _api = ApiService();
 
   @override
   void initState() {
@@ -126,6 +130,8 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
             }
             await _svc.recordSessionResults(testBcdId, finalResults);
             widget.onProgressSaved?.call();
+            // Fire-and-forget: sync smart progress + weak questions to backend.
+            _syncSmartData(testBcdId, isMistakes).ignore();
             final mastered = await _svc.masteredQuestionCount(
                 testBcdId, widget.entry.chunkSizes);
             final correct = finalResults.values.where((v) => v).length;
@@ -142,6 +148,40 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _syncSmartData(int testBcdId, bool isMistakes) async {
+    try {
+      // Sync chunk pass/fail progress (skip for mistakes-only sessions).
+      if (!isMistakes) {
+        final progressBox = await AppStorage.smartProgressBox();
+        final chunks = progressBox.values
+            .where((p) => p.testBcdId == testBcdId)
+            .map((p) => {
+                  'chunk_index': p.chunkIndex,
+                  'is_passed': p.isPassed,
+                  'completed_at': p.completedAt.toUtc().toIso8601String(),
+                })
+            .toList();
+        if (chunks.isNotEmpty) {
+          await _api.syncSmartProgress(testBcdId, chunks);
+        }
+      }
+      // Sync full weak question pool (always — mistakes session also modifies it).
+      final weakBox = await AppStorage.weakQuestionsBox();
+      final weakQuestions = weakBox.values
+          .where((wq) => wq.testBcdId == testBcdId)
+          .map((wq) => {
+                'question_id': wq.questionId,
+                'wrong_count': wq.wrongCount,
+                'correct_streak': wq.correctStreak,
+                'last_seen': wq.lastSeen.toUtc().toIso8601String(),
+              })
+          .toList();
+      await _api.syncWeakQuestions(testBcdId, weakQuestions);
+    } catch (e) {
+      debugPrint('[_syncSmartData] failed: $e');
+    }
   }
 
   @override

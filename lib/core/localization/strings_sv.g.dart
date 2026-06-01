@@ -235,6 +235,7 @@ class TranslationsSv implements Translations {
   String get home_take_quiz => 'Ta ditt första prov';
   @override
   String get home_paused => 'Pausad';
+  String get home_started => 'Startad';
   @override
   String get home_resume => 'Återuppta';
   @override
@@ -1926,6 +1927,8 @@ extension on TranslationsSv {
         return 'Ta ditt första prov';
       case 'home_paused':
         return 'Pausad';
+      case 'home_started':
+        return 'Startad';
       case 'home_resume':
         return 'Återuppta';
       case 'home_attempts':

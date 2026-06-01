@@ -7,12 +7,15 @@ import 'package:flutter/services.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/services/home_data_cache.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
+import 'package:taxi_exam_app/features/tests/test_attempt_save_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
-import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/widgets/app_bottom_sheet.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/core/widgets/question_progress_header.dart';
@@ -62,6 +65,11 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   final _tts = TtsService();
   final _random = Random();
 
+  // Session identity — used for attempt tracking
+  late final String _testId;
+  late final DateTime _startTime;
+  late final TestAttemptSaveService _attemptSaveService;
+
   // Remaining question queue — front is always the current question.
   late final List<Question> _queue;
 
@@ -93,8 +101,18 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   @override
   void initState() {
     super.initState();
+    _testId = DateTime.now().millisecondsSinceEpoch.toString();
+    _startTime = DateTime.now();
+    _attemptSaveService = TestAttemptSaveService(
+      saveLocal: _persistAttemptLocal,
+      syncRemote: _api.syncTestAttempt,
+    );
     _queue = List<Question>.from(widget.initialQuestions);
     _loadAiEnabled();
+    // Pre-open Hive box so saves don't hang.
+    AppStorage.testAttemptsBox();
+    // Mark as started immediately so even app-kill is recorded.
+    _saveAttempt(status: 'started', score: 0, hasPassed: false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _preloadQueueImages(0);
       _preloadQueueImages(1);
@@ -106,6 +124,36 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   void dispose() {
     _tts.flutterTts.stop();
     super.dispose();
+  }
+
+  Future<void> _persistAttemptLocal(TestAttempt attempt) async {
+    final box = await AppStorage.testAttemptsBox();
+    await box.put(attempt.testId, attempt);
+  }
+
+  Future<void> _saveAttempt({
+    required String status,
+    required double score,
+    required bool hasPassed,
+  }) async {
+    final attempt = TestAttempt(
+      testId: _testId,
+      dateTime: _startTime,
+      userSelections: {},
+      score: score,
+      hasPassed: hasPassed,
+      questions: widget.initialQuestions,
+      licenceName: '',
+      categoryName: widget.testName,
+      status: status,
+      currentQuestionIndex: 0,
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+      durationSeconds: DateTime.now().difference(_startTime).inSeconds,
+      bcdCategoryId: widget.bcdCategoryId,
+    );
+    await _attemptSaveService.save(attempt);
+    HomeDataCache.invalidate();
   }
 
   Future<void> _loadAiEnabled() async {
@@ -341,9 +389,12 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       final correctCount = widget.initialQuestions
           .where((q) => _correctOnce.contains(q.questionId))
           .length;
-      final hasPassed = _total > 0 &&
-          (correctCount / _total * 100) >= widget.passScorePercent;
+      final score = _total > 0 ? (correctCount / _total * 100) : 0.0;
+      final hasPassed = score >= widget.passScorePercent;
       if (!hasPassed) vibrateFail();
+      // Save completed attempt so it shows in the user's attempts list.
+      _saveAttempt(status: 'completed', score: score, hasPassed: hasPassed)
+          .ignore();
       final finalResults = {
         for (final q in widget.initialQuestions)
           q.questionId: _correctOnce.contains(q.questionId),
