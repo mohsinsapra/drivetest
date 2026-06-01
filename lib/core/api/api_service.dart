@@ -35,7 +35,9 @@ class ApiService {
     if (_cachedAppVersion != null) return _cachedAppVersion!;
     try {
       final info = await PackageInfo.fromPlatform();
-      _cachedAppVersion = info.version;
+      _cachedAppVersion = info.buildNumber.isNotEmpty
+          ? '${info.version}+${info.buildNumber}'
+          : info.version;
     } catch (_) {
       _cachedAppVersion = '';
     }
