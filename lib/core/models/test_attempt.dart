@@ -67,6 +67,7 @@ class TestAttempt extends HiveObject {
 
   bool get isPaused => status == 'paused';
   bool get isStarted => status == 'started';
+
   /// True for any attempt the user can resume (started or paused).
   bool get isResumable => status == 'started' || status == 'paused';
   bool get isCompleted => status == 'completed';

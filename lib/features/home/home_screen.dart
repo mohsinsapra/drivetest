@@ -171,7 +171,8 @@ class _HomeScreenState extends State<HomeScreen>
         questions = await apiService.fetchQuestionsForAttempt(id);
       }
 
-      final attempt = apiService.testAttemptFromJson(data, questions: questions);
+      final attempt =
+          apiService.testAttemptFromJson(data, questions: questions);
       if (attempt != null) {
         await box.put(id, attempt);
         changed = true;
