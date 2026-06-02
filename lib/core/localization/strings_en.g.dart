@@ -363,6 +363,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get bcd_view => 'View';
   String get bcd_previous => 'Previous';
   String get bcd_next => 'Next';
+  String get smart_check => 'Check';
   String get bcd_failed_traffic_signs => 'Failed to load traffic signs';
   String get bcd_search_hint => 'Search…';
   String get bcd_no_subcategories => 'No sub-categories available.';
@@ -954,6 +955,27 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
       '${mastered} / ${total} mastered';
   String get smart_exit_title => 'Leave Smart Learning?';
   String get smart_exit_body => 'Your current session progress will be lost.';
+  String get notif_subtitle => 'DriveTest';
+  String get notif_morning_title => '☀️ Morning study reminder';
+  String notif_morning_title_exam({required Object examTitle}) =>
+      '☀️ Time to study $examTitle';
+  String get notif_morning_body =>
+      "Start your practice session — build that streak!";
+  String get notif_evening_title => '🌙 Evening streak check-in';
+  String notif_evening_title_exam({required Object examTitle}) =>
+      '🌙 $examTitle is waiting for you';
+  String get notif_evening_body =>
+      "Don't let today slip by — keep your streak alive!";
+  String notif_activity_0({required Object examTitle}) =>
+      'You were working on $examTitle — one more session and it clicks.';
+  String notif_activity_1({required Object examTitle}) =>
+      "$examTitle is waiting. Your last session built real momentum — don't lose it.";
+  String notif_activity_2({required Object examTitle}) =>
+      'Small daily sessions beat cramming. Jump back into $examTitle now.';
+  String notif_activity_3({required Object examTitle}) =>
+      "You're closer than you think on $examTitle. Keep the streak alive!";
+  String notif_activity_4({required Object examTitle}) =>
+      'One focused session on $examTitle today makes the exam day easier.';
 }
 
 /// Flat map(s) containing all translations.
@@ -1523,6 +1545,8 @@ extension on Translations {
         return 'Previous';
       case 'bcd_next':
         return 'Next';
+      case 'smart_check':
+        return 'Check';
       case 'bcd_failed_traffic_signs':
         return 'Failed to load traffic signs';
       case 'bcd_search_hint':

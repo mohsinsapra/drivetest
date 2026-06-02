@@ -63,6 +63,9 @@ class AppStorage {
   /// Cached serialised user JSON written after login.
   static const String kUserJson = 'user';
 
+  /// App display language — `'en'` or `'sv'`.
+  static const String kLanguage = 'language';
+
   /// Prefix for saved-question bookmark keys — e.g. `saved_question_ids_bcd:5`.
   static const String kSavedQuestionsPrefix = 'saved_question_ids_';
 

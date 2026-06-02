@@ -9,6 +9,7 @@ class QuestionProgressHeader extends StatelessWidget {
   final int total;
   final VoidCallback onTap;
   final bool showLabel;
+  final double barHeight;
 
   const QuestionProgressHeader({
     super.key,
@@ -16,6 +17,7 @@ class QuestionProgressHeader extends StatelessWidget {
     required this.total,
     required this.onTap,
     this.showLabel = true,
+    this.barHeight = 10,
   });
 
   @override
@@ -25,22 +27,16 @@ class QuestionProgressHeader extends StatelessWidget {
     final progress = rawProgress.clamp(0.0, 1.0);
     final visibleProgress = progress == 0 ? 0.0 : progress.clamp(0.04, 1.0);
 
+    final trackColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.2)
+        : Colors.grey[300]!;
+    final fillColor = Theme.of(context).primaryColor;
+    final radius = barHeight / 2;
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white.withValues(alpha: 0.15)
-                : Colors.grey.shade200,
-            width: 1,
-          ),
-        ),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final showChevron = constraints.maxWidth > 110;
@@ -48,15 +44,30 @@ class QuestionProgressHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Expanded(
-                  child: LinearProgressIndicator(
-                    value: visibleProgress,
-                    minHeight: 10,
-                    borderRadius: BorderRadius.circular(10),
-                    backgroundColor:
-                        Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white.withValues(alpha: 0.2)
-                            : Colors.grey[300],
-                    color: Theme.of(context).primaryColor,
+                  child: SizedBox(
+                    height: barHeight,
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: barHeight,
+                          decoration: BoxDecoration(
+                            color: trackColor,
+                            borderRadius: BorderRadius.circular(radius),
+                          ),
+                        ),
+                        if (visibleProgress > 0)
+                          FractionallySizedBox(
+                            widthFactor: visibleProgress,
+                            child: Container(
+                              height: barHeight,
+                              decoration: BoxDecoration(
+                                color: fillColor,
+                                borderRadius: BorderRadius.circular(radius),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
                 if (showLabel) ...[

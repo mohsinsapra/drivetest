@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/services/language_preference_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -228,6 +229,9 @@ class _TestscreenState extends State<Testscreen> {
     if (!widget.isMockExamMode) {
       _loadSavedQuestionIds();
       _loadAiEnabled();
+    }
+    if (!widget.isReviewMode && !widget.isMockExamMode) {
+      _preFetchPreferredLanguage();
     }
     // Pre-open the Hive box so saves never hang waiting for it to open
     AppStorage.testAttemptsBox();
@@ -512,6 +516,15 @@ class _TestscreenState extends State<Testscreen> {
         setState(() => _aiEnabled = enabled);
       }
     } catch (_) {}
+  }
+
+  Future<void> _preFetchPreferredLanguage() async {
+    final lang = await LanguagePreferenceService.getMostUsed();
+    if (lang == null || lang.toLowerCase() == 'sv') return;
+    await _translateQuestion(0, lang.toLowerCase());
+    if (mounted && _previousLanguageCode == null) {
+      setState(() => _previousLanguageCode = lang.toUpperCase());
+    }
   }
 
   Future<void> _loadSavedQuestionIds() async {
@@ -1262,6 +1275,7 @@ class _TestscreenState extends State<Testscreen> {
       return;
     }
 
+    LanguagePreferenceService.record(value).ignore();
     await _translateQuestion(currentQuestionIndex, targetLang);
     if (mounted) {
       setState(() {

@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/streak_notification_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_exam_screen.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
@@ -21,6 +23,8 @@ class ActivityReminderService {
   static const _poolSize = 5;
   static const _keySlot = 'activity_reminder_slot';
   static const _keyPendingDeepLink = 'activity_deep_link';
+  static const _keyLastExamTitle = 'last_exam_title';
+  static const _keyLastExamLocale = 'last_exam_locale';
 
   static final _rng = Random();
 
@@ -38,30 +42,45 @@ class ActivityReminderService {
     if (kIsWeb) return;
 
     final prefs = await SharedPreferences.getInstance();
+
+    // Persist so streak reminders can reference the same exam.
+    if (examTitle.trim().isNotEmpty) {
+      await prefs.setString(_keyLastExamTitle, examTitle.trim());
+      await prefs.setString(_keyLastExamLocale, locale);
+    }
+
     final slot = (prefs.getInt(_keySlot) ?? 0) % _poolSize;
     final notifId = _idStart + slot;
     await prefs.setInt(_keySlot, (slot + 1) % _poolSize);
 
-    final hookIndex = _rng.nextInt(_enPhrases.length);
-    final phrases = locale == 'sv' ? _svPhrases : _enPhrases;
-    final body = phrases[hookIndex].replaceAll('{examTitle}', examTitle);
+    final appLocale = await _appLocale();
+    final t = await (appLocale == AppLocale.sv
+        ? AppLocale.sv.build()
+        : AppLocale.en.build());
+
+    final resolvedTitle = examTitle.trim().isNotEmpty
+        ? examTitle.trim()
+        : (appLocale == AppLocale.sv ? 'Fortsätt öva' : 'Keep Practising');
+    final subtitle = t.notif_subtitle;
+    final body = _pickPhrase(t, _rng.nextInt(5), resolvedTitle);
 
     final fireAt = tz.TZDateTime.now(tz.local).add(const Duration(hours: 24));
 
     await StreakNotificationService.plugin.zonedSchedule(
       notifId,
-      examTitle,
+      resolvedTitle,
       body,
       fireAt,
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
           _channelName,
           channelDescription: 'Reminders to continue your exam practice',
           importance: Importance.high,
           priority: Priority.high,
+          subText: subtitle,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(subtitle: subtitle),
       ),
       payload: payloadJson,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
@@ -77,6 +96,15 @@ class ActivityReminderService {
     for (int i = 0; i < _poolSize; i++) {
       await StreakNotificationService.plugin.cancel(_idStart + i);
     }
+  }
+
+  /// Returns the last exam title and locale the user studied, or null if none recorded.
+  static Future<({String title, String locale})?> getLastExam() async {
+    final prefs = await SharedPreferences.getInstance();
+    final title = prefs.getString(_keyLastExamTitle);
+    final locale = prefs.getString(_keyLastExamLocale) ?? 'en';
+    if (title == null || title.isEmpty) return null;
+    return (title: title, locale: locale);
   }
 
   // ── Payload helpers ────────────────────────────────────────────────────────
@@ -193,29 +221,29 @@ class ActivityReminderService {
     return List.generate(count, (i) => base + (i < remainder ? 1 : 0));
   }
 
-  // ── Phrase pool ────────────────────────────────────────────────────────────
+  // ── Helpers ────────────────────────────────────────────────────────────────
 
-  static const _enPhrases = [
-    'You practiced {examTitle} yesterday — keep the momentum going!',
-    'Your progress on {examTitle} is looking great. Pick up where you left off!',
-    'One more session on {examTitle} and you\'ll be that much closer to passing.',
-    'Don\'t let {examTitle} slip — you\'ve been doing really well!',
-    'Ready to continue {examTitle}? You\'re making solid progress.',
-    'You\'ve built good habits with {examTitle}. Keep it up!',
-    'Time to revisit {examTitle} — consistency is the key to passing.',
-    'You\'re on a roll with {examTitle}. Come back and keep practising!',
-  ];
+  static String _pickPhrase(Translations t, int index, String examTitle) {
+    switch (index % 5) {
+      case 0:
+        return t.notif_activity_0(examTitle: examTitle);
+      case 1:
+        return t.notif_activity_1(examTitle: examTitle);
+      case 2:
+        return t.notif_activity_2(examTitle: examTitle);
+      case 3:
+        return t.notif_activity_3(examTitle: examTitle);
+      default:
+        return t.notif_activity_4(examTitle: examTitle);
+    }
+  }
 
-  static const _svPhrases = [
-    'Du övade {examTitle} igår — håll farten uppe!',
-    'Dina framsteg på {examTitle} ser bra ut. Fortsätt där du slutade!',
-    'Ännu en session till på {examTitle} och du är närmre att klara provet.',
-    'Glöm inte {examTitle} — du har gjort riktigt bra ifrån dig!',
-    'Redo att fortsätta med {examTitle}? Du gör stabila framsteg.',
-    'Du har byggt bra rutiner med {examTitle}. Fortsätt så!',
-    'Dags att återvända till {examTitle} — konsekvens är nyckeln till att klara.',
-    'Du är inne i en bra rutin med {examTitle}. Kom tillbaka och öva mer!',
-  ];
+  static Future<AppLocale> _appLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    return (prefs.getString(AppStorage.kLanguage) ?? 'sv') == 'sv'
+        ? AppLocale.sv
+        : AppLocale.en;
+  }
 }
 
 // ── Private loader widget ──────────────────────────────────────────────────

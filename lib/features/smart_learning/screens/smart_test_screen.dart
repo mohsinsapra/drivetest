@@ -14,6 +14,7 @@ import 'package:taxi_exam_app/features/tests/test_attempt_save_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/services/language_preference_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/widgets/app_bottom_sheet.dart';
@@ -81,6 +82,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   // Current question UI state (QuestionPageItem uses index 0 as the slot key).
   final Map<int, String> _selection = {};
   bool _isAnswered = false;
+  bool _isChecked = false;
   int _pageKey = 0;
 
   // Language & AI (mirrors test_screen pattern)
@@ -109,6 +111,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     );
     _queue = List<Question>.from(widget.initialQuestions);
     _loadAiEnabled();
+    _preFetchPreferredLanguage();
     // Pre-open Hive box so saves don't hang.
     AppStorage.testAttemptsBox();
     // Mark as started immediately so even app-kill is recorded.
@@ -164,6 +167,15 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       final map = jsonDecode(stored) as Map<String, dynamic>;
       if (mounted) setState(() => _aiEnabled = map['ai_enabled'] == true);
     } catch (_) {}
+  }
+
+  Future<void> _preFetchPreferredLanguage() async {
+    final lang = await LanguagePreferenceService.getMostUsed();
+    if (lang == null || lang.toLowerCase() == 'sv') return;
+    await _translateToLanguage(lang.toLowerCase());
+    if (mounted && _previousLangCode == null) {
+      setState(() => _previousLangCode = lang.toUpperCase());
+    }
   }
 
   // ── Image preloading ───────────────────────────────────────────────────────
@@ -292,6 +304,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       }
       return;
     }
+    LanguagePreferenceService.record(code).ignore();
     await _translateToLanguage(targetLang);
     if (mounted) {
       setState(() {
@@ -329,7 +342,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       LocaleSettings.currentLocale == AppLocale.sv ? 'Swedish' : 'English';
 
   bool get _isLastAction {
-    if (!_isAnswered || _current == null) return false;
+    if (!_isChecked || _current == null) return false;
     final isCorrect = _selection[0] == _current!.correctAnswer;
     if (!isCorrect) {
       final afterThis = (_wrongCounts[_current!.questionId] ?? 0) + 1;
@@ -341,12 +354,17 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   // ── Option selection ───────────────────────────────────────────────────────
 
   void _onOptionTap(String optionLabel) {
-    if (_isAnswered) return;
+    if (_isChecked) return;
     setState(() {
       _selection[0] = optionLabel;
       _isAnswered = true;
     });
-    if (optionLabel == _current!.correctAnswer) {
+  }
+
+  void _onCheck() {
+    if (!_isAnswered || _isChecked) return;
+    setState(() => _isChecked = true);
+    if (_selection[0] == _current!.correctAnswer) {
       vibrateCorrectAnswer();
     } else {
       vibrateWrongAnswer();
@@ -416,6 +434,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     setState(() {
       _selection.clear();
       _isAnswered = false;
+      _isChecked = false;
       _pageKey++;
     });
   }
@@ -533,39 +552,19 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                   total: _total,
                   onTap: () {},
                   showLabel: false,
+                  barHeight: 14,
                 ),
                 centerTitle: false,
                 titleSpacing: 0,
                 backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 elevation: 0,
                 actions: [
-                  PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert,
-                        color: Theme.of(context).colorScheme.onSurface),
-                    onSelected: (value) {
-                      if (value == 'language') _showLanguageSheet();
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem<String>(
-                        value: 'language',
-                        child: Row(
-                          children: [
-                            Text(_tts.getLanguageFlag(_langCode),
-                                style: const TextStyle(fontSize: 16)),
-                            const SizedBox(width: 8),
-                            Text(t.test_question_language_menu),
-                            const Spacer(),
-                            Icon(Icons.chevron_right,
-                                size: 16,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.4)),
-                          ],
-                        ),
-                      ),
-                    ],
+                  _LanguageChip(
+                    flag: _tts.getLanguageFlag(_langCode),
+                    langCode: _langCode,
+                    onTap: _showLanguageSheet,
                   ),
+                  const SizedBox(width: 8),
                 ],
               ),
               body: q == null
@@ -573,68 +572,119 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                   : Column(
                       children: [
                         Expanded(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            transitionBuilder: (child, anim) =>
-                                FadeTransition(opacity: anim, child: child),
-                            layoutBuilder: (currentChild, previousChildren) =>
-                                Stack(
-                              alignment: Alignment.topCenter,
-                              children: [
-                                ...previousChildren,
-                                if (currentChild != null) currentChild,
-                              ],
-                            ),
-                            child: KeyedSubtree(
-                              key: ValueKey(_pageKey),
-                              child: QuestionPageItem(
-                                index: 0,
-                                question: q,
-                                legacyImageUrl: _api.fetchImage(
-                                  widget.licenceId,
-                                  widget.categoryId,
-                                  q.imageUrl,
+                          child: GestureDetector(
+                            onLongPress: _revertToPreviousLanguage,
+                            onLongPressUp: _revertToPreviousLanguage,
+                            behavior: HitTestBehavior.opaque,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 200),
+                              transitionBuilder: (child, anim) =>
+                                  FadeTransition(opacity: anim, child: child),
+                              layoutBuilder: (currentChild, previousChildren) =>
+                                  Stack(
+                                alignment: Alignment.topCenter,
+                                children: [
+                                  ...previousChildren,
+                                  if (currentChild != null) currentChild,
+                                ],
+                              ),
+                              child: KeyedSubtree(
+                                key: ValueKey(_pageKey),
+                                child: QuestionPageItem(
+                                  index: 0,
+                                  question: q,
+                                  legacyImageUrl: _api.fetchImage(
+                                    widget.licenceId,
+                                    widget.categoryId,
+                                    q.imageUrl,
+                                  ),
+                                  userSelections: _selection,
+                                  isReviewMode: false,
+                                  instantMarking: _isChecked,
+                                  savedQuestionIds: const {},
+                                  aiEnabled: _aiEnabled,
+                                  hasAiSession:
+                                      id != null && _aiSessions.containsKey(id),
+                                  currentLanguageCode: _langCode,
+                                  scale: 1.0,
+                                  onOptionTap: _onOptionTap,
+                                  onLongPress: () {},
+                                  onLongPressUp: () {},
+                                  onAiContinue: _openAiChat,
+                                  onAiHint: () => _openAiChat(
+                                    displayText: t.ai_hint_button,
+                                    prompt:
+                                        'Give me a short hint that helps me figure out the answer without telling me directly. You MUST reply in $_uiLang only.',
+                                  ),
+                                  onAiUnderstand: () => _openAiChat(
+                                    displayText: t.ai_understand_button,
+                                    prompt:
+                                        'Help me understand this question. Explain the concept it is testing and why the correct answer is right. You MUST reply in $_uiLang only.',
+                                  ),
+                                  onToggleSave: (_, __) {},
                                 ),
-                                userSelections: _selection,
-                                isReviewMode: false,
-                                instantMarking: true,
-                                savedQuestionIds: const {},
-                                aiEnabled: _aiEnabled,
-                                hasAiSession:
-                                    id != null && _aiSessions.containsKey(id),
-                                currentLanguageCode: _langCode,
-                                scale: 1.0,
-                                onOptionTap: _onOptionTap,
-                                onLongPress: _revertToPreviousLanguage,
-                                onLongPressUp: _revertToPreviousLanguage,
-                                onAiContinue: _openAiChat,
-                                onAiHint: () => _openAiChat(
-                                  displayText: t.ai_hint_button,
-                                  prompt:
-                                      'Give me a short hint that helps me figure out the answer without telling me directly. You MUST reply in $_uiLang only.',
-                                ),
-                                onAiUnderstand: () => _openAiChat(
-                                  displayText: t.ai_understand_button,
-                                  prompt:
-                                      'Help me understand this question. Explain the concept it is testing and why the correct answer is right. You MUST reply in $_uiLang only.',
-                                ),
-                                onToggleSave: (_, __) {},
                               ),
                             ),
                           ),
                         ),
                         _NextButton(
                           enabled: _isAnswered && !_finishing,
-                          label: _isLastAction
-                              ? t.smart_result_continue
-                              : t.bcd_next,
-                          onPressed: _advance,
+                          label: _isChecked
+                              ? (_isLastAction
+                                  ? t.smart_result_continue
+                                  : t.bcd_next)
+                              : t.smart_check,
+                          onPressed: _isChecked ? _advance : _onCheck,
                         ),
                       ],
                     ),
             )); // PopScope + Scaffold
       }), // Builder
     ); // CupertinoScaffold
+  }
+}
+
+// ── Language chip (AppBar action) ────────────────────────────────────────────
+
+class _LanguageChip extends StatelessWidget {
+  final String flag;
+  final String langCode;
+  final VoidCallback onTap;
+
+  const _LanguageChip({
+    required this.flag,
+    required this.langCode,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(flag, style: const TextStyle(fontSize: 14)),
+            const SizedBox(width: 4),
+            Text(
+              langCode,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -4,8 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/activity_reminder_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -101,6 +103,14 @@ class StreakNotificationService {
     final times = await _loadOrGenerateTimes();
     final mH = times.$1, mMin = times.$2, eH = times.$3, eMin = times.$4;
 
+    // Load app locale and last exam for personalised copy.
+    final prefs = await SharedPreferences.getInstance();
+    final isSv = (prefs.getString(AppStorage.kLanguage) ?? 'sv') == 'sv';
+    final t = await (isSv ? AppLocale.sv.build() : AppLocale.en.build());
+    final lastExam = await ActivityReminderService.getLastExam();
+    final examTitle = lastExam?.title ?? '';
+    final hasExam = examTitle.isNotEmpty;
+
     // Cancel all existing streak notifications (14 slots).
     for (int i = 0; i < 14; i++) {
       await _plugin.cancel(_morningIdOffset + i);
@@ -109,16 +119,22 @@ class StreakNotificationService {
     for (final weekday in weekdays) {
       await _scheduleWeekly(
         id: _morningIdOffset + weekday,
-        title: '☀️ Morning study reminder',
-        body: "Start your practice session — build that streak!",
+        title: hasExam
+            ? t.notif_morning_title_exam(examTitle: examTitle)
+            : t.notif_morning_title,
+        body: t.notif_morning_body,
+        subtitle: t.notif_subtitle,
         weekday: weekday,
         hour: mH,
         minute: mMin,
       );
       await _scheduleWeekly(
         id: _eveningIdOffset + weekday,
-        title: '🌙 Evening streak check-in',
-        body: "Don't let today slip by — keep your streak alive!",
+        title: hasExam
+            ? t.notif_evening_title_exam(examTitle: examTitle)
+            : t.notif_evening_title,
+        body: t.notif_evening_body,
+        subtitle: t.notif_subtitle,
         weekday: weekday,
         hour: eH,
         minute: eMin,
@@ -139,6 +155,7 @@ class StreakNotificationService {
     required int id,
     required String title,
     required String body,
+    required String subtitle,
     required int weekday,
     required int hour,
     required int minute,
@@ -148,7 +165,7 @@ class StreakNotificationService {
       title,
       body,
       _nextOccurrence(weekday, hour, minute),
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
           _channelName,
@@ -156,8 +173,9 @@ class StreakNotificationService {
               'Daily reminders on your practice days to keep your streak',
           importance: Importance.high,
           priority: Priority.high,
+          subText: subtitle,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(subtitle: subtitle),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:

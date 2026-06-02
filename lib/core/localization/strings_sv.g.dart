@@ -637,6 +637,8 @@ class TranslationsSv implements Translations {
   @override
   String get bcd_next => 'Nästa';
   @override
+  String get smart_check => 'Kontrollera';
+  @override
   String get bcd_failed_traffic_signs =>
       'Det gick inte att ladda trafikskyltar';
   @override
@@ -1736,6 +1738,39 @@ class TranslationsSv implements Translations {
   @override
   String get smart_exit_body =>
       'Dina framsteg i den här sessionen kommer att gå förlorade.';
+  @override
+  String get notif_subtitle => 'DriveTest';
+  @override
+  String get notif_morning_title => '☀️ Morgonstudie-påminnelse';
+  @override
+  String notif_morning_title_exam({required Object examTitle}) =>
+      '☀️ Dags att studera $examTitle';
+  @override
+  String get notif_morning_body =>
+      'Starta din övningssession — bygg din streak!';
+  @override
+  String get notif_evening_title => '🌙 Kvällsstreak-check';
+  @override
+  String notif_evening_title_exam({required Object examTitle}) =>
+      '🌙 $examTitle väntar på dig';
+  @override
+  String get notif_evening_body =>
+      'Låt inte idag gå förbi — håll din streak vid liv!';
+  @override
+  String notif_activity_0({required Object examTitle}) =>
+      'Du jobbade med $examTitle — en session till och det sitter.';
+  @override
+  String notif_activity_1({required Object examTitle}) =>
+      '$examTitle väntar. Du byggde upp ett bra flyt sist — tappa det inte.';
+  @override
+  String notif_activity_2({required Object examTitle}) =>
+      'Korta dagliga pass slår pluggande. Hoppa in i $examTitle nu.';
+  @override
+  String notif_activity_3({required Object examTitle}) =>
+      'Du är närmare än du tror på $examTitle. Håll streaket vid liv!';
+  @override
+  String notif_activity_4({required Object examTitle}) =>
+      'En fokuserad session på $examTitle idag gör tentadagen lättare.';
 }
 
 /// Flat map(s) containing all translations.
@@ -2305,6 +2340,8 @@ extension on TranslationsSv {
         return 'Föregående';
       case 'bcd_next':
         return 'Nästa';
+      case 'smart_check':
+        return 'Kontrollera';
       case 'bcd_failed_traffic_signs':
         return 'Det gick inte att ladda trafikskyltar';
       case 'bcd_search_hint':

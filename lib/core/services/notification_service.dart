@@ -138,8 +138,10 @@ class NotificationService {
         } catch (e) {
           debugPrint('[FCM] failed to persist notification: $e');
         }
+        final snackText =
+            [payload.title, payload.body].where((s) => s.isNotEmpty).join(': ');
         showAppSnackBar(
-          '${payload.title}: ${payload.body}',
+          snackText,
           type: _toastStyle(payload.type),
           icon: _toastIcon(payload.type),
         );
