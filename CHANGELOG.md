@@ -20,6 +20,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1+276] - 2026-06-03
+
+### Added
+- **Smart Test — Check & Reveal**: Selecting an answer no longer reveals the result instantly. Tap **Check** to see if you were right, then **Next** to move on — giving you a moment to think before the answer is shown.
+- **Language button in Smart Test**: The three-dot menu is replaced by a language chip in the top bar (same style as the timer). Tap it to switch the question language.
+- **Smart language memory**: The app remembers which language you translate questions to most often. Next time you open a Smart Test or regular Test, that translation is downloaded silently in the background — hold anywhere on the screen to switch to it instantly, no language menu needed.
+- **Smarter reminder notifications**: Reminder messages now mention the specific exam you were last studying, so you always know exactly what to pick up. Messages are shown in your app language (Swedish or English).
+- **Notification subtitle**: All local reminders now display "DriveTest" as the subtitle on iOS and Android for a cleaner, more polished look.
+
+### Changed
+- **Progress bar**: The progress bar in test screens no longer has a border or pill container around it — just a clean, rounded bar. Also slightly taller in Smart Test for better visibility. The bar is always fully rounded at both ends, even at the very start.
+- **Long-press gesture area in Smart Test**: The hold-to-translate gesture now works across the entire screen area, not just over the question and options.
+
+### Fixed
+- Fixed notifications sometimes showing only the app icon with no text when the exam title was missing — a fallback title is now used.
+- Fixed foreground push notifications showing ": message" when the title was empty.
+
+---
+---
+---
+
 ## [1.3.0+275] - 2026-06-03
 
 ### Added
