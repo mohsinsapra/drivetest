@@ -36,8 +36,12 @@ class CategoryProgressSection extends StatelessWidget {
     final t = Translations.of(context);
 
     // Summary numbers
-    final completedCats = cats.where((c) => c.completedBatches == c.totalBatches && c.totalBatches > 0).length;
-    final touchedBatches = cats.expand((c) => c.batchStats).where((b) => b.attempts > 0);
+    final completedCats = cats
+        .where(
+            (c) => c.completedBatches == c.totalBatches && c.totalBatches > 0)
+        .length;
+    final touchedBatches =
+        cats.expand((c) => c.batchStats).where((b) => b.attempts > 0);
     final overallAvg = touchedBatches.isEmpty
         ? 0.0
         : touchedBatches.map((b) => b.averageScore).reduce((a, b) => a + b) /
@@ -67,7 +71,10 @@ class CategoryProgressSection extends StatelessWidget {
               overallAvg: overallAvg,
               cs: cs,
             ),
-            Divider(height: 1, thickness: 1, color: cs.onSurface.withValues(alpha: 0.07)),
+            Divider(
+                height: 1,
+                thickness: 1,
+                color: cs.onSurface.withValues(alpha: 0.07)),
 
             // ── Category rows ───────────────────────────────────────────────
             for (int i = 0; i < cats.length; i++) ...[
@@ -137,8 +144,8 @@ class _SummaryHeader extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     hasData
-                        ? t.dash_progress_avg_hint
-                            .replaceAll('{score}', overallAvg.toStringAsFixed(0))
+                        ? t.dash_progress_avg_hint.replaceAll(
+                            '{score}', overallAvg.toStringAsFixed(0))
                         : t.dash_progress_no_attempts,
                     style: GoogleFonts.lexend(
                       fontSize: 11,
@@ -233,7 +240,8 @@ class _CategoryRow extends StatelessWidget {
     final avg = cat.averageScore;
     final isComplete = completed == total && total > 0;
     final notStarted = touched == 0;
-    final almostDone = !isComplete && total > 0 && (total - completed) <= 2 && touched > 0;
+    final almostDone =
+        !isComplete && total > 0 && (total - completed) <= 2 && touched > 0;
     final lowScore = touched > 0 && avg < 70;
 
     final String statusText;
@@ -246,8 +254,8 @@ class _CategoryRow extends StatelessWidget {
       statusText = t.dash_cat_not_started;
       statusColor = cs.onSurface.withValues(alpha: 0.3);
     } else if (almostDone) {
-      statusText = t.dash_cat_almost_done
-          .replaceAll('{n}', '${total - completed}');
+      statusText =
+          t.dash_cat_almost_done.replaceAll('{n}', '${total - completed}');
       statusColor = cs.primary;
     } else if (lowScore) {
       statusText = t.dash_cat_needs_practice;
@@ -259,8 +267,8 @@ class _CategoryRow extends StatelessWidget {
       statusColor = cs.primary;
     }
 
-    final name = formatNodeName(
-        stripAppSuffix(cat.node.name), t.node_group_prefix);
+    final name =
+        formatNodeName(stripAppSuffix(cat.node.name), t.node_group_prefix);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),

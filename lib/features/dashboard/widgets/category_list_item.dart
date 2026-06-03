@@ -106,7 +106,8 @@ class _CategoryListItemState extends State<CategoryListItem>
                               Flexible(
                                 child: Text(
                                   formatNodeName(
-                                      stripAppSuffix(widget.cat.node.name), t.node_group_prefix),
+                                      stripAppSuffix(widget.cat.node.name),
+                                      t.node_group_prefix),
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w700,
                                   ),

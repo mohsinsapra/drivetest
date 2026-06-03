@@ -369,7 +369,7 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 
-Future<List<TestAttempt>> _loadAttempts() async {
+  Future<List<TestAttempt>> _loadAttempts() async {
     try {
       final box = await AppStorage.testAttemptsBox();
       return box.values.toList();
@@ -414,7 +414,9 @@ Future<List<TestAttempt>> _loadAttempts() async {
       final bcdId = bcdExamIds[exam.id];
       final smart = bcdId == null ? null : smartByBcdId[bcdId];
       result[exam.id] = DashboardHelpers.computeExamStats(
-        exam, filtered, all,
+        exam,
+        filtered,
+        all,
         weeklyGoal: goal,
         smartChunksMastered: smart?.chunksMastered ?? 0,
         smartChunksTotal: smart?.chunksTotal ?? 0,

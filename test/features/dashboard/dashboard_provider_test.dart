@@ -128,7 +128,8 @@ void main() {
     expect(notifications, 2);
   });
 
-  test('selectExam keeps previous stats visible during lightweight switch', () async {
+  test('selectExam keeps previous stats visible during lightweight switch',
+      () async {
     final exam1 = SubscribedExam(
       id: 'exam-1',
       name: 'Exam 1',

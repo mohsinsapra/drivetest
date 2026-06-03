@@ -136,10 +136,9 @@ class _DashboardBodyState extends State<DashboardBody> {
     }
   }
 
-  bool get _isLoading =>
-      (widget.provider.selectedStats == null &&
-          (widget.provider.status == DashboardStatus.loading ||
-              widget.provider.status == DashboardStatus.idle));
+  bool get _isLoading => (widget.provider.selectedStats == null &&
+      (widget.provider.status == DashboardStatus.loading ||
+          widget.provider.status == DashboardStatus.idle));
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +164,8 @@ class _DashboardBodyState extends State<DashboardBody> {
           child: showShimmer
               ? const _SmartLearningShimmer()
               : _animatedExamSection(
-                  sectionKey: 'smart_${stats?.exam.id ?? widget.provider.selectedExam?.id}',
+                  sectionKey:
+                      'smart_${stats?.exam.id ?? widget.provider.selectedExam?.id}',
                   child: _SmartLearningBanner(
                     examBcdId: int.tryParse(
                       stats?.exam.id ?? widget.provider.selectedExam?.id ?? '',
@@ -239,7 +239,8 @@ class _DashboardBodyState extends State<DashboardBody> {
             (_checklistLoading || _checklists.isNotEmpty))
           SliverToBoxAdapter(
             child: _animatedExamSection(
-              sectionKey: 'checklist_${stats.exam.id}_${_checklistLoading}_${_checklists.length}',
+              sectionKey:
+                  'checklist_${stats.exam.id}_${_checklistLoading}_${_checklists.length}',
               child: _ChecklistSection(
                 checklists: _checklists,
                 loading: _checklistLoading,
@@ -257,22 +258,23 @@ class _DashboardBodyState extends State<DashboardBody> {
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.4),
                 ),
               ),
             ),
           ),
 
         // 3-layer exam: build category rows lazily as they scroll into view.
-        if (stats != null &&
-            stats.categoryStats != null)
+        if (stats != null && stats.categoryStats != null)
           _buildCategorySlivers(stats)
         else if (showShimmer)
           _buildFocusAreasShimmer(),
 
         // 2-layer exam: potentially 670+ batches — build lazily via SliverList.
-        if (stats != null &&
-            stats.categoryStats == null)
+        if (stats != null && stats.categoryStats == null)
           ..._buildBatchSlivers(context, stats),
 
         if (stats != null || showShimmer) ...[
@@ -285,7 +287,10 @@ class _DashboardBodyState extends State<DashboardBody> {
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.4),
                 ),
               ),
             ),
@@ -325,7 +330,8 @@ class _DashboardBodyState extends State<DashboardBody> {
         ..sort((a, b) {
           final dateA = latestDate(a);
           final dateB = latestDate(b);
-          if (dateA == null && dateB == null) return a.node.name.compareTo(b.node.name);
+          if (dateA == null && dateB == null)
+            return a.node.name.compareTo(b.node.name);
           if (dateA == null) return 1;
           if (dateB == null) return -1;
           final cmp = dateB.compareTo(dateA);
@@ -674,8 +680,8 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
                                       Divider(
                                         height: 1,
                                         thickness: 1,
-                                        color:
-                                            cs.onSurface.withValues(alpha: 0.07),
+                                        color: cs.onSurface
+                                            .withValues(alpha: 0.07),
                                       ),
                                   ],
                                 );
@@ -1269,8 +1275,8 @@ class _QuickAccessSectionState extends State<_QuickAccessSection> {
                                       height: 1,
                                       thickness: 1,
                                       indent: 66,
-                                      color: cs.onSurface
-                                          .withValues(alpha: 0.07),
+                                      color:
+                                          cs.onSurface.withValues(alpha: 0.07),
                                     ),
                                 ],
                               );
@@ -1409,8 +1415,12 @@ class _SmartLearningBanner extends StatelessWidget {
                   Row(
                     children: [
                       Text(t.smart_learning_title,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold, color: cs.primary)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
+                              ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: cs.primary)),
                       const SizedBox(width: 7),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -1421,11 +1431,12 @@ class _SmartLearningBanner extends StatelessWidget {
                         ),
                         child: Text(
                           t.dash_smart_new.toUpperCase(),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
                         ),
                       ),
                     ],

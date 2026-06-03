@@ -156,7 +156,8 @@ class _StatsRow extends StatelessWidget {
       child: Row(
         children: [
           for (int i = 0; i < stats.length; i++) ...[
-            Expanded(child: _StatCell(data: stats[i], dur: _dur, curve: _curve)),
+            Expanded(
+                child: _StatCell(data: stats[i], dur: _dur, curve: _curve)),
             if (i < stats.length - 1)
               Container(
                 width: 1,

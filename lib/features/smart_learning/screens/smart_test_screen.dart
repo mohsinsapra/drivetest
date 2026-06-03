@@ -941,11 +941,9 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                       math.sin(bounceT * math.pi) *
                       (1 - bounceT) *
                       (bounceT < 0.5 ? 1 : -0.6);
-              final dropsActive =
-                  onFire && bounceT > 0.1 && bounceT < 0.7;
+              final dropsActive = onFire && bounceT > 0.1 && bounceT < 0.7;
               final labelOpacity = _labelCtrl.value;
-              final labelLeft =
-                  (fillWidth - 36).clamp(0.0, barWidth - 80.0);
+              final labelLeft = (fillWidth - 36).clamp(0.0, barWidth - 80.0);
 
               return SizedBox(
                 height: totalH,
@@ -1019,8 +1017,7 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                                       decoration: BoxDecoration(
                                         color: Colors.white
                                             .withValues(alpha: highlightAlpha),
-                                        borderRadius:
-                                            BorderRadius.circular(2),
+                                        borderRadius: BorderRadius.circular(2),
                                       ),
                                     ),
                                   ),
@@ -1031,20 +1028,16 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
                                             begin: Alignment(
-                                                -2.5 +
-                                                    _shimmerCtrl.value * 5,
+                                                -2.5 + _shimmerCtrl.value * 5,
                                                 0),
                                             end: Alignment(
-                                                -1.0 +
-                                                    _shimmerCtrl.value * 5,
+                                                -1.0 + _shimmerCtrl.value * 5,
                                                 0),
                                             colors: [
-                                              Colors.white
-                                                  .withValues(alpha: 0),
+                                              Colors.white.withValues(alpha: 0),
                                               Colors.white
                                                   .withValues(alpha: 0.45),
-                                              Colors.white
-                                                  .withValues(alpha: 0),
+                                              Colors.white.withValues(alpha: 0),
                                             ],
                                           ),
                                         ),
@@ -1087,8 +1080,7 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                       ...List.generate(_angles.length, (i) {
                         final ease = Curves.easeOut.transform(burstT);
                         final dist = ease * _maxDists[i];
-                        final dotSize =
-                            1.0 + 3.5 * math.sin(burstT * math.pi);
+                        final dotSize = 1.0 + 3.5 * math.sin(burstT * math.pi);
                         return Positioned(
                           left: burstX +
                               dist * math.cos(_angles[i]) -
@@ -1272,35 +1264,35 @@ class _FeedbackFooterState extends State<_FeedbackFooter>
             top: false,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: AnimatedTheme(
-                duration: const Duration(milliseconds: 250),
-                data: Theme.of(context).copyWith(
-                  filledButtonTheme: FilledButtonThemeData(
-                    style: FilledButton.styleFrom(backgroundColor: btnColor),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: AnimatedTheme(
+                  duration: const Duration(milliseconds: 250),
+                  data: Theme.of(context).copyWith(
+                    filledButtonTheme: FilledButtonThemeData(
+                      style: FilledButton.styleFrom(backgroundColor: btnColor),
+                    ),
                   ),
-                ),
-                child: FilledButton(
-                  onPressed: widget.isFinishing
-                      ? null
-                      : (widget.isChecked
-                          ? widget.onAdvance
-                          : (widget.isAnswered ? widget.onCheck : null)),
-                  child: Text(
-                    actionLabel.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
+                  child: FilledButton(
+                    onPressed: widget.isFinishing
+                        ? null
+                        : (widget.isChecked
+                            ? widget.onAdvance
+                            : (widget.isAnswered ? widget.onCheck : null)),
+                    child: Text(
+                      actionLabel.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
         ), // AnimatedContainer
       ],
     );

@@ -192,7 +192,8 @@ class SmartProgressService {
     final weakBox = await AppStorage.weakQuestionsBox();
     final weakByTest = <int, int>{};
     for (final weak in weakBox.values) {
-      weakByTest.update(weak.testBcdId, (count) => count + 1, ifAbsent: () => 1);
+      weakByTest.update(weak.testBcdId, (count) => count + 1,
+          ifAbsent: () => 1);
     }
 
     final result =
