@@ -386,14 +386,14 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       } else if (_consecutiveCorrect >= 5) {
         // Strong streak — heavy + medium double tap
         HapticFeedback.heavyImpact().then(
-          (_) => Future.delayed(const Duration(milliseconds: 80),
-              HapticFeedback.heavyImpact),
+          (_) => Future.delayed(
+              const Duration(milliseconds: 80), HapticFeedback.heavyImpact),
         );
       } else if (_consecutiveCorrect >= 3) {
         // Building streak — medium double tap
         HapticFeedback.mediumImpact().then(
-          (_) => Future.delayed(const Duration(milliseconds: 70),
-              HapticFeedback.mediumImpact),
+          (_) => Future.delayed(
+              const Duration(milliseconds: 70), HapticFeedback.mediumImpact),
         );
       } else {
         vibrateCorrectAnswer();
@@ -771,13 +771,13 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
 
   // Fixed angles + distances for 7 particles so each burst looks consistent.
   static const _angles = [
-    -math.pi / 2,       // top
-    -math.pi / 4,       // top-right
-    0.0,                // right
-    math.pi / 4,        // bottom-right
-    math.pi / 2,        // bottom
-    -math.pi * 3 / 4,   // top-left
-    math.pi * 3 / 4,    // bottom-left
+    -math.pi / 2, // top
+    -math.pi / 4, // top-right
+    0.0, // right
+    math.pi / 4, // bottom-right
+    math.pi / 2, // bottom
+    -math.pi * 3 / 4, // top-left
+    math.pi * 3 / 4, // bottom-left
   ];
   static const _maxDists = [13.0, 10.0, 8.0, 11.0, 9.0, 10.0, 12.0];
 
@@ -876,15 +876,20 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: AnimatedBuilder(
-        animation: Listenable.merge([_progressAnim, _burstCtrl, _labelCtrl, _shimmerCtrl, _fireBounceCtrl]),
+        animation: Listenable.merge([
+          _progressAnim,
+          _burstCtrl,
+          _labelCtrl,
+          _shimmerCtrl,
+          _fireBounceCtrl
+        ]),
         builder: (context, _) {
           return LayoutBuilder(
             builder: (context, constraints) {
               final barWidth = constraints.maxWidth;
               final fillWidth =
                   (_progressAnim.value * barWidth).clamp(0.0, barWidth);
-              final burstX =
-                  (_burstProgress * barWidth).clamp(0.0, barWidth);
+              final burstX = (_burstProgress * barWidth).clamp(0.0, barWidth);
               final burstT = _burstCtrl.value; // 0→1
               final burstActive = burstT > 0.0 && burstT < 1.0;
               const barCenterY = barTop + barHeight / 2;
@@ -952,76 +957,80 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                         left: 0,
                         child: Transform(
                           alignment: Alignment.center,
-                          transform: Matrix4.diagonal3Values(
-                              1.0, bounceScale, 1.0),
+                          transform:
+                              Matrix4.diagonal3Values(1.0, bounceScale, 1.0),
                           child: ClipRRect(
-                          borderRadius: BorderRadius.circular(barHeight / 2),
-                          child: SizedBox(
-                            width: fillWidth,
-                            height: barHeight,
-                            child: Stack(
-                              children: [
-                                // Base fill — gold gradient on fire, solid otherwise
-                                Positioned.fill(
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      gradient: widget.consecutiveCorrect >= 3
-                                          ? const LinearGradient(colors: [
-                                              Color(0xFFFF9500),
-                                              Color(0xFFFFCC00),
-                                              Color(0xFFFF9500),
-                                            ])
-                                          : LinearGradient(
-                                              colors: [primary, primary]),
-                                    ),
-                                  ),
-                                ),
-                                // Shimmer sweep — left to right when on fire
-                                if (widget.consecutiveCorrect >= 3)
+                            borderRadius: BorderRadius.circular(barHeight / 2),
+                            child: SizedBox(
+                              width: fillWidth,
+                              height: barHeight,
+                              child: Stack(
+                                children: [
+                                  // Base fill — gold gradient on fire, solid otherwise
                                   Positioned.fill(
                                     child: DecoratedBox(
                                       decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment(
-                                              -2.5 + _shimmerCtrl.value * 5, 0),
-                                          end: Alignment(
-                                              -1.0 + _shimmerCtrl.value * 5, 0),
-                                          colors: [
-                                            Colors.white.withValues(alpha: 0),
-                                            Colors.white.withValues(alpha: 0.45),
-                                            Colors.white.withValues(alpha: 0),
-                                          ],
+                                        gradient: widget.consecutiveCorrect >= 3
+                                            ? const LinearGradient(colors: [
+                                                Color(0xFFFF9500),
+                                                Color(0xFFFFCC00),
+                                                Color(0xFFFF9500),
+                                              ])
+                                            : LinearGradient(
+                                                colors: [primary, primary]),
+                                      ),
+                                    ),
+                                  ),
+                                  // Shimmer sweep — left to right when on fire
+                                  if (widget.consecutiveCorrect >= 3)
+                                    Positioned.fill(
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment(
+                                                -2.5 + _shimmerCtrl.value * 5,
+                                                0),
+                                            end: Alignment(
+                                                -1.0 + _shimmerCtrl.value * 5,
+                                                0),
+                                            colors: [
+                                              Colors.white.withValues(alpha: 0),
+                                              Colors.white
+                                                  .withValues(alpha: 0.45),
+                                              Colors.white.withValues(alpha: 0),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                // 3D highlight line
-                                Positioned(
-                                  top: 3,
-                                  left: barHeight / 2,
-                                  right: barHeight / 2,
-                                  child: Container(
-                                    height: 3,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? 0.12
-                                            : 0.18,
+                                  // 3D highlight line
+                                  Positioned(
+                                    top: 3,
+                                    left: barHeight / 2,
+                                    right: barHeight / 2,
+                                    child: Container(
+                                      height: 3,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? 0.12
+                                              : 0.18,
+                                        ),
+                                        borderRadius: BorderRadius.circular(2),
                                       ),
-                                      borderRadius: BorderRadius.circular(2),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
 
                     // ── Fire drips below fill tip ──────────────────────────
-                    if (dropsActive) ...List.generate(3, (i) {
+                    if (dropsActive)
+                      ...List.generate(3, (i) {
                         final t = (bounceT - 0.1) / 0.6;
                         final offsets = [-6.0, 0.0, 6.0];
                         final delays = [0.0, 0.15, 0.08];
@@ -1047,7 +1056,8 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                       }),
 
                     // ── Burst particles ────────────────────────────────────
-                    if (burstActive) ...List.generate(_angles.length, (i) {
+                    if (burstActive)
+                      ...List.generate(_angles.length, (i) {
                         final ease = Curves.easeOut.transform(burstT);
                         final dist = ease * _maxDists[i];
                         // Size: 1→4px then back toward 0 at the end.
