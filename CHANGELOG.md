@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.5.2+281] - 2026-06-03
+
+### Added
 - **Richer Smart Learning dashboard**: The dashboard now shows Smart Learning progress directly on each exam, including chunks mastered, weak-question counts, and a new exam progress breakdown for category-based exams.
 - **Category progress overview**: Users can now see topic-by-topic dashboard progress in a compact summary card, making it easier to spot what is complete and what still needs practice.
 
@@ -22,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Reduced heavy first-load motion**: Startup and first dashboard render now do less animation work at once, helping the app feel smoother on lower-performance devices.
 
+---
 ---
 
 ## [1.5.1+280] - 2026-06-03
