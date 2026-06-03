@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.4.0+278] - 2026-06-03
+
+### Added
 - **Quick Access section on the dashboard**: Theory Documents, Traffic Signs, Statistics, and Saved Questions are now available directly from the home screen — no need to navigate into a category first. Shows 4 tiles in a row on normal screens, and a 2×2 grid on very small screens.
 
 ### Changed
@@ -18,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
+---
 ---
 
 ## [1.3.2+277] - 2026-06-03
