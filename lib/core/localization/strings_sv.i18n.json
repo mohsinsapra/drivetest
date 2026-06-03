@@ -813,5 +813,8 @@
   "smart_mastered_of": "${mastered} / ${total} bemästrade",
   "smart_in_a_row": "${n} i rad",
   "smart_exit_title": "Lämna Smart Learning?",
-  "smart_exit_body": "Dina framsteg i den här sessionen kommer att gå förlorade."
+  "smart_exit_body": "Dina framsteg i den här sessionen kommer att gå förlorade.",
+  "smart_feedback_correct": "Rätt!",
+  "smart_feedback_incorrect": "Fel",
+  "smart_feedback_correct_answer": "Rätt svar:"
 }

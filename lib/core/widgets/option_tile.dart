@@ -144,8 +144,11 @@ class _OptionState extends State<Option> with TickerProviderStateMixin {
       }
       return Theme.of(ctx).cardColor;
     }
-    if (widget.isCorrectAnswer) return Colors.green.withValues(alpha: 0.15);
-    if (widget.isSelected) return Colors.red.withValues(alpha: 0.15);
+    if (widget.isCorrectAnswer) {
+      final isDark = Theme.of(ctx).brightness == Brightness.dark;
+      return isDark ? const Color(0xFF1B3A28) : const Color(0xFFD7F5E0);
+    }
+    if (widget.isSelected) return Colors.red.withValues(alpha: 0.22);
     return Theme.of(ctx).cardColor;
   }
 

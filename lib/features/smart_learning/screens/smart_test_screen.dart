@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:math';
@@ -354,6 +355,16 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     return _queue.length == 1;
   }
 
+  String get _correctAnswerText {
+    final q = _displayQuestion;
+    if (q == null) return '';
+    try {
+      return q.options.firstWhere((o) => o.optionLabel == q.correctAnswer).text;
+    } catch (_) {
+      return q.correctAnswer;
+    }
+  }
+
   // ── Option selection ───────────────────────────────────────────────────────
 
   void _onOptionTap(String optionLabel) {
@@ -677,14 +688,17 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                             ),
                           ),
                         ),
-                        _NextButton(
-                          enabled: _isAnswered && !_finishing,
-                          label: _isChecked
-                              ? (_isLastAction
-                                  ? t.smart_result_continue
-                                  : t.bcd_next)
-                              : t.smart_check,
-                          onPressed: _isChecked ? _advance : _onCheck,
+                        _FeedbackFooter(
+                          isAnswered: _isAnswered,
+                          isChecked: _isChecked,
+                          isCorrect: _isChecked &&
+                              _current != null &&
+                              _selection[0] == _current!.correctAnswer,
+                          isLastAction: _isLastAction,
+                          isFinishing: _finishing,
+                          correctAnswerText: _correctAnswerText,
+                          onCheck: _onCheck,
+                          onAdvance: _advance,
                         ),
                       ],
                     ),
@@ -766,18 +780,20 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
   late final AnimationController _fireBounceCtrl;
   late Animation<double> _progressAnim;
   double _lastProgress = 0.0;
-  // The target progress ratio when burst fires — used to anchor particles.
   double _burstProgress = 0.0;
 
-  // Fixed angles + distances for 7 particles so each burst looks consistent.
+  // Cancellable timers — prevents stacked delayed calls when user taps fast.
+  Timer? _burstTimer;
+  Timer? _bounceTimer;
+
   static const _angles = [
-    -math.pi / 2, // top
-    -math.pi / 4, // top-right
-    0.0, // right
-    math.pi / 4, // bottom-right
-    math.pi / 2, // bottom
-    -math.pi * 3 / 4, // top-left
-    math.pi * 3 / 4, // bottom-left
+    -math.pi / 2,
+    -math.pi / 4,
+    0.0,
+    math.pi / 4,
+    math.pi / 2,
+    -math.pi * 3 / 4,
+    math.pi * 3 / 4,
   ];
   static const _maxDists = [13.0, 10.0, 8.0, 11.0, 9.0, 10.0, 12.0];
 
@@ -799,7 +815,7 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
     );
     _shimmerCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 3500),
     );
     _fireBounceCtrl = AnimationController(
       vsync: this,
@@ -812,15 +828,18 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
   @override
   void didUpdateWidget(_SmartProgressBar old) {
     super.didUpdateWidget(old);
+
     if (widget.hideLabel && !old.hideLabel) {
       _labelCtrl.reverse();
     }
+
     if (widget.consecutiveCorrect >= 3 && old.consecutiveCorrect < 3) {
       _shimmerCtrl.repeat();
     } else if (widget.consecutiveCorrect < 3 && old.consecutiveCorrect >= 3) {
       _shimmerCtrl.stop();
       _shimmerCtrl.reset();
     }
+
     final newProgress = _calcProgress();
     if (newProgress != _lastProgress) {
       _progressAnim = Tween<double>(
@@ -828,15 +847,23 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
         end: newProgress,
       ).animate(CurvedAnimation(parent: _progressCtrl, curve: Curves.easeOut));
       _lastProgress = newProgress;
-      _progressCtrl.forward(from: 0);
-      if (widget.consecutiveCorrect >= 3) {
-        _fireBounceCtrl.forward(from: 0);
-      }
-      // Burst fires just as bar reaches its new position.
       _burstProgress = newProgress;
-      Future.delayed(const Duration(milliseconds: 380), () {
+      _progressCtrl.forward(from: 0);
+
+      // Cancel any pending timers from rapid taps before scheduling new ones.
+      _burstTimer?.cancel();
+      _bounceTimer?.cancel();
+
+      _burstTimer = Timer(const Duration(milliseconds: 380), () {
         if (mounted) _burstCtrl.forward(from: 0);
       });
+
+      if (widget.consecutiveCorrect >= 3) {
+        _bounceTimer = Timer(const Duration(milliseconds: 450), () {
+          if (mounted) _fireBounceCtrl.forward(from: 0);
+        });
+      }
+
       if (widget.consecutiveCorrect >= 2) {
         _labelCtrl.forward(from: 0);
       } else {
@@ -852,6 +879,8 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
 
   @override
   void dispose() {
+    _burstTimer?.cancel();
+    _bounceTimer?.cancel();
     _progressCtrl.dispose();
     _burstCtrl.dispose();
     _labelCtrl.dispose();
@@ -863,69 +892,71 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
   @override
   Widget build(BuildContext context) {
     const barHeight = 16.0;
-    // Widget height is just the bar — AppBar centers it naturally.
-    // Label floats above via Clip.none; toolbarHeight gives it room.
     const totalH = 28.0;
     const barTop = (totalH - barHeight) / 2;
     const labelH = 14.0;
-    final primary = Theme.of(context).colorScheme.primary;
-    final trackColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white.withValues(alpha: 0.18)
-        : Colors.grey[300]!;
+    const barCenterY = barTop + barHeight / 2;
+
+    // Cache theme values — these don't change per animation frame.
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
+    final trackColor =
+        isDark ? Colors.white.withValues(alpha: 0.18) : Colors.grey[300]!;
+    final highlightAlpha = isDark ? 0.12 : 0.18;
+    final onFire = widget.consecutiveCorrect >= 3;
+    final fillColor = onFire ? const Color(0xFFFF9500) : primary;
+    final streakLabel = widget.consecutiveCorrect >= 2
+        ? Translations.of(context).smart_in_a_row(n: widget.consecutiveCorrect)
+        : null;
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: AnimatedBuilder(
-        animation: Listenable.merge([
-          _progressAnim,
-          _burstCtrl,
-          _labelCtrl,
-          _shimmerCtrl,
-          _fireBounceCtrl
-        ]),
-        builder: (context, _) {
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final barWidth = constraints.maxWidth;
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final barWidth = constraints.maxWidth;
+          final burstX = (_burstProgress * barWidth).clamp(0.0, barWidth);
+
+          return AnimatedBuilder(
+            animation: Listenable.merge([
+              _progressAnim,
+              _burstCtrl,
+              _labelCtrl,
+              _shimmerCtrl,
+              _fireBounceCtrl,
+            ]),
+            builder: (context, _) {
               final fillWidth =
                   (_progressAnim.value * barWidth).clamp(0.0, barWidth);
-              final burstX = (_burstProgress * barWidth).clamp(0.0, barWidth);
-              final burstT = _burstCtrl.value; // 0→1
+              final burstT = _burstCtrl.value;
               final burstActive = burstT > 0.0 && burstT < 1.0;
-              const barCenterY = barTop + barHeight / 2;
-              final fillColor = widget.consecutiveCorrect >= 3
-                  ? const Color(0xFFFF9500)
-                  : primary;
-              // Bounce: scaleY spring — 1 → 1.35 → 0.9 → 1
               final bounceT = _fireBounceCtrl.value;
-              final bounceScale = bounceT == 0.0
-                  ? 1.0
-                  : 1.0 +
-                      0.35 *
-                          math.sin(bounceT * math.pi) *
-                          (1 - bounceT) *
-                          (bounceT < 0.5 ? 1 : -0.6);
-              final dropsActive = bounceT > 0.1 &&
-                  bounceT < 0.7 &&
-                  widget.consecutiveCorrect >= 3;
+              // bounceScale: 1 → 1.35 → 0.9 → 1 spring feel.
+              final bounceScale = 1.0 +
+                  0.35 *
+                      math.sin(bounceT * math.pi) *
+                      (1 - bounceT) *
+                      (bounceT < 0.5 ? 1 : -0.6);
+              final dropsActive =
+                  onFire && bounceT > 0.1 && bounceT < 0.7;
               final labelOpacity = _labelCtrl.value;
-              final labelLeft = (fillWidth - 36).clamp(0.0, barWidth - 80.0);
+              final labelLeft =
+                  (fillWidth - 36).clamp(0.0, barWidth - 80.0);
 
               return SizedBox(
                 height: totalH,
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // ── Streak label — floats above bar, within toolbarHeight
-                    if (labelOpacity > 0 && widget.consecutiveCorrect >= 2)
+                    // ── Streak label ───────────────────────────────────────
+                    if (labelOpacity > 0 && streakLabel != null)
                       Positioned(
                         top: -(labelH - 1),
                         left: labelLeft,
                         child: Opacity(
                           opacity: labelOpacity,
                           child: Text(
-                            Translations.of(context)
-                                .smart_in_a_row(n: widget.consecutiveCorrect),
+                            streakLabel,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
@@ -955,8 +986,12 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                       Positioned(
                         top: barTop,
                         left: 0,
+                        // Anchor bounce scale to the center of the fill bar.
                         child: Transform(
-                          alignment: Alignment.center,
+                          alignment: Alignment(
+                            (fillWidth / 2 / barWidth) * 2 - 1,
+                            0,
+                          ),
                           transform:
                               Matrix4.diagonal3Values(1.0, bounceScale, 1.0),
                           child: ClipRRect(
@@ -966,43 +1001,10 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                               height: barHeight,
                               child: Stack(
                                 children: [
-                                  // Base fill — gold gradient on fire, solid otherwise
+                                  // Solid base fill
                                   Positioned.fill(
-                                    child: DecoratedBox(
-                                      decoration: BoxDecoration(
-                                        gradient: widget.consecutiveCorrect >= 3
-                                            ? const LinearGradient(colors: [
-                                                Color(0xFFFF9500),
-                                                Color(0xFFFFCC00),
-                                                Color(0xFFFF9500),
-                                              ])
-                                            : LinearGradient(
-                                                colors: [primary, primary]),
-                                      ),
-                                    ),
+                                    child: ColoredBox(color: fillColor),
                                   ),
-                                  // Shimmer sweep — left to right when on fire
-                                  if (widget.consecutiveCorrect >= 3)
-                                    Positioned.fill(
-                                      child: DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment(
-                                                -2.5 + _shimmerCtrl.value * 5,
-                                                0),
-                                            end: Alignment(
-                                                -1.0 + _shimmerCtrl.value * 5,
-                                                0),
-                                            colors: [
-                                              Colors.white.withValues(alpha: 0),
-                                              Colors.white
-                                                  .withValues(alpha: 0.45),
-                                              Colors.white.withValues(alpha: 0),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
                                   // 3D highlight line
                                   Positioned(
                                     top: 3,
@@ -1011,16 +1013,39 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                                     child: Container(
                                       height: 3,
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(
-                                          alpha: Theme.of(context).brightness ==
-                                                  Brightness.dark
-                                              ? 0.12
-                                              : 0.18,
-                                        ),
-                                        borderRadius: BorderRadius.circular(2),
+                                        color: Colors.white
+                                            .withValues(alpha: highlightAlpha),
+                                        borderRadius:
+                                            BorderRadius.circular(2),
                                       ),
                                     ),
                                   ),
+                                  // Shimmer sweep — only when on fire
+                                  if (onFire)
+                                    Positioned.fill(
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment(
+                                                -2.5 +
+                                                    _shimmerCtrl.value * 5,
+                                                0),
+                                            end: Alignment(
+                                                -1.0 +
+                                                    _shimmerCtrl.value * 5,
+                                                0),
+                                            colors: [
+                                              Colors.white
+                                                  .withValues(alpha: 0),
+                                              Colors.white
+                                                  .withValues(alpha: 0.45),
+                                              Colors.white
+                                                  .withValues(alpha: 0),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
@@ -1028,21 +1053,19 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                         ),
                       ),
 
-                    // ── Fire drips below fill tip ──────────────────────────
+                    // ── Fire drips ─────────────────────────────────────────
                     if (dropsActive)
                       ...List.generate(3, (i) {
+                        const offsets = [-6.0, 0.0, 6.0];
+                        const delays = [0.0, 0.15, 0.08];
                         final t = (bounceT - 0.1) / 0.6;
-                        final offsets = [-6.0, 0.0, 6.0];
-                        final delays = [0.0, 0.15, 0.08];
                         final dt = (t - delays[i]).clamp(0.0, 1.0);
-                        final dropY = barTop + barHeight + dt * 10;
-                        final dropOpacity = (1.0 - dt).clamp(0.0, 1.0);
                         final dropSize = 4.0 + i.toDouble();
                         return Positioned(
-                          left: fillWidth - dropSize / 2 + offsets[i],
-                          top: dropY,
+                          left: burstX - dropSize / 2 + offsets[i],
+                          top: barTop + barHeight + dt * 10,
                           child: Opacity(
-                            opacity: dropOpacity,
+                            opacity: (1.0 - dt).clamp(0.0, 1.0),
                             child: Container(
                               width: dropSize,
                               height: dropSize,
@@ -1060,20 +1083,17 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
                       ...List.generate(_angles.length, (i) {
                         final ease = Curves.easeOut.transform(burstT);
                         final dist = ease * _maxDists[i];
-                        // Size: 1→4px then back toward 0 at the end.
-                        final sizeCurve = math.sin(burstT * math.pi);
-                        final dotSize = 1.0 + 3.5 * sizeCurve;
-                        final opacity = (1.0 - burstT).clamp(0.0, 1.0);
-                        final cx =
-                            burstX + dist * math.cos(_angles[i]) - dotSize / 2;
-                        final cy = barCenterY +
-                            dist * math.sin(_angles[i]) -
-                            dotSize / 2;
+                        final dotSize =
+                            1.0 + 3.5 * math.sin(burstT * math.pi);
                         return Positioned(
-                          left: cx,
-                          top: cy,
+                          left: burstX +
+                              dist * math.cos(_angles[i]) -
+                              dotSize / 2,
+                          top: barCenterY +
+                              dist * math.sin(_angles[i]) -
+                              dotSize / 2,
                           child: Opacity(
-                            opacity: opacity,
+                            opacity: (1.0 - burstT).clamp(0.0, 1.0),
                             child: Container(
                               width: dotSize,
                               height: dotSize,
@@ -1096,36 +1116,233 @@ class _SmartProgressBarState extends State<_SmartProgressBar>
   }
 }
 
-// ── Next / Finish button ─────────────────────────────────────────────────────
+// ── Duolingo-style feedback footer ───────────────────────────────────────────
 
-class _NextButton extends StatelessWidget {
-  final bool enabled;
-  final String label;
-  final VoidCallback onPressed;
+class _FeedbackFooter extends StatefulWidget {
+  final bool isAnswered;
+  final bool isChecked;
+  final bool isCorrect;
+  final bool isLastAction;
+  final bool isFinishing;
+  final String correctAnswerText;
+  final VoidCallback onCheck;
+  final VoidCallback onAdvance;
 
-  const _NextButton({
-    required this.enabled,
-    required this.label,
-    required this.onPressed,
+  const _FeedbackFooter({
+    required this.isAnswered,
+    required this.isChecked,
+    required this.isCorrect,
+    required this.isLastAction,
+    required this.isFinishing,
+    required this.correctAnswerText,
+    required this.onCheck,
+    required this.onAdvance,
   });
 
   @override
+  State<_FeedbackFooter> createState() => _FeedbackFooterState();
+}
+
+class _FeedbackFooterState extends State<_FeedbackFooter>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
+    _slide = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+    if (widget.isChecked) _ctrl.value = 1.0;
+  }
+
+  @override
+  void didUpdateWidget(covariant _FeedbackFooter old) {
+    super.didUpdateWidget(old);
+    if (widget.isChecked && !old.isChecked) {
+      _ctrl.forward(from: 0);
+    } else if (!widget.isChecked && old.isChecked) {
+      _ctrl.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: FilledButton(
-            onPressed: enabled ? onPressed : null,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    final t = Translations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isCorrect = widget.isCorrect;
+
+    final bgColor = isCorrect
+        ? (isDark ? const Color(0xFF1B3A28) : const Color(0xFFD7F5E0))
+        : (isDark ? const Color(0xFF3A1B1B) : const Color(0xFFFFE8E8));
+
+    final fgColor =
+        isCorrect ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
+
+    final btnColor = widget.isChecked
+        ? (isCorrect ? const Color(0xFF388E3C) : const Color(0xFFD32F2F))
+        : Theme.of(context).colorScheme.primary;
+
+    final title =
+        isCorrect ? t.smart_feedback_correct : t.smart_feedback_incorrect;
+
+    final actionLabel = widget.isChecked
+        ? (widget.isLastAction
+            ? t.smart_result_continue
+            : (isCorrect ? t.bcd_next : t.smart_hearts_guide_got_it))
+        : t.smart_check;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── Feedback strip — slides up from below, sits above the button ──
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+          child: widget.isChecked
+              ? ClipRect(
+                  child: SlideTransition(
+                    position: _slide,
+                    child: Container(
+                      width: double.infinity,
+                      color: bgColor,
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              _FeedbackIcon(isCorrect: isCorrect),
+                              const SizedBox(width: 8),
+                              Text(
+                                title,
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: fgColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (!isCorrect &&
+                              widget.correctAnswerText.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              t.smart_feedback_correct_answer,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: fgColor,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.correctAnswerText,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: fgColor.withValues(alpha: 0.85),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+        // ── Button — always present, color animates on check ──────────────
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          color: widget.isChecked ? bgColor : Colors.transparent,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: AnimatedTheme(
+                duration: const Duration(milliseconds: 250),
+                data: Theme.of(context).copyWith(
+                  filledButtonTheme: FilledButtonThemeData(
+                    style: FilledButton.styleFrom(backgroundColor: btnColor),
+                  ),
+                ),
+                child: FilledButton(
+                  onPressed: widget.isFinishing
+                      ? null
+                      : (widget.isChecked
+                          ? widget.onAdvance
+                          : (widget.isAnswered ? widget.onCheck : null)),
+                  child: Text(
+                    actionLabel.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
+        ), // AnimatedContainer
+      ],
+    );
+  }
+}
+
+// ── Feedback icon — diamond for correct, circle-X for incorrect ───────────────
+// Mirrors the option tile's indicator shape for visual consistency.
+
+// ── Feedback icon — uses the exact same colors as the option tile indicators ──
+
+class _FeedbackIcon extends StatelessWidget {
+  final bool isCorrect;
+
+  const _FeedbackIcon({required this.isCorrect});
+
+  @override
+  Widget build(BuildContext context) {
+    if (isCorrect) {
+      return Transform.rotate(
+        angle: 0.7853981634, // 45°
+        child: Container(
+          width: 26,
+          height: 26,
+          decoration: BoxDecoration(
+            color: Colors.green, // matches option_tile.dart correct indicator
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Center(
+            child: Transform.rotate(
+              angle: -0.7853981634,
+              child: const Icon(Icons.check, size: 15, color: Colors.white),
+            ),
+          ),
+        ),
+      );
+    }
+    return Container(
+      width: 26,
+      height: 26,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.red, // matches option_tile.dart wrong indicator
+      ),
+      child: const Center(
+        child: Icon(Icons.close, size: 15, color: Colors.white),
       ),
     );
   }
