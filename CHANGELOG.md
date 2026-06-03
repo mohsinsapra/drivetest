@@ -20,6 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.6+285] - 2026-06-03
+
+### Added
+- **Sound effects in Smart Learning**: The Smart Learning test now plays satisfying sounds as you answer questions — a distinct tone for correct answers, a different sound when you're on a streak, a breaking sound when your streak ends, and a clear pass or fail sound when the session finishes.
+
+---
+---
+---
+---
+
 ## [1.5.5+284] - 2026-06-03
 
 ### Added
