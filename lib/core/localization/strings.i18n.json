@@ -811,6 +811,7 @@
   "smart_result_overall_mastery": "Overall Mastery",
   "smart_result_threshold": "70% to pass",
   "smart_mastered_of": "${mastered} / ${total} mastered",
+  "smart_in_a_row": "${n} in a row",
   "smart_exit_title": "Leave Smart Learning?",
   "smart_exit_body": "Your current session progress will be lost."
 }

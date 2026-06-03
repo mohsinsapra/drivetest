@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -19,7 +20,6 @@ import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/widgets/app_bottom_sheet.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:taxi_exam_app/core/widgets/question_progress_header.dart';
 import 'package:taxi_exam_app/features/tests/widgets/language_grid.dart';
 import 'package:taxi_exam_app/features/tests/widgets/question_chat_sheet.dart';
 import 'package:taxi_exam_app/features/tests/widgets/question_page_item.dart';
@@ -77,7 +77,10 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   // Session tracking
   final Map<String, int> _wrongCounts = {};
   final Set<String> _correctOnce = {};
-  int _doneCount = 0;
+  // Drives the visual progress bar — updated immediately on Check.
+  int _progressDoneCount = 0;
+  int _consecutiveCorrect = 0;
+  bool _hideStreakLabel = false;
 
   // Current question UI state (QuestionPageItem uses index 0 as the slot key).
   final Map<int, String> _selection = {};
@@ -363,9 +366,38 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
 
   void _onCheck() {
     if (!_isAnswered || _isChecked) return;
-    setState(() => _isChecked = true);
-    if (_selection[0] == _current!.correctAnswer) {
-      vibrateCorrectAnswer();
+    final id = _current!.questionId;
+    final isCorrect = _selection[0] == _current!.correctAnswer;
+    setState(() {
+      _isChecked = true;
+      if (isCorrect) {
+        _progressDoneCount++;
+        _consecutiveCorrect++;
+      } else {
+        _consecutiveCorrect = 0;
+        // If this is the second wrong attempt it counts as done for progress.
+        if ((_wrongCounts[id] ?? 0) >= 1) _progressDoneCount++;
+      }
+    });
+    if (isCorrect) {
+      if (_consecutiveCorrect >= 10) {
+        // Milestone streak — celebratory triple pulse
+        vibratePass();
+      } else if (_consecutiveCorrect >= 5) {
+        // Strong streak — heavy + medium double tap
+        HapticFeedback.heavyImpact().then(
+          (_) => Future.delayed(const Duration(milliseconds: 80),
+              HapticFeedback.heavyImpact),
+        );
+      } else if (_consecutiveCorrect >= 3) {
+        // Building streak — medium double tap
+        HapticFeedback.mediumImpact().then(
+          (_) => Future.delayed(const Duration(milliseconds: 70),
+              HapticFeedback.mediumImpact),
+        );
+      } else {
+        vibrateCorrectAnswer();
+      }
     } else {
       vibrateWrongAnswer();
     }
@@ -382,11 +414,9 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
 
     if (wasCorrect) {
       _correctOnce.add(id);
-      _doneCount++;
     } else {
       _wrongCounts[id] = (_wrongCounts[id] ?? 0) + 1;
       if (_wrongCounts[id]! >= 2) {
-        _doneCount++;
         vibrateFail();
       }
     }
@@ -436,6 +466,11 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       _isAnswered = false;
       _isChecked = false;
       _pageKey++;
+      _hideStreakLabel = true;
+    });
+    // Reset flag after the label has animated out so next streak shows fresh.
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted) setState(() => _hideStreakLabel = false);
     });
   }
 
@@ -547,17 +582,21 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                     nav.pop();
                   },
                 ),
-                title: QuestionProgressHeader(
-                  currentIndex: _doneCount,
+                title: _SmartProgressBar(
+                  doneCount: _progressDoneCount,
                   total: _total,
-                  onTap: () {},
-                  showLabel: false,
-                  barHeight: 14,
+                  consecutiveCorrect: _consecutiveCorrect,
+                  hideLabel: _hideStreakLabel,
                 ),
                 centerTitle: false,
-                titleSpacing: 0,
+                titleSpacing: 4,
+                leadingWidth: 44,
+                toolbarHeight: 64,
                 backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                elevation: 0,
+                elevation: 2,
+                shadowColor: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black.withValues(alpha: 0.4)
+                    : Colors.black.withValues(alpha: 0.08),
                 actions: [
                   _LanguageChip(
                     flag: _tts.getLanguageFlag(_langCode),
@@ -577,9 +616,20 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                             onLongPressUp: _revertToPreviousLanguage,
                             behavior: HitTestBehavior.opaque,
                             child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              transitionBuilder: (child, anim) =>
-                                  FadeTransition(opacity: anim, child: child),
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (child, anim) {
+                                final isIncoming =
+                                    child.key == ValueKey(_pageKey);
+                                final slide = Tween<Offset>(
+                                  begin: Offset(isIncoming ? 1.0 : -1.0, 0),
+                                  end: Offset.zero,
+                                ).animate(CurvedAnimation(
+                                  parent: anim,
+                                  curve: Curves.easeInOut,
+                                ));
+                                return SlideTransition(
+                                    position: slide, child: child);
+                              },
                               layoutBuilder: (currentChild, previousChildren) =>
                                   Stack(
                                 alignment: Alignment.topCenter,
@@ -683,6 +733,354 @@ class _LanguageChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Smart streak progress bar ────────────────────────────────────────────────
+
+class _SmartProgressBar extends StatefulWidget {
+  final int doneCount;
+  final int total;
+  final int consecutiveCorrect;
+  final bool hideLabel;
+
+  const _SmartProgressBar({
+    required this.doneCount,
+    required this.total,
+    required this.consecutiveCorrect,
+    this.hideLabel = false,
+  });
+
+  @override
+  State<_SmartProgressBar> createState() => _SmartProgressBarState();
+}
+
+class _SmartProgressBarState extends State<_SmartProgressBar>
+    with TickerProviderStateMixin {
+  late final AnimationController _progressCtrl;
+  late final AnimationController _burstCtrl;
+  late final AnimationController _labelCtrl;
+  late final AnimationController _shimmerCtrl;
+  late final AnimationController _fireBounceCtrl;
+  late Animation<double> _progressAnim;
+  double _lastProgress = 0.0;
+  // The target progress ratio when burst fires — used to anchor particles.
+  double _burstProgress = 0.0;
+
+  // Fixed angles + distances for 7 particles so each burst looks consistent.
+  static const _angles = [
+    -math.pi / 2,       // top
+    -math.pi / 4,       // top-right
+    0.0,                // right
+    math.pi / 4,        // bottom-right
+    math.pi / 2,        // bottom
+    -math.pi * 3 / 4,   // top-left
+    math.pi * 3 / 4,    // bottom-left
+  ];
+  static const _maxDists = [13.0, 10.0, 8.0, 11.0, 9.0, 10.0, 12.0];
+
+  @override
+  void initState() {
+    super.initState();
+    _lastProgress = _calcProgress();
+    _progressCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+    _burstCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 480),
+    );
+    _labelCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _shimmerCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+    _fireBounceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _progressAnim = Tween<double>(begin: _lastProgress, end: _lastProgress)
+        .animate(CurvedAnimation(parent: _progressCtrl, curve: Curves.easeOut));
+  }
+
+  @override
+  void didUpdateWidget(_SmartProgressBar old) {
+    super.didUpdateWidget(old);
+    if (widget.hideLabel && !old.hideLabel) {
+      _labelCtrl.reverse();
+    }
+    if (widget.consecutiveCorrect >= 3 && old.consecutiveCorrect < 3) {
+      _shimmerCtrl.repeat();
+    } else if (widget.consecutiveCorrect < 3 && old.consecutiveCorrect >= 3) {
+      _shimmerCtrl.stop();
+      _shimmerCtrl.reset();
+    }
+    final newProgress = _calcProgress();
+    if (newProgress != _lastProgress) {
+      _progressAnim = Tween<double>(
+        begin: _progressAnim.value,
+        end: newProgress,
+      ).animate(CurvedAnimation(parent: _progressCtrl, curve: Curves.easeOut));
+      _lastProgress = newProgress;
+      _progressCtrl.forward(from: 0);
+      if (widget.consecutiveCorrect >= 3) {
+        _fireBounceCtrl.forward(from: 0);
+      }
+      // Burst fires just as bar reaches its new position.
+      _burstProgress = newProgress;
+      Future.delayed(const Duration(milliseconds: 380), () {
+        if (mounted) _burstCtrl.forward(from: 0);
+      });
+      if (widget.consecutiveCorrect >= 2) {
+        _labelCtrl.forward(from: 0);
+      } else {
+        _labelCtrl.reverse();
+      }
+    }
+  }
+
+  double _calcProgress() {
+    if (widget.total <= 0) return 0.0;
+    return (widget.doneCount / widget.total).clamp(0.0, 1.0);
+  }
+
+  @override
+  void dispose() {
+    _progressCtrl.dispose();
+    _burstCtrl.dispose();
+    _labelCtrl.dispose();
+    _shimmerCtrl.dispose();
+    _fireBounceCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const barHeight = 16.0;
+    // Widget height is just the bar — AppBar centers it naturally.
+    // Label floats above via Clip.none; toolbarHeight gives it room.
+    const totalH = 28.0;
+    const barTop = (totalH - barHeight) / 2;
+    const labelH = 14.0;
+    final primary = Theme.of(context).colorScheme.primary;
+    final trackColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.18)
+        : Colors.grey[300]!;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_progressAnim, _burstCtrl, _labelCtrl, _shimmerCtrl, _fireBounceCtrl]),
+        builder: (context, _) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final barWidth = constraints.maxWidth;
+              final fillWidth =
+                  (_progressAnim.value * barWidth).clamp(0.0, barWidth);
+              final burstX =
+                  (_burstProgress * barWidth).clamp(0.0, barWidth);
+              final burstT = _burstCtrl.value; // 0→1
+              final burstActive = burstT > 0.0 && burstT < 1.0;
+              const barCenterY = barTop + barHeight / 2;
+              final fillColor = widget.consecutiveCorrect >= 3
+                  ? const Color(0xFFFF9500)
+                  : primary;
+              // Bounce: scaleY spring — 1 → 1.35 → 0.9 → 1
+              final bounceT = _fireBounceCtrl.value;
+              final bounceScale = bounceT == 0.0
+                  ? 1.0
+                  : 1.0 +
+                      0.35 *
+                          math.sin(bounceT * math.pi) *
+                          (1 - bounceT) *
+                          (bounceT < 0.5 ? 1 : -0.6);
+              final dropsActive = bounceT > 0.1 &&
+                  bounceT < 0.7 &&
+                  widget.consecutiveCorrect >= 3;
+              final labelOpacity = _labelCtrl.value;
+              final labelLeft = (fillWidth - 36).clamp(0.0, barWidth - 80.0);
+
+              return SizedBox(
+                height: totalH,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // ── Streak label — floats above bar, within toolbarHeight
+                    if (labelOpacity > 0 && widget.consecutiveCorrect >= 2)
+                      Positioned(
+                        top: -(labelH - 1),
+                        left: labelLeft,
+                        child: Opacity(
+                          opacity: labelOpacity,
+                          child: Text(
+                            Translations.of(context)
+                                .smart_in_a_row(n: widget.consecutiveCorrect),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: fillColor,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // ── Track ──────────────────────────────────────────────
+                    Positioned(
+                      top: barTop,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: barHeight,
+                        decoration: BoxDecoration(
+                          color: trackColor,
+                          borderRadius: BorderRadius.circular(barHeight / 2),
+                        ),
+                      ),
+                    ),
+
+                    // ── Fill ───────────────────────────────────────────────
+                    if (fillWidth > 0)
+                      Positioned(
+                        top: barTop,
+                        left: 0,
+                        child: Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.diagonal3Values(
+                              1.0, bounceScale, 1.0),
+                          child: ClipRRect(
+                          borderRadius: BorderRadius.circular(barHeight / 2),
+                          child: SizedBox(
+                            width: fillWidth,
+                            height: barHeight,
+                            child: Stack(
+                              children: [
+                                // Base fill — gold gradient on fire, solid otherwise
+                                Positioned.fill(
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: widget.consecutiveCorrect >= 3
+                                          ? const LinearGradient(colors: [
+                                              Color(0xFFFF9500),
+                                              Color(0xFFFFCC00),
+                                              Color(0xFFFF9500),
+                                            ])
+                                          : LinearGradient(
+                                              colors: [primary, primary]),
+                                    ),
+                                  ),
+                                ),
+                                // Shimmer sweep — left to right when on fire
+                                if (widget.consecutiveCorrect >= 3)
+                                  Positioned.fill(
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment(
+                                              -2.5 + _shimmerCtrl.value * 5, 0),
+                                          end: Alignment(
+                                              -1.0 + _shimmerCtrl.value * 5, 0),
+                                          colors: [
+                                            Colors.white.withValues(alpha: 0),
+                                            Colors.white.withValues(alpha: 0.45),
+                                            Colors.white.withValues(alpha: 0),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                // 3D highlight line
+                                Positioned(
+                                  top: 3,
+                                  left: barHeight / 2,
+                                  right: barHeight / 2,
+                                  child: Container(
+                                    height: 3,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? 0.12
+                                            : 0.18,
+                                      ),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // ── Fire drips below fill tip ──────────────────────────
+                    if (dropsActive) ...List.generate(3, (i) {
+                        final t = (bounceT - 0.1) / 0.6;
+                        final offsets = [-6.0, 0.0, 6.0];
+                        final delays = [0.0, 0.15, 0.08];
+                        final dt = (t - delays[i]).clamp(0.0, 1.0);
+                        final dropY = barTop + barHeight + dt * 10;
+                        final dropOpacity = (1.0 - dt).clamp(0.0, 1.0);
+                        final dropSize = 4.0 + i.toDouble();
+                        return Positioned(
+                          left: fillWidth - dropSize / 2 + offsets[i],
+                          top: dropY,
+                          child: Opacity(
+                            opacity: dropOpacity,
+                            child: Container(
+                              width: dropSize,
+                              height: dropSize,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: fillColor,
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+
+                    // ── Burst particles ────────────────────────────────────
+                    if (burstActive) ...List.generate(_angles.length, (i) {
+                        final ease = Curves.easeOut.transform(burstT);
+                        final dist = ease * _maxDists[i];
+                        // Size: 1→4px then back toward 0 at the end.
+                        final sizeCurve = math.sin(burstT * math.pi);
+                        final dotSize = 1.0 + 3.5 * sizeCurve;
+                        final opacity = (1.0 - burstT).clamp(0.0, 1.0);
+                        final cx =
+                            burstX + dist * math.cos(_angles[i]) - dotSize / 2;
+                        final cy = barCenterY +
+                            dist * math.sin(_angles[i]) -
+                            dotSize / 2;
+                        return Positioned(
+                          left: cx,
+                          top: cy,
+                          child: Opacity(
+                            opacity: opacity,
+                            child: Container(
+                              width: dotSize,
+                              height: dotSize,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: fillColor,
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
