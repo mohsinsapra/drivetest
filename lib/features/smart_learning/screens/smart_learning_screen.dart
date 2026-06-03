@@ -176,8 +176,9 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
     return [...entries]..sort((a, b) {
         final dateA = _lastActivityDates[a.testBcdId];
         final dateB = _lastActivityDates[b.testBcdId];
-        if (dateA == null && dateB == null)
+        if (dateA == null && dateB == null) {
           return a.testName.compareTo(b.testName);
+        }
         if (dateA == null) return 1;
         if (dateB == null) return -1;
         final cmp = dateB.compareTo(dateA);

@@ -153,7 +153,7 @@ class ApiService {
 
   Future<dynamic> fetchCurrentUser({bool forceRefresh = false}) {
     if (forceRefresh) return _fetchCurrentUserImpl(forceRefresh: true);
-    return _selfRequestTracker.run(() => _fetchCurrentUserImpl());
+    return _selfRequestTracker.run(_fetchCurrentUserImpl);
   }
 
   /// AES-256-CBC decrypt for the `{"d": "<base64>"}` envelope that the backend

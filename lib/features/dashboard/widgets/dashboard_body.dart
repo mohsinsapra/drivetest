@@ -330,8 +330,9 @@ class _DashboardBodyState extends State<DashboardBody> {
         ..sort((a, b) {
           final dateA = latestDate(a);
           final dateB = latestDate(b);
-          if (dateA == null && dateB == null)
+          if (dateA == null && dateB == null) {
             return a.node.name.compareTo(b.node.name);
+          }
           if (dateA == null) return 1;
           if (dateB == null) return -1;
           final cmp = dateB.compareTo(dateA);
