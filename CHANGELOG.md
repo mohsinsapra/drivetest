@@ -10,10 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Quick Access section on the dashboard**: Theory Documents, Traffic Signs, Statistics, and Saved Questions are now available directly from the home screen — no need to navigate into a category first. Shows 4 tiles in a row on normal screens, and a 2×2 grid on very small screens.
 
 ### Changed
--
+- **Privacy consent screen**: The "Accept & Continue" button is now always pinned at the bottom of the screen. The content above it scrolls, so the button is never cut off on smaller devices.
 
 ### Fixed
 -

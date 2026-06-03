@@ -7,7 +7,12 @@ import 'package:taxi_exam_app/core/constants/language_options.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_text_utils.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_traffic_signs_screen.dart';
+import 'package:taxi_exam_app/features/profile/stats_screen.dart';
+import 'package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart';
 import 'package:translator/translator.dart';
 import '../models/dashboard_stats.dart';
 import '../models/exam_node.dart';
@@ -234,6 +239,14 @@ class _DashboardBodyState extends State<DashboardBody> {
           else
             const SliverToBoxAdapter(child: _WeeklyStreakShimmer()),
         ],
+
+        if (stats != null && stats.exam.isBcd)
+          SliverToBoxAdapter(
+            child: _QuickAccessSection(
+              examBcdId: int.tryParse(stats.exam.id) ?? 0,
+              examName: stats.exam.name,
+            ),
+          ),
 
         SliverToBoxAdapter(
           child: SizedBox(
@@ -920,6 +933,251 @@ class _SmartLearningShimmer extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Quick Access section ─────────────────────────────────────────────────────
+
+class _QuickAccessSection extends StatefulWidget {
+  final int examBcdId;
+  final String examName;
+
+  const _QuickAccessSection({
+    required this.examBcdId,
+    required this.examName,
+  });
+
+  @override
+  State<_QuickAccessSection> createState() => _QuickAccessSectionState();
+}
+
+class _QuickAccessSectionState extends State<_QuickAccessSection> {
+  final _api = ApiService();
+  bool _savedLoading = false;
+
+  Future<void> _openDocuments() {
+    return Navigator.push(
+      context,
+      AppPageRoute(
+        builder: (_) => BCDDocumentsScreen(
+          categoryBcdId: widget.examBcdId,
+          categoryName: widget.examName,
+        ),
+      ),
+    );
+  }
+
+  void _openTrafficSigns() {
+    Navigator.push(
+      context,
+      AppPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
+    );
+  }
+
+  void _openStatistics() {
+    Navigator.push(
+      context,
+      AppPageRoute(
+        builder: (_) => StatsScreen(
+          subtitle: widget.examName,
+          licenceNameFilter: widget.examName,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSavedQuestions() async {
+    if (_savedLoading) return;
+    setState(() => _savedLoading = true);
+    try {
+      final questions = await _api.fetchSavedQuestionsResolved(
+        scopeType: 'bcd',
+        bcdCategoryId: widget.examBcdId,
+      );
+      if (!mounted) return;
+      if (questions.isEmpty) {
+        showAppSnackBar(Translations.of(context).bcd_no_saved_questions);
+        return;
+      }
+      Navigator.push(
+        context,
+        AppPageRoute(
+          builder: (_) => SavedQuestionsPreviewScreen(
+            questions: questions,
+            licenceId: '',
+            categoryId: '',
+            licenceName: widget.examName,
+            categoryName: widget.examName,
+            bcdCategoryId: widget.examBcdId,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        showAppSnackBar(
+          Translations.of(context).bcd_failed_saved,
+          type: SnackBarType.error,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _savedLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t.dash_quick_access,
+            style: GoogleFonts.lexend(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: cs.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossCount = constraints.maxWidth < 320 ? 2 : 4;
+              final aspectRatio = crossCount == 4 ? 0.85 : 1.6;
+              return GridView.count(
+                crossAxisCount: crossCount,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: aspectRatio,
+                children: [
+                  _QuickTile(
+                    icon: LucideIcons.bookOpen,
+                    label: t.bcd_hub_theory_docs.replaceAll('\n', ' '),
+                    iconColor: cs.tertiary,
+                    onTap: _openDocuments,
+                  ),
+                  _QuickTile(
+                    icon: LucideIcons.alertTriangle,
+                    label: t.bcd_hub_traffic_signs,
+                    iconColor: cs.error,
+                    onTap: _openTrafficSigns,
+                  ),
+                  _QuickTile(
+                    icon: LucideIcons.barChart2,
+                    label: t.bcd_hub_statistics,
+                    iconColor: cs.primary,
+                    onTap: _openStatistics,
+                  ),
+                  _QuickTile(
+                    icon: LucideIcons.bookmark,
+                    label: t.bcd_hub_saved_questions.replaceAll('\n', ' '),
+                    iconColor: cs.secondary,
+                    loading: _savedLoading,
+                    onTap: _openSavedQuestions,
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color iconColor;
+  final VoidCallback onTap;
+  final bool loading;
+
+  const _QuickTile({
+    required this.icon,
+    required this.label,
+    required this.iconColor,
+    required this.onTap,
+    this.loading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          splashColor: iconColor.withValues(alpha: 0.08),
+          highlightColor: iconColor.withValues(alpha: 0.05),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: loading
+                      ? Center(
+                          child: SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: iconColor,
+                            ),
+                          ),
+                        )
+                      : Icon(icon, color: iconColor, size: 17),
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.lexend(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

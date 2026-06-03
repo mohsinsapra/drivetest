@@ -364,6 +364,27 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get bcd_previous => 'Previous';
   String get bcd_next => 'Next';
   String get smart_check => 'Check';
+  String get notif_subtitle => 'DriveTest';
+  String get notif_morning_title => '☀️ Morning study reminder';
+  String notif_morning_title_exam({required Object examTitle}) =>
+      '☀️ Time to study ${examTitle}';
+  String get notif_morning_body =>
+      'Start your practice session — build that streak!';
+  String get notif_evening_title => '🌙 Evening streak check-in';
+  String notif_evening_title_exam({required Object examTitle}) =>
+      '🌙 ${examTitle} is waiting for you';
+  String get notif_evening_body =>
+      'Don\'t let today slip by — keep your streak alive!';
+  String notif_activity_0({required Object examTitle}) =>
+      'You were working on ${examTitle} — one more session and it clicks.';
+  String notif_activity_1({required Object examTitle}) =>
+      '${examTitle} is waiting. Your last session built real momentum — don\'t lose it.';
+  String notif_activity_2({required Object examTitle}) =>
+      'Small daily sessions beat cramming. Jump back into ${examTitle} now.';
+  String notif_activity_3({required Object examTitle}) =>
+      'You\'re closer than you think on ${examTitle}. Keep the streak alive!';
+  String notif_activity_4({required Object examTitle}) =>
+      'One focused session on ${examTitle} today makes the exam day easier.';
   String get bcd_failed_traffic_signs => 'Failed to load traffic signs';
   String get bcd_search_hint => 'Search…';
   String get bcd_no_subcategories => 'No sub-categories available.';
@@ -544,6 +565,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get dash_hero_sub_done => 'All done — great work!';
   String get dash_performance_overview => 'Performance Overview';
   String get dash_focus_areas => 'Focus Areas';
+  String get dash_quick_access => 'Quick Access';
   String get dash_no_exams_found => 'No exams found.';
   String get dash_card_active => 'ACTIVE';
   String get dash_card_inactive => 'INACTIVE';
@@ -955,27 +977,6 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
       '${mastered} / ${total} mastered';
   String get smart_exit_title => 'Leave Smart Learning?';
   String get smart_exit_body => 'Your current session progress will be lost.';
-  String get notif_subtitle => 'DriveTest';
-  String get notif_morning_title => '☀️ Morning study reminder';
-  String notif_morning_title_exam({required Object examTitle}) =>
-      '☀️ Time to study $examTitle';
-  String get notif_morning_body =>
-      "Start your practice session — build that streak!";
-  String get notif_evening_title => '🌙 Evening streak check-in';
-  String notif_evening_title_exam({required Object examTitle}) =>
-      '🌙 $examTitle is waiting for you';
-  String get notif_evening_body =>
-      "Don't let today slip by — keep your streak alive!";
-  String notif_activity_0({required Object examTitle}) =>
-      'You were working on $examTitle — one more session and it clicks.';
-  String notif_activity_1({required Object examTitle}) =>
-      "$examTitle is waiting. Your last session built real momentum — don't lose it.";
-  String notif_activity_2({required Object examTitle}) =>
-      'Small daily sessions beat cramming. Jump back into $examTitle now.';
-  String notif_activity_3({required Object examTitle}) =>
-      "You're closer than you think on $examTitle. Keep the streak alive!";
-  String notif_activity_4({required Object examTitle}) =>
-      'One focused session on $examTitle today makes the exam day easier.';
 }
 
 /// Flat map(s) containing all translations.
@@ -1547,6 +1548,36 @@ extension on Translations {
         return 'Next';
       case 'smart_check':
         return 'Check';
+      case 'notif_subtitle':
+        return 'DriveTest';
+      case 'notif_morning_title':
+        return '☀️ Morning study reminder';
+      case 'notif_morning_title_exam':
+        return ({required Object examTitle}) => '☀️ Time to study ${examTitle}';
+      case 'notif_morning_body':
+        return 'Start your practice session — build that streak!';
+      case 'notif_evening_title':
+        return '🌙 Evening streak check-in';
+      case 'notif_evening_title_exam':
+        return ({required Object examTitle}) =>
+            '🌙 ${examTitle} is waiting for you';
+      case 'notif_evening_body':
+        return 'Don\'t let today slip by — keep your streak alive!';
+      case 'notif_activity_0':
+        return ({required Object examTitle}) =>
+            'You were working on ${examTitle} — one more session and it clicks.';
+      case 'notif_activity_1':
+        return ({required Object examTitle}) =>
+            '${examTitle} is waiting. Your last session built real momentum — don\'t lose it.';
+      case 'notif_activity_2':
+        return ({required Object examTitle}) =>
+            'Small daily sessions beat cramming. Jump back into ${examTitle} now.';
+      case 'notif_activity_3':
+        return ({required Object examTitle}) =>
+            'You\'re closer than you think on ${examTitle}. Keep the streak alive!';
+      case 'notif_activity_4':
+        return ({required Object examTitle}) =>
+            'One focused session on ${examTitle} today makes the exam day easier.';
       case 'bcd_failed_traffic_signs':
         return 'Failed to load traffic signs';
       case 'bcd_search_hint':
@@ -1863,6 +1894,8 @@ extension on Translations {
         return 'Performance Overview';
       case 'dash_focus_areas':
         return 'Focus Areas';
+      case 'dash_quick_access':
+        return 'Quick Access';
       case 'dash_no_exams_found':
         return 'No exams found.';
       case 'dash_card_active':

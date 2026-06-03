@@ -608,8 +608,8 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                                   currentLanguageCode: _langCode,
                                   scale: 1.0,
                                   onOptionTap: _onOptionTap,
-                                  onLongPress: () {},
-                                  onLongPressUp: () {},
+                                  onLongPress: _revertToPreviousLanguage,
+                                  onLongPressUp: _revertToPreviousLanguage,
                                   onAiContinue: _openAiChat,
                                   onAiHint: () => _openAiChat(
                                     displayText: t.ai_hint_button,

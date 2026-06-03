@@ -231,7 +231,7 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
         Navigator.push(
             context,
             AppPageRoute(
-              builder: (_) => _BCDDocumentsScreen(
+              builder: (_) => BCDDocumentsScreen(
                 categoryBcdId: _categoryBcdId,
                 categoryName: _categoryName,
               ),
@@ -731,17 +731,17 @@ class _TestsSubscriptionBanner extends StatelessWidget {
 
 /* ── Documents screen ─────────────────────────────────────────────────────── */
 
-class _BCDDocumentsScreen extends StatefulWidget {
+class BCDDocumentsScreen extends StatefulWidget {
   final int categoryBcdId;
   final String categoryName;
-  const _BCDDocumentsScreen(
-      {required this.categoryBcdId, required this.categoryName});
+  const BCDDocumentsScreen(
+      {super.key, required this.categoryBcdId, required this.categoryName});
 
   @override
-  State<_BCDDocumentsScreen> createState() => _BCDDocumentsScreenState();
+  State<BCDDocumentsScreen> createState() => _BCDDocumentsScreenState();
 }
 
-class _BCDDocumentsScreenState extends State<_BCDDocumentsScreen> {
+class _BCDDocumentsScreenState extends State<BCDDocumentsScreen> {
   final _api = ApiService();
   List<dynamic> _docs = [];
   bool _loading = true;

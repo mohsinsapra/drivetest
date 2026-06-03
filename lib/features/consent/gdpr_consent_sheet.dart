@@ -73,154 +73,166 @@ class _GdprConsentSheetState extends State<_GdprConsentSheet> {
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            padding: EdgeInsets.fromLTRB(
-              24,
-              20,
-              24,
-              mq.viewInsets.bottom + mq.padding.bottom + 32,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Handle bar
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: cs.outlineVariant,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Icon + title
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: cs.primaryContainer.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(Icons.shield_rounded,
-                            color: cs.primary, size: 24),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          sv
-                              ? 'Din integritet är viktig för oss'
-                              : 'Your privacy matters to us',
-                          style: GoogleFonts.lexend(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: cs.onSurface,
-                            height: 1.2,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Intro paragraph
-                  Text(
-                    sv
-                        ? 'Innan du fortsätter vill vi informera dig om hur vi hanterar dina personuppgifter i enlighet med GDPR.'
-                        : 'Before you continue, we want to inform you about how we handle your personal data in accordance with GDPR.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      color: cs.onSurfaceVariant,
-                      height: 1.55,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Data points
-                  _DataPoint(
-                    icon: Icons.person_rounded,
-                    title: sv ? 'Kontouppgifter' : 'Account data',
-                    body: sv
-                        ? 'Vi lagrar din e-postadress och ditt namn för att hantera ditt konto.'
-                        : 'We store your email address and name to manage your account.',
-                  ),
-                  const SizedBox(height: 14),
-                  _DataPoint(
-                    icon: Icons.bar_chart_rounded,
-                    title: sv ? 'Studieframsteg' : 'Study progress',
-                    body: sv
-                        ? 'Vi sparar dina provsvar och resultat för att visa din framsteg och anpassa övningsprov.'
-                        : 'We save your quiz answers and results to show your progress and personalise practice tests.',
-                  ),
-                  const SizedBox(height: 14),
-                  _DataPoint(
-                    icon: Icons.notifications_rounded,
-                    title: sv ? 'Aviseringar' : 'Notifications',
-                    body: sv
-                        ? 'Om du tillåter aviseringar lagrar vi din enhetstoken för att skicka påminnelser.'
-                        : 'If you allow notifications, we store your device token to send reminders.',
-                  ),
-                  const SizedBox(height: 14),
-                  _DataPoint(
-                    icon: Icons.lock_rounded,
-                    title: sv ? 'Säkerhet' : 'Security',
-                    body: sv
-                        ? 'Din data överförs krypterat och delas aldrig med tredje part för marknadsföring.'
-                        : 'Your data is transferred encrypted and is never shared with third parties for marketing.',
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Privacy policy link
-                  RichText(
-                    text: TextSpan(
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        color: cs.onSurfaceVariant,
-                        height: 1.5,
-                      ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Scrollable content
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextSpan(
-                          text: sv
-                              ? 'Genom att trycka på "Godkänn" samtycker du till vår '
-                              : 'By tapping "Accept" you agree to our ',
-                        ),
-                        TextSpan(
-                          text: sv ? 'integritetspolicy' : 'Privacy Policy',
-                          style: TextStyle(
-                            color: cs.primary,
-                            fontWeight: FontWeight.w700,
-                            decoration: TextDecoration.underline,
+                        // Handle bar
+                        Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: cs.outlineVariant,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () => launchUrl(
-                                  Uri.parse(
-                                      'https://drivetest.se/privacy-policy.html'),
-                                  mode: LaunchMode.externalApplication,
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Icon + title
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color:
+                                    cs.primaryContainer.withValues(alpha: 0.4),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(Icons.shield_rounded,
+                                  color: cs.primary, size: 24),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                sv
+                                    ? 'Din integritet är viktig för oss'
+                                    : 'Your privacy matters to us',
+                                style: GoogleFonts.lexend(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: cs.onSurface,
+                                  height: 1.2,
                                 ),
+                              ),
+                            ),
+                          ],
                         ),
-                        TextSpan(
-                          text: sv
-                              ? ' och vår behandling av personuppgifter.'
-                              : ' and our processing of personal data.',
+                        const SizedBox(height: 20),
+
+                        // Intro paragraph
+                        Text(
+                          sv
+                              ? 'Innan du fortsätter vill vi informera dig om hur vi hanterar dina personuppgifter i enlighet med GDPR.'
+                              : 'Before you continue, we want to inform you about how we handle your personal data in accordance with GDPR.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            color: cs.onSurfaceVariant,
+                            height: 1.55,
+                          ),
                         ),
+                        const SizedBox(height: 20),
+
+                        // Data points
+                        _DataPoint(
+                          icon: Icons.person_rounded,
+                          title: sv ? 'Kontouppgifter' : 'Account data',
+                          body: sv
+                              ? 'Vi lagrar din e-postadress och ditt namn för att hantera ditt konto.'
+                              : 'We store your email address and name to manage your account.',
+                        ),
+                        const SizedBox(height: 14),
+                        _DataPoint(
+                          icon: Icons.bar_chart_rounded,
+                          title: sv ? 'Studieframsteg' : 'Study progress',
+                          body: sv
+                              ? 'Vi sparar dina provsvar och resultat för att visa din framsteg och anpassa övningsprov.'
+                              : 'We save your quiz answers and results to show your progress and personalise practice tests.',
+                        ),
+                        const SizedBox(height: 14),
+                        _DataPoint(
+                          icon: Icons.notifications_rounded,
+                          title: sv ? 'Aviseringar' : 'Notifications',
+                          body: sv
+                              ? 'Om du tillåter aviseringar lagrar vi din enhetstoken för att skicka påminnelser.'
+                              : 'If you allow notifications, we store your device token to send reminders.',
+                        ),
+                        const SizedBox(height: 14),
+                        _DataPoint(
+                          icon: Icons.lock_rounded,
+                          title: sv ? 'Säkerhet' : 'Security',
+                          body: sv
+                              ? 'Din data överförs krypterat och delas aldrig med tredje part för marknadsföring.'
+                              : 'Your data is transferred encrypted and is never shared with third parties for marketing.',
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Privacy policy link
+                        RichText(
+                          text: TextSpan(
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              color: cs.onSurfaceVariant,
+                              height: 1.5,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: sv
+                                    ? 'Genom att trycka på "Godkänn" samtycker du till vår '
+                                    : 'By tapping "Accept" you agree to our ',
+                              ),
+                              TextSpan(
+                                text:
+                                    sv ? 'integritetspolicy' : 'Privacy Policy',
+                                style: TextStyle(
+                                  color: cs.primary,
+                                  fontWeight: FontWeight.w700,
+                                  decoration: TextDecoration.underline,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () => launchUrl(
+                                        Uri.parse(
+                                            'https://drivetest.se/privacy-policy.html'),
+                                        mode: LaunchMode.externalApplication,
+                                      ),
+                              ),
+                              TextSpan(
+                                text: sv
+                                    ? ' och vår behandling av personuppgifter.'
+                                    : ' and our processing of personal data.',
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 28),
+                ),
 
-                  // Accept button
-                  AppButton(
+                // Pinned button area
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    16,
+                    24,
+                    mq.viewInsets.bottom + mq.padding.bottom + 24,
+                  ),
+                  child: AppButton(
                     label: sv ? 'Godkänn och fortsätt' : 'Accept & Continue',
                     onPressed: _accept,
                     loading: _accepting,
                     height: 56,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
