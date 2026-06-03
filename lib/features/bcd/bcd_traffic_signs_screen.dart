@@ -3,8 +3,10 @@ import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:no_screenshot/no_screenshot.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -25,6 +27,7 @@ class BCDTrafficSignsScreen extends StatefulWidget {
 class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
   final _provider = BcdProvider();
   final _scrollController = ScrollController();
+  final _noScreenshot = kIsWeb ? null : NoScreenshot.instance;
   String _search = '';
   Timer? _refreshTimer;
 
@@ -43,6 +46,7 @@ class _BCDTrafficSignsScreenState extends State<BCDTrafficSignsScreen> {
   @override
   void initState() {
     super.initState();
+    _noScreenshot?.screenshotOff();
     _provider.addListener(_onProviderChange);
     _load();
     _refreshTimer = Timer.periodic(

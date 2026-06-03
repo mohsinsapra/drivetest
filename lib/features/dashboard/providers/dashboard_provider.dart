@@ -8,6 +8,7 @@ import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
+import 'package:taxi_exam_app/features/smart_learning/services/smart_progress_service.dart';
 import '../helpers/dashboard_helpers.dart';
 import '../models/dashboard_stats.dart';
 import '../models/subscribed_exam.dart';
@@ -70,10 +71,13 @@ class DashboardProvider extends ChangeNotifier {
   bool _syncing = false;
   bool get syncing => _syncing;
 
-  /// True for one microtask frame while switching between exams,
-  /// giving the UI a window to render the shimmer skeleton.
+  /// True during the brief exam-to-exam handoff, while the previous content
+  /// remains visible and the next exam is prepared for display.
   bool _switching = false;
   bool get switching => _switching;
+
+  static const Duration _examSwitchDuration = Duration(milliseconds: 180);
+  Timer? _examSwitchTimer;
 
   String? _error;
   String? get error => _error;
@@ -162,6 +166,7 @@ class DashboardProvider extends ChangeNotifier {
     _attempts = [];
     _selectedExam = null;
     _selectedStats = null;
+    _switching = false;
     _overviewProgress = {};
     _statsCache = {};
     _error = null;
@@ -170,10 +175,7 @@ class DashboardProvider extends ChangeNotifier {
     _status = DashboardStatus.loading;
     notifyListeners();
 
-    // Start attempts pre-fetch concurrently with exam sync — they are
-    // independent, so both can run at the same time.
-    final attemptsReady = _syncAttemptsIfEmpty();
-    _syncFromApi(attemptsReady: attemptsReady);
+    _syncFromApi();
     _subscribeToAttempts();
   }
 
@@ -181,16 +183,27 @@ class DashboardProvider extends ChangeNotifier {
   /// microtask so the skeleton gets one frame to render before real data lands.
   void selectExam(SubscribedExam exam) {
     if (_selectedExam?.id == exam.id) return;
+    final nextStats = _statsCache[exam.id] ??
+        DashboardHelpers.computeExamStats(exam, _periodAttempts, _attempts,
+            weeklyGoal: _weeklyGoal);
+    _examSwitchTimer?.cancel();
     _selectedExam = exam;
-    // Keep _selectedStats so the UI retains its structure; only dynamic values shimmer.
+    if (_selectedStats == null) {
+      _selectedStats = nextStats;
+      _switching = false;
+      notifyListeners();
+      return;
+    }
     _switching = true;
     notifyListeners();
 
-    _selectedStats = _statsCache[exam.id] ??
-        DashboardHelpers.computeExamStats(exam, _periodAttempts, _attempts,
-            weeklyGoal: _weeklyGoal);
-    _switching = false;
-    notifyListeners();
+    _examSwitchTimer = Timer(_examSwitchDuration, () {
+      if (_selectedExam?.id != exam.id) return;
+      _selectedStats = nextStats;
+      _switching = false;
+      _examSwitchTimer = null;
+      notifyListeners();
+    });
   }
 
   /// Debounced so rapid Hive writes (e.g. bulk sync) collapse into one refresh.
@@ -228,6 +241,8 @@ class DashboardProvider extends ChangeNotifier {
 
   void reset() {
     _generation++;
+    _examSwitchTimer?.cancel();
+    _examSwitchTimer = null;
     _refreshDebounce?.cancel();
     _refreshDebounce = null;
     _attemptsSub?.cancel();
@@ -243,12 +258,13 @@ class DashboardProvider extends ChangeNotifier {
     _error = null;
     _errorKind = DashboardErrorKind.unknown;
     _status = DashboardStatus.idle;
+    _switching = false;
     notifyListeners();
   }
 
   // ─── Private helpers ───────────────────────────────────────────────────────
 
-  Future<void> _syncFromApi({Future<void>? attemptsReady}) async {
+  Future<void> _syncFromApi() async {
     if (_syncing) return;
     final shouldNotifySyncStart = _status != DashboardStatus.loading;
     _syncing = true;
@@ -264,7 +280,7 @@ class DashboardProvider extends ChangeNotifier {
         if (_generation != gen) return;
         final refreshed = await _repo.loadSubscribedExams();
         if (_generation != gen) return;
-        await _applyExams(refreshed, attemptsReady: attemptsReady);
+        await _applyExams(refreshed);
         _status = DashboardStatus.loaded;
       } else if (_exams.isEmpty) {
         _status = DashboardStatus.loaded;
@@ -316,19 +332,14 @@ class DashboardProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _examSwitchTimer?.cancel();
     _refreshDebounce?.cancel();
     _attemptsSub?.cancel();
     super.dispose();
   }
 
-  Future<void> _applyExams(
-    List<SubscribedExam> exams, {
-    Future<void>? attemptsReady,
-  }) async {
+  Future<void> _applyExams(List<SubscribedExam> exams) async {
     _exams = exams;
-    // Await the pre-fetched attempts future (started concurrently in init) or
-    // fall back to calling it inline (e.g. syncNow path).
-    await (attemptsReady ?? _syncAttemptsIfEmpty());
     final attempts = await _loadAttempts();
     _attempts = attempts;
     _buildOverviewProgress(attempts);
@@ -350,31 +361,15 @@ class DashboardProvider extends ChangeNotifier {
     }
 
     if (target != null) {
+      _examSwitchTimer?.cancel();
+      _examSwitchTimer = null;
       _selectedExam = target;
       _selectedStats = _statsCache[target.id];
+      _switching = false;
     }
   }
 
-  Future<void> _syncAttemptsIfEmpty() async {
-    try {
-      final box = await AppStorage.testAttemptsBox();
-      if (box.isNotEmpty) return;
-      final apiService = ApiService();
-      final remoteList = await apiService.fetchTestAttempts();
-      final toSave = <String, TestAttempt>{};
-      for (final data in remoteList) {
-        final id = data['attempt_id'] as String? ?? '';
-        if (id.isEmpty || box.containsKey(id)) continue;
-        final attempt = apiService.testAttemptFromJson(data);
-        if (attempt != null) toSave[id] = attempt;
-      }
-      if (toSave.isNotEmpty) await box.putAll(toSave);
-    } catch (e) {
-      debugPrint('[DashboardProvider] _syncAttemptsIfEmpty failed: $e');
-    }
-  }
-
-  Future<List<TestAttempt>> _loadAttempts() async {
+Future<List<TestAttempt>> _loadAttempts() async {
     try {
       final box = await AppStorage.testAttemptsBox();
       return box.values.toList();
@@ -399,13 +394,32 @@ class DashboardProvider extends ChangeNotifier {
     final goal = _weeklyGoal;
     final gen = _generation;
 
+    // Load smart-learning stats for all BCD exams in one pass.
+    final smartSvc = SmartProgressService();
+    final bcdExamIds = <String, int>{};
+    for (final exam in exams) {
+      if (!exam.isBcd) continue;
+      final bcdId = int.tryParse(exam.id);
+      if (bcdId != null) {
+        bcdExamIds[exam.id] = bcdId;
+      }
+    }
+    final smartByBcdId = await smartSvc.examSmartStatsByExam(bcdExamIds.values);
+
     final result = <String, ExamDashboardStats>{};
     for (final exam in exams) {
       // Give the UI thread a frame between heavy per-exam computations.
       await Future.microtask(() {});
       if (_generation != gen) return;
-      result[exam.id] = DashboardHelpers.computeExamStats(exam, filtered, all,
-          weeklyGoal: goal);
+      final bcdId = bcdExamIds[exam.id];
+      final smart = bcdId == null ? null : smartByBcdId[bcdId];
+      result[exam.id] = DashboardHelpers.computeExamStats(
+        exam, filtered, all,
+        weeklyGoal: goal,
+        smartChunksMastered: smart?.chunksMastered ?? 0,
+        smartChunksTotal: smart?.chunksTotal ?? 0,
+        weakQuestionsCount: smart?.weakQuestions ?? 0,
+      );
     }
     if (_generation != gen) return;
     _statsCache = result;

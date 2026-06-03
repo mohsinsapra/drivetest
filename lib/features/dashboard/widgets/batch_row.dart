@@ -116,18 +116,18 @@ class _BatchRowState extends State<BatchRow>
                 splashColor: cs.primary.withValues(alpha: 0.08),
                 highlightColor: cs.primary.withValues(alpha: 0.05),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                  padding: const EdgeInsets.fromLTRB(14, 9, 12, 9),
                   child: Row(
                     children: [
                       Container(
-                        width: 8,
-                        height: 8,
+                        width: 7,
+                        height: 7,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: dotColor,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,32 +154,25 @@ class _BatchRowState extends State<BatchRow>
                           padding: EdgeInsets.only(right: 6),
                           child: Icon(
                             Icons.pause_circle_outline_rounded,
-                            size: 14,
+                            size: 13,
                             color: Colors.orange,
                           ),
                         ),
-                      if (batch.isUntouched)
-                        Text(
-                          Translations.of(context).dash_not_started,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: cs.onSurface.withValues(alpha: 0.35),
-                          ),
-                        )
-                      else
+                      if (!batch.isUntouched)
                         Text(
                           '${batch.averageScore.toStringAsFixed(0)}%',
-                          style: theme.textTheme.titleSmall?.copyWith(
+                          style: theme.textTheme.bodySmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: dotColor,
                           ),
                         ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 2),
                       AnimatedRotation(
                         turns: _expanded ? 0.25 : 0.0,
                         duration: const Duration(milliseconds: 220),
                         child: Icon(
                           Icons.chevron_right_rounded,
-                          size: 16,
+                          size: 15,
                           color: cs.onSurface.withValues(alpha: 0.3),
                         ),
                       ),
@@ -192,9 +185,6 @@ class _BatchRowState extends State<BatchRow>
               child: AnimatedBuilder(
                 animation: _curved,
                 builder: (ctx, child) {
-                  if (_ctrl.status == AnimationStatus.dismissed) {
-                    return const SizedBox.shrink();
-                  }
                   return Align(
                     alignment: Alignment.topCenter,
                     heightFactor: _curved.value,

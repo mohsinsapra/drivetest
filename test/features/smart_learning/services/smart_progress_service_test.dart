@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:taxi_exam_app/core/services/bcd_cache.dart';
+import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/features/smart_learning/models/smart_progress.dart';
 import 'package:taxi_exam_app/features/smart_learning/models/weak_question.dart';
 import 'package:taxi_exam_app/features/smart_learning/services/smart_progress_service.dart';
@@ -9,9 +11,12 @@ import 'package:taxi_exam_app/features/smart_learning/services/smart_progress_se
 import 'package:hive/hive.dart' as hive_lib;
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late Directory tempDir;
 
   setUpAll(() async {
+    await DioClient().init();
     tempDir = await Directory.systemTemp.createTemp('smart_learn_test_');
     hive_lib.Hive.init(tempDir.path);
     if (!hive_lib.Hive.isAdapterRegistered(6)) {
@@ -28,6 +33,7 @@ void main() {
   });
 
   tearDown(() async {
+    BcdCache.invalidateIfInitialized();
     if (hive_lib.Hive.isBoxOpen('chunkProgress')) {
       await hive_lib.Hive.box<SmartProgress>('chunkProgress').clear();
     }
@@ -124,6 +130,54 @@ void main() {
       // chunkSize = 14 → cap = floor(14 * 0.3) = 4
       final ids = await svc.weakQuestionIdsFor(500, 14);
       expect(ids.length, lessThanOrEqualTo(4));
+    });
+  });
+
+  group('examSmartStatsByExam', () {
+    test('returns smart stats for multiple exams in one pass', () async {
+      BcdCache.instance.seedFromSelfResponse([
+        {
+          'bcd_id': 10,
+          'name': 'Exam 10',
+          'has_children': false,
+          'tests': [
+            {'bcd_id': 1001, 'question_count': 8},
+            {'bcd_id': 1002, 'question_count': 14},
+          ],
+        },
+        {
+          'bcd_id': 20,
+          'name': 'Exam 20',
+          'has_children': true,
+          'sub_categories': [
+            {
+              'bcd_id': 2001,
+              'name': 'Sub 1',
+              'tests': [
+                {'bcd_id': 20011, 'question_count': 20},
+              ],
+            },
+          ],
+        },
+      ]);
+
+      await svc.recordSmartResult(1001, 0, true);
+      await svc.recordSmartResult(1002, 0, true);
+      await svc.recordSmartResult(20011, 0, true);
+      await svc.recordSessionResults(1001, {'q1': false, 'q2': false});
+      await svc.recordSessionResults(20011, {'q3': false});
+
+      final statsByExam = await svc.examSmartStatsByExam([10, 20, 30]);
+
+      expect(statsByExam[10]?.chunksMastered, 2);
+      expect(statsByExam[10]?.chunksTotal, 3);
+      expect(statsByExam[10]?.weakQuestions, 2);
+      expect(statsByExam[20]?.chunksMastered, 1);
+      expect(statsByExam[20]?.chunksTotal, 2);
+      expect(statsByExam[20]?.weakQuestions, 1);
+      expect(statsByExam[30]?.chunksMastered, 0);
+      expect(statsByExam[30]?.chunksTotal, 0);
+      expect(statsByExam[30]?.weakQuestions, 0);
     });
   });
 }

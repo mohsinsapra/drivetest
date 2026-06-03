@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
@@ -13,7 +14,6 @@ import 'package:taxi_exam_app/features/dashboard/providers/dashboard_provider.da
 import 'package:taxi_exam_app/features/dashboard/widgets/category_list_item.dart';
 import 'package:taxi_exam_app/features/dashboard/widgets/dashboard_body.dart';
 import 'package:taxi_exam_app/features/dashboard/widgets/performance_insight_card.dart';
-import 'package:taxi_exam_app/features/dashboard/widgets/performance_metric_card.dart';
 import 'package:taxi_exam_app/features/dashboard/widgets/performance_overview_section.dart';
 
 class _LoadingDashboardProvider extends ChangeNotifier
@@ -40,6 +40,71 @@ class _LoadingDashboardProvider extends ChangeNotifier
 
   @override
   bool get switching => false;
+
+  @override
+  String? get error => null;
+
+  @override
+  DashboardErrorKind get errorKind => DashboardErrorKind.unknown;
+
+  @override
+  Future<void> init() async {}
+
+  @override
+  void refresh() {}
+
+  @override
+  Future<void> syncNow() async {}
+
+  @override
+  void selectExam(SubscribedExam exam) {}
+
+  @override
+  void reset() {}
+
+  @override
+  PeriodFilter get period => PeriodFilter.thisMonth;
+
+  @override
+  Future<void> setPeriod(PeriodFilter p) async {}
+
+  @override
+  List<TestAttempt> get attempts => [];
+
+  @override
+  Future<void> setWeeklyGoal(int goal) async {}
+}
+
+class _SwitchingDashboardProvider extends ChangeNotifier
+    implements DashboardProvider {
+  _SwitchingDashboardProvider(this._stats, this._selectedExam);
+
+  final ExamDashboardStats _stats;
+  final SubscribedExam _selectedExam;
+
+  @override
+  DashboardStatus get status => DashboardStatus.loaded;
+
+  @override
+  List<SubscribedExam> get exams => [_selectedExam];
+
+  @override
+  SubscribedExam? get selectedExam => _selectedExam;
+
+  @override
+  ExamDashboardStats? get selectedStats => _stats;
+
+  @override
+  Map<String, double> get overviewProgress => {};
+
+  @override
+  Map<String, ExamDashboardStats> get statsCache => {_selectedExam.id: _stats};
+
+  @override
+  bool get syncing => false;
+
+  @override
+  bool get switching => true;
 
   @override
   String? get error => null;
@@ -164,8 +229,8 @@ void main() {
       await tester.pump();
 
       expect(find.byType(PerformanceOverviewSection), findsOneWidget);
-      expect(find.byType(PerformanceMetricCard), findsNWidgets(3));
       expect(find.byType(PerformanceInsightCard), findsOneWidget);
+      expect(find.byType(Shimmer), findsNothing);
     },
   );
 
@@ -207,6 +272,107 @@ void main() {
       final icon = tester.widget<Icon>(find.byIcon(Icons.directions_car));
 
       expect(icon.color, theme.colorScheme.primary);
+    },
+  );
+
+  testWidgets(
+    'performance overview avoids intrinsic layout for stat row',
+    (tester) async {
+      LocaleSettings.setLocaleSync(AppLocale.en);
+
+      final stats = ExamDashboardStats(
+        exam: SubscribedExam(
+          id: 'exam-1',
+          name: 'Exam 1',
+          hasCategories: false,
+          subscribedAt: DateTime(2026, 5, 29),
+          nodes: const [],
+        ),
+        categoryStats: null,
+        allBatchStats: const [],
+        streak: const StreakSummary(
+          currentStreak: 0,
+          bestStreak: 0,
+          thisWeekActiveDays: [],
+          weeklyGoal: 3,
+          thisWeekActiveDayCount: 0,
+        ),
+        smartChunksMastered: 4,
+        smartChunksTotal: 8,
+        weakQuestionsCount: 2,
+      );
+
+      await tester.pumpWidget(
+        TranslationProvider(
+          child: MaterialApp(
+            home: Scaffold(
+              body: PerformanceOverviewSection(
+                stats: stats,
+                provider: _LoadingDashboardProvider(),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(IntrinsicHeight), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'exam switching keeps previous content visible instead of falling back to shimmer',
+    (tester) async {
+      LocaleSettings.setLocaleSync(AppLocale.en);
+
+      final exam = SubscribedExam(
+        id: 'exam-1',
+        name: 'Exam 1',
+        hasCategories: false,
+        subscribedAt: DateTime(2026, 5, 29),
+        isBcd: true,
+        nodes: const [],
+      );
+      final stats = ExamDashboardStats(
+        exam: exam,
+        categoryStats: null,
+        allBatchStats: const [],
+        streak: const StreakSummary(
+          currentStreak: 0,
+          bestStreak: 0,
+          thisWeekActiveDays: [],
+          weeklyGoal: 3,
+          thisWeekActiveDayCount: 0,
+        ),
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DashboardProvider>(
+              create: (_) => _SwitchingDashboardProvider(stats, exam),
+            ),
+            ChangeNotifierProvider<NotificationProvider>(
+              create: (_) => _MockNotificationProvider(),
+            ),
+          ],
+          child: TranslationProvider(
+            child: MaterialApp(
+              home: Scaffold(
+                body: DashboardBody(
+                  provider: _SwitchingDashboardProvider(stats, exam),
+                  onSubscribe: () {},
+                  onRefresh: () async {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      expect(find.byType(PerformanceOverviewSection), findsOneWidget);
+      expect(find.byType(PerformanceInsightCard), findsOneWidget);
     },
   );
 }

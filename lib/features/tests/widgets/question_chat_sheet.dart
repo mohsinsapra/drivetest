@@ -285,7 +285,7 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'NEW',
+                      t.dash_smart_new.toUpperCase(),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,

@@ -161,12 +161,24 @@ class ExamDashboardStats {
   /// even for historically-synced attempts where categoryId may be null.
   final int _examAttempts;
 
+  /// Chunks mastered via Smart Learning (0 if exam has no smart data).
+  final int smartChunksMastered;
+
+  /// Total smart chunks available for this exam (0 if exam has no smart data).
+  final int smartChunksTotal;
+
+  /// Weak questions currently in the mistake pool for this exam.
+  final int weakQuestionsCount;
+
   const ExamDashboardStats({
     required this.exam,
     required this.categoryStats,
     required this.allBatchStats,
     required this.streak,
     int examAttempts = 0,
+    this.smartChunksMastered = 0,
+    this.smartChunksTotal = 0,
+    this.weakQuestionsCount = 0,
   }) : _examAttempts = examAttempts;
 
   double get overallProgressPercent {

@@ -31,9 +31,9 @@ class HeroSection extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 2),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
@@ -42,20 +42,20 @@ class HeroSection extends StatelessWidget {
                 Text(
                   t.dash_my_progress,
                   style: GoogleFonts.lexend(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
                     height: 1.1,
                     color: cs.onSurface,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15,
-                    color: cs.onSurface.withValues(alpha: 0.55),
-                    height: 1.4,
+                    fontSize: 13,
+                    color: cs.onSurface.withValues(alpha: 0.5),
+                    height: 1.3,
                   ),
                 ),
               ],

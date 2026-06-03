@@ -15,6 +15,7 @@ import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
 import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
+import 'package:taxi_exam_app/core/utils/in_flight_request_tracker.dart';
 import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
 import 'dio_client.dart';
 
@@ -53,7 +54,8 @@ class ApiService {
 
   // Deduplicates simultaneous fetchCurrentUser calls — all callers share
   // one in-flight request and receive the same result.
-  static Future<dynamic>? _inFlightSelf;
+  static final InFlightRequestTracker<dynamic> _selfRequestTracker =
+      InFlightRequestTracker<dynamic>();
 
   // Deduplicates simultaneous guestLogin calls — prevents multiple guest
   // accounts being created when two callers fire before the first one saves
@@ -116,7 +118,7 @@ class ApiService {
 
     // Discard any in-flight futures so the next session never receives
     // stale data or tokens from a pending network call.
-    _inFlightSelf = null;
+    _selfRequestTracker.clear();
     _inFlightGuestLogin = null;
 
     // Always clear local tokens regardless of server response.
@@ -150,14 +152,8 @@ class ApiService {
   }
 
   Future<dynamic> fetchCurrentUser({bool forceRefresh = false}) {
-    // forceRefresh bypasses deduplication — used for explicit pull-to-refresh.
-    if (!forceRefresh && _inFlightSelf != null) return _inFlightSelf!;
-    final future = _fetchCurrentUserImpl(forceRefresh: forceRefresh);
-    if (!forceRefresh) {
-      _inFlightSelf = future;
-      future.whenComplete(() => _inFlightSelf = null);
-    }
-    return future;
+    if (forceRefresh) return _fetchCurrentUserImpl(forceRefresh: true);
+    return _selfRequestTracker.run(() => _fetchCurrentUserImpl());
   }
 
   /// AES-256-CBC decrypt for the `{"d": "<base64>"}` envelope that the backend

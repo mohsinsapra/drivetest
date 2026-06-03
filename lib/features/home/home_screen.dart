@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
@@ -329,6 +330,8 @@ class _HomeScreenState extends State<HomeScreen>
                           CupertinoSliverRefreshControl(onRefresh: onRefresh),
                         // Header
                         SliverToBoxAdapter(child: _buildHeader()),
+                        // Quick Access — always visible
+                        SliverToBoxAdapter(child: _buildQuickAccessSection(t)),
 
                         if (hasData) ...[
                           // Hero card
@@ -453,6 +456,96 @@ class _HomeScreenState extends State<HomeScreen>
                   color: Colors.grey.shade700),
               onPressed: _confirmDeleteAllTests,
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessSection(Translations t) {
+    final items = [
+      _QuickAccessRowData(
+        label: t.home_qa_start_test,
+        icon: LucideIcons.playCircle,
+        iconColor: const Color(0xFF2779BC),
+        bgColor: const Color(0xFF2779BC).withValues(alpha: 0.12),
+        onTap: () =>
+            Provider.of<MainScreenProvider>(context, listen: false).setIndex(1),
+      ),
+      _QuickAccessRowData(
+        label: t.home_qa_custom_test,
+        icon: LucideIcons.sliders,
+        iconColor: Colors.orange.shade600,
+        bgColor: Colors.orange.withValues(alpha: 0.12),
+        onTap: () =>
+            Provider.of<MainScreenProvider>(context, listen: false).setIndex(1),
+      ),
+      _QuickAccessRowData(
+        label: t.home_qa_saved_questions,
+        icon: LucideIcons.bookOpenCheck,
+        iconColor: Colors.teal.shade600,
+        bgColor: Colors.teal.withValues(alpha: 0.12),
+        onTap: () =>
+            Provider.of<MainScreenProvider>(context, listen: false).setIndex(1),
+      ),
+      _QuickAccessRowData(
+        label: t.home_qa_settings,
+        icon: LucideIcons.settings2,
+        iconColor: Colors.purple.shade400,
+        bgColor: Colors.purple.withValues(alpha: 0.12),
+        onTap: () =>
+            Provider.of<MainScreenProvider>(context, listen: false).setIndex(2),
+      ),
+    ];
+
+    return _StaggeredItem(
+      index: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(t.home_quick_access, ''),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Column(
+                children: items.asMap().entries.map((entry) {
+                  final isLast = entry.key == items.length - 1;
+                  final item = entry.value;
+                  return Column(
+                    children: [
+                      _QuickAccessRow(
+                        label: item.label,
+                        icon: item.icon,
+                        iconColor: item.iconColor,
+                        bgColor: item.bgColor,
+                        onTap: item.onTap,
+                      ),
+                      if (!isLast)
+                        Divider(
+                          height: 1,
+                          indent: 58,
+                          endIndent: 0,
+                          color: Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.6),
+                        ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -991,6 +1084,81 @@ class _HomeScreenState extends State<HomeScreen>
           borderRadius: BorderRadius.circular(r),
         ),
       );
+}
+
+// ─── Quick access row data ────────────────────────────────────────────────────
+
+class _QuickAccessRowData {
+  final String label;
+  final IconData icon;
+  final Color iconColor;
+  final Color bgColor;
+  final VoidCallback onTap;
+  const _QuickAccessRowData({
+    required this.label,
+    required this.icon,
+    required this.iconColor,
+    required this.bgColor,
+    required this.onTap,
+  });
+}
+
+// ─── Quick access row widget ──────────────────────────────────────────────────
+
+class _QuickAccessRow extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color iconColor;
+  final Color bgColor;
+  final VoidCallback onTap;
+  const _QuickAccessRow({
+    required this.label,
+    required this.icon,
+    required this.iconColor,
+    required this.bgColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.grey.shade400,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ─── Staggered item ──────────────────────────────────────────────────────────

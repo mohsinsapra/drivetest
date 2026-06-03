@@ -3,6 +3,7 @@ import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:no_screenshot/no_screenshot.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -35,6 +36,7 @@ class BCDDocumentViewerScreen extends StatefulWidget {
 
 class _BCDDocumentViewerScreenState extends State<BCDDocumentViewerScreen> {
   late Future<Uint8List> _pdfBytesFuture;
+  final _noScreenshot = kIsWeb ? null : NoScreenshot.instance;
 
   bool get _useExternalLauncher => useExternalDocumentLauncher(
         isWeb: kIsWeb,
@@ -44,6 +46,7 @@ class _BCDDocumentViewerScreenState extends State<BCDDocumentViewerScreen> {
   @override
   void initState() {
     super.initState();
+    _noScreenshot?.screenshotOff();
     _pdfBytesFuture = _loadPdfBytes();
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _maybeLaunchExternally());

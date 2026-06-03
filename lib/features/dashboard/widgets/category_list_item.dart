@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_text_utils.dart';
 import '../models/dashboard_stats.dart';
 import 'batch_row.dart';
 import 'exam_nav_helpers.dart';
@@ -13,6 +14,7 @@ class CategoryListItem extends StatefulWidget {
     required this.isExpanded,
     required this.onToggle,
     required this.stats,
+    this.showRecentPill = false,
     this.nested = false,
   });
 
@@ -21,6 +23,7 @@ class CategoryListItem extends StatefulWidget {
   final bool isExpanded;
   final VoidCallback onToggle;
   final ExamDashboardStats stats;
+  final bool showRecentPill;
 
   /// When true, renders without its own card decoration (for use inside a grouped container).
   final bool nested;
@@ -81,29 +84,55 @@ class _CategoryListItemState extends State<CategoryListItem>
               splashColor: cs.primary.withValues(alpha: 0.08),
               highlightColor: cs.primary.withValues(alpha: 0.05),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                 child: Row(
                   children: [
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
                         color: cs.primary.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(widget.icon, color: cs.primary, size: 20),
+                      child: Icon(widget.icon, color: cs.primary, size: 17),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            formatNodeName(
-                                widget.cat.node.name, t.node_group_prefix),
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  formatNodeName(
+                                      stripAppSuffix(widget.cat.node.name), t.node_group_prefix),
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              if (widget.showRecentPill) ...[
+                                const SizedBox(width: 7),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 7, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: cs.primary.withValues(alpha: 0.10),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    t.dash_recently_practiced,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: cs.primary,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                           Text(
                             '${t.dash_batches_count.replaceAll('{n}', '${widget.cat.totalBatches}')} • $statusText',
@@ -132,9 +161,6 @@ class _CategoryListItemState extends State<CategoryListItem>
           child: AnimatedBuilder(
             animation: _curved,
             builder: (ctx, child) {
-              if (_ctrl.status == AnimationStatus.dismissed) {
-                return const SizedBox.shrink();
-              }
               return Align(
                 alignment: Alignment.topCenter,
                 heightFactor: _curved.value,
@@ -150,52 +176,37 @@ class _CategoryListItemState extends State<CategoryListItem>
                         ),
                       ),
                     ),
-                    padding: const EdgeInsets.all(10),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: theme.brightness == Brightness.dark
-                            ? cs.surfaceContainerHighest
-                            : theme.cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: cs.onSurface.withValues(alpha: 0.06),
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Column(
-                          children:
-                              widget.cat.batchStats.asMap().entries.map((e) {
-                            final isLast =
-                                e.key == widget.cat.batchStats.length - 1;
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                BatchRow(
-                                  batch: e.value,
-                                  exam: widget.stats.exam,
-                                  nested: true,
-                                  batchAttempts: e.value.sortedAttempts,
-                                  onTap: widget.stats.exam.isBcd
-                                      ? () => launchBatch(
-                                            context,
-                                            widget.stats.exam,
-                                            e.value.node,
-                                            widget.cat.node.name,
-                                          )
-                                      : null,
-                                ),
-                                if (!isLast)
-                                  Divider(
-                                    height: 1,
-                                    thickness: 1,
-                                    color: cs.onSurface.withValues(alpha: 0.07),
-                                  ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: widget.cat.batchStats.asMap().entries.map((e) {
+                        final isLast =
+                            e.key == widget.cat.batchStats.length - 1;
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            BatchRow(
+                              batch: e.value,
+                              exam: widget.stats.exam,
+                              nested: true,
+                              batchAttempts: e.value.sortedAttempts,
+                              onTap: widget.stats.exam.isBcd
+                                  ? () => launchBatch(
+                                        context,
+                                        widget.stats.exam,
+                                        e.value.node,
+                                        widget.cat.node.name,
+                                      )
+                                  : null,
+                            ),
+                            if (!isLast)
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: cs.onSurface.withValues(alpha: 0.07),
+                              ),
+                          ],
+                        );
+                      }).toList(),
                     ),
                   )
                 : const SizedBox.shrink(),

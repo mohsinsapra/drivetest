@@ -4,8 +4,10 @@ import 'dart:math' as math;
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:no_screenshot/no_screenshot.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -66,6 +68,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   final _api = ApiService();
   final _tts = TtsService();
   final _random = Random();
+  final _noScreenshot = kIsWeb ? null : NoScreenshot.instance;
 
   // Session identity — used for attempt tracking
   late final String _testId;
@@ -114,6 +117,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       syncRemote: _api.syncTestAttempt,
     );
     _queue = List<Question>.from(widget.initialQuestions);
+    _noScreenshot?.screenshotOff();
     _loadAiEnabled();
     _preFetchPreferredLanguage();
     // Pre-open Hive box so saves don't hang.

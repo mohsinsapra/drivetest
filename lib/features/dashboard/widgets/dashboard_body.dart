@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/constants/language_options.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -25,6 +24,7 @@ import 'exam_nav_helpers.dart';
 import 'hero_section.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
+import 'category_progress_section.dart';
 import 'performance_overview_section.dart';
 import 'weekly_streak_section.dart';
 
@@ -48,6 +48,7 @@ class _DashboardBodyState extends State<DashboardBody> {
   // Tracks which category IDs are expanded (3-layer exams).
   final Set<String> _expandedCategories = {};
   String? _lastExamId;
+  String? _mostRecentCatId;
 
   // Cached sorted category list — rebuilt only when exam changes.
   List<CategoryStats>? _sortedCategories;
@@ -71,7 +72,19 @@ class _DashboardBodyState extends State<DashboardBody> {
     _lastCategoryStats = null;
     final cats = stats?.categoryStats;
     if (cats != null && cats.isNotEmpty) {
-      _expandedCategories.add(cats.first.node.id);
+      // Find most recently practiced category for the pill indicator.
+      CategoryStats? mostRecent;
+      DateTime? latestDate;
+      for (final cat in cats) {
+        for (final batch in cat.batchStats) {
+          final d = batch.lastAttemptDate;
+          if (d != null && (latestDate == null || d.isAfter(latestDate))) {
+            latestDate = d;
+            mostRecent = cat;
+          }
+        }
+      }
+      _mostRecentCatId = mostRecent?.node.id;
     }
     if (stats != null && stats.exam.isBcd && newId != null) {
       if (_checklistCache.containsKey(newId)) {
@@ -124,7 +137,6 @@ class _DashboardBodyState extends State<DashboardBody> {
   }
 
   bool get _isLoading =>
-      widget.provider.switching ||
       (widget.provider.selectedStats == null &&
           (widget.provider.status == DashboardStatus.loading ||
               widget.provider.status == DashboardStatus.idle));
@@ -148,13 +160,42 @@ class _DashboardBodyState extends State<DashboardBody> {
           ),
         ),
 
+        // Smart Learning entry point — prominent, near top
+        SliverToBoxAdapter(
+          child: showShimmer
+              ? const _SmartLearningShimmer()
+              : _animatedExamSection(
+                  sectionKey: 'smart_${stats?.exam.id ?? widget.provider.selectedExam?.id}',
+                  child: _SmartLearningBanner(
+                    examBcdId: int.tryParse(
+                      stats?.exam.id ?? widget.provider.selectedExam?.id ?? '',
+                    ),
+                  ),
+                ),
+        ),
+
+        // Quick Access — high up so it's easy to reach
+        if (stats != null && stats.exam.isBcd)
+          SliverToBoxAdapter(
+            child: _animatedExamSection(
+              sectionKey: 'qa_${stats.exam.id}',
+              child: _QuickAccessSection(
+                examBcdId: int.tryParse(stats.exam.id) ?? 0,
+                examName: stats.exam.name,
+              ),
+            ),
+          ),
+
         if (stats != null)
           SliverToBoxAdapter(
             child: RepaintBoundary(
-              child: PerformanceOverviewSection(
-                stats: stats,
-                provider: widget.provider,
-                isLoading: widget.provider.switching,
+              child: _animatedExamSection(
+                sectionKey: 'perf_${stats.exam.id}',
+                child: PerformanceOverviewSection(
+                  stats: stats,
+                  provider: widget.provider,
+                  isLoading: false,
+                ),
               ),
             ),
           )
@@ -163,37 +204,60 @@ class _DashboardBodyState extends State<DashboardBody> {
             child: _PerformanceShimmer(provider: widget.provider),
           ),
 
-        // Checklist section — BCD exams only, collapsible
+        // Category progress breakdown — 3-layer exams only
+        if (stats != null &&
+            stats.categoryStats != null &&
+            stats.categoryStats!.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+              child: Text(
+                Translations.of(context).dash_exam_progress.toUpperCase(),
+                style: GoogleFonts.lexend(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: _animatedExamSection(
+              sectionKey: 'progress_${stats.exam.id}',
+              child: CategoryProgressSection(stats: stats),
+            ),
+          ),
+        ],
+
+        // Checklist section — BCD exams only, single outer toggle
         if (stats != null &&
             stats.exam.isBcd &&
             (_checklistLoading || _checklists.isNotEmpty))
           SliverToBoxAdapter(
-            child: _ChecklistSection(
-              checklists: _checklists,
-              loading: _checklistLoading,
+            child: _animatedExamSection(
+              sectionKey: 'checklist_${stats.exam.id}_${_checklistLoading}_${_checklists.length}',
+              child: _ChecklistSection(
+                checklists: _checklists,
+                loading: _checklistLoading,
+              ),
             ),
           ),
-
-        // Smart Learning entry point — above Focus Areas
-        SliverToBoxAdapter(
-          child: showShimmer
-              ? const _SmartLearningShimmer()
-              : _SmartLearningBanner(
-                  examBcdId:
-                      int.tryParse(widget.provider.selectedExam?.id ?? ''),
-                ),
-        ),
 
         if (stats != null || showShimmer)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
               child: Text(
-                t.dash_focus_areas,
+                t.dash_focus_areas.toUpperCase(),
                 style: GoogleFonts.lexend(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ),
             ),
@@ -201,52 +265,43 @@ class _DashboardBodyState extends State<DashboardBody> {
 
         // 3-layer exam: build category rows lazily as they scroll into view.
         if (stats != null &&
-            stats.categoryStats != null &&
-            !widget.provider.switching)
+            stats.categoryStats != null)
           _buildCategorySlivers(stats)
-        else if (showShimmer ||
-            (stats != null &&
-                stats.categoryStats != null &&
-                widget.provider.switching))
+        else if (showShimmer)
           _buildFocusAreasShimmer(),
 
         // 2-layer exam: potentially 670+ batches — build lazily via SliverList.
         if (stats != null &&
-            stats.categoryStats == null &&
-            !widget.provider.switching)
+            stats.categoryStats == null)
           ..._buildBatchSlivers(context, stats),
 
         if (stats != null || showShimmer) ...[
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
               child: Text(
-                t.dash_weekly_streak,
+                t.dash_weekly_streak.toUpperCase(),
                 style: GoogleFonts.lexend(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ),
             ),
           ),
-          if (stats != null && !widget.provider.switching)
+          if (stats != null)
             SliverToBoxAdapter(
               child: RepaintBoundary(
-                child: WeeklyStreakSection(streak: stats.streak),
+                child: _animatedExamSection(
+                  sectionKey: 'streak_${stats.exam.id}',
+                  child: WeeklyStreakSection(streak: stats.streak),
+                ),
               ),
             )
           else
             const SliverToBoxAdapter(child: _WeeklyStreakShimmer()),
         ],
-
-        if (stats != null && stats.exam.isBcd)
-          SliverToBoxAdapter(
-            child: _QuickAccessSection(
-              examBcdId: int.tryParse(stats.exam.id) ?? 0,
-              examName: stats.exam.name,
-            ),
-          ),
 
         SliverToBoxAdapter(
           child: SizedBox(
@@ -270,10 +325,11 @@ class _DashboardBodyState extends State<DashboardBody> {
         ..sort((a, b) {
           final dateA = latestDate(a);
           final dateB = latestDate(b);
-          if (dateA == null && dateB == null) return 0;
+          if (dateA == null && dateB == null) return a.node.name.compareTo(b.node.name);
           if (dateA == null) return 1;
           if (dateB == null) return -1;
-          return dateB.compareTo(dateA);
+          final cmp = dateB.compareTo(dateA);
+          return cmp != 0 ? cmp : a.node.name.compareTo(b.node.name);
         });
     }
     final cats = _sortedCategories!;
@@ -297,6 +353,7 @@ class _DashboardBodyState extends State<DashboardBody> {
                 }
               }),
               stats: stats,
+              showRecentPill: cat.node.id == _mostRecentCatId,
             ),
           );
         },
@@ -306,6 +363,32 @@ class _DashboardBodyState extends State<DashboardBody> {
 
   Widget _buildFocusAreasShimmer() {
     return const _FocusAreasShimmer();
+  }
+
+  Widget _animatedExamSection({
+    required Object? sectionKey,
+    required Widget child,
+  }) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 180),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeOutCubic,
+      transitionBuilder: (child, animation) {
+        final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+        final slide = Tween<Offset>(
+          begin: const Offset(0, 0.02),
+          end: Offset.zero,
+        ).animate(fade);
+        return FadeTransition(
+          opacity: fade,
+          child: SlideTransition(position: slide, child: child),
+        );
+      },
+      child: KeyedSubtree(
+        key: ValueKey(sectionKey),
+        child: child,
+      ),
+    );
   }
 
   List<Widget> _buildBatchSlivers(
@@ -356,6 +439,7 @@ class _ChecklistSection extends StatefulWidget {
 class _ChecklistSectionState extends State<_ChecklistSection> {
   String _langCode = 'SV';
   bool _translating = false;
+  bool _outerExpanded = false;
   final Map<String, List<Map<String, String>>> _cache = {};
   final _translator = GoogleTranslator();
 
@@ -426,123 +510,184 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final items = _effectiveItems;
+    final count = widget.loading ? 0 : items.length;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        decoration: BoxDecoration(
+          color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _outerExpanded
+                ? cs.primary.withValues(alpha: 0.18)
+                : cs.onSurface.withValues(alpha: 0.06),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: Text(
-                  t.bcd_hub_checklist,
-                  style: GoogleFonts.lexend(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: cs.onSurface,
+              // Outer header row — tap to expand/collapse all
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => setState(() => _outerExpanded = !_outerExpanded),
+                  splashColor: cs.primary.withValues(alpha: 0.06),
+                  highlightColor: cs.primary.withValues(alpha: 0.04),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: cs.primary.withValues(alpha: 0.10),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(LucideIcons.clipboardCheck,
+                              color: cs.primary, size: 18),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                t.bcd_hub_checklist,
+                                style: GoogleFonts.lexend(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: cs.onSurface,
+                                ),
+                              ),
+                              if (count > 0)
+                                Text(
+                                  count == 1
+                                      ? t.dash_item_one
+                                      : t.dash_item_many
+                                          .replaceAll('{n}', '$count'),
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 11,
+                                    color: cs.onSurface.withValues(alpha: 0.45),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        // Language picker (only when expanded)
+                        if (_outerExpanded) ...[
+                          PopupMenuButton<String>(
+                            onSelected: _onLanguageSelected,
+                            itemBuilder: (_) => languageOptions
+                                .map((l) => PopupMenuItem<String>(
+                                      value: l['code'],
+                                      child: Text(l['label']!),
+                                    ))
+                                .toList(),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: cs.primary.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: _translating
+                                  ? SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: cs.primary),
+                                    )
+                                  : Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(_flagFor(_langCode),
+                                            style:
+                                                const TextStyle(fontSize: 13)),
+                                        const SizedBox(width: 3),
+                                        Icon(LucideIcons.languages,
+                                            size: 14, color: cs.primary),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        AnimatedRotation(
+                          turns: _outerExpanded ? 0.25 : 0.0,
+                          duration: const Duration(milliseconds: 220),
+                          child: Icon(Icons.chevron_right_rounded,
+                              color: cs.onSurface.withValues(alpha: 0.35),
+                              size: 22),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              PopupMenuButton<String>(
-                onSelected: _onLanguageSelected,
-                itemBuilder: (_) => languageOptions
-                    .map((l) => PopupMenuItem<String>(
-                          value: l['code'],
-                          child: Text(l['label']!),
-                        ))
-                    .toList(),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: cs.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: cs.primary.withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: _translating
-                      ? SizedBox(
-                          width: 36,
-                          height: 18,
-                          child: Center(
-                            child: SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: cs.primary,
-                              ),
-                            ),
-                          ),
-                        )
-                      : Row(
+              // Expandable content
+              ClipRect(
+                child: AnimatedSize(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeInOut,
+                  child: _outerExpanded
+                      ? Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              _flagFor(_langCode),
-                              style: const TextStyle(fontSize: 14),
+                            Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: cs.onSurface.withValues(alpha: 0.07),
                             ),
-                            const SizedBox(width: 4),
-                            Icon(LucideIcons.languages,
-                                size: 16, color: cs.primary),
+                            if (widget.loading)
+                              _ChecklistShimmer()
+                            else if (items.length == 1)
+                              _ChecklistCard(
+                                title: items.first['title']!,
+                                content: items.first['content']!,
+                                nested: true,
+                              )
+                            else
+                              ...items.asMap().entries.map((e) {
+                                final isLast = e.key == items.length - 1;
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _ChecklistCard(
+                                      title: e.value['title']!,
+                                      content: e.value['content']!,
+                                      nested: true,
+                                    ),
+                                    if (!isLast)
+                                      Divider(
+                                        height: 1,
+                                        thickness: 1,
+                                        color:
+                                            cs.onSurface.withValues(alpha: 0.07),
+                                      ),
+                                  ],
+                                );
+                              }),
                           ],
-                        ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          if (widget.loading)
-            _ChecklistShimmer()
-          else if (items.length == 1)
-            _ChecklistCard(
-              title: items.first['title']!,
-              content: items.first['content']!,
-            )
-          else
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: cs.onSurface.withValues(alpha: 0.06),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Column(
-                  children: items.asMap().entries.map((e) {
-                    final isLast = e.key == items.length - 1;
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _ChecklistCard(
-                          title: e.value['title']!,
-                          content: e.value['content']!,
-                          nested: true,
-                        ),
-                        if (!isLast)
-                          Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: cs.onSurface.withValues(alpha: 0.07),
-                          ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }
@@ -726,21 +871,11 @@ class _ChecklistCardState extends State<_ChecklistCard>
 class _ChecklistShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cs = Theme.of(context).colorScheme;
     return Column(
       children: List.generate(3, (i) {
         return Padding(
           padding: EdgeInsets.only(bottom: i < 2 ? 10 : 0),
-          child: Shimmer.fromColors(
-            baseColor: isDark
-                ? cs.onSurface.withValues(alpha: 0.15)
-                : cs.onSurface.withValues(alpha: 0.08),
-            highlightColor: isDark
-                ? cs.onSurface.withValues(alpha: 0.28)
-                : cs.onSurface.withValues(alpha: 0.15),
-            child: const _ChecklistCard(title: '', content: ''),
-          ),
+          child: const _ChecklistCard(title: '', content: ''),
         );
       }),
     );
@@ -757,17 +892,18 @@ class _PerformanceShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PerformanceOverviewSection(
-      stats: _loadingDashboardStats(),
+      stats: _loadingDashboardStats(context),
       provider: provider,
       isLoading: true,
     );
   }
 }
 
-ExamDashboardStats _loadingDashboardStats() {
+ExamDashboardStats _loadingDashboardStats(BuildContext context) {
+  final t = Translations.of(context);
   final exam = SubscribedExam(
     id: '__loading_exam__',
-    name: 'Loading',
+    name: t.loading,
     hasCategories: true,
     nodes: const [],
     subscribedAt: DateTime(2024),
@@ -779,7 +915,7 @@ ExamDashboardStats _loadingDashboardStats() {
         (i) => BatchStats(
           node: ExamNode(
             id: '$prefix-batch-$i',
-            name: 'Batch ${i + 1}',
+            name: t.dash_loading_batch.replaceAll('{n}', '${i + 1}'),
             nodeTypeIndex: 1,
             parentId: prefix,
           ),
@@ -796,33 +932,33 @@ ExamDashboardStats _loadingDashboardStats() {
 
   final categories = [
     CategoryStats(
-      node: const ExamNode(
+      node: ExamNode(
         id: 'loading-cat-1',
-        name: 'Category One',
+        name: t.dash_loading_category.replaceAll('{n}', '1'),
         nodeTypeIndex: 0,
       ),
       batchStats: batchesFor('loading-cat-1', 12),
     ),
     CategoryStats(
-      node: const ExamNode(
+      node: ExamNode(
         id: 'loading-cat-2',
-        name: 'Category Two',
+        name: t.dash_loading_category.replaceAll('{n}', '2'),
         nodeTypeIndex: 0,
       ),
       batchStats: batchesFor('loading-cat-2', 8),
     ),
     CategoryStats(
-      node: const ExamNode(
+      node: ExamNode(
         id: 'loading-cat-3',
-        name: 'Category Three',
+        name: t.dash_loading_category.replaceAll('{n}', '3'),
         nodeTypeIndex: 0,
       ),
       batchStats: batchesFor('loading-cat-3', 10),
     ),
     CategoryStats(
-      node: const ExamNode(
+      node: ExamNode(
         id: 'loading-cat-4',
-        name: 'Category Four',
+        name: t.dash_loading_category.replaceAll('{n}', '4'),
         nodeTypeIndex: 0,
       ),
       batchStats: batchesFor('loading-cat-4', 6),
@@ -854,38 +990,19 @@ class _FocusAreasShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stats = _loadingDashboardStats();
+    final stats = _loadingDashboardStats(context);
+    final fill = _dashboardSkeletonFill(context);
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList.builder(
         itemCount: stats.categoryStats!.length,
         itemBuilder: (ctx, i) => Padding(
           padding: const EdgeInsets.only(bottom: 10),
-          child: Shimmer.fromColors(
-            baseColor: Theme.of(context).brightness == Brightness.dark
-                ? Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.15)
-                : Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.08),
-            highlightColor: Theme.of(context).brightness == Brightness.dark
-                ? Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.28)
-                : Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.15),
-            child: Container(
-              height: 76,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
+          child: Container(
+            height: 76,
+            decoration: BoxDecoration(
+              color: fill,
+              borderRadius: BorderRadius.circular(20),
             ),
           ),
         ),
@@ -899,17 +1016,7 @@ class _WeeklyStreakShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cs = Theme.of(context).colorScheme;
-    return Shimmer.fromColors(
-      baseColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.15)
-          : cs.onSurface.withValues(alpha: 0.08),
-      highlightColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.28)
-          : cs.onSurface.withValues(alpha: 0.15),
-      child: WeeklyStreakSection(streak: _loadingStreak()),
-    );
+    return WeeklyStreakSection(streak: _loadingStreak());
   }
 }
 
@@ -918,25 +1025,23 @@ class _SmartLearningShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cs = Theme.of(context).colorScheme;
-    return Shimmer.fromColors(
-      baseColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.15)
-          : cs.onSurface.withValues(alpha: 0.08),
-      highlightColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.28)
-          : cs.onSurface.withValues(alpha: 0.15),
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        height: 68,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      height: 68,
+      decoration: BoxDecoration(
+        color: _dashboardSkeletonFill(context),
+        borderRadius: BorderRadius.circular(16),
       ),
     );
   }
+}
+
+Color _dashboardSkeletonFill(BuildContext context) {
+  final theme = Theme.of(context);
+  final cs = theme.colorScheme;
+  return theme.brightness == Brightness.dark
+      ? cs.surfaceContainerHighest
+      : cs.surfaceContainerHighest.withValues(alpha: 0.75);
 }
 
 // ─── Quick Access section ─────────────────────────────────────────────────────
@@ -956,38 +1061,33 @@ class _QuickAccessSection extends StatefulWidget {
 
 class _QuickAccessSectionState extends State<_QuickAccessSection> {
   final _api = ApiService();
+  bool _expanded = false;
   bool _savedLoading = false;
 
-  Future<void> _openDocuments() {
-    return Navigator.push(
-      context,
-      AppPageRoute(
-        builder: (_) => BCDDocumentsScreen(
-          categoryBcdId: widget.examBcdId,
-          categoryName: widget.examName,
+  Future<void> _openDocuments() => Navigator.push(
+        context,
+        AppPageRoute(
+          builder: (_) => BCDDocumentsScreen(
+            categoryBcdId: widget.examBcdId,
+            categoryName: widget.examName,
+          ),
         ),
-      ),
-    );
-  }
+      );
 
-  void _openTrafficSigns() {
-    Navigator.push(
-      context,
-      AppPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
-    );
-  }
+  void _openTrafficSigns() => Navigator.push(
+        context,
+        AppPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
+      );
 
-  void _openStatistics() {
-    Navigator.push(
-      context,
-      AppPageRoute(
-        builder: (_) => StatsScreen(
-          subtitle: widget.examName,
-          licenceNameFilter: widget.examName,
+  void _openStatistics() => Navigator.push(
+        context,
+        AppPageRoute(
+          builder: (_) => StatsScreen(
+            subtitle: widget.examName,
+            licenceNameFilter: widget.examName,
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   Future<void> _openSavedQuestions() async {
     if (_savedLoading) return;
@@ -1017,10 +1117,8 @@ class _QuickAccessSectionState extends State<_QuickAccessSection> {
       );
     } catch (_) {
       if (mounted) {
-        showAppSnackBar(
-          Translations.of(context).bcd_failed_saved,
-          type: SnackBarType.error,
-        );
+        showAppSnackBar(Translations.of(context).bcd_failed_saved,
+            type: SnackBarType.error);
       }
     } finally {
       if (mounted) setState(() => _savedLoading = false);
@@ -1030,153 +1128,231 @@ class _QuickAccessSectionState extends State<_QuickAccessSection> {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final items = [
+      _QuickAccessItem(
+        icon: LucideIcons.bookOpen,
+        label: t.bcd_hub_theory_docs.replaceAll('\n', ' '),
+        iconColor: cs.tertiary,
+        onTap: _openDocuments,
+      ),
+      _QuickAccessItem(
+        icon: LucideIcons.alertTriangle,
+        label: t.bcd_hub_traffic_signs,
+        iconColor: cs.error,
+        onTap: _openTrafficSigns,
+      ),
+      _QuickAccessItem(
+        icon: LucideIcons.barChart2,
+        label: t.bcd_hub_statistics,
+        iconColor: cs.primary,
+        onTap: _openStatistics,
+      ),
+      _QuickAccessItem(
+        icon: LucideIcons.bookmark,
+        label: t.bcd_hub_saved_questions.replaceAll('\n', ' '),
+        iconColor: cs.secondary,
+        loading: _savedLoading,
+        onTap: _openSavedQuestions,
+      ),
+    ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            t.dash_quick_access,
-            style: GoogleFonts.lexend(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: cs.onSurface,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        decoration: BoxDecoration(
+          color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _expanded
+                ? cs.primary.withValues(alpha: 0.18)
+                : cs.onSurface.withValues(alpha: 0.06),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Outer header row
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => setState(() => _expanded = !_expanded),
+                  splashColor: cs.primary.withValues(alpha: 0.06),
+                  highlightColor: cs.primary.withValues(alpha: 0.04),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: cs.primary.withValues(alpha: 0.10),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(LucideIcons.layoutGrid,
+                              color: cs.primary, size: 18),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                t.dash_quick_access,
+                                style: GoogleFonts.lexend(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: cs.onSurface,
+                                ),
+                              ),
+                              Text(
+                                t.dash_shortcuts_count
+                                    .replaceAll('{n}', '${items.length}'),
+                                style: GoogleFonts.lexend(
+                                  fontSize: 11,
+                                  color: cs.onSurface.withValues(alpha: 0.45),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        AnimatedRotation(
+                          turns: _expanded ? 0.25 : 0.0,
+                          duration: const Duration(milliseconds: 220),
+                          child: Icon(Icons.chevron_right_rounded,
+                              color: cs.onSurface.withValues(alpha: 0.35),
+                              size: 22),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Expandable rows
+              ClipRect(
+                child: AnimatedSize(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeInOut,
+                  child: _expanded
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: cs.onSurface.withValues(alpha: 0.07),
+                            ),
+                            ...items.asMap().entries.map((e) {
+                              final isLast = e.key == items.length - 1;
+                              final item = e.value;
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _QuickAccessRow(item: item),
+                                  if (!isLast)
+                                    Divider(
+                                      height: 1,
+                                      thickness: 1,
+                                      indent: 66,
+                                      color: cs.onSurface
+                                          .withValues(alpha: 0.07),
+                                    ),
+                                ],
+                              );
+                            }),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final crossCount = constraints.maxWidth < 320 ? 2 : 4;
-              final aspectRatio = crossCount == 4 ? 0.85 : 1.6;
-              return GridView.count(
-                crossAxisCount: crossCount,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: aspectRatio,
-                children: [
-                  _QuickTile(
-                    icon: LucideIcons.bookOpen,
-                    label: t.bcd_hub_theory_docs.replaceAll('\n', ' '),
-                    iconColor: cs.tertiary,
-                    onTap: _openDocuments,
-                  ),
-                  _QuickTile(
-                    icon: LucideIcons.alertTriangle,
-                    label: t.bcd_hub_traffic_signs,
-                    iconColor: cs.error,
-                    onTap: _openTrafficSigns,
-                  ),
-                  _QuickTile(
-                    icon: LucideIcons.barChart2,
-                    label: t.bcd_hub_statistics,
-                    iconColor: cs.primary,
-                    onTap: _openStatistics,
-                  ),
-                  _QuickTile(
-                    icon: LucideIcons.bookmark,
-                    label: t.bcd_hub_saved_questions.replaceAll('\n', ' '),
-                    iconColor: cs.secondary,
-                    loading: _savedLoading,
-                    onTap: _openSavedQuestions,
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _QuickTile extends StatelessWidget {
+class _QuickAccessItem {
   final IconData icon;
   final String label;
   final Color iconColor;
   final VoidCallback onTap;
   final bool loading;
 
-  const _QuickTile({
+  const _QuickAccessItem({
     required this.icon,
     required this.label,
     required this.iconColor,
     required this.onTap,
     this.loading = false,
   });
+}
+
+class _QuickAccessRow extends StatelessWidget {
+  final _QuickAccessItem item;
+  const _QuickAccessRow({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
-        boxShadow: isDark
-            ? []
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+    final cs = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: item.onTap,
+        splashColor: item.iconColor.withValues(alpha: 0.07),
+        highlightColor: item.iconColor.withValues(alpha: 0.04),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: item.iconColor.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(11),
                 ),
-              ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          splashColor: iconColor.withValues(alpha: 0.08),
-          highlightColor: iconColor.withValues(alpha: 0.05),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: loading
-                      ? Center(
-                          child: SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: iconColor,
-                            ),
-                          ),
-                        )
-                      : Icon(icon, color: iconColor, size: 17),
-                ),
-                const SizedBox(height: 7),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: item.loading
+                    ? Center(
+                        child: SizedBox(
+                          width: 15,
+                          height: 15,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: item.iconColor),
+                        ),
+                      )
+                    : Icon(item.icon, color: item.iconColor, size: 18),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  item.label,
                   style: GoogleFonts.lexend(
-                    fontSize: 10,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: cs.onSurface,
-                    height: 1.2,
                   ),
                 ),
-              ],
-            ),
+              ),
+              Icon(Icons.chevron_right_rounded,
+                  size: 18, color: cs.onSurface.withValues(alpha: 0.3)),
+            ],
           ),
         ),
       ),
@@ -1200,8 +1376,8 @@ class _SmartLearningBanner extends StatelessWidget {
         AppPageRoute(builder: (_) => SmartLearningScreen(examBcdId: examBcdId)),
       ),
       child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -1230,9 +1406,30 @@ class _SmartLearningBanner extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(t.smart_learning_title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold, color: cs.primary)),
+                  Row(
+                    children: [
+                      Text(t.smart_learning_title,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold, color: cs.primary)),
+                      const SizedBox(width: 7),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          t.dash_smart_new.toUpperCase(),
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 2),
                   Text(t.smart_learning_subtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(

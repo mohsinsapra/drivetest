@@ -45,12 +45,12 @@ class _WeeklyStreakSectionState extends State<WeeklyStreakSection> {
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
         decoration: BoxDecoration(
           color: isDark ? cs.surfaceContainerHighest : cs.inverseSurface,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -64,25 +64,25 @@ class _WeeklyStreakSectionState extends State<WeeklyStreakSection> {
                       const Icon(
                         Icons.local_fire_department_rounded,
                         color: Colors.amber,
-                        size: 28,
+                        size: 22,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Flexible(
                         child: Text(
                           t.dash_streak_title.replaceAll(
                             '{n}',
                             '${streak.currentStreak}',
                           ),
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             color: isDark ? cs.onSurface : cs.onInverseSurface,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.3,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       StreakStatLabel(
@@ -96,8 +96,8 @@ class _WeeklyStreakSectionState extends State<WeeklyStreakSection> {
                       ),
                       Container(
                         width: 1,
-                        height: 32,
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        height: 24,
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
                         color: cs.onSurface.withValues(alpha: 0.12),
                       ),
                       StreakStatLabel(
@@ -114,7 +114,7 @@ class _WeeklyStreakSectionState extends State<WeeklyStreakSection> {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             RepaintBoundary(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -127,34 +127,34 @@ class _WeeklyStreakSectionState extends State<WeeklyStreakSection> {
                   final isFuture = day.isAfter(now);
 
                   return Padding(
-                    padding: const EdgeInsets.only(left: 6),
+                    padding: const EdgeInsets.only(left: 5),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 8,
-                          height: 40,
+                          width: 7,
+                          height: 30,
                           decoration: BoxDecoration(
                             color: cs.onSurface.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(3),
                           ),
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 400),
                               height: isActive
-                                  ? 40
-                                  : (isToday && !isFuture ? 18 : 0),
+                                  ? 30
+                                  : (isToday && !isFuture ? 12 : 0),
                               decoration: BoxDecoration(
                                 color: isActive
                                     ? Colors.amber
                                     : Colors.amber.withValues(alpha: 0.35),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(3),
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 5),
                         Text(
                           dayLabels[i],
                           style: TextStyle(
@@ -164,7 +164,7 @@ class _WeeklyStreakSectionState extends State<WeeklyStreakSection> {
                                     ? cs.onSurface
                                     : cs.onInverseSurface
                                         .withValues(alpha: 0.5),
-                            fontSize: 9,
+                            fontSize: 8,
                             fontWeight:
                                 isToday ? FontWeight.w800 : FontWeight.w600,
                           ),

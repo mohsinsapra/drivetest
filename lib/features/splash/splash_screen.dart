@@ -17,6 +17,12 @@ import 'package:taxi_exam_app/core/services/app_review_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:taxi_exam_app/main_screen.dart';
 
+const kSplashEntryDuration = Duration(milliseconds: 700);
+const kSplashLoopDuration = Duration(milliseconds: 1600);
+const kSplashMinVisibleDuration = Duration(milliseconds: 1000);
+const kSplashNavTransitionDuration = Duration(milliseconds: 240);
+const kSplashNavReverseTransitionDuration = Duration(milliseconds: 160);
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -33,12 +39,9 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _boltSlideAnim;
   late final Animation<double> _footerFadeAnim;
 
-  // Continuous spinning arc
-  late final AnimationController _spinCtrl;
+  // Lightweight looping loader
+  late final AnimationController _loopCtrl;
   late final Animation<double> _spinAnim;
-
-  // Pulsing glow dot
-  late final AnimationController _pulseCtrl;
   late final Animation<double> _pulseAnim;
 
   @override
@@ -47,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _entryCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: kSplashEntryDuration,
     );
 
     _fadeAnim = CurvedAnimation(parent: _entryCtrl, curve: Curves.easeOut);
@@ -72,20 +75,26 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    _spinCtrl = AnimationController(
+    _loopCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: kSplashLoopDuration,
     );
 
-    _spinAnim = Tween<double>(begin: 0.0, end: 2 * math.pi).animate(_spinCtrl);
+    _spinAnim = Tween<double>(begin: 0.0, end: 2 * math.pi).animate(_loopCtrl);
 
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    );
-
-    _pulseAnim = Tween<double>(begin: 0.85, end: 1.18).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    _pulseAnim = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 0.94, end: 1.04)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.04, end: 0.94)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 50,
+      ),
+    ]).animate(
+      CurvedAnimation(parent: _loopCtrl, curve: Curves.linear),
     );
 
     // Defer animation start to after the first frame so the engine finishes
@@ -95,8 +104,7 @@ class _SplashScreenState extends State<SplashScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _entryCtrl.forward();
-      _spinCtrl.repeat();
-      _pulseCtrl.repeat(reverse: true);
+      _loopCtrl.repeat();
     });
     _run();
   }
@@ -104,8 +112,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _entryCtrl.dispose();
-    _spinCtrl.dispose();
-    _pulseCtrl.dispose();
+    _loopCtrl.dispose();
     super.dispose();
   }
 
@@ -145,7 +152,7 @@ class _SplashScreenState extends State<SplashScreen>
       },
     );
 
-    final remaining = const Duration(milliseconds: 1400) - stopwatch.elapsed;
+    final remaining = kSplashMinVisibleDuration - stopwatch.elapsed;
     if (remaining > Duration.zero) await Future.delayed(remaining);
 
     if (!mounted) return;
@@ -168,8 +175,8 @@ class _SplashScreenState extends State<SplashScreen>
       if (deepLinkPayload != null && mounted) {
         Navigator.of(context).pushReplacement(PageRouteBuilder(
           pageBuilder: (_, __, ___) => const MainScreen(),
-          transitionDuration: const Duration(milliseconds: 320),
-          reverseTransitionDuration: const Duration(milliseconds: 180),
+          transitionDuration: kSplashNavTransitionDuration,
+          reverseTransitionDuration: kSplashNavReverseTransitionDuration,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(0.0, 1.0);
             const end = Offset.zero;
@@ -200,9 +207,9 @@ class _SplashScreenState extends State<SplashScreen>
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => next,
         transitionDuration: isAuthRoute
-            ? const Duration(milliseconds: 220)
-            : const Duration(milliseconds: 320),
-        reverseTransitionDuration: const Duration(milliseconds: 180),
+            ? kSplashNavTransitionDuration
+            : kSplashNavTransitionDuration,
+        reverseTransitionDuration: kSplashNavReverseTransitionDuration,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(0.0, 1.0);
           const end = Offset.zero;
@@ -474,18 +481,18 @@ class _SplashScreenState extends State<SplashScreen>
                           builder: (_, __) => Transform.scale(
                             scale: _pulseAnim.value,
                             child: Container(
-                              width: 16,
-                              height: 16,
+                              width: 14,
+                              height: 14,
                               decoration: BoxDecoration(
                                 color: cs.tertiaryContainer,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
                                     color: cs.tertiaryContainer.withValues(
-                                      alpha: 0.6,
+                                      alpha: 0.35,
                                     ),
-                                    blurRadius: 15,
-                                    spreadRadius: 2,
+                                    blurRadius: 8,
+                                    spreadRadius: 0.5,
                                   ),
                                 ],
                               ),

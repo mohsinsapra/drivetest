@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -41,30 +40,25 @@ class _ExamCarouselShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cs = Theme.of(context).colorScheme;
-    return Shimmer.fromColors(
-      baseColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.15)
-          : cs.onSurface.withValues(alpha: 0.08),
-      highlightColor: isDark
-          ? cs.onSurface.withValues(alpha: 0.28)
-          : cs.onSurface.withValues(alpha: 0.15),
-      child: SizedBox(
-        height: _kCardHeight,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
-          itemCount: _count,
-          separatorBuilder: (_, __) => const SizedBox(width: _kCardSpacing),
-          itemBuilder: (_, __) => SizedBox(
-            width: _kCardWidth,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-              ),
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final fill = theme.brightness == Brightness.dark
+        ? cs.surfaceContainerHighest
+        : cs.surfaceContainerHighest.withValues(alpha: 0.75);
+    return SizedBox(
+      height: _kCardHeight,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
+        itemCount: _count,
+        separatorBuilder: (_, __) => const SizedBox(width: _kCardSpacing),
+        itemBuilder: (_, __) => SizedBox(
+          width: _kCardWidth,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: fill,
+              borderRadius: BorderRadius.circular(24),
             ),
           ),
         ),

@@ -83,6 +83,9 @@ class DashboardHelpers {
     List<TestAttempt> periodAttempts,
     List<TestAttempt> allAttempts, {
     int weeklyGoal = 5,
+    int smartChunksMastered = 0,
+    int smartChunksTotal = 0,
+    int weakQuestionsCount = 0,
   }) {
     final periodIndex = _AttemptsIndex(periodAttempts);
     final allIndex = _AttemptsIndex(allAttempts);
@@ -111,6 +114,9 @@ class DashboardHelpers {
       allBatchStats: allBatchStats,
       streak: streak,
       examAttempts: examAttempts,
+      smartChunksMastered: smartChunksMastered,
+      smartChunksTotal: smartChunksTotal,
+      weakQuestionsCount: weakQuestionsCount,
     );
   }
 

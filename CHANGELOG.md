@@ -10,13 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Richer Smart Learning dashboard**: The dashboard now shows Smart Learning progress directly on each exam, including chunks mastered, weak-question counts, and a new exam progress breakdown for category-based exams.
+- **Category progress overview**: Users can now see topic-by-topic dashboard progress in a compact summary card, making it easier to spot what is complete and what still needs practice.
 
 ### Changed
--
+- **Smoother exam switching on the dashboard**: Changing from one exam to another now feels more fluid. The previous exam stays visible briefly while the next one fades in, instead of snapping instantly to the new content.
+- **Faster-feeling dashboard loading**: Initial dashboard loading now uses lighter static placeholders instead of multiple animated shimmer effects, reducing visual heaviness on slower devices.
+- **Lighter splash screen**: Startup keeps the same branding and progress feel, but with reduced animation load and a shorter minimum wait before entering the app.
+- **Smart Learning badge styling**: The new Smart Learning badge now matches the AI Assistant “NEW” pill style for a more consistent visual language.
 
 ### Fixed
--
+- **Reduced heavy first-load motion**: Startup and first dashboard render now do less animation work at once, helping the app feel smoother on lower-performance devices.
 
 ---
 

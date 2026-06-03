@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:no_screenshot/no_screenshot.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -62,6 +64,7 @@ class _ImageViewerPageState extends State<_ImageViewerPage>
     with SingleTickerProviderStateMixin {
   late int _currentIndex;
   late PageController _pageController;
+  final _noScreenshot = kIsWeb ? null : NoScreenshot.instance;
   late final List<PhotoViewScaleStateController> _scaleControllers;
 
   double _dragOffset = 0;
@@ -74,6 +77,7 @@ class _ImageViewerPageState extends State<_ImageViewerPage>
   @override
   void initState() {
     super.initState();
+    _noScreenshot?.screenshotOff();
     _currentIndex = widget.initialIndex.clamp(0, widget.images.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
 

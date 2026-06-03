@@ -4,6 +4,7 @@ import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
+import 'package:taxi_exam_app/features/bcd/bcd_text_utils.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_exam_screen.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_category_mistakes_screen.dart';
 import 'package:taxi_exam_app/features/smart_learning/services/smart_progress_service.dart';
@@ -41,8 +42,17 @@ class SmartExamEntry {
 class SmartLearningScreen extends StatefulWidget {
   final int? examBcdId;
   final String? categoryFilter;
+  // Pre-loaded from parent to avoid redundant Hive reads on drill-down.
+  final Map<int, int>? initialPassedCounts;
+  final Map<int, DateTime>? initialActivityDates;
 
-  const SmartLearningScreen({super.key, this.examBcdId, this.categoryFilter});
+  const SmartLearningScreen({
+    super.key,
+    this.examBcdId,
+    this.categoryFilter,
+    this.initialPassedCounts,
+    this.initialActivityDates,
+  });
 
   @override
   State<SmartLearningScreen> createState() => _SmartLearningScreenState();
@@ -52,29 +62,44 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
   final _svc = SmartProgressService();
   List<SmartExamEntry> _allEntries = [];
   Map<int, int> _passedCounts = {}; // testBcdId → chunks passed
+  Map<int, DateTime> _lastActivityDates = {}; // testBcdId → most recent completedAt
   int _categoryWeakCount = 0;
 
   @override
   void initState() {
     super.initState();
     _allEntries = _buildEntries();
-    _loadProgress();
+    if (widget.initialPassedCounts != null) {
+      _passedCounts = widget.initialPassedCounts!;
+      _lastActivityDates = widget.initialActivityDates ?? {};
+      _loadWeakCount();
+    } else {
+      _loadProgress();
+    }
   }
 
   Future<void> _loadProgress() async {
-    final passed = <int, int>{};
-    for (final e in _allEntries) {
-      passed[e.testBcdId] =
-          await _svc.activeSmartIndex(e.testBcdId, e.chunkSizes.length);
-    }
-    // Load weak count for all entries visible at this level.
+    final chunkCounts = {
+      for (final e in _allEntries) e.testBcdId: e.chunkSizes.length,
+    };
+    // Single Hive box open for both pass counts + activity dates.
+    final progress = await _svc.batchProgress(chunkCounts);
+    // Weak count uses its own box — run concurrently with nothing else pending.
     final weakCount = await _svc.weakQuestionCountForTests(
         _filteredEntries.map((e) => e.testBcdId).toList());
     if (!mounted) return;
     setState(() {
-      _passedCounts = passed;
+      _passedCounts = progress.passedCounts;
+      _lastActivityDates = progress.activityDates;
       _categoryWeakCount = weakCount;
     });
+  }
+
+  Future<void> _loadWeakCount() async {
+    final weakCount = await _svc.weakQuestionCountForTests(
+        _filteredEntries.map((e) => e.testBcdId).toList());
+    if (!mounted) return;
+    setState(() => _categoryWeakCount = weakCount);
   }
 
   Future<void> _load() async {
@@ -100,7 +125,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
       if (hasSubs) {
         for (final sub in cache.subcategoriesOf(catId)) {
           final subId = sub['bcd_id'] as int;
-          final subName = sub['name']?.toString() ?? catName;
+          final subName = stripAppSuffix(sub['name']?.toString() ?? catName);
           for (final test in cache.testsOf(subId)) {
             final entry = _entryFromTest(test, subName, subId);
             if (entry != null) entries.add(entry);
@@ -108,7 +133,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
         }
       } else {
         for (final test in cache.testsOf(catId)) {
-          final entry = _entryFromTest(test, catName, catId);
+          final entry = _entryFromTest(test, stripAppSuffix(catName), catId);
           if (entry != null) entries.add(entry);
         }
       }
@@ -123,7 +148,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
     final sizes = SmartUtils.computeSmartSizes(qc);
     return SmartExamEntry(
       testBcdId: test['bcd_id'] as int,
-      testName: test['name']?.toString() ?? '',
+      testName: stripAppSuffix(test['name']?.toString() ?? ''),
       categoryName: catName,
       parentCategoryBcdId: catId,
       questionCount: qc,
@@ -136,14 +161,50 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
   // ── Derived state ──────────────────────────────────────────────────────────
 
   List<SmartExamEntry> get _filteredEntries {
-    if (widget.categoryFilter == null) return _allEntries;
-    return _allEntries
-        .where((e) => e.categoryName == widget.categoryFilter)
-        .toList();
+    final base = widget.categoryFilter == null
+        ? _allEntries
+        : _allEntries
+            .where((e) => e.categoryName == widget.categoryFilter)
+            .toList();
+    return _sortedEntries(base);
+  }
+
+  /// Sort entries by most recent activity (newest first), untouched last.
+  /// Ties fall back to test name so order is deterministic.
+  List<SmartExamEntry> _sortedEntries(List<SmartExamEntry> entries) {
+    return [...entries]..sort((a, b) {
+        final dateA = _lastActivityDates[a.testBcdId];
+        final dateB = _lastActivityDates[b.testBcdId];
+        if (dateA == null && dateB == null) return a.testName.compareTo(b.testName);
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        final cmp = dateB.compareTo(dateA);
+        return cmp != 0 ? cmp : a.testName.compareTo(b.testName);
+      });
   }
 
   List<String> get _distinctCategories =>
       _allEntries.map((e) => e.categoryName).toSet().toList();
+
+  /// Categories sorted by most recent activity, untouched last.
+  List<String> get _sortedCategories {
+    DateTime? latestFor(String catName) => _allEntries
+        .where((e) => e.categoryName == catName)
+        .map((e) => _lastActivityDates[e.testBcdId])
+        .whereType<DateTime>()
+        .fold<DateTime?>(
+            null, (best, d) => best == null || d.isAfter(best) ? d : best);
+
+    return [..._distinctCategories]..sort((a, b) {
+        final dateA = latestFor(a);
+        final dateB = latestFor(b);
+        if (dateA == null && dateB == null) return a.compareTo(b);
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        final cmp = dateB.compareTo(dateA);
+        return cmp != 0 ? cmp : a.compareTo(b);
+      });
+  }
 
   /// True when this screen should show category cards instead of test cards.
   bool get _showCategoryLevel =>
@@ -196,7 +257,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
   // ── Category list ──────────────────────────────────────────────────────────
 
   Widget _buildCategoryList(BuildContext context) {
-    final categories = _distinctCategories;
+    final categories = _sortedCategories;
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -246,6 +307,8 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
                             builder: (_) => SmartLearningScreen(
                               examBcdId: widget.examBcdId,
                               categoryFilter: catName,
+                              initialPassedCounts: _passedCounts,
+                              initialActivityDates: _lastActivityDates,
                             ),
                           ),
                         );

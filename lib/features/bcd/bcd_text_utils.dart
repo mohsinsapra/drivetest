@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+/// Removes the backend " (app)" suffix from display names.
+String stripAppSuffix(String name) =>
+    name.replaceAll(RegExp(r'\s*\(app\)\s*$', caseSensitive: false), '').trim();
+
 /// Fixes Mojibake: UTF-8 bytes mis-read as Latin-1.
 /// e.g. "Ã¶" (U+00C3 U+00B6) → bytes 0xC3 0xB6 → UTF-8 → "ö"
 String fixBcdEncoding(String text) {

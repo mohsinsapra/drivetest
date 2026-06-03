@@ -127,4 +127,62 @@ void main() {
     expect(provider.selectedExam?.id, exam.id);
     expect(notifications, 2);
   });
+
+  test('selectExam keeps previous stats visible during lightweight switch', () async {
+    final exam1 = SubscribedExam(
+      id: 'exam-1',
+      name: 'Exam 1',
+      hasCategories: false,
+      subscribedAt: DateTime(2026, 5, 21),
+      isBcd: true,
+      nodes: const [
+        ExamNode(
+          id: 'batch-1',
+          name: 'Batch 1',
+          nodeTypeIndex: 1,
+          sortOrder: 0,
+        ),
+      ],
+    );
+    final exam2 = SubscribedExam(
+      id: 'exam-2',
+      name: 'Exam 2',
+      hasCategories: false,
+      subscribedAt: DateTime(2026, 5, 22),
+      isBcd: true,
+      nodes: const [
+        ExamNode(
+          id: 'batch-2',
+          name: 'Batch 2',
+          nodeTypeIndex: 1,
+          sortOrder: 0,
+        ),
+      ],
+    );
+
+    final provider = DashboardProvider(
+      repository: _FakeDashboardRepository(),
+      syncService: _FakeExamSyncService([exam1, exam2]),
+    );
+
+    await provider.init();
+
+    for (var i = 0; i < 20 && provider.status == DashboardStatus.loading; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    expect(provider.selectedExam?.id, exam1.id);
+    expect(provider.selectedStats?.exam.id, exam1.id);
+
+    provider.selectExam(exam2);
+
+    expect(provider.selectedExam?.id, exam2.id);
+    expect(provider.selectedStats?.exam.id, exam1.id);
+    expect(provider.switching, true);
+
+    await Future<void>.delayed(const Duration(milliseconds: 220));
+
+    expect(provider.selectedStats?.exam.id, exam2.id);
+    expect(provider.switching, false);
+  });
 }
