@@ -20,6 +20,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/services/language_preference_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
+import 'package:taxi_exam_app/core/services/sound_service.dart';
 import 'package:taxi_exam_app/core/services/tts_service.dart';
 import 'package:taxi_exam_app/core/widgets/app_bottom_sheet.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -383,6 +384,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     if (!_isAnswered || _isChecked) return;
     final id = _current!.questionId;
     final isCorrect = _selection[0] == _current!.correctAnswer;
+    final prevConsecutive = _consecutiveCorrect;
     setState(() {
       _isChecked = true;
       if (isCorrect) {
@@ -395,6 +397,11 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       }
     });
     if (isCorrect) {
+      if (_consecutiveCorrect >= 3) {
+        SoundService.instance.consecutiveCorrect().ignore();
+      } else {
+        SoundService.instance.correctAnswer().ignore();
+      }
       if (_consecutiveCorrect >= 10) {
         // Milestone streak — celebratory triple pulse
         vibratePass();
@@ -414,6 +421,11 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
         vibrateCorrectAnswer();
       }
     } else {
+      if (prevConsecutive >= 3) {
+        SoundService.instance.consecutiveCorrectBroken().ignore();
+      } else {
+        SoundService.instance.incorrectAnswer().ignore();
+      }
       vibrateWrongAnswer();
     }
   }
@@ -454,7 +466,12 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
           .length;
       final score = _total > 0 ? (correctCount / _total * 100) : 0.0;
       final hasPassed = score >= widget.passScorePercent;
-      if (!hasPassed) vibrateFail();
+      if (hasPassed) {
+        SoundService.instance.passExam().ignore();
+      } else {
+        SoundService.instance.failExam().ignore();
+        vibrateFail();
+      }
       // Save completed attempt so it shows in the user's attempts list.
       _saveAttempt(status: 'completed', score: score, hasPassed: hasPassed)
           .ignore();

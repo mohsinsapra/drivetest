@@ -339,7 +339,9 @@
       "Bash(echo \"Foreground done: $\\(magick identify assets/icon/icon_foreground.png)",
       "Bash(awk -F: '$2 > 1950 && $2 < 1980')",
       "Bash(grep -rn \"smart_part_pass\\\\|questions.*bullet\\\\|• \\\\$\\\\|' • '\\\\|\\\\\" • \\\\\"\" --include=\"*.dart\" /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/)",
-      "Bash(grep -n '\\\\${' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/localization/strings.i18n.json)"
+      "Bash(grep -n '\\\\${' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/localization/strings.i18n.json)",
+      "Bash(mkdir -p /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/sounds)",
+      "Bash(cp /Users/muhammadmohsin/Downloads/soundeffects/*.mp3 /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/sounds/)"
     ],
     "deny": [],
     "ask": []
