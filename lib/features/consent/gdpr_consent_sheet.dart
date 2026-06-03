@@ -67,7 +67,7 @@ class _GdprConsentSheetState extends State<_GdprConsentSheet> {
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: maxSheetHeight),
-          child: Container(
+          child: DecoratedBox(
             decoration: BoxDecoration(
               color: cs.surface,
               borderRadius:
