@@ -783,6 +783,8 @@
   "smart_chunk_locked": "Locked",
   "smart_chunk_active": "Start",
   "smart_chunk_retry": "Retry",
+  "smart_review_n": "Review",
+  "smart_review_subtitle": "${count} questions · All previous parts",
   "smart_full_exam": "Full Exam",
   "smart_full_exam_locked": "Complete all parts to unlock",
   "smart_full_exam_ready": "Full exam ready",

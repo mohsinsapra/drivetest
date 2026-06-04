@@ -10,6 +10,8 @@ class SmartProgressService {
   SmartProgressService._();
 
   String _chunkKey(int testBcdId, int chunkIndex) => '$testBcdId-$chunkIndex';
+  String _reviewKey(int testBcdId, int reviewIndex) =>
+      '$testBcdId-rev-$reviewIndex';
   String _weakKey(int testBcdId, String questionId) => '$testBcdId-$questionId';
 
   /// Returns the 0-based index of the first unpassed chunk.
@@ -100,6 +102,31 @@ class SmartProgressService {
     final weak = box.values.where((wq) => wq.testBcdId == testBcdId).toList()
       ..sort((a, b) => b.wrongCount.compareTo(a.wrongCount));
     return weak.map((wq) => wq.questionId).toList();
+  }
+
+  /// Persists pass/fail result for a review session.
+  Future<void> recordReviewResult(
+      int testBcdId, int reviewIndex, bool passed) async {
+    final box = await AppStorage.smartProgressBox();
+    await box.put(
+      _reviewKey(testBcdId, reviewIndex),
+      SmartProgress(
+        testBcdId: testBcdId,
+        chunkIndex: -(reviewIndex + 1),
+        isPassed: passed,
+        completedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  /// Returns a map of reviewIndex → isPassed for all reviews of [testBcdId].
+  Future<Map<int, bool>> reviewPassedMap(int testBcdId, int reviewCount) async {
+    if (reviewCount == 0) return {};
+    final box = await AppStorage.smartProgressBox();
+    return {
+      for (var i = 0; i < reviewCount; i++)
+        i: box.get(_reviewKey(testBcdId, i))?.isPassed ?? false,
+    };
   }
 
   /// Total count of weak questions for [testBcdId].

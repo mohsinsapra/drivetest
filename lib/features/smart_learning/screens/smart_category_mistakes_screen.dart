@@ -92,7 +92,7 @@ class _SmartCategoryMistakesScreenState
           testName: widget.categoryName,
           licenceId: '',
           categoryId: '',
-          onComplete: (hasPassed, finalResults) async {
+          onComplete: (hasPassed, finalResults, wrongSelections) async {
             // Group results by testBcdId and record each separately.
             final resultsByTest = <int, Map<String, bool>>{};
             for (final e in finalResults.entries) {
@@ -110,6 +110,9 @@ class _SmartCategoryMistakesScreenState
             final mastered = await _svc.masteredQuestionCount(
                 primaryEntry.testBcdId, primaryEntry.chunkSizes);
             final correct = finalResults.values.where((v) => v).length;
+            final wrongQuestions = allQuestions
+                .where((q) => finalResults[q.questionId] == false)
+                .toList();
 
             return SmartResultScreen(
               entry: primaryEntry,
@@ -119,6 +122,8 @@ class _SmartCategoryMistakesScreenState
               correct: correct,
               total: finalResults.length,
               masteredCount: mastered,
+              wrongQuestions: wrongQuestions,
+              wrongSelections: wrongSelections,
             );
           },
         ),

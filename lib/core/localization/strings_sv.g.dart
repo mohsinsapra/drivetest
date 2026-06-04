@@ -1688,6 +1688,11 @@ class TranslationsSv implements Translations {
   @override
   String get smart_chunk_retry => 'Försök igen';
   @override
+  String get smart_review_n => 'Repetition';
+  @override
+  String smart_review_subtitle({required Object count}) =>
+      '${count} frågor · Alla tidigare delar';
+  @override
   String get smart_full_exam => 'Fullständigt prov';
   @override
   String get smart_full_exam_locked => 'Slutför alla delar för att låsa upp';
@@ -3373,6 +3378,11 @@ extension on TranslationsSv {
         return 'Starta';
       case 'smart_chunk_retry':
         return 'Försök igen';
+      case 'smart_review_n':
+        return 'Repetition';
+      case 'smart_review_subtitle':
+        return ({required Object count}) =>
+            '${count} frågor · Alla tidigare delar';
       case 'smart_full_exam':
         return 'Fullständigt prov';
       case 'smart_full_exam_locked':

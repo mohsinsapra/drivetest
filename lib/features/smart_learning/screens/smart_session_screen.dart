@@ -23,6 +23,8 @@ class SmartSessionScreen extends StatefulWidget {
   final SmartExamEntry entry;
   final int chunkIndex; // -1 for Train Mistakes mode
   final bool isMistakesMode;
+  final bool isReviewMode;
+  final int reviewIndex; // meaningful only when isReviewMode = true
   final VoidCallback? onProgressSaved;
 
   const SmartSessionScreen({
@@ -30,6 +32,8 @@ class SmartSessionScreen extends StatefulWidget {
     required this.entry,
     required this.chunkIndex,
     required this.isMistakesMode,
+    this.isReviewMode = false,
+    this.reviewIndex = 0,
     this.onProgressSaved,
   });
 
@@ -65,6 +69,18 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
         }
         questions = await _provider.fetchChunkQuestions(testBcdId, ids: weakIds)
           ..shuffle(Random());
+      } else if (widget.isReviewMode) {
+        // Fetch all questions covered by chunks 0..(2*(reviewIndex+1)-1), then sample.
+        final coveredChunks = 2 * (widget.reviewIndex + 1);
+        final sizes = widget.entry.chunkSizes.take(coveredChunks).toList();
+        final totalCovered = sizes.fold(0, (a, b) => a + b);
+        final reviewSize = widget.entry.chunkSizes[0].clamp(1, totalCovered);
+        final all = await _provider.fetchChunkQuestions(
+          testBcdId,
+          limit: totalCovered,
+          offset: 0,
+        );
+        questions = (all..shuffle(Random())).take(reviewSize).toList();
       } else {
         // Compute the offset and limit for this chunk from the known question count.
         final sizes = SmartUtils.computeSmartSizes(widget.entry.questionCount);
@@ -111,6 +127,8 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
 
     final chunkIdx = widget.chunkIndex;
     final isMistakes = widget.isMistakesMode;
+    final isReview = widget.isReviewMode;
+    final reviewIdx = widget.reviewIndex;
 
     Navigator.pushReplacement(
       context,
@@ -123,9 +141,11 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
           categoryId: testBcdId.toString(),
           bcdCategoryId: widget.entry.parentCategoryBcdId,
           bcdTestId: testBcdId,
-          onComplete: (hasPassed, finalResults) async {
-            if (!isMistakes) {
+          onComplete: (hasPassed, finalResults, wrongSelections) async {
+            if (!isMistakes && !isReview) {
               await _svc.recordSmartResult(testBcdId, chunkIdx, hasPassed);
+            } else if (isReview) {
+              await _svc.recordReviewResult(testBcdId, reviewIdx, hasPassed);
             }
             await _svc.recordSessionResults(testBcdId, finalResults);
             widget.onProgressSaved?.call();
@@ -134,14 +154,21 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
             final mastered = await _svc.masteredQuestionCount(
                 testBcdId, widget.entry.chunkSizes);
             final correct = finalResults.values.where((v) => v).length;
+            final wrongQuestions = questions
+                .where((q) => finalResults[q.questionId] == false)
+                .toList();
             return SmartResultScreen(
               entry: widget.entry,
               chunkIndex: chunkIdx,
               isMistakesMode: isMistakes,
+              isReviewMode: isReview,
+              reviewIndex: reviewIdx,
               hasPassed: hasPassed,
               correct: correct,
               total: finalResults.length,
               masteredCount: mastered,
+              wrongQuestions: wrongQuestions,
+              wrongSelections: wrongSelections,
             );
           },
         ),
@@ -193,7 +220,9 @@ class _SmartSessionScreenState extends State<SmartSessionScreen> {
         title: Text(
           widget.isMistakesMode
               ? t.smart_mistakes_title
-              : t.smart_chunk_n(n: widget.chunkIndex + 1),
+              : widget.isReviewMode
+                  ? t.smart_review_n
+                  : t.smart_chunk_n(n: widget.chunkIndex + 1),
         ),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,

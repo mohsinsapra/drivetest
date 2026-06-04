@@ -783,6 +783,8 @@
   "smart_chunk_locked": "Låst",
   "smart_chunk_active": "Starta",
   "smart_chunk_retry": "Försök igen",
+  "smart_review_n": "Repetition",
+  "smart_review_subtitle": "${count} frågor · Alla tidigare delar",
   "smart_full_exam": "Fullständigt prov",
   "smart_full_exam_locked": "Slutför alla delar för att låsa upp",
   "smart_full_exam_ready": "Fullständigt prov redo",

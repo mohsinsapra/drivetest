@@ -920,6 +920,9 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get smart_chunk_locked => 'Locked';
   String get smart_chunk_active => 'Start';
   String get smart_chunk_retry => 'Retry';
+  String get smart_review_n => 'Review';
+  String smart_review_subtitle({required Object count}) =>
+      '${count} questions · All previous parts';
   String get smart_full_exam => 'Full Exam';
   String get smart_full_exam_locked => 'Complete all parts to unlock';
   String get smart_full_exam_ready => 'Full exam ready';
@@ -2547,6 +2550,11 @@ extension on Translations {
         return 'Start';
       case 'smart_chunk_retry':
         return 'Retry';
+      case 'smart_review_n':
+        return 'Review';
+      case 'smart_review_subtitle':
+        return ({required Object count}) =>
+            '${count} questions · All previous parts';
       case 'smart_full_exam':
         return 'Full Exam';
       case 'smart_full_exam_locked':

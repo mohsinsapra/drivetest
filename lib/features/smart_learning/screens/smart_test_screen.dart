@@ -46,8 +46,12 @@ class SmartTestScreen extends StatefulWidget {
 
   /// Called when the session ends.
   /// Return a [Widget] to push-replace to it, or null to simply pop.
-  final Future<Widget?> Function(bool hasPassed, Map<String, bool> finalResults)
-      onComplete;
+  /// [wrongSelections] maps questionId → the last wrong option label selected.
+  final Future<Widget?> Function(
+    bool hasPassed,
+    Map<String, bool> finalResults,
+    Map<String, String> wrongSelections,
+  ) onComplete;
 
   const SmartTestScreen({
     super.key,
@@ -82,6 +86,12 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   // Session tracking
   final Map<String, int> _wrongCounts = {};
   final Set<String> _correctOnce = {};
+  // Questions answered correctly once but awaiting a confirmation re-ask.
+  final Set<String> _needsConfirmation = {};
+  // Questions whose progress step has already been counted (at most once each).
+  final Set<String> _progressCounted = {};
+  // Last wrong option label selected per question (for result-screen review).
+  final Map<String, String> _lastWrongSelections = {};
   // Drives the visual progress bar — updated immediately on Check.
   int _progressDoneCount = 0;
   int _consecutiveCorrect = 0;
@@ -352,10 +362,14 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
 
   bool get _isLastAction {
     if (!_isChecked || _current == null) return false;
+    final id = _current!.questionId;
     final isCorrect = _selection[0] == _current!.correctAnswer;
     if (!isCorrect) {
-      final afterThis = (_wrongCounts[_current!.questionId] ?? 0) + 1;
+      final afterThis = (_wrongCounts[id] ?? 0) + 1;
       if (afterThis < 2) return false;
+    } else {
+      // First correct will be re-inserted for confirmation — not the last action.
+      if (!_needsConfirmation.contains(id)) return false;
     }
     return _queue.length == 1;
   }
@@ -389,11 +403,17 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       _isChecked = true;
       if (isCorrect) {
         _progressDoneCount++;
+        _progressCounted.add(id); // guard wrong-retire from double-counting
         _consecutiveCorrect++;
       } else {
         _consecutiveCorrect = 0;
-        // If this is the second wrong attempt it counts as done for progress.
-        if ((_wrongCounts[id] ?? 0) >= 1) _progressDoneCount++;
+        _lastWrongSelections[id] = _selection[0] ?? '';
+        // 2nd wrong attempt → retired; count if progress not already counted
+        // via a prior correct answer on this question.
+        if ((_wrongCounts[id] ?? 0) >= 1 && !_progressCounted.contains(id)) {
+          _progressDoneCount++;
+          _progressCounted.add(id);
+        }
       }
     });
     if (isCorrect) {
@@ -438,10 +458,19 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     final q = _current!;
     final id = q.questionId;
     final wasCorrect = _selection[0] == q.correctAnswer;
+    final wasConfirmation = _needsConfirmation.contains(id);
 
     if (wasCorrect) {
-      _correctOnce.add(id);
+      if (wasConfirmation) {
+        // Second correct — confirmed mastery.
+        _needsConfirmation.remove(id);
+        _correctOnce.add(id);
+      } else {
+        // First correct — queue a confirmation re-ask.
+        _needsConfirmation.add(id);
+      }
     } else {
+      _needsConfirmation.remove(id);
       _wrongCounts[id] = (_wrongCounts[id] ?? 0) + 1;
       if (_wrongCounts[id]! >= 2) {
         vibrateFail();
@@ -451,9 +480,19 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     _queue.removeAt(0);
 
     if (!wasCorrect && _wrongCounts[id] == 1) {
+      // First wrong — re-insert at a random position.
       final len = _queue.length;
       final pos = len <= 1 ? len : 1 + _random.nextInt(len - 1);
       _queue.insert(pos, q);
+    } else if (wasCorrect && !wasConfirmation) {
+      // First correct — re-insert for confirmation at a random later position.
+      final len = _queue.length;
+      if (len == 0) {
+        _queue.add(q);
+      } else {
+        final pos = len <= 1 ? len : 1 + _random.nextInt(len - 1);
+        _queue.insert(pos, q);
+      }
     }
 
     _preloadQueueImages(1);
@@ -479,7 +518,14 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
         for (final q in widget.initialQuestions)
           q.questionId: _correctOnce.contains(q.questionId),
       };
-      final nextScreen = await widget.onComplete(hasPassed, finalResults);
+      final wrongSelections = {
+        for (final q in widget.initialQuestions)
+          if (!_correctOnce.contains(q.questionId) &&
+              _lastWrongSelections.containsKey(q.questionId))
+            q.questionId: _lastWrongSelections[q.questionId]!,
+      };
+      final nextScreen =
+          await widget.onComplete(hasPassed, finalResults, wrongSelections);
       if (mounted) {
         if (nextScreen != null) {
           Navigator.pushReplacement(
@@ -616,7 +662,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                 ),
                 title: _SmartProgressBar(
                   doneCount: _progressDoneCount,
-                  total: _total,
+                  total: _total * 2,
                   consecutiveCorrect: _consecutiveCorrect,
                   hideLabel: _hideStreakLabel,
                 ),

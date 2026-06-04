@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/services/activity_reminder_service.dart';
 import 'package:taxi_exam_app/core/services/app_review_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
+import 'package:taxi_exam_app/core/widgets/option_tile.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_session_screen.dart';
 
@@ -21,20 +23,32 @@ class SmartResultScreen extends StatefulWidget {
   final SmartExamEntry entry;
   final int chunkIndex; // -1 = mistakes mode
   final bool isMistakesMode;
+  final bool isReviewMode;
+  final int reviewIndex;
   final bool hasPassed;
   final int correct;
   final int total;
   final int masteredCount;
+
+  /// Questions the user answered wrong in this session.
+  final List<Question> wrongQuestions;
+
+  /// Maps questionId → the wrong option label the user selected.
+  final Map<String, String> wrongSelections;
 
   const SmartResultScreen({
     super.key,
     required this.entry,
     required this.chunkIndex,
     required this.isMistakesMode,
+    this.isReviewMode = false,
+    this.reviewIndex = 0,
     required this.hasPassed,
     required this.correct,
     required this.total,
     required this.masteredCount,
+    this.wrongQuestions = const [],
+    this.wrongSelections = const {},
   });
 
   @override
@@ -120,7 +134,9 @@ class _SmartResultScreenState extends State<SmartResultScreen>
 
     final chunkLabel = widget.isMistakesMode
         ? t.smart_mistakes_title
-        : t.smart_chunk_n(n: widget.chunkIndex + 1);
+        : widget.isReviewMode
+            ? t.smart_review_n
+            : t.smart_chunk_n(n: widget.chunkIndex + 1);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -166,9 +182,9 @@ class _SmartResultScreenState extends State<SmartResultScreen>
             ),
           ),
 
-          // ── Continue button ────────────────────────────────────────────────
+          // ── Continue / Retry buttons ───────────────────────────────────────
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
             sliver: SliverToBoxAdapter(
               child: Column(
                 children: [
@@ -194,6 +210,8 @@ class _SmartResultScreenState extends State<SmartResultScreen>
                               entry: widget.entry,
                               chunkIndex: widget.chunkIndex,
                               isMistakesMode: false,
+                              isReviewMode: widget.isReviewMode,
+                              reviewIndex: widget.reviewIndex,
                             ),
                           ),
                         ),
@@ -207,7 +225,84 @@ class _SmartResultScreenState extends State<SmartResultScreen>
               ),
             ),
           ),
+
+          // ── Wrong question review list ─────────────────────────────────────
+          if (widget.wrongQuestions.isNotEmpty) ...[
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  children: [
+                    Icon(Icons.cancel_outlined,
+                        size: 18, color: Theme.of(context).colorScheme.error),
+                    const SizedBox(width: 8),
+                    Text(
+                      t.test_result_wrong_answers,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${widget.wrongQuestions.length}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 48),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final q = widget.wrongQuestions[index];
+                    final wrongLabel = widget.wrongSelections[q.questionId];
+                    return _WrongQuestionCard(
+                      index: index,
+                      question: q,
+                      wrongLabel: wrongLabel,
+                      onTap: () => _showAnswerReview(context, q, wrongLabel),
+                    );
+                  },
+                  childCount: widget.wrongQuestions.length,
+                ),
+              ),
+            ),
+          ] else
+            const SliverPadding(
+              padding: EdgeInsets.only(bottom: 48),
+              sliver: SliverToBoxAdapter(child: SizedBox.shrink()),
+            ),
         ],
+      ),
+    );
+  }
+
+  void _showAnswerReview(
+      BuildContext context, Question question, String? wrongLabel) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AnswerReviewSheet(
+        question: question,
+        wrongLabel: wrongLabel ?? '',
       ),
     );
   }
@@ -512,6 +607,252 @@ class _MasteryCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Wrong question card ───────────────────────────────────────────────────────
+
+class _WrongQuestionCard extends StatelessWidget {
+  final int index;
+  final Question question;
+  final String? wrongLabel;
+  final VoidCallback onTap;
+
+  const _WrongQuestionCard({
+    required this.index,
+    required this.question,
+    required this.wrongLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    String? wrongText;
+    String? correctText;
+    if (wrongLabel != null && wrongLabel!.isNotEmpty) {
+      try {
+        wrongText = question.options
+            .firstWhere((o) => o.optionLabel == wrongLabel)
+            .text;
+      } catch (_) {}
+    }
+    try {
+      correctText = question.options
+          .firstWhere((o) => o.optionLabel == question.correctAnswer)
+          .text;
+    } catch (_) {}
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: cs.error.withValues(alpha: 0.2),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: cs.error.withValues(alpha: 0.12),
+                  ),
+                  child: Center(
+                    child: Icon(Icons.close, size: 13, color: cs.error),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    Option.stripHtml(question.text),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(Icons.chevron_right_rounded,
+                    size: 18, color: cs.onSurface.withValues(alpha: 0.35)),
+              ],
+            ),
+            if (wrongText != null || correctText != null) ...[
+              const SizedBox(height: 10),
+              if (wrongText != null)
+                _AnswerRow(
+                  label: wrongText,
+                  isCorrect: false,
+                ),
+              if (correctText != null)
+                _AnswerRow(
+                  label: correctText,
+                  isCorrect: true,
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AnswerRow extends StatelessWidget {
+  final String label;
+  final bool isCorrect;
+
+  const _AnswerRow({required this.label, required this.isCorrect});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isCorrect ? Colors.green.shade600 : Colors.red.shade600;
+    final bg = isCorrect
+        ? Colors.green.withValues(alpha: 0.08)
+        : Colors.red.withValues(alpha: 0.08);
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isCorrect ? Icons.check_circle_outline : Icons.cancel_outlined,
+            size: 14,
+            color: color,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              Option.stripHtml(label),
+              style: TextStyle(
+                fontSize: 13,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Answer review bottom sheet ────────────────────────────────────────────────
+
+class _AnswerReviewSheet extends StatelessWidget {
+  final Question question;
+  final String wrongLabel;
+
+  const _AnswerReviewSheet({
+    required this.question,
+    required this.wrongLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final t = Translations.of(context);
+    final mq = MediaQuery.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color:
+            isDark ? cs.surfaceContainerHighest : theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, mq.viewInsets.bottom + 32),
+      constraints: BoxConstraints(
+        maxHeight: mq.size.height * 0.85,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Handle bar
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: cs.onSurface.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            t.test_result_question_review,
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            Option.stripHtml(question.text),
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+          ),
+          const SizedBox(height: 16),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                children: question.options.map((opt) {
+                  final isWrong = opt.optionLabel == wrongLabel &&
+                      wrongLabel.isNotEmpty &&
+                      opt.optionLabel != question.correctAnswer;
+                  final isCorrect = opt.optionLabel == question.correctAnswer;
+                  return Option(
+                    text: opt.text,
+                    optionLabel: opt.optionLabel,
+                    imageUrl: opt.imageUrl.isNotEmpty ? opt.imageUrl : null,
+                    isSelected: isWrong,
+                    showInstantMarking: true,
+                    isCorrectAnswer: isCorrect,
+                    onTap: () {},
+                    explanation: isCorrect ? question.answerExplanation : null,
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(t.smart_result_continue),
+            ),
           ),
         ],
       ),

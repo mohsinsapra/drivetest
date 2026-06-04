@@ -21,7 +21,10 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
   int _activeChunk = 0;
   int _weakCount = 0;
   int _masteredCount = 0;
+  Map<int, bool> _reviewPassedMap = {};
   bool _loading = true;
+
+  int get _reviewCount => widget.entry.chunkSizes.length ~/ 2;
 
   @override
   void initState() {
@@ -37,14 +40,18 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
     final weakCountF = _svc.weakQuestionCount(widget.entry.testBcdId);
     final masteredCountF = _svc.masteredQuestionCount(
         widget.entry.testBcdId, widget.entry.chunkSizes);
+    final reviewMapF =
+        _svc.reviewPassedMap(widget.entry.testBcdId, _reviewCount);
     final activeChunk = await activeChunkF;
     final weakCount = await weakCountF;
     final masteredCount = await masteredCountF;
+    final reviewMap = await reviewMapF;
     if (mounted) {
       setState(() {
         _activeChunk = activeChunk;
         _weakCount = weakCount;
         _masteredCount = masteredCount;
+        _reviewPassedMap = reviewMap;
         _loading = false;
       });
     }
@@ -58,6 +65,22 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
           entry: widget.entry,
           chunkIndex: chunkIndex,
           isMistakesMode: false,
+          onProgressSaved: _load,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _startReview(int reviewIndex) async {
+    await Navigator.push(
+      context,
+      AppPageRoute(
+        builder: (_) => SmartSessionScreen(
+          entry: widget.entry,
+          chunkIndex: -1,
+          isMistakesMode: false,
+          isReviewMode: true,
+          reviewIndex: reviewIndex,
           onProgressSaved: _load,
         ),
       ),
@@ -182,6 +205,56 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
     );
   }
 
+  /// Builds part cards interleaved with review cards after every 2 parts.
+  List<Widget> _buildChunksWithReviews(Translations t) {
+    final chunks = widget.entry.chunkSizes;
+    final items = <Widget>[];
+    int reviewIdx = 0;
+
+    for (int i = 0; i < chunks.length; i++) {
+      final isPassed = i < _activeChunk;
+      final isActive = i == _activeChunk;
+      final isLocked = i > _activeChunk;
+
+      items.add(Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: _ChunkCard(
+          label: t.smart_chunk_n(n: i + 1),
+          questionCount: chunks[i],
+          isPassed: isPassed,
+          isActive: isActive,
+          isLocked: isLocked,
+          onTap: !isLocked ? () => _startChunk(i) : null,
+        ),
+      ));
+
+      // Insert a review after every 2nd part.
+      if ((i + 1) % 2 == 0 && reviewIdx < _reviewCount) {
+        final rIdx = reviewIdx;
+        final coveredChunks = i + 1;
+        final isUnlocked = _activeChunk >= coveredChunks;
+        final isReviewPassed = _reviewPassedMap[rIdx] ?? false;
+        final totalCovered =
+            chunks.take(coveredChunks).fold<int>(0, (a, b) => a + b);
+        final reviewSize = chunks[0].clamp(1, totalCovered);
+
+        items.add(Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _ReviewCard(
+            reviewNumber: rIdx + 1,
+            questionCount: reviewSize,
+            isPassed: isReviewPassed,
+            isUnlocked: isUnlocked,
+            onTap: isUnlocked ? () => _startReview(rIdx) : null,
+          ),
+        ));
+        reviewIdx++;
+      }
+    }
+
+    return items;
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -207,22 +280,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
                 children: [
-                  ...List.generate(widget.entry.chunkSizes.length, (i) {
-                    final isPassed = i < _activeChunk;
-                    final isActive = i == _activeChunk;
-                    final isLocked = i > _activeChunk;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _ChunkCard(
-                        label: t.smart_chunk_n(n: i + 1),
-                        questionCount: widget.entry.chunkSizes[i],
-                        isPassed: isPassed,
-                        isActive: isActive,
-                        isLocked: isLocked,
-                        onTap: !isLocked ? () => _startChunk(i) : null,
-                      ),
-                    );
-                  }),
+                  ..._buildChunksWithReviews(t),
                   const SizedBox(height: 6),
                   if (_weakCount > 0) ...[
                     _TrainMistakesCard(
@@ -391,6 +449,114 @@ class _TrainMistakesCard extends StatelessWidget {
             Icon(Icons.chevron_right_rounded,
                 size: 18, color: cs.error.withValues(alpha: 0.5)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Review card ─────────────────────────────────────────────────────────────
+
+class _ReviewCard extends StatelessWidget {
+  final int reviewNumber;
+  final int questionCount;
+  final bool isPassed;
+  final bool isUnlocked;
+  final VoidCallback? onTap;
+
+  const _ReviewCard({
+    required this.reviewNumber,
+    required this.questionCount,
+    required this.isPassed,
+    required this.isUnlocked,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    const reviewColor = Color(0xFF7C3AED); // violet — distinct from parts
+    final color = isUnlocked
+        ? (isPassed ? Colors.green.shade500 : reviewColor)
+        : cs.onSurface.withValues(alpha: 0.25);
+
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: isUnlocked ? 1.0 : 0.5,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isUnlocked && !isPassed
+                  ? reviewColor.withValues(alpha: 0.4)
+                  : Colors.transparent,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isPassed
+                      ? Icons.check_rounded
+                      : isUnlocked
+                          ? Icons.refresh_rounded
+                          : Icons.lock_outline_rounded,
+                  color: color,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.smart_review_n,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      t.smart_review_subtitle(count: questionCount),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurface.withValues(alpha: 0.55)),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                isPassed
+                    ? t.smart_chunk_passed
+                    : isUnlocked
+                        ? t.smart_chunk_active
+                        : t.smart_chunk_locked,
+                style: Theme.of(context)
+                    .textTheme
+                    .labelMedium
+                    ?.copyWith(color: color, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
         ),
       ),
     );
