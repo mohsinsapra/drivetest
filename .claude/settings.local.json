@@ -342,7 +342,12 @@
       "Bash(grep -n '\\\\${' /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/lib/core/localization/strings.i18n.json)",
       "Bash(mkdir -p /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/sounds)",
       "Bash(cp /Users/muhammadmohsin/Downloads/soundeffects/*.mp3 /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_app/assets/sounds/)",
-      "Bash(make server-migrate *)"
+      "Bash(make server-migrate *)",
+      "Bash(cp /Users/muhammadmohsin/Downloads/medical_theme-screenshots/ios_1_1.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/drivetest-homepage/content/image/screenshot_1.png)",
+      "Bash(cp /Users/muhammadmohsin/Downloads/medical_theme-screenshots/ios_1_2.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/drivetest-homepage/content/image/screenshot_2.png)",
+      "Bash(cp /Users/muhammadmohsin/Downloads/medical_theme-screenshots/ios_1_3.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/drivetest-homepage/content/image/screenshot_3.png)",
+      "Bash(cp /Users/muhammadmohsin/Downloads/medical_theme-screenshots/ios_1_4.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/drivetest-homepage/content/image/screenshot_4.png)",
+      "Bash(cp /Users/muhammadmohsin/Downloads/medical_theme-screenshots/ios_1_5.png /Users/muhammadmohsin/Documents/Learning/TAXI/App/drivetest-homepage/content/image/screenshot_5.png)"
     ],
     "deny": [],
     "ask": []
