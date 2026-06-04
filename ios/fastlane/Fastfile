@@ -81,7 +81,9 @@ platform :ios do
       ipa: ipa_path,
       release_notes: {
         "en-US" => changelog_text
-      }
+      },
+      screenshots_path: "fastlane/screenshots",
+      skip_screenshots: false
     )
 
     # Tag the release
