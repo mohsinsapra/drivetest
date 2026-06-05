@@ -20,6 +20,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.9+288] - 2026-06-05
+
+### Added
+- **Review sessions in Smart Learning**: After every two parts, a "Review" card now appears in the exam flow. It unlocks once you complete the preceding two parts and tests a mix of questions from all covered parts — helping you reinforce what you've learned before moving on.
+- **Wrong answers breakdown on result screen**: When you finish a Smart Learning session, the result screen now lists every question you got wrong, showing both your incorrect answer and the correct one. Tap any question to open a full answer review with explanations.
+
+### Changed
+- **Questions now require two correct answers to count as mastered**: In Smart Learning sessions, answering a question correctly once re-queues it for a confirmation check. Only after answering correctly twice is the question considered done. This makes the session a more reliable learning loop.
+- **Progress bar reflects the two-answer confirmation**: The session progress bar now counts both the first and second correct answers, so the fill accurately represents how far through the session you actually are.
+
+---
+---
+---
+---
+
 ## [1.5.8+287] - 2026-06-04
 
 ### Added
