@@ -1172,9 +1172,14 @@ class _TestscreenState extends State<Testscreen> {
     required String toLang,
     required GoogleTranslator translator,
   }) async {
+    // Snapshot to prevent a race with _applyShuffleIfEnabled mutating the list
+    // in-place while Future.wait is in-flight, which would desync the buffer
+    // build (step 1) from the reassembly pass (step 3).
+    final qs = List<Question>.from(questions);
+
     // 1 ─ Build main buffer (question text + options only)
     final List<String> mainBuffer = [];
-    for (final q in questions) {
+    for (final q in qs) {
       mainBuffer.add(q.text);
       mainBuffer.addAll(q.options.map((o) => o.text));
     }
@@ -1188,7 +1193,7 @@ class _TestscreenState extends State<Testscreen> {
     // 3 ─ Reassemble question text + options
     var idx = 0;
     final partialTranslated = <Question>[];
-    for (final q in questions) {
+    for (final q in qs) {
       final translatedText = mainResults[idx++].text;
       final translatedOptions = q.options.map((o) {
         return o.copyWith(text: mainResults[idx++].text);
@@ -1199,7 +1204,7 @@ class _TestscreenState extends State<Testscreen> {
 
     // 4 ─ Translate explanations separately — each one with its own error handling
     //     so a bad explanation cannot break the whole translation batch.
-    final List<String?> expTexts = questions.map((q) {
+    final List<String?> expTexts = qs.map((q) {
       final t = _stripHtml(q.answerExplanation);
       return _isTranslatableText(t) ? t : null;
     }).toList();
@@ -1237,7 +1242,7 @@ class _TestscreenState extends State<Testscreen> {
     try {
       final translated = await translateQuestionsOnce(
         widget.questions,
-        fromLang: 'sv',
+        fromLang: 'auto',
         toLang: targetLang,
         translator: translator,
       );
@@ -1359,10 +1364,13 @@ class _TestscreenState extends State<Testscreen> {
               itemBuilder: (context, index) {
                 final translatedList = translatedQuestionsWithOptions[
                     currentLanguageCode.toLowerCase()];
-                final question =
-                    (translatedList != null && translatedList.length > index)
-                        ? translatedList[index]
-                        : widget.questions[index];
+                final original = widget.questions[index];
+                final question = (translatedList != null)
+                    ? translatedList.firstWhere(
+                        (q) => q.questionId == original.questionId,
+                        orElse: () => original,
+                      )
+                    : original;
                 final questionUrl = _apiService.fetchImage(
                   widget.licenceId,
                   widget.categoryId,

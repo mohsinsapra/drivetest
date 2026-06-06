@@ -256,7 +256,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
 
   Future<String> _safeTranslate(String text, String toLang) async {
     try {
-      final result = await _translator.translate(text, from: 'sv', to: toLang);
+      final result = await _translator.translate(text, from: 'auto', to: toLang);
       return result.text;
     } catch (_) {
       return text;
@@ -265,19 +265,21 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
 
   Future<void> _translateToLanguage(String targetLang) async {
     if (_translatedQuestions.containsKey(targetLang)) return;
+    // Snapshot so the buffer build and reassembly always use the same order.
+    final qs = List<Question>.from(widget.initialQuestions);
     try {
       final List<String> mainBuffer = [];
-      for (final q in widget.initialQuestions) {
+      for (final q in qs) {
         mainBuffer.add(q.text);
         mainBuffer.addAll(q.options.map((o) => o.text));
       }
       final mainResults = await Future.wait(
         mainBuffer
-            .map((s) => _translator.translate(s, from: 'sv', to: targetLang)),
+            .map((s) => _translator.translate(s, from: 'auto', to: targetLang)),
       );
       var idx = 0;
       final partial = <Question>[];
-      for (final q in widget.initialQuestions) {
+      for (final q in qs) {
         final tText = mainResults[idx++].text;
         final tOpts = q.options
             .map((o) => o.copyWith(text: mainResults[idx++].text))
@@ -285,7 +287,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
         partial.add(q.copyWith(text: tText, options: tOpts));
       }
 
-      final expFutures = widget.initialQuestions.map((q) {
+      final expFutures = qs.map((q) {
         final t = _stripHtml(q.answerExplanation);
         if (!_isTranslatableText(t)) return Future<String?>.value(null);
         return _safeTranslate(t, targetLang).then<String?>((v) => v);
