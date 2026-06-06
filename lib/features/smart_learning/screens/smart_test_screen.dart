@@ -256,7 +256,8 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
 
   Future<String> _safeTranslate(String text, String toLang) async {
     try {
-      final result = await _translator.translate(text, from: 'auto', to: toLang);
+      final result =
+          await _translator.translate(text, from: 'auto', to: toLang);
       return result.text;
     } catch (_) {
       return text;
