@@ -49,8 +49,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadVersion() async {
     final info = await PackageInfo.fromPlatform();
-    if (mounted)
+    if (mounted) {
       setState(() => _version = '${info.version} (${info.buildNumber})');
+    }
   }
 
   void _onProfileChanged() {

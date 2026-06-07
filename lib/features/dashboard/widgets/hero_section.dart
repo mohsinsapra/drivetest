@@ -71,8 +71,7 @@ class HeroSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border:
-                    Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
+                border: Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
                 boxShadow: [
                   BoxShadow(
                     color: cs.onSurface.withValues(alpha: 0.04),
@@ -96,8 +95,7 @@ class HeroSection extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: cs.error,
                             shape: BoxShape.circle,
-                            border: Border.all(
-                                color: Colors.white, width: 1.5),
+                            border: Border.all(color: Colors.white, width: 1.5),
                           ),
                         ),
                       ),

@@ -129,6 +129,6 @@ void main() {
     final shape = firstCard.shape! as RoundedRectangleBorder;
 
     expect(shape.side.width, 1);
-    expect(shape.side.color.opacity, greaterThan(0));
+    expect(shape.side.color.a, greaterThan(0));
   });
 }

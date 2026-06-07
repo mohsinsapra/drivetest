@@ -240,16 +240,14 @@ class _SignGroupCardState extends State<_SignGroupCard> {
             const SizedBox(height: 8),
             Text(Translations.of(context).bcd_no_image,
                 style: TextStyle(
-                    fontSize: 12,
-                    color: cs.onSurface.withValues(alpha: 0.35))),
+                    fontSize: 12, color: cs.onSurface.withValues(alpha: 0.35))),
           ],
         ),
       );
     } else if (previewUrls.length == 1) {
       imageArea = GestureDetector(
         onTap: allPreviewUrls.isNotEmpty
-            ? () => showImageViewer(context, allPreviewUrls,
-                titles: [title])
+            ? () => showImageViewer(context, allPreviewUrls, titles: [title])
             : null,
         child: Container(
           width: double.infinity,
@@ -268,7 +266,8 @@ class _SignGroupCardState extends State<_SignGroupCard> {
       imageArea = GestureDetector(
         onTap: allPreviewUrls.isNotEmpty
             ? () => showImageViewer(context, allPreviewUrls,
-                initialIndex: _currentPage, titles: List.filled(allPreviewUrls.length, title))
+                initialIndex: _currentPage,
+                titles: List.filled(allPreviewUrls.length, title))
             : null,
         child: _ImageSlider(
           urls: previewUrls,
@@ -437,9 +436,8 @@ class _ImageSlider extends StatelessWidget {
                 width: active ? 18 : 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: active
-                      ? cs.primary
-                      : cs.onSurface.withValues(alpha: 0.2),
+                  color:
+                      active ? cs.primary : cs.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(3),
                 ),
               );
@@ -551,7 +549,8 @@ class _SignGroupDetailScreenState extends State<_SignGroupDetailScreen> {
                             style: GoogleFonts.lexend(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
-                                color: Theme.of(context).colorScheme.onSurface)),
+                                color:
+                                    Theme.of(context).colorScheme.onSurface)),
                       ),
                     const SizedBox(height: 12),
                     // Image viewer card
@@ -664,9 +663,7 @@ class _NavArrow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
         child: Icon(icon,
             size: 22,
-            color: enabled
-                ? cs.primary
-                : cs.onSurface.withValues(alpha: 0.15)),
+            color: enabled ? cs.primary : cs.onSurface.withValues(alpha: 0.15)),
       ),
     );
   }
@@ -689,7 +686,8 @@ class _BottomNavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final activeColor = isLeading ? cs.onSurface.withValues(alpha: 0.7) : cs.primary;
+    final activeColor =
+        isLeading ? cs.onSurface.withValues(alpha: 0.7) : cs.primary;
     final disabledColor = cs.onSurface.withValues(alpha: 0.25);
     return GestureDetector(
       onTap: enabled ? onTap : null,
@@ -707,8 +705,7 @@ class _BottomNavButton extends StatelessWidget {
           children: isLeading
               ? [
                   Icon(icon,
-                      size: 16,
-                      color: enabled ? activeColor : disabledColor),
+                      size: 16, color: enabled ? activeColor : disabledColor),
                   const SizedBox(width: 6),
                   Text(label,
                       style: GoogleFonts.lexend(
@@ -724,8 +721,7 @@ class _BottomNavButton extends StatelessWidget {
                           color: enabled ? activeColor : disabledColor)),
                   const SizedBox(width: 6),
                   Icon(icon,
-                      size: 16,
-                      color: enabled ? activeColor : disabledColor),
+                      size: 16, color: enabled ? activeColor : disabledColor),
                 ],
         ),
       ),
@@ -822,8 +818,7 @@ class _SignImageViewerState extends State<_SignImageViewer> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(LucideIcons.maximize2,
-                        size: 11,
-                        color: cs.onSurface.withValues(alpha: 0.35)),
+                        size: 11, color: cs.onSurface.withValues(alpha: 0.35)),
                     const SizedBox(width: 4),
                     Text(
                       Translations.of(context).bcd_tap_to_zoom,

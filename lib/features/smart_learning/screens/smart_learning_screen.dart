@@ -118,9 +118,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
     var allCats = List<Map<String, dynamic>>.from(cache.categories);
 
     if (widget.examBcdId != null) {
-      allCats = allCats
-          .where((c) => c['bcd_id'] == widget.examBcdId)
-          .toList();
+      allCats = allCats.where((c) => c['bcd_id'] == widget.examBcdId).toList();
     }
 
     for (final cat in allCats) {
@@ -526,8 +524,7 @@ class _CategoryRow extends StatelessWidget {
                         Expanded(
                           child: Text(sub,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                  color:
-                                      cs.onSurface.withValues(alpha: 0.5))),
+                                  color: cs.onSurface.withValues(alpha: 0.5))),
                         ),
                       ],
                     ),

@@ -38,8 +38,8 @@ class SubscribeCtaCard extends StatelessWidget {
                   color: cs.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(LucideIcons.shoppingCart,
-                    color: cs.primary, size: 24),
+                child:
+                    Icon(LucideIcons.shoppingCart, color: cs.primary, size: 24),
               ),
               const SizedBox(width: 14),
               Expanded(

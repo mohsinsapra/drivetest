@@ -224,7 +224,8 @@ class ApiService {
           }
           if (data['allow_screenshots'] != null) {
             merged['allow_screenshots'] = data['allow_screenshots'];
-            AppStorage.updateAllowScreenshots(data['allow_screenshots'] == true);
+            AppStorage.updateAllowScreenshots(
+                data['allow_screenshots'] == true);
           }
           await prefs.setString(AppStorage.kUserJson, jsonEncode(merged));
         } catch (e) {

@@ -34,7 +34,7 @@ void main() {
       (tester) async {
     await tester.pumpWidget(
       TranslationProvider(
-        child: MaterialApp(
+        child: const MaterialApp(
           home: ProfileScreen(),
         ),
       ),
