@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.5.11+290] - 2026-06-07
+
+### Added
 - **Free category badges in Smart Learning**: Categories that can be accessed without a subscription now show a clear **Free** badge, making it easier to see what you can start immediately.
 
 ### Changed
@@ -21,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Screenshot permission handling across the app**: Improved screenshot protection and permission handling on affected screens for more consistent behaviour.
 - **General stability improvements**: Added test coverage around the new Smart Learning and settings/profile changes to help keep existing behaviour stable.
 
+---
 ---
 
 ## [1.5.10+289] - 2026-06-07
