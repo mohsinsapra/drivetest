@@ -55,7 +55,6 @@ class SubscriptionPlanCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: cs.inverseSurface,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: cs.primary, width: 3),
               boxShadow: [
                 BoxShadow(
                   color: cs.primary.withValues(alpha: 0.15),
@@ -135,6 +134,12 @@ class SubscriptionPlanCard extends StatelessWidget {
                   color: cs.secondaryContainer,
                   textColor: cs.onInverseSurface.withValues(alpha: 0.9),
                 ),
+                const SizedBox(height: 10),
+                _PlanFeatureRow(
+                  label: t.onb_feature_ai_tutor,
+                  color: cs.secondaryContainer,
+                  textColor: cs.onInverseSurface.withValues(alpha: 0.9),
+                ),
                 const SizedBox(height: 24),
                 _PlanButton(
                   featured: true,
@@ -169,7 +174,6 @@ class SubscriptionPlanCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: cs.surfaceContainerHighest, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,6 +235,12 @@ class SubscriptionPlanCard extends StatelessWidget {
           const SizedBox(height: 10),
           _PlanFeatureRow(
             label: t.onb_feature_progress_tracking,
+            color: cs.primary,
+            textColor: cs.onSurfaceVariant,
+          ),
+          const SizedBox(height: 10),
+          _PlanFeatureRow(
+            label: t.onb_feature_ai_tutor,
             color: cs.primary,
             textColor: cs.onSurfaceVariant,
           ),
@@ -313,7 +323,7 @@ class _PlanButton extends StatelessWidget {
             height: featured ? 20 : 18,
             child: AppLoadingIndicator(
               strokeWidth: featured ? 2.5 : 2,
-              color: featured || owned ? Colors.white : cs.primary,
+              color: Colors.white,
             ),
           )
         : Text(
@@ -321,6 +331,7 @@ class _PlanButton extends StatelessWidget {
             style: GoogleFonts.lexend(
               fontSize: featured ? 16 : 15,
               fontWeight: FontWeight.w700,
+              color: Colors.white,
             ),
           );
 
@@ -342,17 +353,34 @@ class _PlanButton extends StatelessWidget {
       );
     }
 
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: OutlinedButton(
-        onPressed: purchasing ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: cs.primary, width: 2),
-          shape: const StadiumBorder(),
-          foregroundColor: cs.primary,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(9999),
+      child: InkWell(
+        onTap: purchasing ? null : onPressed,
+        borderRadius: BorderRadius.circular(9999),
+        child: Ink(
+          height: 52,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                cs.primary.withValues(alpha: 0.82),
+                cs.primaryContainer.withValues(alpha: 0.88),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(9999),
+            boxShadow: [
+              BoxShadow(
+                color: cs.primary.withValues(alpha: 0.18),
+                blurRadius: 28,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Center(child: child),
         ),
-        child: child,
       ),
     );
   }

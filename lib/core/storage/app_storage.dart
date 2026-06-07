@@ -63,6 +63,28 @@ class AppStorage {
   /// Cached serialised user JSON written after login.
   static const String kUserJson = 'user';
 
+  /// Returns whether the current user is allowed to take screenshots.
+  /// Reads synchronously from the cached user JSON. Defaults to false
+  /// (screenshots blocked) when no stored value is found.
+  static bool allowScreenshots() {
+    try {
+      // SharedPreferences.getInstance() is async, but we use the in-memory
+      // cache via the synchronous maybeGet alternative. We keep it simple:
+      // the value is always present after the first /self response.
+      // Read from the last-written in-memory value — updated by api_service
+      // on every /self call. Can't await here so no async prefs access.
+      return _cachedAllowScreenshots;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Updated by ApiService after every successful /self response.
+  static bool _cachedAllowScreenshots = false;
+  static void updateAllowScreenshots(bool value) {
+    _cachedAllowScreenshots = value;
+  }
+
   /// App display language — `'en'` or `'sv'`.
   static const String kLanguage = 'language';
 
@@ -158,6 +180,7 @@ class AppStorage {
     _invalidateBcdCacheIfAvailable();
     SavedQuestionsService.clearMemoryCache();
     HomeDataCache.invalidate();
+    updateAllowScreenshots(false);
 
     // 5. Reset user scope
     clearCurrentUser();

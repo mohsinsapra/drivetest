@@ -1,6 +1,8 @@
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
+import 'package:taxi_exam_app/core/theme/app_surface_colors.dart';
+import 'package:taxi_exam_app/core/widgets/app_surface_card.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:io' show Platform;
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +10,7 @@ import 'package:taxi_exam_app/core/constants/app_text_styles.dart';
 
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -30,53 +33,24 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
-    with SingleTickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen> {
   final _profile = ProfileProvider();
-
-  late final AnimationController _ctrl;
-  late final Animation<double> _avatarScale;
-  late final Animation<double> _avatarFade;
-  late final Animation<double> _headerFade;
-  late final Animation<Offset> _headerSlide;
+  String _version = '';
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    _avatarScale = Tween<double>(begin: 0.7, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _ctrl,
-          curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack)),
-    );
-    _avatarFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _ctrl,
-          curve: const Interval(0.0, 0.4, curve: Curves.easeOut)),
-    );
-    _headerSlide =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-      CurvedAnimation(
-          parent: _ctrl,
-          curve: const Interval(0.2, 0.7, curve: Curves.easeOutCubic)),
-    );
-    _headerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _ctrl,
-          curve: const Interval(0.2, 0.6, curve: Curves.easeOut)),
-    );
-
     _profile.addListener(_onProfileChanged);
     _profile.loadUserFromPrefs().then((_) {
-      if (mounted) {
-        _profile.loadProfile().catchError((_) {});
-      }
+      if (mounted) _profile.loadProfile().catchError((_) {});
     });
-    _ctrl.forward();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (mounted)
+      setState(() => _version = '${info.version} (${info.buildNumber})');
   }
 
   void _onProfileChanged() {
@@ -86,7 +60,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void dispose() {
     _profile.removeListener(_onProfileChanged);
-    _ctrl.dispose();
     super.dispose();
   }
 
@@ -273,320 +246,343 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Future<void> _handlePrimaryMenuTap(int index) async {
-    try {
-      final nav = NavigationService.navigatorKey.currentState;
-      if (nav == null) {
-        showAppSnackBar(
-          'Unable to open this screen right now.',
-          type: SnackBarType.error,
-        );
-        return;
-      }
-      switch (index) {
-        case 0:
-          await nav.push(
-            AppPageRoute(builder: (_) => const EditProfileScreen()),
-          );
-          await _profile.loadUserFromPrefs();
-          return;
-        case 1:
-          await nav.push(
-            AppPageRoute(builder: (_) => const StatsScreen()),
-          );
-          return;
-        case 2:
-          await nav.push(
-            AppPageRoute(builder: (_) => const StreakSettingsScreen()),
-          );
-          return;
-        case 3:
-          await nav.push(
-            AppPageRoute(builder: (_) => const SettingsScreen()),
-          );
-          return;
-        default:
-          return;
-      }
-    } catch (_) {
-      if (!mounted) return;
-      showAppSnackBar(
-        'Unable to open this screen right now.',
-        type: SnackBarType.error,
-      );
+  Future<void> _navigate(Widget screen) async {
+    final nav = NavigationService.navigatorKey.currentState;
+    if (nav == null) {
+      showAppSnackBar('Unable to open this screen right now.',
+          type: SnackBarType.error);
+      return;
     }
+    await nav.push(AppPageRoute(builder: (_) => screen));
   }
 
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
-    final bottomInset = MediaQuery.of(context).padding.bottom;
-    final menuItems = [
-      (
-        icon: Icons.person,
-        color: const Color(0xFFFFCDD2),
-        title: t.profile_edit
-      ),
-      (
-        icon: Icons.bar_chart,
-        color: const Color(0xFFE1BEE7),
-        title: t.profile_stats
-      ),
-      (
-        icon: Icons.local_fire_department_rounded,
-        color: const Color(0xFFFFE0B2),
-        title: t.sg_profile_menu_label
-      ),
-      (
-        icon: Icons.settings,
-        color: const Color(0xFFE8F5E9),
-        title: t.profile_settings
-      ),
-    ];
-    final secondaryItems = [
-      if (!kIsWeb && Platform.isIOS && !_profile.isGuest)
-        (
-          icon: Icons.subscriptions_rounded,
-          color: const Color(0xFFE8F5E9),
-          title: t.profile_manage_subscription,
-          onTap: () => launchUrl(
-                Uri.parse('https://apps.apple.com/account/subscriptions'),
-                mode: LaunchMode.externalApplication,
-              ),
-        ),
-      (
-        icon: Icons.receipt_long_outlined,
-        color: const Color(0xFFDCEEFB),
-        title: t.profile_purchase_history,
-        onTap: () => Navigator.push(
-              context,
-              AppPageRoute(builder: (_) => const PurchaseHistoryScreen()),
-            ),
-      ),
-      (
-        icon: Icons.tour_rounded,
-        color: const Color(0xFFE8EAF6),
-        title: t.profile_revisit_setup,
-        onTap: () async {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.remove('onboarding_complete');
-          if (!context.mounted) return;
-          Navigator.of(context).pushAndRemoveUntil(
-            AppPageRoute(builder: (_) => const OnboardingScreen()),
-            (_) => false,
-          );
-        },
-      ),
-      if (!_profile.isGuest)
-        (
-          icon: Icons.person_add_alt,
-          color: const Color(0xFFE0E0E0),
-          title: t.profile_invite,
-          onTap: () {},
-        ),
-      (
-        icon: Icons.help_outline,
-        color: const Color(0xFFE0E0E0),
-        title: t.profile_help,
-        onTap: () => Navigator.push(
-              context,
-              AppPageRoute(builder: (_) => const HelpScreen()),
-            ),
-      ),
-      (
-        icon: Icons.feedback_outlined,
-        color: const Color(0xFFE0E0E0),
-        title: t.profile_send_feedback,
-        onTap: _showAppFeedbackDialog,
-      ),
-    ];
+    final surfaces = AppSurfaceColors.fromTheme(Theme.of(context));
 
     return Scaffold(
-      appBar: AppBar(toolbarHeight: 0),
-      body: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.only(bottom: bottomInset + 120),
-          children: [
-            const SizedBox(height: 24),
+      backgroundColor: surfaces.page,
+      appBar: AppBar(
+        backgroundColor: surfaces.page,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: Text(t.settings_title, style: AppTextStyles.headingMedium()),
+        centerTitle: true,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+        children: [
+          // ── Guest banner ───────────────────────────────────────────
+          if (_profile.isGuest) ...[
+            _GuestBanner(onConvert: () => _showGuestConvertSheet(context)),
+            const SizedBox(height: 12),
+          ],
 
-            // ── Animated avatar ────────────────────────────────────────
-            RepaintBoundary(
-              child: FadeTransition(
-                opacity: _avatarFade,
-                child: ScaleTransition(
-                  scale: _avatarScale,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: 48,
-                        backgroundColor: Theme.of(context).primaryColor,
-                        child: const Icon(LucideIcons.user,
-                            size: 48, color: Colors.white),
-                      ),
-                    ],
+          // ── Profile card ───────────────────────────────────────────
+          _SettingsCard(
+            dividerColor: surfaces.divider,
+            children: [
+              _ProfileHeaderRow(
+                profile: _profile,
+                onTap: () async {
+                  if (_profile.isGuest) {
+                    await _showGuestConvertSheet(context);
+                    return;
+                  }
+                  await _navigate(const StatsScreen());
+                  await _profile.loadUserFromPrefs();
+                },
+              ),
+              if (!_profile.isGuest)
+                _SettingsRow(
+                  icon: Icons.person_outline_rounded,
+                  iconBgColor: const Color(0xFF636366),
+                  title: t.profile_edit,
+                  onTap: () async {
+                    await _navigate(const EditProfileScreen());
+                    await _profile.loadUserFromPrefs();
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // ── Account card ───────────────────────────────────────────
+          _SettingsCard(
+            dividerColor: surfaces.divider,
+            children: [
+              _SettingsRow(
+                icon: Icons.bar_chart_rounded,
+                iconBgColor: const Color(0xFF5E5CE6),
+                title: t.profile_stats,
+                onTap: () => _navigate(const StatsScreen()),
+              ),
+              _SettingsRow(
+                icon: Icons.local_fire_department_rounded,
+                iconBgColor: const Color(0xFFFF9500),
+                title: t.sg_profile_menu_label,
+                onTap: () => _navigate(const StreakSettingsScreen()),
+              ),
+              _SettingsRow(
+                icon: Icons.settings_rounded,
+                iconBgColor: const Color(0xFF636366),
+                title: t.profile_settings,
+                onTap: () => _navigate(const SettingsScreen()),
+              ),
+              _SettingsRow(
+                icon: Icons.receipt_long_rounded,
+                iconBgColor: const Color(0xFF007AFF),
+                title: t.profile_purchase_history,
+                onTap: () => _navigate(const PurchaseHistoryScreen()),
+              ),
+              if (!kIsWeb && Platform.isIOS && !_profile.isGuest)
+                _SettingsRow(
+                  icon: Icons.subscriptions_rounded,
+                  iconBgColor: const Color(0xFF34C759),
+                  title: t.profile_manage_subscription,
+                  isExternal: true,
+                  onTap: () => launchUrl(
+                    Uri.parse('https://apps.apple.com/account/subscriptions'),
+                    mode: LaunchMode.externalApplication,
                   ),
                 ),
-              ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 28),
 
-            // ── Animated header text ───────────────────────────────────
-            FadeTransition(
-              opacity: _headerFade,
-              child: SlideTransition(
-                position: _headerSlide,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _profile.isGuest
-                            ? Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.08)
-                            : Colors.pinkAccent.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        _profile.isGuest
-                            ? t.guest_banner_cta
-                            : t.profile_student,
-                        style: AppTextStyles.headingSmall(
-                          color: _profile.isGuest
-                              ? Theme.of(context).colorScheme.onSurfaceVariant
-                              : Colors.white,
-                        ).copyWith(letterSpacing: 0.8),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (!_profile.isGuest) ...[
-                      Text(
-                        _profile.username ?? t.loading,
-                        style: AppTextStyles.headingLarge(),
-                      ),
-                      Text(
-                        _profile.email ?? '',
-                        style: AppTextStyles.bodyMedium(color: Colors.grey),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                  ],
+          // ── Preferences section ────────────────────────────────────
+          _SectionLabel(
+            label: t.profile_section_preferences,
+            color: surfaces.sectionLabel,
+          ),
+          const SizedBox(height: 8),
+          _SettingsCard(
+            dividerColor: surfaces.divider,
+            children: [
+              _SettingsRow(
+                icon: Icons.tour_rounded,
+                iconBgColor: const Color(0xFF5E5CE6),
+                title: t.profile_revisit_setup,
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.remove('onboarding_complete');
+                  if (!context.mounted) return;
+                  Navigator.of(context).pushAndRemoveUntil(
+                    AppPageRoute(builder: (_) => const OnboardingScreen()),
+                    (_) => false,
+                  );
+                },
+              ),
+              if (!_profile.isGuest)
+                _SettingsRow(
+                  icon: Icons.person_add_alt_1_rounded,
+                  iconBgColor: const Color(0xFFAF52DE),
+                  title: t.profile_invite,
+                  onTap: () {},
                 ),
+            ],
+          ),
+          const SizedBox(height: 28),
+
+          // ── Resources section ──────────────────────────────────────
+          _SectionLabel(
+            label: t.profile_section_resources,
+            color: surfaces.sectionLabel,
+          ),
+          const SizedBox(height: 8),
+          _SettingsCard(
+            dividerColor: surfaces.divider,
+            children: [
+              _SettingsRow(
+                icon: Icons.help_outline_rounded,
+                iconBgColor: const Color(0xFF007AFF),
+                title: t.profile_help,
+                onTap: () => _navigate(const HelpScreen()),
               ),
-            ),
-
-            // ── Guest banner ───────────────────────────────────────────
-            if (_profile.isGuest)
-              _ProfileTile(
-                index: 0,
-                child: _GuestBanner(
-                    onConvert: () => _showGuestConvertSheet(context)),
+              _SettingsRow(
+                icon: Icons.feedback_outlined,
+                iconBgColor: const Color(0xFFFF3B30),
+                title: t.profile_send_feedback,
+                onTap: _showAppFeedbackDialog,
               ),
+            ],
+          ),
+          const SizedBox(height: 20),
 
-            // ── Staggered menu tiles ───────────────────────────────────
-            ...menuItems
-                .asMap()
-                .entries
-                .where((e) => !_profile.isGuest || e.key != 0)
-                .map((e) => _ProfileTile(
-                      index: e.key,
-                      child: _buildMenuTile(
-                        context,
-                        icon: e.value.icon,
-                        iconColor: e.value.color,
-                        title: e.value.title,
-                        onTap: () => _handlePrimaryMenuTap(e.key),
-                      ),
-                    )),
-
-            _ProfileTile(
-              index: menuItems.length,
-              child: const Divider(thickness: 0.5, color: Color(0xFFE0E0E0)),
-            ),
-
-            ...secondaryItems.asMap().entries.map((e) => _ProfileTile(
-                  index: menuItems.length + 1 + e.key,
-                  child: _buildMenuTile(
-                    context,
-                    icon: e.value.icon,
-                    iconColor: e.value.color,
-                    title: e.value.title,
-                    onTap: e.value.onTap,
+          // ── Sign out ───────────────────────────────────────────────
+          _SettingsCard(
+            dividerColor: surfaces.divider,
+            children: [
+              _SettingsRow(
+                icon: Icons.logout_rounded,
+                iconBgColor: const Color(0xFFFF3B30),
+                title: t.logout,
+                titleColor: const Color(0xFFFF3B30),
+                showChevron: false,
+                onTap: () => showModalBottomSheet(
+                  context: context,
+                  isDismissible: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24)),
                   ),
-                )),
-
-            _ProfileTile(
-              index: menuItems.length + secondaryItems.length + 1,
-              child: const Divider(thickness: 0.5, color: Color(0xFFE0E0E0)),
-            ),
-
-            // ── Debug: Sentry test + reset onboarding (debug builds only) ──
-            if (kDebugMode) ...[
-              _ProfileTile(
-                index: menuItems.length + secondaryItems.length + 2,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: AppFilledButton(
-                    label: 'Verify Sentry Setup',
-                    onPressed: () {
-                      throw StateError('This is test exception');
-                    },
-                  ),
-                ),
-              ),
-              _ProfileTile(
-                index: menuItems.length + secondaryItems.length + 3,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: AppFilledButton(
-                    label: 'Reset Onboarding',
-                    onPressed: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.remove('onboarding_complete');
-                      if (!context.mounted) return;
-                      Navigator.of(context).pushAndRemoveUntil(
-                        AppPageRoute(builder: (_) => const OnboardingScreen()),
-                        (_) => false,
-                      );
-                    },
-                    backgroundColor: Colors.orange,
-                  ),
+                  builder: (_) => const _LogoutSheet(),
                 ),
               ),
             ],
-            // ── Logout ─────────────────────────────────────────────────
-            _ProfileTile(
-              index: menuItems.length + secondaryItems.length + 2,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: AppTextButton(
-                    label: t.logout,
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isDismissible: true,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(24)),
-                        ),
-                        builder: (sheetContext) => const _LogoutSheet(),
-                      );
-                    },
-                    icon: const Icon(Icons.logout, size: 20),
-                    foregroundColor: Colors.red.shade700,
-                    fontSize: 15,
-                  ),
+          ),
+
+          // ── Debug buttons (debug builds only) ─────────────────────
+          if (kDebugMode) ...[
+            const SizedBox(height: 12),
+            _SettingsCard(
+              dividerColor: surfaces.divider,
+              children: [
+                _SettingsRow(
+                  icon: Icons.bug_report_rounded,
+                  iconBgColor: Colors.orange,
+                  title: 'Verify Sentry Setup',
+                  showChevron: false,
+                  onTap: () => throw StateError('This is test exception'),
                 ),
+                _SettingsRow(
+                  icon: Icons.refresh_rounded,
+                  iconBgColor: Colors.orange,
+                  title: 'Reset Onboarding',
+                  showChevron: false,
+                  onTap: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.remove('onboarding_complete');
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      AppPageRoute(builder: (_) => const OnboardingScreen()),
+                      (_) => false,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+
+          // ── App version ────────────────────────────────────────────
+          const SizedBox(height: 32),
+          if (_version.isNotEmpty)
+            Center(
+              child: Text(
+                '${t.settings_app_version} $_version',
+                style: AppTextStyles.bodySmall(color: surfaces.sectionLabel),
               ),
             ),
+          const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Reusable card container ────────────────────────────────────────────────
+
+class _SettingsCard extends StatelessWidget {
+  final List<Widget> children;
+  final Color dividerColor;
+
+  const _SettingsCard({
+    required this.children,
+    required this.dividerColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      rows.add(children[i]);
+      if (i < children.length - 1) {
+        rows.add(Divider(
+          height: 1,
+          thickness: 0.5,
+          indent: 56,
+          color: dividerColor,
+        ));
+      }
+    }
+    return AppSurfaceCard(
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: rows,
+      ),
+    );
+  }
+}
+
+// ── Section label ──────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _SectionLabel({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        label.toUpperCase(),
+        style: AppTextStyles.bodySmall(color: color),
+      ),
+    );
+  }
+}
+
+// ── Profile header row ─────────────────────────────────────────────────────
+
+class _ProfileHeaderRow extends StatelessWidget {
+  final ProfileProvider profile;
+  final VoidCallback onTap;
+
+  const _ProfileHeaderRow({required this.profile, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+
+    return InkWell(
+      key: const Key('profile-header-row'),
+      onTap: onTap,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: cs.primary.withValues(alpha: 0.15),
+              child: Icon(LucideIcons.user, size: 26, color: cs.primary),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    profile.isGuest
+                        ? t.guest_banner_title
+                        : (profile.username ?? t.loading),
+                    style: AppTextStyles.bodyLarge(),
+                  ),
+                  Text(
+                    profile.isGuest
+                        ? t.guest_banner_cta
+                        : t.profile_view_profile,
+                    style: AppTextStyles.bodySmall(color: cs.onSurfaceVariant),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: cs.onSurfaceVariant, size: 20),
           ],
         ),
       ),
@@ -594,50 +590,66 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 }
 
-/// Staggered fade + slide-in for profile list items.
-class _ProfileTile extends StatefulWidget {
-  final int index;
-  final Widget child;
-  const _ProfileTile({required this.index, required this.child});
+// ── Generic settings row ───────────────────────────────────────────────────
+
+class _SettingsRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconBgColor;
+  final String title;
+  final Color? titleColor;
+  final VoidCallback onTap;
+  final bool isExternal;
+  final bool showChevron;
+
+  const _SettingsRow({
+    required this.icon,
+    required this.iconBgColor,
+    required this.title,
+    required this.onTap,
+    this.titleColor,
+    this.isExternal = false,
+    this.showChevron = true,
+  });
 
   @override
-  State<_ProfileTile> createState() => _ProfileTileState();
-}
-
-class _ProfileTileState extends State<_ProfileTile>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 280));
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _slide = Tween<Offset>(begin: const Offset(0.05, 0), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
-
-    Future.delayed(Duration(milliseconds: 150 + widget.index * 35), () {
-      if (mounted) _ctrl.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => RepaintBoundary(
-        child: FadeTransition(
-          opacity: _fade,
-          child: SlideTransition(position: _slide, child: widget.child),
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                title,
+                style: AppTextStyles.bodyLarge(color: titleColor),
+              ),
+            ),
+            if (showChevron)
+              Icon(
+                isExternal ? Icons.open_in_new_rounded : Icons.chevron_right,
+                color: cs.onSurfaceVariant,
+                size: 18,
+              ),
+          ],
         ),
-      );
+      ),
+    );
+  }
 }
+
+// ── Logout sheet ───────────────────────────────────────────────────────────
 
 class _LogoutSheet extends StatefulWidget {
   const _LogoutSheet();
@@ -705,27 +717,7 @@ class _LogoutSheetState extends State<_LogoutSheet> {
   }
 }
 
-Widget _buildMenuTile(
-  BuildContext context, {
-  required IconData icon,
-  required String title,
-  required VoidCallback onTap,
-  Color? iconColor,
-}) {
-  return ListTile(
-    leading: Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: iconColor ?? Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Icon(icon, color: Colors.black),
-    ),
-    title: Text(title, style: AppTextStyles.listTitle()),
-    trailing: const Icon(Icons.chevron_right),
-    onTap: onTap,
-  );
-}
+// ── Guest banner ───────────────────────────────────────────────────────────
 
 class _GuestBanner extends StatelessWidget {
   const _GuestBanner({required this.onConvert});
@@ -736,7 +728,6 @@ class _GuestBanner extends StatelessWidget {
     final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -747,7 +738,7 @@ class _GuestBanner extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

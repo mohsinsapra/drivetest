@@ -10,13 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Free category badges in Smart Learning**: Categories that can be accessed without a subscription now show a clear **Free** badge, making it easier to see what you can start immediately.
 
 ### Changed
--
+- **Smarter category browsing in Smart Learning**: Smart Learning now shows all top-level categories more consistently, and when an exam-specific BCD filter is active, only the relevant categories are shown.
+- **Subscribed categories are prioritised**: Categories you already have access to now appear first, so the most relevant content is easier to reach.
+- **Settings and Profile screens are easier to scan**: Settings sections now use clearer card grouping and improved surface styling for better readability and navigation.
 
 ### Fixed
--
+- **Screenshot permission handling across the app**: Improved screenshot protection and permission handling on affected screens for more consistent behaviour.
+- **General stability improvements**: Added test coverage around the new Smart Learning and settings/profile changes to help keep existing behaviour stable.
 
 ---
 

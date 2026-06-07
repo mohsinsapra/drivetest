@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -207,6 +209,16 @@ Future<void> _appMain() async {
     debugPrint('Locale init error: $e');
   }
 
+  // Seed in-memory allow_screenshots flag from cached user JSON so screens
+  // that open before the next /self call already have the correct value.
+  try {
+    final stored = prefs.getString(AppStorage.kUserJson);
+    if (stored != null) {
+      final map = jsonDecode(stored) as Map<String, dynamic>;
+      AppStorage.updateAllowScreenshots(map['allow_screenshots'] == true);
+    }
+  } catch (_) {}
+
   final themeProvider = ThemeProvider(prefs);
   final fontProvider = FontProvider(prefs);
 
@@ -386,16 +398,14 @@ ThemeData buildDarkTheme(String font) => ThemeData(
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Color(0xFF9999C6)),
-        titleTextStyle: TextStyle(
+        titleTextStyle: GoogleFonts.lexend(
           color: const Color(0xFF9999C6),
           fontSize: 20,
-          fontFamily: font,
           fontWeight: FontWeight.w600,
         ),
-        toolbarTextStyle: TextStyle(
+        toolbarTextStyle: GoogleFonts.plusJakartaSans(
           color: const Color(0xFF9999C6),
           fontSize: 18,
-          fontFamily: font,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -456,7 +466,7 @@ ThemeData buildLightTheme(String font) => ThemeData(
         scrim: Color(0xFF000000),
         shadow: Color(0xFF000000),
       ),
-      scaffoldBackgroundColor: const Color(0xFFF8F5FF),
+      scaffoldBackgroundColor: Colors.white,
       cardColor: const Color(0xFFFFFFFF),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -477,21 +487,19 @@ ThemeData buildLightTheme(String font) => ThemeData(
         ),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: const Color(0xFFF8F5FF),
+        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Color(0xFF2A2B51)),
-        titleTextStyle: TextStyle(
+        titleTextStyle: GoogleFonts.lexend(
           color: const Color(0xFF2A2B51),
           fontSize: 20,
-          fontFamily: font,
           fontWeight: FontWeight.w600,
         ),
-        toolbarTextStyle: TextStyle(
+        toolbarTextStyle: GoogleFonts.plusJakartaSans(
           color: const Color(0xFF2A2B51),
           fontSize: 18,
-          fontFamily: font,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -547,3 +555,4 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+

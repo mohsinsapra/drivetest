@@ -472,47 +472,41 @@ class _PermissionState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+    final cs = colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                LucideIcons.bellOff,
-                size: 34,
-                color: colorScheme.primary.withValues(alpha: 0.5),
-              ),
+            Icon(
+              denied ? LucideIcons.bellOff : LucideIcons.bell,
+              size: 56,
+              color: cs.onSurface.withValues(alpha: 0.22),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Text(
               t.notifications_permission_off_title,
               textAlign: TextAlign.center,
               style: GoogleFonts.lexend(
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: FontWeight.w700,
+                color: cs.onSurface,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               denied
                   ? t.notifications_permission_denied_body
                   : t.notifications_permission_not_determined_body,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade500,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: cs.onSurface.withValues(alpha: 0.45),
                 height: 1.55,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -532,8 +526,8 @@ class _PermissionState extends StatelessWidget {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
+                  backgroundColor: cs.primary,
+                  foregroundColor: cs.onPrimary,
                   shape: const StadiumBorder(),
                   elevation: 0,
                 ),
@@ -556,53 +550,35 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Outer ring
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.06),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                // Inner circle
-                child: Container(
-                  width: 84,
-                  height: 84,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.10),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    LucideIcons.bellOff,
-                    size: 38,
-                    color: colorScheme.primary.withValues(alpha: 0.55),
-                  ),
-                ),
-              ),
+            Icon(
+              LucideIcons.bell,
+              size: 56,
+              color: cs.onSurface.withValues(alpha: 0.22),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Text(
               t.notifications_empty_title,
+              textAlign: TextAlign.center,
               style: GoogleFonts.lexend(
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: colorScheme.onSurface,
+                color: cs.onSurface,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               t.notifications_empty_subtitle,
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                color: colorScheme.onSurface.withValues(alpha: 0.5),
+                fontSize: 13,
+                color: cs.onSurface.withValues(alpha: 0.45),
                 height: 1.55,
               ),
             ),

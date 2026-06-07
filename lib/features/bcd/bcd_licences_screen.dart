@@ -16,6 +16,7 @@ import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
 import 'bcd_category_hub_screen.dart';
 import 'bcd_sub_category_screen.dart';
+import 'bcd_text_utils.dart';
 
 class BCDLicencesScreen extends StatefulWidget {
   const BCDLicencesScreen({super.key});
@@ -247,7 +248,7 @@ class _CategoryCard extends StatelessWidget {
     final price = product?['price']?.toString();
     final currency = product?['currency']?.toString() ?? '';
     final durationDays = product?['duration_days'];
-    final name = category['name']?.toString() ?? '';
+    final name = stripAppSuffix(category['name']?.toString() ?? '');
     final t = Translations.of(context);
 
     // Semantic accent — green is universal success/unlock, primary is the app blue
@@ -259,7 +260,7 @@ class _CategoryCard extends StatelessWidget {
       badgeLabel = t.bcd_subscribed;
     } else if (isFree) {
       accent = cs.primary;
-      badgeLabel = 'Free';
+      badgeLabel = t.bcd_free_label;
     } else {
       accent = cs.onSurfaceVariant;
       badgeLabel = (price != null && price.isNotEmpty)

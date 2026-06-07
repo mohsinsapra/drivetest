@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:no_screenshot/no_screenshot.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -46,7 +47,11 @@ class _BCDDocumentViewerScreenState extends State<BCDDocumentViewerScreen> {
   @override
   void initState() {
     super.initState();
-    _noScreenshot?.screenshotOff();
+    if (AppStorage.allowScreenshots()) {
+      _noScreenshot?.screenshotOn();
+    } else {
+      _noScreenshot?.screenshotOff();
+    }
     _pdfBytesFuture = _loadPdfBytes();
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _maybeLaunchExternally());

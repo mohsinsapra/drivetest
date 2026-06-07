@@ -5,6 +5,7 @@ import 'package:no_screenshot/no_screenshot.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 
 /// Opens a full-screen gallery viewer.
 ///
@@ -77,7 +78,11 @@ class _ImageViewerPageState extends State<_ImageViewerPage>
   @override
   void initState() {
     super.initState();
-    _noScreenshot?.screenshotOff();
+    if (AppStorage.allowScreenshots()) {
+      _noScreenshot?.screenshotOn();
+    } else {
+      _noScreenshot?.screenshotOff();
+    }
     _currentIndex = widget.initialIndex.clamp(0, widget.images.length - 1);
     _pageController = PageController(initialPage: _currentIndex);
 

@@ -5,13 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
-import 'package:taxi_exam_app/features/bcd/bcd_traffic_signs_screen.dart';
-import 'package:taxi_exam_app/features/profile/providers/profile_provider.dart';
+import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
 import '../models/dashboard_stats.dart';
 import '../models/subscribed_exam.dart';
 import '../providers/dashboard_provider.dart';
 import 'exam_card.dart';
-import 'free_bcd_hub_card.dart';
 import 'free_vagmarkes_card.dart';
 import 'subscribe_cta_card.dart';
 
@@ -159,18 +157,16 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
-                const FreeBcdHubCard(),
-                const SizedBox(height: 12),
                 FreeVagmarkesCard(
                   onTap: () => Navigator.push(
                     context,
-                    AppPageRoute(builder: (_) => const BCDTrafficSignsScreen()),
+                    AppPageRoute(
+                        builder: (_) =>
+                            const SmartLearningScreen(examBcdId: null)),
                   ),
                 ),
-                if (!ProfileProvider().isGuest) ...[
-                  const SizedBox(height: 12),
-                  SubscribeCtaCard(onSubscribe: widget.onSubscribe),
-                ],
+                const SizedBox(height: 12),
+                SubscribeCtaCard(onSubscribe: widget.onSubscribe),
               ],
             ),
           ),

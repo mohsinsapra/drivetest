@@ -112,29 +112,33 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
     final entries = <SmartExamEntry>[];
     final cache = BcdCache.instance;
 
-    final allCats = widget.examBcdId != null
-        ? cache.categories
-            .where((c) => c['bcd_id'] == widget.examBcdId)
-            .toList()
-        : cache.categories;
+    // Show all top-level categories (free + paid), scoped to examBcdId when set.
+    // Subcategory names are intentionally not used as category labels — the
+    // top-level category name is shown so the list matches the Licences screen.
+    var allCats = List<Map<String, dynamic>>.from(cache.categories);
+
+    if (widget.examBcdId != null) {
+      allCats = allCats
+          .where((c) => c['bcd_id'] == widget.examBcdId)
+          .toList();
+    }
 
     for (final cat in allCats) {
       final catId = cat['bcd_id'] as int;
-      final catName = cat['name']?.toString() ?? '';
+      final catName = stripAppSuffix(cat['name']?.toString() ?? '');
       final hasSubs = cat['has_children'] == true;
 
       if (hasSubs) {
         for (final sub in cache.subcategoriesOf(catId)) {
           final subId = sub['bcd_id'] as int;
-          final subName = stripAppSuffix(sub['name']?.toString() ?? catName);
           for (final test in cache.testsOf(subId)) {
-            final entry = _entryFromTest(test, subName, subId);
+            final entry = _entryFromTest(test, catName, subId);
             if (entry != null) entries.add(entry);
           }
         }
       } else {
         for (final test in cache.testsOf(catId)) {
-          final entry = _entryFromTest(test, stripAppSuffix(catName), catId);
+          final entry = _entryFromTest(test, catName, catId);
           if (entry != null) entries.add(entry);
         }
       }
@@ -189,8 +193,29 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
   List<String> get _distinctCategories =>
       _allEntries.map((e) => e.categoryName).toSet().toList();
 
+  /// category name → true when the category has no subscription product (free).
+  Map<String, bool> get _categoryIsFree {
+    final result = <String, bool>{};
+    for (final cat in BcdCache.instance.categories) {
+      final name = stripAppSuffix(cat['name']?.toString() ?? '');
+      result[name] = cat['subscription_product'] == null;
+    }
+    return result;
+  }
+
   /// Categories sorted by most recent activity, untouched last.
+  /// Untouched categories follow the licences-screen convention: subscribed
+  /// first, then alphabetical.
   List<String> get _sortedCategories {
+    final cache = BcdCache.instance;
+
+    // Map category name → is_subscribed (from the top-level category entry).
+    final subscribedByName = <String, bool>{};
+    for (final cat in cache.categories) {
+      final name = stripAppSuffix(cat['name']?.toString() ?? '');
+      subscribedByName[name] = cat['is_subscribed'] == true;
+    }
+
     DateTime? latestFor(String catName) => _allEntries
         .where((e) => e.categoryName == catName)
         .map((e) => _lastActivityDates[e.testBcdId])
@@ -201,7 +226,13 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
     return [..._distinctCategories]..sort((a, b) {
         final dateA = latestFor(a);
         final dateB = latestFor(b);
-        if (dateA == null && dateB == null) return a.compareTo(b);
+        if (dateA == null && dateB == null) {
+          // Subscribed first, then alphabetical — mirrors sortSubscribedCategoriesFirst.
+          final aSubscribed = subscribedByName[a] ?? false;
+          final bSubscribed = subscribedByName[b] ?? false;
+          if (aSubscribed != bSubscribed) return aSubscribed ? -1 : 1;
+          return a.compareTo(b);
+        }
         if (dateA == null) return 1;
         if (dateB == null) return -1;
         final cmp = dateB.compareTo(dateA);
@@ -261,6 +292,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
 
   Widget _buildCategoryList(BuildContext context) {
     final categories = _sortedCategories;
+    final isFreeMap = _categoryIsFree;
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -300,6 +332,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
                   children: [
                     _CategoryRow(
                       name: catName,
+                      isFree: isFreeMap[catName] ?? false,
                       testCount: catEntries.length,
                       passedChunks: passedChunks,
                       totalChunks: totalChunks,
@@ -419,6 +452,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
 
 class _CategoryRow extends StatelessWidget {
   final String name;
+  final bool isFree;
   final int testCount;
   final int passedChunks;
   final int totalChunks;
@@ -426,6 +460,7 @@ class _CategoryRow extends StatelessWidget {
 
   const _CategoryRow({
     required this.name,
+    required this.isFree,
     required this.testCount,
     required this.passedChunks,
     required this.totalChunks,
@@ -481,10 +516,21 @@ class _CategoryRow extends StatelessWidget {
                     Text(name,
                         style: theme.textTheme.titleSmall
                             ?.copyWith(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 2),
-                    Text(sub,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            color: cs.onSurface.withValues(alpha: 0.5))),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (isFree) ...[
+                          _FreeBadge(color: cs.primary),
+                          const SizedBox(width: 6),
+                        ],
+                        Expanded(
+                          child: Text(sub,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                  color:
+                                      cs.onSurface.withValues(alpha: 0.5))),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -493,6 +539,32 @@ class _CategoryRow extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Free badge ────────────────────────────────────────────────────────────────
+
+class _FreeBadge extends StatelessWidget {
+  final Color color;
+  const _FreeBadge({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.5),
+      ),
+      child: Text(
+        t.bcd_free_label,
+        style:
+            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
   }

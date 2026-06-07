@@ -222,6 +222,10 @@ class ApiService {
           if (data['ai_enabled'] != null) {
             merged['ai_enabled'] = data['ai_enabled'];
           }
+          if (data['allow_screenshots'] != null) {
+            merged['allow_screenshots'] = data['allow_screenshots'];
+            AppStorage.updateAllowScreenshots(data['allow_screenshots'] == true);
+          }
           await prefs.setString(AppStorage.kUserJson, jsonEncode(merged));
         } catch (e) {
           debugPrint('[ApiService] failed to cache user fields: $e');

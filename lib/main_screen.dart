@@ -6,6 +6,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/widgets/glass_box.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:taxi_exam_app/core/services/notification_service.dart';
@@ -350,25 +351,22 @@ class _FloatingNavPillState extends State<_FloatingNavPill> {
       onHorizontalDragUpdate: _onDragUpdate,
       onHorizontalDragEnd: _onDragEnd,
       behavior: HitTestBehavior.opaque,
-      child: Container(
+      child: GlassBox(
         key: _pillKey,
+        borderRadius: BorderRadius.circular(50),
         padding: const EdgeInsets.all(_FloatingNavPill._pad),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(50),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.09),
-              blurRadius: 24,
-              offset: const Offset(0, 6),
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.09),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
+          ),
+        ],
         child: SizedBox(
           width: widget.items.length * _FloatingNavPill._itemW,
           height: _FloatingNavPill._itemH,

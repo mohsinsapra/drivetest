@@ -224,399 +224,404 @@ class _SettingsScreenState extends State<SettingsScreen>
                 children: [
                   // ── Appearance ──────────────────────────────────────────
                   _SectionHeader(t.settings_appearance),
-
-                  // Theme mode
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: themeProvider.themeMode == ThemeMode.dark
-                            ? Colors.indigo.shade900
-                            : themeProvider.themeMode == ThemeMode.light
-                                ? Colors.amber.shade100
-                                : (isDark
-                                    ? Colors.grey.shade800
-                                    : Colors.grey.shade200),
-                        borderRadius: BorderRadius.circular(10),
+                  _SettingsSectionCard(
+                    children: [
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: themeProvider.themeMode == ThemeMode.dark
+                                ? Colors.indigo.shade900
+                                : themeProvider.themeMode == ThemeMode.light
+                                    ? Colors.amber.shade100
+                                    : (isDark
+                                        ? Colors.grey.shade800
+                                        : Colors.grey.shade200),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            themeProvider.themeMode == ThemeMode.dark
+                                ? Icons.dark_mode_rounded
+                                : themeProvider.themeMode == ThemeMode.light
+                                    ? Icons.light_mode_rounded
+                                    : Icons.brightness_auto_rounded,
+                            color: themeProvider.themeMode == ThemeMode.dark
+                                ? Colors.white
+                                : themeProvider.themeMode == ThemeMode.light
+                                    ? Colors.amber.shade700
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.7),
+                            size: 20,
+                          ),
+                        ),
+                        title: Text(t.settings_theme_label),
+                        subtitle: Text(t.settings_theme_sub),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _LangChip(
+                              label: t.settings_theme_system,
+                              selected:
+                                  themeProvider.themeMode == ThemeMode.system,
+                              onTap: () =>
+                                  themeProvider.setMode(ThemeMode.system),
+                            ),
+                            const SizedBox(width: 6),
+                            _LangChip(
+                              label: t.settings_theme_light,
+                              selected:
+                                  themeProvider.themeMode == ThemeMode.light,
+                              onTap: () =>
+                                  themeProvider.setMode(ThemeMode.light),
+                            ),
+                            const SizedBox(width: 6),
+                            _LangChip(
+                              label: t.settings_theme_dark,
+                              selected:
+                                  themeProvider.themeMode == ThemeMode.dark,
+                              onTap: () =>
+                                  themeProvider.setMode(ThemeMode.dark),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Icon(
-                        themeProvider.themeMode == ThemeMode.dark
-                            ? Icons.dark_mode_rounded
-                            : themeProvider.themeMode == ThemeMode.light
-                                ? Icons.light_mode_rounded
-                                : Icons.brightness_auto_rounded,
-                        color: themeProvider.themeMode == ThemeMode.dark
-                            ? Colors.white
-                            : themeProvider.themeMode == ThemeMode.light
-                                ? Colors.amber.shade700
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.7),
-                        size: 20,
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.purple.withValues(alpha: 0.2)
+                                : Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.font_download_rounded,
+                              color: isDark
+                                  ? Colors.purple.shade200
+                                  : Colors.purple.shade600,
+                              size: 20),
+                        ),
+                        title: const Text('Font'),
+                        subtitle: Text(fontProvider.fontFamily),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _LangChip(
+                              label: 'NudMoto',
+                              selected: fontProvider.fontFamily == 'NudMoto',
+                              onTap: () => fontProvider.setFont('NudMoto'),
+                            ),
+                            const SizedBox(width: 8),
+                            _LangChip(
+                              label: 'Inter',
+                              selected: fontProvider.fontFamily == 'Inter',
+                              onTap: () => fontProvider.setFont('Inter'),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    title: Text(t.settings_theme_label),
-                    subtitle: Text(t.settings_theme_sub),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _LangChip(
-                          label: t.settings_theme_system,
-                          selected: themeProvider.themeMode == ThemeMode.system,
-                          onTap: () => themeProvider.setMode(ThemeMode.system),
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.blue.withValues(alpha: 0.2)
+                                : Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.language_rounded,
+                              color: isDark
+                                  ? Colors.blue.shade200
+                                  : Colors.blue.shade600,
+                              size: 20),
                         ),
-                        const SizedBox(width: 6),
-                        _LangChip(
-                          label: t.settings_theme_light,
-                          selected: themeProvider.themeMode == ThemeMode.light,
-                          onTap: () => themeProvider.setMode(ThemeMode.light),
+                        title: Text(t.settings_language),
+                        subtitle: Text(t.settings_language_sub),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _LangChip(
+                              label: '🇬🇧 EN',
+                              selected: currentLocale == AppLocale.en,
+                              onTap: () => _setLocale(AppLocale.en),
+                            ),
+                            const SizedBox(width: 8),
+                            _LangChip(
+                              label: '🇸🇪 SV',
+                              selected: currentLocale == AppLocale.sv,
+                              onTap: () => _setLocale(AppLocale.sv),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 6),
-                        _LangChip(
-                          label: t.settings_theme_dark,
-                          selected: themeProvider.themeMode == ThemeMode.dark,
-                          onTap: () => themeProvider.setMode(ThemeMode.dark),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-
-                  // Font picker
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.purple.withValues(alpha: 0.2)
-                            : Colors.purple.shade50,
-                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(Icons.font_download_rounded,
-                          color: isDark
-                              ? Colors.purple.shade200
-                              : Colors.purple.shade600,
-                          size: 20),
-                    ),
-                    title: const Text('Font'),
-                    subtitle: Text(fontProvider.fontFamily),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _LangChip(
-                          label: 'NudMoto',
-                          selected: fontProvider.fontFamily == 'NudMoto',
-                          onTap: () => fontProvider.setFont('NudMoto'),
-                        ),
-                        const SizedBox(width: 8),
-                        _LangChip(
-                          label: 'Inter',
-                          selected: fontProvider.fontFamily == 'Inter',
-                          onTap: () => fontProvider.setFont('Inter'),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-
-                  // Language
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.blue.withValues(alpha: 0.2)
-                            : Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.language_rounded,
-                          color: isDark
-                              ? Colors.blue.shade200
-                              : Colors.blue.shade600,
-                          size: 20),
-                    ),
-                    title: Text(t.settings_language),
-                    subtitle: Text(t.settings_language_sub),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _LangChip(
-                          label: '🇬🇧 EN',
-                          selected: currentLocale == AppLocale.en,
-                          onTap: () => _setLocale(AppLocale.en),
-                        ),
-                        const SizedBox(width: 8),
-                        _LangChip(
-                          label: '🇸🇪 SV',
-                          selected: currentLocale == AppLocale.sv,
-                          onTap: () => _setLocale(AppLocale.sv),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
 
                   const SizedBox(height: 8),
 
                   // ── Notifications ───────────────────────────────────────
                   _SectionHeader(t.settings_notifications),
-
-                  SwitchListTile(
-                    secondary: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.orange.withValues(alpha: 0.2)
-                            : Colors.orange.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        _notificationsEnabled &&
-                                _notificationPermission ==
-                                    AuthorizationStatus.authorized
-                            ? Icons.notifications_rounded
-                            : Icons.notifications_off_rounded,
-                        color: isDark
-                            ? Colors.orange.shade200
-                            : Colors.orange.shade600,
-                        size: 20,
-                      ),
-                    ),
-                    title: Text(t.settings_notifications_toggle),
-                    subtitle: Text(
-                      _notificationPermission == AuthorizationStatus.denied
-                          ? t.settings_notifications_denied
-                          : _notificationsEnabled
-                              ? t.settings_notifications_on_sub
-                              : t.settings_notifications_off_sub,
-                    ),
-                    value: _notificationsEnabled &&
-                        _notificationPermission != AuthorizationStatus.denied,
-                    onChanged: _toggleNotifications,
-                  ),
-
-                  if (_notificationPermission == AuthorizationStatus.denied &&
-                      !kIsWeb)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: OutlinedButton.icon(
-                        onPressed: _openNotificationSettings,
-                        icon: const Icon(Icons.settings_rounded, size: 16),
-                        label: Text(t.settings_notifications_open_settings),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary),
-                          shape: const StadiumBorder(),
+                  _SettingsSectionCard(
+                    children: [
+                      SwitchListTile(
+                        secondary: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.orange.withValues(alpha: 0.2)
+                                : Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            _notificationsEnabled &&
+                                    _notificationPermission ==
+                                        AuthorizationStatus.authorized
+                                ? Icons.notifications_rounded
+                                : Icons.notifications_off_rounded,
+                            color: isDark
+                                ? Colors.orange.shade200
+                                : Colors.orange.shade600,
+                            size: 20,
+                          ),
                         ),
+                        title: Text(t.settings_notifications_toggle),
+                        subtitle: Text(
+                          _notificationPermission == AuthorizationStatus.denied
+                              ? t.settings_notifications_denied
+                              : _notificationsEnabled
+                                  ? t.settings_notifications_on_sub
+                                  : t.settings_notifications_off_sub,
+                        ),
+                        value: _notificationsEnabled &&
+                            _notificationPermission !=
+                                AuthorizationStatus.denied,
+                        onChanged: _toggleNotifications,
                       ),
-                    ),
+                      if (_notificationPermission ==
+                              AuthorizationStatus.denied &&
+                          !kIsWeb)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                          child: OutlinedButton.icon(
+                            onPressed: _openNotificationSettings,
+                            icon: const Icon(Icons.settings_rounded, size: 16),
+                            label: Text(t.settings_notifications_open_settings),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary),
+                              shape: const StadiumBorder(),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
 
                   const SizedBox(height: 8),
 
                   // ── Test Preferences ────────────────────────────────────
                   _SectionHeader(t.settings_test_prefs),
-
-                  SwitchListTile(
-                    title: Text(t.settings_timed_test),
-                    subtitle: Text(t.settings_timed_test_sub),
-                    value: isTimed,
-                    onChanged: (v) {
-                      HapticFeedback.lightImpact();
-                      setState(() => isTimed = v);
-                    },
-                  ),
-
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-
-                  SwitchListTile(
-                    title: Text(t.settings_instant_marking),
-                    subtitle: Text(t.settings_instant_marking_sub),
-                    value: isInstantMarking,
-                    onChanged: (v) {
-                      HapticFeedback.lightImpact();
-                      setState(() => isInstantMarking = v);
-                    },
-                  ),
-
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-
-                  SwitchListTile(
-                    title: const Text('Randomize Questions'),
-                    subtitle: const Text(
-                      'Get a fresh set of different questions every time you start a test',
-                    ),
-                    value: randomize,
-                    onChanged: (v) {
-                      HapticFeedback.lightImpact();
-                      setState(() => randomize = v);
-                    },
-                  ),
-
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-
-                  SwitchListTile(
-                    title: const Text('Shuffle Question Order'),
-                    subtitle: const Text(
-                      'Keep the same questions but show them in a different order each time',
-                    ),
-                    value: shuffleOnDevice,
-                    onChanged: (v) {
-                      HapticFeedback.lightImpact();
-                      setState(() => shuffleOnDevice = v);
-                    },
-                  ),
-
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-
-                  ListTile(
-                    title: Text(t.settings_num_questions),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Slider(
-                          value: numberOfQuestions.toDouble(),
-                          min: 1,
-                          max: maxQuestions.toDouble(),
-                          divisions: maxQuestions - 1,
-                          label: '$numberOfQuestions',
-                          onChanged: (value) {
-                            setState(() {
-                              numberOfQuestions = value.toInt();
-                              _numberOfQuestionsController.text =
-                                  numberOfQuestions.toString();
-                            });
-                          },
+                  _SettingsSectionCard(
+                    children: [
+                      SwitchListTile(
+                        title: Text(t.settings_timed_test),
+                        subtitle: Text(t.settings_timed_test_sub),
+                        value: isTimed,
+                        onChanged: (v) {
+                          HapticFeedback.lightImpact();
+                          setState(() => isTimed = v);
+                        },
+                      ),
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      SwitchListTile(
+                        title: Text(t.settings_instant_marking),
+                        subtitle: Text(t.settings_instant_marking_sub),
+                        value: isInstantMarking,
+                        onChanged: (v) {
+                          HapticFeedback.lightImpact();
+                          setState(() => isInstantMarking = v);
+                        },
+                      ),
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      SwitchListTile(
+                        title: const Text('Randomize Questions'),
+                        subtitle: const Text(
+                          'Get a fresh set of different questions every time you start a test',
                         ),
-                        Row(
+                        value: randomize,
+                        onChanged: (v) {
+                          HapticFeedback.lightImpact();
+                          setState(() => randomize = v);
+                        },
+                      ),
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      SwitchListTile(
+                        title: const Text('Shuffle Question Order'),
+                        subtitle: const Text(
+                          'Keep the same questions but show them in a different order each time',
+                        ),
+                        value: shuffleOnDevice,
+                        onChanged: (v) {
+                          HapticFeedback.lightImpact();
+                          setState(() => shuffleOnDevice = v);
+                        },
+                      ),
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      ListTile(
+                        title: Text(t.settings_num_questions),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(child: Text(t.settings_enter_num)),
-                            SizedBox(
-                              width: 80,
-                              child: TextField(
-                                controller: _numberOfQuestionsController,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                    hintText: 'e.g. 10',
-                                    contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 8)),
-                                onChanged: (value) {
-                                  final n = int.tryParse(value);
-                                  if (n != null && n > 0 && n <= maxQuestions) {
-                                    setState(() => numberOfQuestions = n);
-                                  }
-                                },
-                              ),
+                            Slider(
+                              value: numberOfQuestions.toDouble(),
+                              min: 1,
+                              max: maxQuestions.toDouble(),
+                              divisions: maxQuestions - 1,
+                              label: '$numberOfQuestions',
+                              onChanged: (value) {
+                                setState(() {
+                                  numberOfQuestions = value.toInt();
+                                  _numberOfQuestionsController.text =
+                                      numberOfQuestions.toString();
+                                });
+                              },
+                            ),
+                            Row(
+                              children: [
+                                Expanded(child: Text(t.settings_enter_num)),
+                                SizedBox(
+                                  width: 80,
+                                  child: TextField(
+                                    controller: _numberOfQuestionsController,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                        hintText: 'e.g. 10',
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 8)),
+                                    onChanged: (value) {
+                                      final n = int.tryParse(value);
+                                      if (n != null &&
+                                          n > 0 &&
+                                          n <= maxQuestions) {
+                                        setState(() => numberOfQuestions = n);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-
-                  const Divider(height: 1, indent: 16, endIndent: 16),
-
-                  SwitchListTile(
-                    title: Text(t.settings_include_saved),
-                    subtitle: Text(t.settings_include_saved_sub),
-                    value: includeSavedQuestions,
-                    onChanged: (v) {
-                      HapticFeedback.lightImpact();
-                      setState(() => includeSavedQuestions = v);
-                    },
+                      ),
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      SwitchListTile(
+                        title: Text(t.settings_include_saved),
+                        subtitle: Text(t.settings_include_saved_sub),
+                        value: includeSavedQuestions,
+                        onChanged: (v) {
+                          HapticFeedback.lightImpact();
+                          setState(() => includeSavedQuestions = v);
+                        },
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 8),
 
                   // ── Version Info ─────────────────────────────────────────
                   _SectionHeader(t.settings_version),
-
-                  if (_versionInfo != null) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: Column(
-                        children: [
-                          _VersionRow(t.settings_app_version,
-                              'v${_versionInfo!.appVersion} (${_versionInfo!.buildNumber})'),
-                          if (_versionInfo!.hasGitInfo) ...[
-                            _VersionRow(
-                                t.settings_commit, _versionInfo!.shortHash),
-                            _VersionRow(
-                                t.settings_branch, _versionInfo!.branch),
-                            _VersionRow(t.settings_last_update,
-                                _versionInfo!.commitDate),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ] else
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: AppLoadingIndicator(),
-                      ),
-                    ),
+                  _SettingsSectionCard(
+                    children: [
+                      if (_versionInfo != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                          child: Column(
+                            children: [
+                              _VersionRow(t.settings_app_version,
+                                  'v${_versionInfo!.appVersion} (${_versionInfo!.buildNumber})'),
+                              if (_versionInfo!.hasGitInfo) ...[
+                                _VersionRow(
+                                    t.settings_commit, _versionInfo!.shortHash),
+                                _VersionRow(
+                                    t.settings_branch, _versionInfo!.branch),
+                                _VersionRow(t.settings_last_update,
+                                    _versionInfo!.commitDate),
+                              ],
+                            ],
+                          ),
+                        )
+                      else
+                        const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: AppLoadingIndicator(),
+                        ),
+                    ],
+                  ),
 
                   // ── Backend Info (admin only) ─────────────────────────────
                   if (_isAdmin) ...[
                     const _SectionHeader('Backend Info'),
-                    if (_backendInfo == null)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: AppLoadingIndicator(),
-                        ),
-                      )
-                    else
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                        child: Column(
-                          children: [
-                            _VersionRow(
-                                'Status',
-                                (_backendInfo!['status'] ?? 'unknown')
-                                    .toString()),
-                            _VersionRow(
-                                'Debug Mode',
-                                (_backendInfo!['debug_mode'] ?? false)
-                                    .toString()),
-                            if (_backendInfo!['version'] is Map) ...[
-                              _VersionRow(
-                                  'Branch',
-                                  ((_backendInfo!['version']
-                                              as Map)['branch'] ??
-                                          'unknown')
-                                      .toString()),
-                              _VersionRow(
-                                  'Commit',
-                                  ((_backendInfo!['version']
-                                              as Map)['short_hash'] ??
-                                          'unknown')
-                                      .toString()),
-                              _VersionRow(
-                                  'Last Deploy',
-                                  _formatDeployDate((_backendInfo!['version']
-                                          as Map)['commit_date']
-                                      ?.toString())),
-                              _VersionRow(
-                                  'Author',
-                                  ((_backendInfo!['version']
-                                              as Map)['commit_author'] ??
-                                          'unknown')
-                                      .toString()),
-                              _VersionRow(
-                                  'Message',
-                                  ((_backendInfo!['version']
-                                              as Map)['commit_message'] ??
-                                          'unknown')
-                                      .toString()),
-                            ],
-                          ],
-                        ),
-                      ),
+                    _SettingsSectionCard(
+                      children: [
+                        if (_backendInfo == null)
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: AppLoadingIndicator(),
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                            child: Column(
+                              children: [
+                                _VersionRow(
+                                    'Status',
+                                    (_backendInfo!['status'] ?? 'unknown')
+                                        .toString()),
+                                _VersionRow(
+                                    'Debug Mode',
+                                    (_backendInfo!['debug_mode'] ?? false)
+                                        .toString()),
+                                if (_backendInfo!['version'] is Map) ...[
+                                  _VersionRow(
+                                      'Branch',
+                                      ((_backendInfo!['version']
+                                                  as Map)['branch'] ??
+                                              'unknown')
+                                          .toString()),
+                                  _VersionRow(
+                                      'Commit',
+                                      ((_backendInfo!['version']
+                                                  as Map)['short_hash'] ??
+                                              'unknown')
+                                          .toString()),
+                                  _VersionRow(
+                                      'Last Deploy',
+                                      _formatDeployDate(
+                                          ((_backendInfo!['version']
+                                                  as Map)['commit_date'])
+                                              ?.toString())),
+                                  _VersionRow(
+                                      'Author',
+                                      ((_backendInfo!['version']
+                                                  as Map)['commit_author'] ??
+                                              'unknown')
+                                          .toString()),
+                                  _VersionRow(
+                                      'Message',
+                                      ((_backendInfo!['version']
+                                                  as Map)['commit_message'] ??
+                                              'unknown')
+                                          .toString()),
+                                ],
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ],
               ),
@@ -668,6 +673,37 @@ class _SectionHeader extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _SettingsSectionCard extends StatelessWidget {
+  const _SettingsSectionCard({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final borderColor = isDark
+        ? theme.colorScheme.onSurface.withValues(alpha: 0.06)
+        : theme.colorScheme.onSurface.withValues(alpha: 0.08);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Card(
+        elevation: isDark ? 3 : 10,
+        shadowColor: Colors.black.withValues(alpha: isDark ? 0.08 : 0.18),
+        margin: EdgeInsets.zero,
+        color: theme.cardColor,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: borderColor, width: isDark ? 0 : 1),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(children: children),
+      ),
+    );
+  }
 }
 
 // ── Language chip ─────────────────────────────────────────────────────────────

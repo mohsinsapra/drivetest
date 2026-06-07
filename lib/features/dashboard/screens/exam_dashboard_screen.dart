@@ -58,7 +58,6 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DashboardProvider>();
-
     return UpgradeAlert(
       upgrader: _upgrader,
       dialogStyle: defaultTargetPlatform == TargetPlatform.iOS
@@ -82,3 +81,4 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
     );
   }
 }
+

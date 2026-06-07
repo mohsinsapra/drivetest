@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/glass_box.dart';
 import 'package:taxi_exam_app/features/notifications/notifications_screen.dart';
 import '../models/dashboard_stats.dart';
 
@@ -66,22 +67,19 @@ class HeroSection extends StatelessWidget {
               onTap: () => Navigator.of(context).push(
                 AppPageRoute(builder: (_) => const NotificationsScreen()),
               ),
-              child: Container(
+              child: GlassBox(
+                borderRadius: BorderRadius.circular(24),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(24),
-                  border:
-                      Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: cs.onSurface.withValues(alpha: 0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
+                border:
+                    Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
+                boxShadow: [
+                  BoxShadow(
+                    color: cs.onSurface.withValues(alpha: 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
                 child: Stack(
                   clipBehavior: Clip.none,
                   alignment: Alignment.center,
@@ -98,8 +96,8 @@ class HeroSection extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: cs.error,
                             shape: BoxShape.circle,
-                            border:
-                                Border.all(color: theme.cardColor, width: 1.5),
+                            border: Border.all(
+                                color: Colors.white, width: 1.5),
                           ),
                         ),
                       ),

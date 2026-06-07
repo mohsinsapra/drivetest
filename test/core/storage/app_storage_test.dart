@@ -44,4 +44,12 @@ void main() {
     expect(box.isOpen, isTrue);
     expect(box.isEmpty, isTrue);
   });
+
+  test('clearUserData resets cached screenshot permission', () async {
+    AppStorage.updateAllowScreenshots(true);
+
+    await AppStorage.clearUserData();
+
+    expect(AppStorage.allowScreenshots(), isFalse);
+  });
 }

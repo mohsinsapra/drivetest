@@ -8,6 +8,9 @@ import 'package:taxi_exam_app/core/providers/font_provider.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/settings/settings.dart';
 
+Card _firstSettingsCard(WidgetTester tester) =>
+    tester.widget<Card>(find.byType(Card).first);
+
 Widget _buildTestApp({
   required ThemeProvider themeProvider,
   required FontProvider fontProvider,
@@ -70,5 +73,62 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(themeProvider.themeMode, ThemeMode.system);
+  });
+
+  testWidgets('renders settings sections as elevated cards', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    final themeProvider = ThemeProvider(prefs);
+    final fontProvider = FontProvider(prefs);
+
+    await tester.pumpWidget(
+      _buildTestApp(
+        themeProvider: themeProvider,
+        fontProvider: fontProvider,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final cards = tester.widgetList<Card>(find.byType(Card)).toList();
+
+    expect(cards.length, greaterThanOrEqualTo(3));
+    expect(cards.first.elevation, greaterThan(0));
+  });
+
+  testWidgets('uses stronger section elevation in light mode', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    final themeProvider = ThemeProvider(prefs);
+    final fontProvider = FontProvider(prefs);
+
+    await tester.pumpWidget(
+      _buildTestApp(
+        themeProvider: themeProvider,
+        fontProvider: fontProvider,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final firstCard = _firstSettingsCard(tester);
+
+    expect(firstCard.elevation, 10);
+  });
+
+  testWidgets('uses a visible outline in light mode', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    final themeProvider = ThemeProvider(prefs);
+    final fontProvider = FontProvider(prefs);
+
+    await tester.pumpWidget(
+      _buildTestApp(
+        themeProvider: themeProvider,
+        fontProvider: fontProvider,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final firstCard = _firstSettingsCard(tester);
+    final shape = firstCard.shape! as RoundedRectangleBorder;
+
+    expect(shape.side.width, 1);
+    expect(shape.side.color.opacity, greaterThan(0));
   });
 }

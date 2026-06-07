@@ -1299,7 +1299,11 @@ class _TestscreenState extends State<Testscreen> {
   }
 
   void disableScreenshot() async {
-    await _noScreenshot?.screenshotOff();
+    if (AppStorage.allowScreenshots()) {
+      await _noScreenshot?.screenshotOn();
+    } else {
+      await _noScreenshot?.screenshotOff();
+    }
   }
 
   @override

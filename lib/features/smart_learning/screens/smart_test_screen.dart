@@ -128,7 +128,11 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       syncRemote: _api.syncTestAttempt,
     );
     _queue = List<Question>.from(widget.initialQuestions);
-    _noScreenshot?.screenshotOff();
+    if (AppStorage.allowScreenshots()) {
+      _noScreenshot?.screenshotOn();
+    } else {
+      _noScreenshot?.screenshotOff();
+    }
     _loadAiEnabled();
     _preFetchPreferredLanguage();
     // Pre-open Hive box so saves don't hang.

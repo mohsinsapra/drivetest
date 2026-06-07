@@ -159,20 +159,23 @@ class _DashboardBodyState extends State<DashboardBody> {
           ),
         ),
 
-        // Smart Learning entry point — prominent, near top
-        SliverToBoxAdapter(
-          child: showShimmer
-              ? const _SmartLearningShimmer()
-              : _animatedExamSection(
-                  sectionKey:
-                      'smart_${stats?.exam.id ?? widget.provider.selectedExam?.id}',
-                  child: _SmartLearningBanner(
-                    examBcdId: int.tryParse(
-                      stats?.exam.id ?? widget.provider.selectedExam?.id ?? '',
+        // Smart Learning — only shown when the user has at least one subscribed exam.
+        if (showShimmer || widget.provider.exams.isNotEmpty)
+          SliverToBoxAdapter(
+            child: showShimmer
+                ? const _SmartLearningShimmer()
+                : _animatedExamSection(
+                    sectionKey:
+                        'smart_${stats?.exam.id ?? widget.provider.selectedExam?.id}',
+                    child: _SmartLearningBanner(
+                      examBcdId: int.tryParse(
+                        stats?.exam.id ??
+                            widget.provider.selectedExam?.id ??
+                            '',
+                      ),
                     ),
                   ),
-                ),
-        ),
+          ),
 
         // Quick Access — high up so it's easy to reach
         if (stats != null && stats.exam.isBcd)
