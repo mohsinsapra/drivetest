@@ -9,14 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
--
-
 ### Changed
--
-
-### Fixed
--
+- **Redesigned auth landing screen**: Social sign-in buttons (Google, Apple) are now prominently displayed upfront. Login, sign-up, and guest access are grouped under a collapsible "More options" section, reducing visual clutter for first-time visitors.
+- **Updated sign-in button labels**: Google and Apple buttons now read "Continue with Google" and "Continue with Apple" for a more modern, consistent feel.
 
 ---
 

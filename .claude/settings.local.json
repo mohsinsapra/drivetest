@@ -357,7 +357,8 @@
       "Bash(grep \"\\\\.dart$\")",
       "Skill(run)",
       "Bash(echo \"Flutter run started in background with PID $!\")",
-      "Bash(echo \"PID $!\")"
+      "Bash(echo \"PID $!\")",
+      "Bash(gh api *)"
     ],
     "deny": [],
     "ask": []

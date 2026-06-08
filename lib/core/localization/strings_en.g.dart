@@ -221,9 +221,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get auth_deleted_account_welcome_back => 'Always welcome back.';
   String get auth_signup_failed => 'Signup failed. Please correct the errors.';
   String get auth_generic_error => 'An error occurred. Please try again.';
-  String get auth_express_google => 'Express login via Google';
+  String get auth_express_google => 'Continue with Google';
   String get auth_google_label => 'Google';
-  String get auth_express_apple => 'Sign in with Apple';
+  String get auth_express_apple => 'Continue with Apple';
+  String get auth_more_options => 'More options';
   String get auth_apple_label => 'Apple';
   String get auth_signing_in => 'Signing in...';
   String get auth_tab_login => 'Log in';
@@ -1336,11 +1337,13 @@ extension on Translations {
       case 'auth_generic_error':
         return 'An error occurred. Please try again.';
       case 'auth_express_google':
-        return 'Express login via Google';
+        return 'Continue with Google';
       case 'auth_google_label':
         return 'Google';
       case 'auth_express_apple':
-        return 'Sign in with Apple';
+        return 'Continue with Apple';
+      case 'auth_more_options':
+        return 'More options';
       case 'auth_apple_label':
         return 'Apple';
       case 'auth_signing_in':
