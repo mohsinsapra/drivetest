@@ -352,7 +352,8 @@
       "Bash(openssl base64 *)",
       "Bash(node -e \"require\\('./lib/helpers'\\).detectDevServers\\(\\).then\\(servers => console.log\\(JSON.stringify\\(servers\\)\\)\\)\")",
       "Bash(node run.js /tmp/playwright-test-homepage.js)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(perl *)"
     ],
     "deny": [],
     "ask": []

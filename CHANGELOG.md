@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.5.12+291] - 2026-06-08
+
+### Added
 - **Subcategories in Smart Learning**: You can now drill deeper into topics — Smart Learning shows subcategories so you can focus on exactly the area you want to practise.
 - **Scroll-to-reveal exam title in header**: As you scroll down on the home screen, the name of your active exam smoothly appears in the top bar so you always know which exam you're working on.
 - **Frosted glass header bar**: The top navigation bar now has a polished glass blur effect, keeping the avatar and notification bell clearly visible above your content at all times.
@@ -21,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Cleaner home screen header**: Removed the large "My Progress" title from the top of the dashboard for a cleaner, less cluttered look — your exams and progress are immediately visible.
 - **Smoother navigation with new Smart Learning tab**: The main navigation has been reorganised to give Smart Learning its own dedicated tab, making it faster to reach.
 
+---
 ---
 
 ## [1.5.11+290] - 2026-06-07
