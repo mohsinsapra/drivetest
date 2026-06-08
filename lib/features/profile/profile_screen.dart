@@ -292,7 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     await _showGuestConvertSheet(context);
                     return;
                   }
-                  await _navigate(const StatsScreen());
+                  await _navigate(const EditProfileScreen());
                   await _profile.loadUserFromPrefs();
                 },
               ),

@@ -23,8 +23,8 @@ class AppSurfaceCard extends StatelessWidget {
         : theme.colorScheme.onSurface.withValues(alpha: 0.08);
 
     return Card(
-      elevation: isDark ? 3 : 10,
-      shadowColor: Colors.black.withValues(alpha: isDark ? 0.08 : 0.18),
+      elevation: isDark ? 1 : 3,
+      shadowColor: Colors.black.withValues(alpha: isDark ? 0.04 : 0.07),
       margin: margin,
       color: theme.cardColor,
       surfaceTintColor: Colors.transparent,

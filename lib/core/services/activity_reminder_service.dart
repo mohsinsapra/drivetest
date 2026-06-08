@@ -204,6 +204,7 @@ class ActivityReminderService {
       testName: test['name']?.toString() ?? '',
       categoryName: catName,
       parentCategoryBcdId: catId,
+      subcategoryName: '',
       questionCount: qc,
       passScore: test['pass_score'] as int? ?? 0,
       timeLimit: test['time_limit'] as int? ?? 0,

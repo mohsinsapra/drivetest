@@ -138,7 +138,7 @@ class _ExamCarouselSectionState extends State<ExamCarouselSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
           child: Text(
             t.dash_my_exams,
             style: GoogleFonts.lexend(

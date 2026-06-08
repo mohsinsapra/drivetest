@@ -16,6 +16,7 @@ class SmartExamEntry {
   final String testName;
   final String categoryName;
   final int parentCategoryBcdId;
+  final String subcategoryName;
   final int questionCount;
   final int passScore;
   final int timeLimit;
@@ -26,6 +27,7 @@ class SmartExamEntry {
     required this.testName,
     required this.categoryName,
     required this.parentCategoryBcdId,
+    required this.subcategoryName,
     required this.questionCount,
     required this.passScore,
     required this.timeLimit,
@@ -38,10 +40,13 @@ class SmartExamEntry {
 /// [examBcdId] scopes the screen to one exam (the user's active exam).
 /// When null, all BCD categories are shown (fallback).
 ///
-/// [categoryFilter] is set internally when drilling into a sub-category.
+/// [categoryFilter] is set when drilling into a top-level category (shows subcategory list).
+/// [subcategoryBcdId] is set when drilling into a subcategory (shows test list).
 class SmartLearningScreen extends StatefulWidget {
   final int? examBcdId;
   final String? categoryFilter;
+  final int? subcategoryBcdId;
+  final String? screenTitle;
   // Pre-loaded from parent to avoid redundant Hive reads on drill-down.
   final Map<int, int>? initialPassedCounts;
   final Map<int, DateTime>? initialActivityDates;
@@ -50,6 +55,8 @@ class SmartLearningScreen extends StatefulWidget {
     super.key,
     this.examBcdId,
     this.categoryFilter,
+    this.subcategoryBcdId,
+    this.screenTitle,
     this.initialPassedCounts,
     this.initialActivityDates,
   });
@@ -129,8 +136,10 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
       if (hasSubs) {
         for (final sub in cache.subcategoriesOf(catId)) {
           final subId = sub['bcd_id'] as int;
+          final subName = stripAppSuffix(sub['name']?.toString() ?? '');
           for (final test in cache.testsOf(subId)) {
-            final entry = _entryFromTest(test, catName, subId);
+            final entry =
+                _entryFromTest(test, catName, subId, subcategoryName: subName);
             if (entry != null) entries.add(entry);
           }
         }
@@ -145,7 +154,8 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
   }
 
   SmartExamEntry? _entryFromTest(
-      Map<String, dynamic> test, String catName, int catId) {
+      Map<String, dynamic> test, String catName, int catId,
+      {String subcategoryName = ''}) {
     final qc = test['question_count'] as int? ?? 0;
     if (qc == 0) return null;
     final sizes = SmartUtils.computeSmartSizes(qc);
@@ -154,6 +164,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
       testName: stripAppSuffix(test['name']?.toString() ?? ''),
       categoryName: catName,
       parentCategoryBcdId: catId,
+      subcategoryName: subcategoryName,
       questionCount: qc,
       passScore: test['pass_score'] as int? ?? 0,
       timeLimit: test['time_limit'] as int? ?? 0,
@@ -164,12 +175,46 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
   // ── Derived state ──────────────────────────────────────────────────────────
 
   List<SmartExamEntry> get _filteredEntries {
-    final base = widget.categoryFilter == null
-        ? _allEntries
-        : _allEntries
-            .where((e) => e.categoryName == widget.categoryFilter)
-            .toList();
+    List<SmartExamEntry> base;
+    if (widget.subcategoryBcdId != null) {
+      base = _allEntries
+          .where((e) => e.parentCategoryBcdId == widget.subcategoryBcdId)
+          .toList();
+    } else if (widget.categoryFilter != null) {
+      base = _allEntries
+          .where((e) => e.categoryName == widget.categoryFilter)
+          .toList();
+    } else {
+      base = _allEntries;
+    }
     return _sortedEntries(base);
+  }
+
+  /// True when we should show the subcategory list instead of the test list.
+  ///
+  /// Triggers in two cases:
+  /// 1. A category was tapped from the category list (categoryFilter set) and
+  ///    that category has subcategories.
+  /// 2. The screen opened directly scoped to a single exam (examBcdId set,
+  ///    no categoryFilter) and that exam's category has subcategories — so we
+  ///    land on subcategories rather than jumping straight to tests.
+  bool get _showSubcategoryLevel {
+    if (widget.subcategoryBcdId != null) return false;
+
+    if (widget.categoryFilter != null) {
+      final categoryEntries = _allEntries
+          .where((e) => e.categoryName == widget.categoryFilter)
+          .toList();
+      return categoryEntries.any((e) => e.subcategoryName.isNotEmpty);
+    }
+
+    // Single exam scoped: show subcategories directly when only one top-level
+    // category exists and it has subcategories (skipping the redundant category step).
+    if (!_showCategoryLevel) {
+      return _allEntries.any((e) => e.subcategoryName.isNotEmpty);
+    }
+
+    return false;
   }
 
   /// Sort entries by most recent activity (newest first), untouched last.
@@ -238,9 +283,11 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
       });
   }
 
-  /// True when this screen should show category cards instead of test cards.
+  /// True when this screen should show top-level category cards.
   bool get _showCategoryLevel =>
-      widget.categoryFilter == null && _distinctCategories.length > 1;
+      widget.categoryFilter == null &&
+      widget.subcategoryBcdId == null &&
+      _distinctCategories.length > 1;
 
   // ── Build ──────────────────────────────────────────────────────────────────
 
@@ -249,7 +296,9 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
     final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
 
-    final scopeTitle = widget.categoryFilter ?? t.smart_learning_subtitle;
+    final scopeTitle = widget.screenTitle ??
+        widget.categoryFilter ??
+        t.smart_learning_subtitle;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -281,7 +330,9 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
               onRefresh: _load,
               child: _showCategoryLevel
                   ? _buildCategoryList(context)
-                  : _buildTestList(context),
+                  : _showSubcategoryLevel
+                      ? _buildSubcategoryList(context)
+                      : _buildTestList(context),
             ),
     );
   }
@@ -335,12 +386,127 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
                       passedChunks: passedChunks,
                       totalChunks: totalChunks,
                       onTap: () async {
+                        // Always drill into category — subcategory level will
+                        // show if subcategories exist, otherwise test list shows.
                         await Navigator.push(
                           context,
                           AppPageRoute(
                             builder: (_) => SmartLearningScreen(
                               examBcdId: widget.examBcdId,
                               categoryFilter: catName,
+                              initialPassedCounts: _passedCounts,
+                              initialActivityDates: _lastActivityDates,
+                            ),
+                          ),
+                        );
+                        _load();
+                      },
+                    ),
+                    if (!isLast)
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: cs.onSurface.withValues(alpha: 0.07),
+                      ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Subcategory list ───────────────────────────────────────────────────────
+
+  Widget _buildSubcategoryList(BuildContext context) {
+    final categoryEntries = widget.categoryFilter != null
+        ? _allEntries
+            .where((e) => e.categoryName == widget.categoryFilter)
+            .toList()
+        : _allEntries;
+
+    // Collect unique subcategories preserving insertion order for sorting.
+    final subMap = <int, String>{};
+    for (final e in categoryEntries) {
+      if (e.subcategoryName.isNotEmpty) {
+        subMap[e.parentCategoryBcdId] = e.subcategoryName;
+      }
+    }
+
+    // Sort: most-recently-active first, then alphabetical.
+    final subcats = subMap.entries.toList()
+      ..sort((a, b) {
+        DateTime? latestFor(int subId) => categoryEntries
+            .where((e) => e.parentCategoryBcdId == subId)
+            .map((e) => _lastActivityDates[e.testBcdId])
+            .whereType<DateTime>()
+            .fold<DateTime?>(
+                null, (best, d) => best == null || d.isAfter(best) ? d : best);
+
+        final dateA = latestFor(a.key);
+        final dateB = latestFor(b.key);
+        if (dateA == null && dateB == null) return a.value.compareTo(b.value);
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        final cmp = dateB.compareTo(dateA);
+        return cmp != 0 ? cmp : a.value.compareTo(b.value);
+      });
+
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Column(
+              children: subcats.asMap().entries.map((entry) {
+                final subId = entry.value.key;
+                final subName = entry.value.value;
+                final subEntries = categoryEntries
+                    .where((e) => e.parentCategoryBcdId == subId)
+                    .toList();
+                final totalChunks = subEntries.fold<int>(
+                    0, (sum, e) => sum + e.chunkSizes.length);
+                final passedChunks = subEntries.fold<int>(
+                    0, (sum, e) => sum + (_passedCounts[e.testBcdId] ?? 0));
+                final isLast = entry.key == subcats.length - 1;
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _CategoryRow(
+                      name: subName,
+                      isFree: false,
+                      testCount: subEntries.length,
+                      passedChunks: passedChunks,
+                      totalChunks: totalChunks,
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          AppPageRoute(
+                            builder: (_) => SmartLearningScreen(
+                              examBcdId: widget.examBcdId,
+                              categoryFilter: widget.categoryFilter,
+                              subcategoryBcdId: subId,
+                              screenTitle: subName,
                               initialPassedCounts: _passedCounts,
                               initialActivityDates: _lastActivityDates,
                             ),
@@ -384,7 +550,8 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
                 context,
                 AppPageRoute(
                   builder: (_) => SmartCategoryMistakesScreen(
-                    categoryName: widget.categoryFilter ?? '',
+                    categoryName:
+                        widget.screenTitle ?? widget.categoryFilter ?? '',
                     entries: entries,
                   ),
                 ),

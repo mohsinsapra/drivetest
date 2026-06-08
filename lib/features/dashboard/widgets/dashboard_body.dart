@@ -21,7 +21,6 @@ import 'batch_row.dart';
 import 'category_list_item.dart';
 import 'exam_carousel_section.dart';
 import 'exam_nav_helpers.dart';
-import 'hero_section.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
 import 'category_progress_section.dart';
@@ -150,7 +149,9 @@ class _DashboardBodyState extends State<DashboardBody> {
     return AdaptiveRefreshIndicator(
       onRefresh: widget.onRefresh,
       slivers: [
-        SliverToBoxAdapter(child: HeroSection(stats: stats)),
+        SliverToBoxAdapter(
+          child: SizedBox(height: MediaQuery.of(context).padding.top + 70),
+        ),
 
         SliverToBoxAdapter(
           child: ExamCarouselSection(

@@ -10,13 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **Subcategories in Smart Learning**: You can now drill deeper into topics — Smart Learning shows subcategories so you can focus on exactly the area you want to practise.
+- **Scroll-to-reveal exam title in header**: As you scroll down on the home screen, the name of your active exam smoothly appears in the top bar so you always know which exam you're working on.
+- **Frosted glass header bar**: The top navigation bar now has a polished glass blur effect, keeping the avatar and notification bell clearly visible above your content at all times.
 
 ### Changed
--
-
-### Fixed
--
+- **Notification bell is now always visible**: The bell icon is fixed to the top of the screen and stays in place as you scroll — you'll never miss a notification.
+- **Larger profile avatar**: The profile button in the top-left corner is bigger and easier to tap.
+- **Tapping your profile now opens Edit Profile directly**: Instead of going to the stats screen, tapping your avatar takes you straight to your profile details where you can make changes.
+- **Cleaner home screen header**: Removed the large "My Progress" title from the top of the dashboard for a cleaner, less cluttered look — your exams and progress are immediately visible.
+- **Smoother navigation with new Smart Learning tab**: The main navigation has been reorganised to give Smart Learning its own dedicated tab, making it faster to reach.
 
 ---
 
@@ -35,7 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **General stability improvements**: Added test coverage around the new Smart Learning and settings/profile changes to help keep existing behaviour stable.
 
 ---
----
 
 ## [1.5.10+289] - 2026-06-07
 
@@ -47,10 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Questions now require two correct answers to count as mastered**: In Smart Learning sessions, answering a question correctly once re-queues it for a confirmation check. Only after answering correctly twice is the question considered done. This makes the session a more reliable learning loop.
 - **Progress bar reflects the two-answer confirmation**: The session progress bar now counts both the first and second correct answers, so the fill accurately represents how far through the session you actually are.
 
----
----
----
----
 ---
 
 ## [1.5.9+288] - 2026-06-05
@@ -64,9 +62,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Progress bar reflects the two-answer confirmation**: The session progress bar now counts both the first and second correct answers, so the fill accurately represents how far through the session you actually are.
 
 ---
----
----
----
 
 ## [1.5.8+287] - 2026-06-04
 
@@ -78,8 +73,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Questions now require two correct answers to count as mastered**: In Smart Learning sessions, answering a question correctly once re-queues it for a confirmation check. Only after answering correctly twice is the question considered done. This makes the session a more reliable learning loop.
 - **Progress bar reflects the two-answer confirmation**: The session progress bar now counts both the first and second correct answers, so the fill accurately represents how far through the session you actually are.
 
----
----
 ---
 
 ## [1.5.7+286] - 2026-06-04
@@ -93,16 +86,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Progress bar reflects the two-answer confirmation**: The session progress bar now counts both the first and second correct answers, so the fill accurately represents how far through the session you actually are.
 
 ---
----
 
 ## [1.5.6+285] - 2026-06-03
 
 ### Added
 - **Sound effects in Smart Learning**: The Smart Learning test now plays satisfying sounds as you answer questions — a distinct tone for correct answers, a different sound when you're on a streak, a breaking sound when your streak ends, and a clear pass or fail sound when the session finishes.
 
----
----
----
 ---
 
 ## [1.5.5+284] - 2026-06-03
@@ -111,15 +100,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sound effects in Smart Learning**: The Smart Learning test now plays satisfying sounds as you answer questions — a distinct tone for correct answers, a different sound when you're on a streak, a breaking sound when your streak ends, and a clear pass or fail sound when the session finishes.
 
 ---
----
----
 
 ## [1.5.4+283] - 2026-06-03
 
 ### Added
 - **Sound effects in Smart Learning**: The Smart Learning test now plays satisfying sounds as you answer questions — a distinct tone for correct answers, a different sound when you're on a streak, a breaking sound when your streak ends, and a clear pass or fail sound when the session finishes.
 
----
 ---
 
 ## [1.5.3+282] - 2026-06-03
@@ -138,8 +124,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Reduced heavy first-load motion**: Startup and first dashboard render now do less animation work at once, helping the app feel smoother on lower-performance devices.
 
 ---
----
----
 
 ## [1.5.2+281] - 2026-06-03
 
@@ -157,7 +141,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Reduced heavy first-load motion**: Startup and first dashboard render now do less animation work at once, helping the app feel smoother on lower-performance devices.
 
 ---
----
 
 ## [1.5.1+280] - 2026-06-03
 
@@ -170,9 +153,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
----
----
 ---
 
 ## [1.5.0+279] - 2026-06-03
@@ -187,8 +167,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
----
 
 ## [1.4.0+278] - 2026-06-03
 
@@ -201,7 +179,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.3.2+277] - 2026-06-03
@@ -222,9 +199,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed foreground push notifications showing ": message" when the title was empty.
 
 ---
----
----
----
 
 ## [1.3.1+276] - 2026-06-03
 
@@ -244,8 +218,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed foreground push notifications showing ": message" when the title was empty.
 
 ---
----
----
 
 ## [1.3.0+275] - 2026-06-03
 
@@ -264,7 +236,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed notifications sometimes showing only the app icon with no text when the exam title was missing — a fallback title is now used.
 - Fixed foreground push notifications showing ": message" when the title was empty.
 
----
 ---
 
 ## [1.2.1+274] - 2026-06-01
@@ -286,16 +257,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
 ---
----
----
----
----
----
----
----
----
----
----
 
 ## [1.2.0+273] - 2026-06-01
 
@@ -315,15 +276,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `_elements.contains(element)` Flutter assertion crash on option tiles caused by using `SingleTickerProviderStateMixin` with two `AnimationController`s — changed to `TickerProviderStateMixin`.
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
----
----
----
----
----
----
----
----
----
 ---
 
 ## [1.1.74+272] - 2026-06-01
@@ -345,14 +297,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
 ---
----
----
----
----
----
----
----
----
 
 ## [1.1.73+271] - 2026-06-01
 
@@ -372,13 +316,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `_elements.contains(element)` Flutter assertion crash on option tiles caused by using `SingleTickerProviderStateMixin` with two `AnimationController`s — changed to `TickerProviderStateMixin`.
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
----
----
----
----
----
----
----
 ---
 
 ## [1.1.72+270] - 2026-06-01
@@ -400,12 +337,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
 ---
----
----
----
----
----
----
 
 ## [1.1.71+269] - 2026-05-31
 
@@ -425,11 +356,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `_elements.contains(element)` Flutter assertion crash on option tiles caused by using `SingleTickerProviderStateMixin` with two `AnimationController`s — changed to `TickerProviderStateMixin`.
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
----
----
----
----
----
 ---
 
 ## [1.1.70+268] - 2026-05-31
@@ -451,10 +377,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
 ---
----
----
----
----
 
 ## [1.1.69+267] - 2026-05-31
 
@@ -474,9 +396,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `_elements.contains(element)` Flutter assertion crash on option tiles caused by using `SingleTickerProviderStateMixin` with two `AnimationController`s — changed to `TickerProviderStateMixin`.
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
----
----
----
 ---
 
 ## [1.1.68+266] - 2026-05-31
@@ -498,8 +417,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
 ---
----
----
 
 ## [1.1.67+265] - 2026-05-31
 
@@ -519,7 +436,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `_elements.contains(element)` Flutter assertion crash on option tiles caused by using `SingleTickerProviderStateMixin` with two `AnimationController`s — changed to `TickerProviderStateMixin`.
 - Activity reminder notification deep-link payload parsing now uses safe casts (`(num?)?.toInt()`, nullable String guards) to avoid runtime throws on malformed payloads.
 
----
 ---
 
 ## [1.1.66+264] - 2026-05-31
@@ -552,8 +468,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolved issue where tutorial overlays could reappear in review modes.
 
 ---
----
----
 
 ### Added
 -
@@ -588,7 +502,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Browser spell-check underlines removed from flag emoji and language names via `SelectionContainer.disabled()`
 - Tutorial `FormatException` on missing key target fixed by pointing spotlight at the three-dots `PopupMenuButton` (`_langMenuKey`) instead of the removed standalone language button
 
----
 ---
 
 ## [1.1.65+263] - 2026-05-31
@@ -621,7 +534,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolved issue where tutorial overlays could reappear in review modes.
 
 ---
----
 
 ### Added
 -
@@ -657,7 +569,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tutorial `FormatException` on missing key target fixed by pointing spotlight at the three-dots `PopupMenuButton` (`_langMenuKey`) instead of the removed standalone language button
 
 ---
----
 
 ## [1.1.63+261] - 2026-05-30
 
@@ -673,10 +584,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
----
----
----
 ---
 
 ## [1.1.62+260] - 2026-05-30
@@ -694,9 +601,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
----
----
 
 ## [1.1.61+259] - 2026-05-30
 
@@ -712,8 +616,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
----
 ---
 
 ## [1.1.60+258] - 2026-05-29
@@ -731,7 +633,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.1.59+257] - 2026-05-29
 
@@ -745,7 +646,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.58+256] - 2026-05-29
@@ -763,7 +663,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - `recordAiUsage()` removed from `QuestionChatSheet` and `ApiService` — AI usage recording eliminated to avoid unnecessary API calls
 
----
 ---
 
 ## [1.1.57+255] - 2026-05-29
@@ -783,16 +682,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
 ---
----
----
----
----
----
----
----
----
----
----
 
 ## [1.1.56+254] - 2026-05-29
 
@@ -810,15 +699,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI chat buttons hidden for users without `ai_enabled` (loaded from `/self` on screen open)
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
----
----
----
----
----
----
----
----
----
 ---
 
 ## [1.1.55+253] - 2026-05-29
@@ -838,14 +718,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
 ---
----
----
----
----
----
----
----
----
 
 ## [1.1.54+252] - 2026-05-29
 
@@ -863,13 +735,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI chat buttons hidden for users without `ai_enabled` (loaded from `/self` on screen open)
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
----
----
----
----
----
----
----
 ---
 
 ## [1.1.53+251] - 2026-05-29
@@ -889,12 +754,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
 ---
----
----
----
----
----
----
 
 ## [1.1.52+250] - 2026-05-29
 
@@ -912,11 +771,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI chat buttons hidden for users without `ai_enabled` (loaded from `/self` on screen open)
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
----
----
----
----
----
 ---
 
 ## [1.1.51+249] - 2026-05-29
@@ -936,10 +790,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
 ---
----
----
----
----
 
 ## [1.1.50+248] - 2026-05-29
 
@@ -957,9 +807,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI chat buttons hidden for users without `ai_enabled` (loaded from `/self` on screen open)
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
----
----
----
 ---
 
 ## [1.1.49+247] - 2026-05-29
@@ -979,8 +826,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
 ---
----
----
 
 ## [1.1.48+246] - 2026-05-29
 
@@ -999,7 +844,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Token count uses Gemini `usageMetadata` when available, falls back to character-based estimate
 
 ---
----
 
 ## [1.1.48+246] - 2026-05-29
 
@@ -1014,11 +858,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lucide icons now render correctly — font was missing from local package override
 - `CacheKeyBuilder` lambda updated for `dio_cache_interceptor` 4.0.6 (`Object? body` parameter added to match new typedef)
 
----
----
----
----
----
 ---
 
 ## [1.1.47+245] - 2026-05-29
@@ -1035,10 +874,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CacheKeyBuilder` lambda updated for `dio_cache_interceptor` 4.0.6 (`Object? body` parameter added to match new typedef)
 
 ---
----
----
----
----
 
 ## [1.1.46+244] - 2026-05-29
 
@@ -1053,9 +888,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lucide icons now render correctly — font was missing from local package override
 - `CacheKeyBuilder` lambda updated for `dio_cache_interceptor` 4.0.6 (`Object? body` parameter added to match new typedef)
 
----
----
----
 ---
 
 ## [1.1.45+243] - 2026-05-29
@@ -1072,8 +904,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CacheKeyBuilder` lambda updated for `dio_cache_interceptor` 4.0.6 (`Object? body` parameter added to match new typedef)
 
 ---
----
----
 
 ## [1.1.44+242] - 2026-05-29
 
@@ -1089,7 +919,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CacheKeyBuilder` lambda updated for `dio_cache_interceptor` 4.0.6 (`Object? body` parameter added to match new typedef)
 
 ---
----
 
 ## [1.1.43+241] - 2026-05-26
 
@@ -1099,14 +928,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
----
----
----
----
----
----
----
----
 ---
 
 ## [1.1.42+240] - 2026-05-26
@@ -1118,13 +939,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
 ---
----
----
----
----
----
----
----
 
 ## [1.1.41+239] - 2026-05-26
 
@@ -1134,12 +948,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
----
----
----
----
----
----
 ---
 
 ## [1.1.40+238] - 2026-05-26
@@ -1151,11 +959,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
 ---
----
----
----
----
----
 
 ## [1.1.39+237] - 2026-05-26
 
@@ -1165,10 +968,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
----
----
----
----
 ---
 
 ## [1.1.38+236] - 2026-05-26
@@ -1180,9 +979,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
 ---
----
----
----
 
 ## [1.1.37+235] - 2026-05-26
 
@@ -1193,8 +989,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
 ---
----
----
 
 ## [1.1.36+234] - 2026-05-26
 
@@ -1204,7 +998,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Question images, tab images, and option thumbnails now use `CachedNetworkImage` instead of `Image.network` for disk-level caching that persists across widget rebuilds
 
----
 ---
 
 ## [1.1.35+233] - 2026-05-26
@@ -1246,7 +1039,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Empty tabs (containing only dead motortrafikskola.se images) are now filtered out server-side and never sent to the app
 
 ---
----
 
 ## [1.1.32+230] - 2026-05-25
 
@@ -1259,7 +1051,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.31+229] - 2026-05-25
@@ -1274,7 +1065,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.1.30+228] - 2026-05-25
 
@@ -1287,7 +1077,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.29+227] - 2026-05-25
@@ -1302,7 +1091,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.1.28+226] - 2026-05-25
 
@@ -1316,14 +1104,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.1.27+225] - 2026-05-25
 
 ### Changed
 - **Dashboard exam ordering**: the most recently attempted exam is now always pinned to position 0 in the carousel and auto-selected on load; remaining exams are sorted by total attempt count (descending)
 
----
 ---
 
 ## [1.1.26+224] - 2026-05-25
@@ -1339,7 +1125,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Empty tabs (containing only dead motortrafikskola.se images) are now filtered out server-side and never sent to the app
 
----
 ---
 
 ## [1.1.25+223] - 2026-05-23
@@ -1358,7 +1143,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.1.24+222] - 2026-05-22
 
@@ -1374,7 +1158,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`ProfileScreen`** username, email, badge label, menu tile titles, and logout sheet title/body all migrated to `AppTextStyles`, removing scattered `GoogleFonts.*` and `const TextStyle` calls
 - **`StatsScreen`** all visible text (stat card values/labels, breakdown card headings, mini-stats, attempt history rows, pass/fail badge, empty-state message) migrated to `AppTextStyles`; hardcoded English strings replaced with translation keys (`home_passed`, `home_failed`, `stats_*`)
 
----
 ---
 
 ## [1.1.23+221] - 2026-05-22
@@ -1405,7 +1188,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `_contrastColor()` helper from `_ImageCard` — text color is now determined directly from `isDark` flag
 
 ---
----
 
 ## [1.1.22+220] - 2026-05-22
 
@@ -1425,7 +1207,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed unused chip label in performance overview section
 
 ---
----
 
 ## [1.1.21+219] - 2026-05-22
 
@@ -1444,7 +1225,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Removed unused chip label in performance overview section
 
----
 ---
 
 ## [1.1.20+218] - 2026-05-21
@@ -1478,7 +1258,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.1.18+216] - 2026-05-20
 
@@ -1491,7 +1270,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.17+215] - 2026-05-19
@@ -1519,7 +1297,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account-conflict dialog used hardcoded English strings and no theme colors — replaced with localized keys and `ColorScheme`/`TextTheme` tokens; dialog is now dark-mode safe
 
 ---
----
 
 ## [1.1.16+214] - 2026-05-19
 
@@ -1546,7 +1323,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All static/hardcoded English strings in `receipt_screen.dart` replaced with localised translation keys
 
 ---
----
 
 ## [1.1.15+213] - 2026-05-19
 
@@ -1559,7 +1335,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.14+212] - 2026-05-19
@@ -1581,7 +1356,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend rejects Apple IAP transactions already claimed by a different account with HTTP 409, preventing subscription transfer between app accounts
 
 ---
----
 
 ## [1.1.13+211] - 2026-05-18
 
@@ -1594,7 +1368,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.12+210] - 2026-05-18
@@ -1612,7 +1385,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auth bottom sheet login suppresses the inline error for timeout and throttle cases already handled by the global snackbar
 
 ---
----
 
 ## [1.1.11+209] - 2026-05-17
 
@@ -1625,7 +1397,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.10+208] - 2026-05-17
@@ -1640,7 +1411,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.1.9+207] - 2026-05-17
 
@@ -1653,7 +1423,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.8+206] - 2026-05-17
@@ -1668,7 +1437,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.1.7+205] - 2026-05-16
 
@@ -1681,7 +1449,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.6+204] - 2026-05-16
@@ -1701,7 +1468,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test attempts are now always written to local storage first, and `Save & Exit` keeps the user on the test screen with an error message if backend sync fails instead of silently closing
 
 ---
----
 
 ## [1.1.5+203] - 2026-05-16
 
@@ -1719,7 +1485,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apple sign-in button icon color in dark mode now follows theme (matches Google icon treatment)
 
 ---
----
 
 ## [1.1.4+202] - 2026-05-16
 
@@ -1732,7 +1497,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.3+201] - 2026-05-16
@@ -1747,7 +1511,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.1.2+200] - 2026-05-16
 
@@ -1760,7 +1523,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.1.1+199] - 2026-05-16
@@ -1787,7 +1549,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Progress bar removed from BCD licence cards (Categories screen)
 
 ---
----
 
 ## [1.1.0+198] - 2026-05-16
 
@@ -1800,7 +1561,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.31+197] - 2026-05-16
@@ -1815,7 +1575,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.30+196] - 2026-05-16
 
@@ -1828,7 +1587,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.29+195] - 2026-05-16
@@ -1843,7 +1601,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.28+194] - 2026-05-16
 
@@ -1856,7 +1613,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.27+193] - 2026-05-16
@@ -1871,7 +1627,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.26+192] - 2026-05-16
 
@@ -1884,7 +1639,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.25+191] - 2026-05-16
@@ -1899,7 +1653,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.24+190] - 2026-05-16
 
@@ -1913,7 +1666,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.23+189] - 2026-05-16
 
@@ -1926,7 +1678,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.22+188] - 2026-05-16
@@ -1946,7 +1697,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **"DRIVE TEST" wrapping on splash** — wrapped in `FittedBox(fit: BoxFit.scaleDown)` so it always stays on one line regardless of screen width
 
----
 ---
 
 ## [1.0.21+187] - 2026-05-16
@@ -1979,7 +1729,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`kIapDeferredReceipt` cleared on logout** — prevents a subsequent user on the same device from accidentally claiming a previous user's deferred Apple purchase receipt
 
 ---
----
 
 ## [1.0.20+186] - 2026-05-15
 
@@ -1992,7 +1741,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.19+185] - 2026-05-15
@@ -2013,7 +1761,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed profile menu item labels and navigation for "Manage Subscription", "Help", and "Purchase History"
 
 ---
----
 
 ## [1.0.18+184] - 2026-05-15
 
@@ -2026,7 +1773,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - "Continue as a guest" on the onboarding pricing screen no longer overwrites the session of an already-logged-in user; `guestLogin()` is now skipped when a valid token is already present, so authenticated users proceed directly to the main screen with their own credentials intact
 
----
 ---
 
 ## [1.0.17+183] - 2026-05-15
@@ -2043,7 +1789,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IAP `restored` purchase events (triggered by iOS "You're currently subscribed" dialog) no longer call the backend confirmation endpoint — prevents a different logged-in app user from inheriting a subscription that belongs to the original Apple ID purchaser
 - Post-purchase navigation from the onboarding success screen ("Start Tests" / "Back to home") now correctly replaces the onboarding route with `MainScreen`; previously `findAncestorStateOfType` could never locate the onboarding state from its own context, so navigation silently did nothing and the user remained stuck on onboarding
 
----
 ---
 
 ## [1.0.16+182] - 2026-05-15
@@ -2078,7 +1823,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Errors cleared when switching between login/signup/landing views in auth screen
 
 ---
----
 
 ## [1.0.15+181] - 2026-05-13
 
@@ -2092,7 +1836,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.14+180] - 2026-05-12
 
@@ -2105,7 +1848,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.13+179] - 2026-05-12
@@ -2124,7 +1866,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing `onIAPPurchaseConfirmed` callback in onboarding payment flow — backend confirm endpoint is now called for iOS purchases from the onboarding screen (Apple guideline 2.1(b))
 
 ---
----
 
 ## [1.0.12+178] - 2026-05-12
 
@@ -2137,7 +1878,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.11+177] - 2026-05-12
@@ -2152,7 +1892,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.10+176] - 2026-05-12
 
@@ -2165,7 +1904,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.9+175] - 2026-05-12
@@ -2184,7 +1922,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multiple simultaneous logout triggers (e.g. several API requests all returning 401 at once) no longer show repeated "logged out" notifications — `logoutAndRedirect` is now guarded by a `_logoutInProgress` flag
 
 ---
----
 
 ## [1.0.8+174] - 2026-05-08
 
@@ -2197,7 +1934,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.8+174] - 2026-05-08
@@ -2227,7 +1963,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.7+173] - 2026-05-08
@@ -2280,7 +2015,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IAP purchase handler now guards `_pendingCompleter != null` before resolving, preventing a crash when a StoreKit restore event arrives during an active buy flow
 
 ---
----
 
 ## [1.0.4+170] - 2026-05-08
 
@@ -2293,7 +2027,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+169] - 2026-05-07
@@ -2308,7 +2041,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+165] - 2026-05-06
 
@@ -2322,7 +2054,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+163] - 2026-05-06
 
@@ -2335,7 +2066,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+161] - 2026-05-05
@@ -2352,7 +2082,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Removed ~600 lines of duplicated payment code spread across four screens
 
----
 ---
 
 ## [1.0.3+157] - 2026-05-03
@@ -2372,7 +2101,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Logout/cache cleanup no longer instantiates `BcdCache` just to invalidate it
 
 ---
----
 
 ## [1.0.3+154] - 2026-05-03
 
@@ -2385,7 +2113,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+152] - 2026-05-03
@@ -2400,7 +2127,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+151] - 2026-05-03
 
@@ -2413,7 +2139,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+150] - 2026-05-03
@@ -2428,7 +2153,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+149] - 2026-05-03
 
@@ -2441,7 +2165,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+148] - 2026-05-03
@@ -2462,7 +2185,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `mounted` guard in `OnboardingScreen` before showing the subscription success overlay — prevents a `setState` call after widget disposal
 
 ---
----
 
 ## [1.0.3+124] - 2026-05-02
 
@@ -2476,7 +2198,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+123] - 2026-05-02
 
@@ -2489,7 +2210,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+123] - 2026-05-02
@@ -2526,7 +2246,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed iOS CocoaPods conflict: Firebase/CoreOnly version mismatch between Podfile.lock (12.4.0) and firebase_core plugin (12.9.0); resolved by regenerating Podfile.lock
 
 ---
----
 
 ## [1.0.3+121] - 2026-04-30
 
@@ -2539,7 +2258,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+120] - 2026-04-30
@@ -2559,7 +2277,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `finally` block to logout sheet so `_isLoading` always resets to `false` if the widget remains mounted after navigation
 
 ---
----
 
 ## [1.0.3+119] - 2026-04-29
 
@@ -2572,7 +2289,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+118] - 2026-04-29
@@ -2587,7 +2303,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Navigation vibration now uses the `vibration` package on Android and supported mobile browsers, keeps `HapticFeedback.selectionClick()` on native iOS, and adds the missing Android `VIBRATE` permission
 - Navigation vibration on iOS browsers remains limited by browser support for the Web Vibration API
 
----
 ---
 
 ## [1.0.3+117] - 2026-04-29
@@ -2606,7 +2321,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Duplicate notifications prevented within a short time frame
 
 ---
----
 
 ## [1.0.3+116] - 2026-04-29
 
@@ -2620,7 +2334,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+115] - 2026-04-29
 
@@ -2633,7 +2346,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+114] - 2026-04-19
@@ -2650,7 +2362,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+113] - 2026-04-18
 
@@ -2663,7 +2374,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+112] - 2026-04-18
@@ -2678,7 +2388,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+111] - 2026-04-18
 
@@ -2691,7 +2400,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+110] - 2026-04-18
@@ -2706,7 +2414,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+109] - 2026-04-18
 
@@ -2719,7 +2426,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+108] - 2026-04-17
@@ -2745,7 +2451,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Theme Consistency** — fixed multiple hardcoded colors to properly resolve using the new Nordic Kinetic Design System tokens in both themes.
 
 ---
----
 
 ## [1.0.3+107] - 2026-04-16
 
@@ -2767,7 +2472,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `testAttempts` Hive box is now opened on-demand in `DashboardProvider` — fixes zero-attempt stats on web (page refresh) and mobile cold-start when the Home tab had never been visited
 - BCD category tree (`BcdCache`) uses a `Completer` to deduplicate parallel fetch calls — prevents redundant API requests on simultaneous screen loads
 
----
 ---
 
 ## [1.0.3+106] - 2026-04-16
@@ -2791,7 +2495,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - BCD category tree (`BcdCache`) uses a `Completer` to deduplicate parallel fetch calls — prevents redundant API requests on simultaneous screen loads
 
 ---
----
 
 ## [1.0.3+105] - 2026-04-15
 
@@ -2809,7 +2512,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced snackbar error handling and add new features in various screens
 
 ---
----
 
 ## [1.0.3+105] - 2026-04-15
 
@@ -2827,7 +2529,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+104] - 2026-04-15
 
@@ -2840,7 +2541,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+103] - 2026-04-15
@@ -2855,7 +2555,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+102] - 2026-04-15
 
@@ -2868,7 +2567,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+101] - 2026-04-15
@@ -2883,7 +2581,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+100] - 2026-04-13
 
@@ -2897,7 +2594,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+99] - 2026-04-13
 
@@ -2910,7 +2606,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+98] - 2026-04-13
@@ -2930,7 +2625,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Potential duplicate push sends by deduplicating tokens server-side and avoiding duplicate active token ownership across users
 
 ---
----
 
 ## [1.0.3+97] - 2026-04-13
 
@@ -2948,7 +2642,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Duplicate notification handling caused by repeated NotificationService listener initialization across auth/splash flows
 - Potential duplicate push sends by deduplicating tokens server-side and avoiding duplicate active token ownership across users
 
----
 ---
 
 ## [1.0.3+96] - 2026-04-13
@@ -2968,7 +2661,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Potential duplicate push sends by deduplicating tokens server-side and avoiding duplicate active token ownership across users
 
 ---
----
 
 ## [1.0.3+95] - 2026-04-13
 
@@ -2987,7 +2679,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Potential duplicate push sends by deduplicating tokens server-side and avoiding duplicate active token ownership across users
 
 ---
----
 
 ## [1.0.3+94] - 2026-04-13
 
@@ -3001,7 +2692,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+93] - 2026-04-13
 
@@ -3014,7 +2704,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+92] - 2026-04-13
@@ -3044,7 +2733,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `BCDTestsListScreen` passed `_BCDTestArgsImpl` as route `extra` but router cast to `BCDTestScreenArgs` — replaced with `BCDTestScreenArgs` directly
 
 ---
----
 
 ## [1.0.3+91] - 2026-04-12
 
@@ -3067,7 +2755,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+90] - 2026-04-12
 
@@ -3085,7 +2772,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+89] - 2026-04-12
@@ -3128,11 +2814,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dark mode: question navigation sheet items in test screen no longer show white `Colors.grey[50]` background
 
 ---
----
----
----
----
----
 
 ## [1.0.3+84] - 2026-04-11
 
@@ -3146,7 +2827,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+83] - 2026-04-11
 
@@ -3159,7 +2839,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 -
 
----
 ---
 
 ## [1.0.3+82] - 2026-04-03
@@ -3180,7 +2859,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ---
----
 
 ## [1.0.3+81] - 2026-04-03
 
@@ -3198,7 +2876,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
----
 ---
 
 ## [1.0.3+80] - 2026-04-03
