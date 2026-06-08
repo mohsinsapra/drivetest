@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.5.13+292] - 2026-06-08
+
+### Added
 - **More pull-to-refresh support across the app**: Refresh gestures are now available more consistently across Smart Learning and other key study screens, making it easier to reload content without leaving the page.
 
 ### Changed
@@ -21,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Refresh indicator placement under top overlays**: Pull-to-refresh indicators are now positioned more cleanly on screens with custom top bars and gradients.
 - **Screenshot permission updates apply more reliably**: Screens that depend on screenshot protection now respond more consistently when your account settings change.
 
+---
 ---
 
 ## [1.5.12+291] - 2026-06-08
