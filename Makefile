@@ -508,7 +508,7 @@ _deploy-to-web-repo:
 	cd $(WEB_BUILD_DIR) && \
 	git add . && \
 	git commit -m "$$LAST_COMMIT" || echo "$(COLOR_YELLOW)No changes to commit$(COLOR_RESET)"; \
-	git push $(WEB_REPO_REMOTE) $(WEB_REPO_BRANCH) --force && \
+	git push $(WEB_REPO_REMOTE) HEAD:$(WEB_REPO_BRANCH) --force && \
 	echo "$(COLOR_GREEN)✅ Successfully deployed to web repository!$(COLOR_RESET)" || \
 	echo "$(COLOR_YELLOW)⚠️  Push failed. Check your remote configuration.$(COLOR_RESET)"
 
