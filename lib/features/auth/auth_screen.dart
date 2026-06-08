@@ -1022,8 +1022,8 @@ class _LandingViewState extends State<_LandingView> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
-                                color: cs.onSurfaceVariant
-                                    .withValues(alpha: 0.7),
+                                color:
+                                    cs.onSurfaceVariant.withValues(alpha: 0.7),
                               ),
                             ),
                           ),
@@ -1190,154 +1190,158 @@ class _LandingViewState extends State<_LandingView> {
                   builder: (context, constraints) => SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight - 32),
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight - 32),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        alignment: Alignment.topCenter,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 200),
-                          opacity: loginError != null ? 1.0 : 0.0,
-                          child: loginError != null
-                              ? Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: cs.error.withValues(alpha: 0.08),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.error_outline,
-                                            color: cs.error, size: 16),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            loginError,
-                                            style: GoogleFonts.plusJakartaSans(
-                                                fontSize: 13, color: cs.error),
-                                          ),
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOutCubic,
+                            alignment: Alignment.topCenter,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity: loginError != null ? 1.0 : 0.0,
+                              child: loginError != null
+                                  ? Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 10),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              cs.error.withValues(alpha: 0.08),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                      ),
-                      // Platform-adaptive buttons with per-element animations
-                      if (AppleSignInHelper.isAvailable()) ...[
-                        // iOS — Google: collapses when Apple is loading
-                        _fadeCollapse(
-                          !isAppleLoading,
-                          SizedBox(
-                            height: 54,
-                            child: Row(children: [
-                              AppSocialButton(
-                                icon: FontAwesomeIcons.google,
-                                iconSize: 18,
-                                iconColor: const Color(0xFF4285F4),
-                                label: t.auth_express_google,
-                                loading: isGoogleLoading,
-                                loadingLabel: googleLoadingStep.isNotEmpty
-                                    ? googleLoadingStep
-                                    : null,
-                                onPressed: isAppleLoading ? null : onGoogle,
-                              ),
-                            ]),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.error_outline,
+                                                color: cs.error, size: 16),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                loginError,
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                        fontSize: 13,
+                                                        color: cs.error),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
                           ),
-                        ),
-                        // iOS — spacer + Apple: collapses when Google is loading
-                        _fadeCollapse(
-                          !isGoogleLoading,
-                          Column(children: [
-                            const SizedBox(height: 10),
+                          // Platform-adaptive buttons with per-element animations
+                          if (AppleSignInHelper.isAvailable()) ...[
+                            // iOS — Google: collapses when Apple is loading
+                            _fadeCollapse(
+                              !isAppleLoading,
+                              SizedBox(
+                                height: 54,
+                                child: Row(children: [
+                                  AppSocialButton(
+                                    icon: FontAwesomeIcons.google,
+                                    iconSize: 18,
+                                    iconColor: const Color(0xFF4285F4),
+                                    label: t.auth_express_google,
+                                    loading: isGoogleLoading,
+                                    loadingLabel: googleLoadingStep.isNotEmpty
+                                        ? googleLoadingStep
+                                        : null,
+                                    onPressed: isAppleLoading ? null : onGoogle,
+                                  ),
+                                ]),
+                              ),
+                            ),
+                            // iOS — spacer + Apple: collapses when Google is loading
+                            _fadeCollapse(
+                              !isGoogleLoading,
+                              Column(children: [
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  height: 54,
+                                  child: Row(children: [
+                                    AppSocialButton(
+                                      icon: FontAwesomeIcons.apple,
+                                      iconSize: 22,
+                                      iconColor: Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? cs.primary
+                                          : cs.onSurface,
+                                      label: t.auth_express_apple,
+                                      loading: isAppleLoading,
+                                      loadingLabel: t.auth_apple_connecting,
+                                      onPressed:
+                                          isGoogleLoading ? null : onApple,
+                                    ),
+                                  ]),
+                                ),
+                              ]),
+                            ),
+                            // iOS — More options: collapses when any sign-in is loading
+                            _buildMoreOptionsSection(
+                              visible: !isSocialLoading,
+                              includeLogin: true,
+                              t: t,
+                              cs: cs,
+                              isGuestLoading: isGuestLoading,
+                            ),
+                          ] else ...[
+                            // Android/Web — Google: always shown, loading inline
                             SizedBox(
                               height: 54,
                               child: Row(children: [
                                 AppSocialButton(
-                                  icon: FontAwesomeIcons.apple,
-                                  iconSize: 22,
-                                  iconColor:
-                                      Theme.of(context).brightness ==
-                                              Brightness.dark
-                                          ? cs.primary
-                                          : cs.onSurface,
-                                  label: t.auth_express_apple,
-                                  loading: isAppleLoading,
-                                  loadingLabel: t.auth_apple_connecting,
-                                  onPressed:
-                                      isGoogleLoading ? null : onApple,
+                                  icon: FontAwesomeIcons.google,
+                                  iconSize: 18,
+                                  iconColor: const Color(0xFF4285F4),
+                                  label: t.auth_express_google,
+                                  loading: isGoogleLoading,
+                                  loadingLabel: googleLoadingStep.isNotEmpty
+                                      ? googleLoadingStep
+                                      : null,
+                                  onPressed: onGoogle,
                                 ),
                               ]),
                             ),
-                          ]),
-                        ),
-                        // iOS — More options: collapses when any sign-in is loading
-                        _buildMoreOptionsSection(
-                          visible: !isSocialLoading,
-                          includeLogin: true,
-                          t: t,
-                          cs: cs,
-                          isGuestLoading: isGuestLoading,
-                        ),
-                      ] else ...[
-                        // Android/Web — Google: always shown, loading inline
-                        SizedBox(
-                          height: 54,
-                          child: Row(children: [
-                            AppSocialButton(
-                              icon: FontAwesomeIcons.google,
-                              iconSize: 18,
-                              iconColor: const Color(0xFF4285F4),
-                              label: t.auth_express_google,
-                              loading: isGoogleLoading,
-                              loadingLabel: googleLoadingStep.isNotEmpty
-                                  ? googleLoadingStep
-                                  : null,
-                              onPressed: onGoogle,
-                            ),
-                          ]),
-                        ),
-                        // Android/Web — spacer + Login: collapses when loading
-                        _fadeCollapse(
-                          !isGoogleLoading,
-                          Column(children: [
-                            const SizedBox(height: 10),
-                            Hero(
-                              tag: 'auth_login_btn',
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(9999),
-                                child: AppButton(
-                                  label: t.auth_tab_login,
-                                  onPressed: onLogin,
+                            // Android/Web — spacer + Login: collapses when loading
+                            _fadeCollapse(
+                              !isGoogleLoading,
+                              Column(children: [
+                                const SizedBox(height: 10),
+                                Hero(
+                                  tag: 'auth_login_btn',
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(9999),
+                                    child: AppButton(
+                                      label: t.auth_tab_login,
+                                      onPressed: onLogin,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ]),
                             ),
-                          ]),
-                        ),
-                        // Android/Web — More options: collapses when loading
-                        _buildMoreOptionsSection(
-                          visible: !isGoogleLoading,
-                          includeLogin: false,
-                          t: t,
-                          cs: cs,
-                          isGuestLoading: isGuestLoading,
-                        ),
-                      ],
-                    ],
+                            // Android/Web — More options: collapses when loading
+                            _buildMoreOptionsSection(
+                              visible: !isGoogleLoading,
+                              includeLogin: false,
+                              t: t,
+                              cs: cs,
+                              isGuestLoading: isGuestLoading,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
             ],
           ),
         ),
