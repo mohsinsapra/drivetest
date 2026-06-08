@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -38,25 +39,22 @@ class _ExamCarouselShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final fill = theme.brightness == Brightness.dark
-        ? cs.surfaceContainerHighest
-        : cs.surfaceContainerHighest.withValues(alpha: 0.75);
-    return SizedBox(
-      height: _kCardHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
-        itemCount: _count,
-        separatorBuilder: (_, __) => const SizedBox(width: _kCardSpacing),
-        itemBuilder: (_, __) => SizedBox(
-          width: _kCardWidth,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: fill,
-              borderRadius: BorderRadius.circular(24),
+    return AppShimmer(
+      child: SizedBox(
+        height: _kCardHeight,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: _kLeftPad),
+          itemCount: _count,
+          separatorBuilder: (_, __) => const SizedBox(width: _kCardSpacing),
+          itemBuilder: (_, __) => SizedBox(
+            width: _kCardWidth,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
             ),
           ),
         ),

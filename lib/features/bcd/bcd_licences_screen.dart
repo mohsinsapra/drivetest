@@ -5,7 +5,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -419,10 +419,7 @@ class _AccessBadge extends StatelessWidget {
 class _Shimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Shimmer.fromColors(
-      baseColor: cs.surfaceContainerHighest,
-      highlightColor: cs.surface,
+    return AppShimmer(
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 7,
@@ -430,8 +427,7 @@ class _Shimmer extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           height: 96,
           decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(16)),
+              color: Colors.white, borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );

@@ -353,7 +353,11 @@
       "Bash(node -e \"require\\('./lib/helpers'\\).detectDevServers\\(\\).then\\(servers => console.log\\(JSON.stringify\\(servers\\)\\)\\)\")",
       "Bash(node run.js /tmp/playwright-test-homepage.js)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(perl *)"
+      "Bash(perl *)",
+      "Bash(grep \"\\\\.dart$\")",
+      "Skill(run)",
+      "Bash(echo \"Flutter run started in background with PID $!\")",
+      "Bash(echo \"PID $!\")"
     ],
     "deny": [],
     "ask": []

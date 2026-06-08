@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:no_screenshot/no_screenshot.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:upgrader/upgrader.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_body.dart';
@@ -19,14 +21,32 @@ class ExamDashboardScreen extends StatefulWidget {
 
 class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
   late final Upgrader _upgrader;
+  final _noScreenshot = kIsWeb ? null : NoScreenshot.instance;
 
   @override
   void initState() {
     super.initState();
     _upgrader = Upgrader();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardProvider>().init();
+    _applyScreenshotPolicy();
+    AppStorage.allowScreenshotsNotifier.addListener(_applyScreenshotPolicy);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<DashboardProvider>().init();
+      if (mounted) _applyScreenshotPolicy();
     });
+  }
+
+  @override
+  void dispose() {
+    AppStorage.allowScreenshotsNotifier.removeListener(_applyScreenshotPolicy);
+    super.dispose();
+  }
+
+  void _applyScreenshotPolicy() async {
+    if (AppStorage.allowScreenshots()) {
+      await _noScreenshot?.screenshotOn();
+    } else {
+      await _noScreenshot?.screenshotOff();
+    }
   }
 
   Future<void> _handleSubscribe() async {

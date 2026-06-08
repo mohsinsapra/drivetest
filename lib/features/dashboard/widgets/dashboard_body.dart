@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/constants/language_options.dart';
@@ -148,6 +149,7 @@ class _DashboardBodyState extends State<DashboardBody> {
 
     return AdaptiveRefreshIndicator(
       onRefresh: widget.onRefresh,
+      refreshIndicatorExtent: 90,
       slivers: [
         SliverToBoxAdapter(
           child: SizedBox(height: MediaQuery.of(context).padding.top + 70),
@@ -373,7 +375,7 @@ class _DashboardBodyState extends State<DashboardBody> {
   }
 
   Widget _buildFocusAreasShimmer() {
-    return const _FocusAreasShimmer();
+    return const SliverToBoxAdapter(child: _FocusAreasShimmer());
   }
 
   Widget _animatedExamSection({
@@ -1001,19 +1003,21 @@ class _FocusAreasShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stats = _loadingDashboardStats(context);
-    final fill = _dashboardSkeletonFill(context);
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      sliver: SliverList.builder(
-        itemCount: stats.categoryStats!.length,
-        itemBuilder: (ctx, i) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Container(
-            height: 76,
-            decoration: BoxDecoration(
-              color: fill,
-              borderRadius: BorderRadius.circular(20),
+    return AppShimmer(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: List.generate(
+            4,
+            (i) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Container(
+                height: 76,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
             ),
           ),
         ),
@@ -1036,23 +1040,17 @@ class _SmartLearningShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      height: 68,
-      decoration: BoxDecoration(
-        color: _dashboardSkeletonFill(context),
-        borderRadius: BorderRadius.circular(16),
+    return AppShimmer(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        height: 68,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
       ),
     );
   }
-}
-
-Color _dashboardSkeletonFill(BuildContext context) {
-  final theme = Theme.of(context);
-  final cs = theme.colorScheme;
-  return theme.brightness == Brightness.dark
-      ? cs.surfaceContainerHighest
-      : cs.surfaceContainerHighest.withValues(alpha: 0.75);
 }
 
 // ─── Quick Access section ─────────────────────────────────────────────────────

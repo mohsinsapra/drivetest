@@ -8,7 +8,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/widgets/app_lottie.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -1025,10 +1025,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildSkeleton() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Shimmer.fromColors(
-      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
+    return AppShimmer(
       child: SafeArea(
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),

@@ -6,7 +6,7 @@ import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
@@ -652,10 +652,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
   }
 
   Widget _buildShimmer() {
-    final cs = Theme.of(context).colorScheme;
-    return Shimmer.fromColors(
-      baseColor: cs.surfaceContainerHighest,
-      highlightColor: cs.surface,
+    return AppShimmer(
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 6,
@@ -663,8 +660,7 @@ class _BCDTestsListScreenState extends State<_BCDTestsListScreen> {
           margin: const EdgeInsets.only(bottom: 10),
           height: 78,
           decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(14)),
+              color: Colors.white, borderRadius: BorderRadius.circular(14)),
         ),
       ),
     );

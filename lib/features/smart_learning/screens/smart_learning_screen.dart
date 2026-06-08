@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
@@ -66,6 +67,8 @@ class SmartLearningScreen extends StatefulWidget {
 }
 
 class _SmartLearningScreenState extends State<SmartLearningScreen> {
+  static const _kListPadding = EdgeInsets.fromLTRB(16, 12, 16, 40);
+
   final _svc = SmartProgressService();
   List<SmartExamEntry> _allEntries = [];
   Map<int, int> _passedCounts = {}; // testBcdId → chunks passed
@@ -296,14 +299,17 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
     final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
 
-    final scopeTitle = widget.screenTitle ??
-        widget.categoryFilter ??
-        t.smart_learning_subtitle;
+    final scopeTitle =
+        widget.screenTitle ?? widget.categoryFilter ?? t.smart_learning_title;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: const AppBackButton(),
+        leading:
+            (widget.categoryFilter != null || widget.subcategoryBcdId != null)
+                ? const AppBackButton()
+                : null,
+        automaticallyImplyLeading: false,
         title: Text(
           scopeTitle,
           style: Theme.of(context)
@@ -326,13 +332,15 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
                         ?.copyWith(color: cs.onSurface.withValues(alpha: 0.5))),
               ),
             )
-          : RefreshIndicator(
+          : AdaptiveRefreshIndicator(
               onRefresh: _load,
-              child: _showCategoryLevel
-                  ? _buildCategoryList(context)
-                  : _showSubcategoryLevel
-                      ? _buildSubcategoryList(context)
-                      : _buildTestList(context),
+              slivers: [
+                _showCategoryLevel
+                    ? _buildCategoryList(context)
+                    : _showSubcategoryLevel
+                        ? _buildSubcategoryList(context)
+                        : _buildTestList(context),
+              ],
             ),
     );
   }
@@ -342,79 +350,53 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
   Widget _buildCategoryList(BuildContext context) {
     final categories = _sortedCategories;
     final isFreeMap = _categoryIsFree;
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Column(
-              children: categories.asMap().entries.map((entry) {
-                final catName = entry.value;
-                final catEntries = _allEntries
-                    .where((e) => e.categoryName == catName)
-                    .toList();
-                final totalChunks = catEntries.fold<int>(
-                    0, (sum, e) => sum + e.chunkSizes.length);
-                final passedChunks = catEntries.fold<int>(
-                    0, (sum, e) => sum + (_passedCounts[e.testBcdId] ?? 0));
-                final isLast = entry.key == categories.length - 1;
+    return _buildListSliver(
+      child: _buildSectionCard(
+        context: context,
+        child: Column(
+          children: categories.asMap().entries.map((entry) {
+            final catName = entry.value;
+            final catEntries =
+                _allEntries.where((e) => e.categoryName == catName).toList();
+            final totalChunks =
+                catEntries.fold<int>(0, (sum, e) => sum + e.chunkSizes.length);
+            final passedChunks = catEntries.fold<int>(
+                0, (sum, e) => sum + (_passedCounts[e.testBcdId] ?? 0));
+            final isLast = entry.key == categories.length - 1;
 
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _CategoryRow(
-                      name: catName,
-                      isFree: isFreeMap[catName] ?? false,
-                      testCount: catEntries.length,
-                      passedChunks: passedChunks,
-                      totalChunks: totalChunks,
-                      onTap: () async {
-                        // Always drill into category — subcategory level will
-                        // show if subcategories exist, otherwise test list shows.
-                        await Navigator.push(
-                          context,
-                          AppPageRoute(
-                            builder: (_) => SmartLearningScreen(
-                              examBcdId: widget.examBcdId,
-                              categoryFilter: catName,
-                              initialPassedCounts: _passedCounts,
-                              initialActivityDates: _lastActivityDates,
-                            ),
-                          ),
-                        );
-                        _load();
-                      },
-                    ),
-                    if (!isLast)
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: cs.onSurface.withValues(alpha: 0.07),
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _CategoryRow(
+                  name: catName,
+                  isFree: isFreeMap[catName] ?? false,
+                  testCount: catEntries.length,
+                  passedChunks: passedChunks,
+                  totalChunks: totalChunks,
+                  onTap: () async {
+                    // Always drill into category — subcategory level will
+                    // show if subcategories exist, otherwise test list shows.
+                    await Navigator.push(
+                      context,
+                      AppPageRoute(
+                        builder: (_) => SmartLearningScreen(
+                          examBcdId: widget.examBcdId,
+                          categoryFilter: catName,
+                          initialPassedCounts: _passedCounts,
+                          initialActivityDates: _lastActivityDates,
+                        ),
                       ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
+                    );
+                    _load();
+                  },
+                ),
+                if (!isLast) _buildSectionDivider(context),
+              ],
+            );
+          }).toList(),
         ),
-      ],
+      ),
     );
   }
 
@@ -454,80 +436,54 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
         return cmp != 0 ? cmp : a.value.compareTo(b.value);
       });
 
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    return _buildListSliver(
+      child: _buildSectionCard(
+        context: context,
+        child: Column(
+          children: subcats.asMap().entries.map((entry) {
+            final subId = entry.value.key;
+            final subName = entry.value.value;
+            final subEntries = categoryEntries
+                .where((e) => e.parentCategoryBcdId == subId)
+                .toList();
+            final totalChunks =
+                subEntries.fold<int>(0, (sum, e) => sum + e.chunkSizes.length);
+            final passedChunks = subEntries.fold<int>(
+                0, (sum, e) => sum + (_passedCounts[e.testBcdId] ?? 0));
+            final isLast = entry.key == subcats.length - 1;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Column(
-              children: subcats.asMap().entries.map((entry) {
-                final subId = entry.value.key;
-                final subName = entry.value.value;
-                final subEntries = categoryEntries
-                    .where((e) => e.parentCategoryBcdId == subId)
-                    .toList();
-                final totalChunks = subEntries.fold<int>(
-                    0, (sum, e) => sum + e.chunkSizes.length);
-                final passedChunks = subEntries.fold<int>(
-                    0, (sum, e) => sum + (_passedCounts[e.testBcdId] ?? 0));
-                final isLast = entry.key == subcats.length - 1;
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _CategoryRow(
-                      name: subName,
-                      isFree: false,
-                      testCount: subEntries.length,
-                      passedChunks: passedChunks,
-                      totalChunks: totalChunks,
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          AppPageRoute(
-                            builder: (_) => SmartLearningScreen(
-                              examBcdId: widget.examBcdId,
-                              categoryFilter: widget.categoryFilter,
-                              subcategoryBcdId: subId,
-                              screenTitle: subName,
-                              initialPassedCounts: _passedCounts,
-                              initialActivityDates: _lastActivityDates,
-                            ),
-                          ),
-                        );
-                        _load();
-                      },
-                    ),
-                    if (!isLast)
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: cs.onSurface.withValues(alpha: 0.07),
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _CategoryRow(
+                  name: subName,
+                  isFree: false,
+                  testCount: subEntries.length,
+                  passedChunks: passedChunks,
+                  totalChunks: totalChunks,
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      AppPageRoute(
+                        builder: (_) => SmartLearningScreen(
+                          examBcdId: widget.examBcdId,
+                          categoryFilter: widget.categoryFilter,
+                          subcategoryBcdId: subId,
+                          screenTitle: subName,
+                          initialPassedCounts: _passedCounts,
+                          initialActivityDates: _lastActivityDates,
+                        ),
                       ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
+                    );
+                    _load();
+                  },
+                ),
+                if (!isLast) _buildSectionDivider(context),
+              ],
+            );
+          }).toList(),
         ),
-      ],
+      ),
     );
   }
 
@@ -535,12 +491,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
 
   Widget _buildTestList(BuildContext context) {
     final entries = _filteredEntries;
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+    return _buildListSliver(
       children: [
         if (_categoryWeakCount > 0) ...[
           _CategoryMistakesCard(
@@ -561,54 +512,84 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
           ),
           const SizedBox(height: 12),
         ],
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Column(
-              children: entries.asMap().entries.map((e) {
-                final isLast = e.key == entries.length - 1;
-                final entry = e.value;
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _ExamRow(
-                      entry: entry,
-                      passedCount: _passedCounts[entry.testBcdId] ?? 0,
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          AppPageRoute(
-                            builder: (_) => SmartExamScreen(entry: entry),
-                          ),
-                        );
-                        _load();
-                      },
-                    ),
-                    if (!isLast)
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: cs.onSurface.withValues(alpha: 0.07),
-                      ),
-                  ],
-                );
-              }).toList(),
-            ),
+        _buildSectionCard(
+          context: context,
+          child: Column(
+            children: entries.asMap().entries.map((e) {
+              final isLast = e.key == entries.length - 1;
+              final entry = e.value;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ExamRow(
+                    entry: entry,
+                    passedCount: _passedCounts[entry.testBcdId] ?? 0,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        AppPageRoute(
+                          builder: (_) => SmartExamScreen(entry: entry),
+                        ),
+                      );
+                      _load();
+                    },
+                  ),
+                  if (!isLast) _buildSectionDivider(context),
+                ],
+              );
+            }).toList(),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildListSliver({Widget? child, List<Widget> children = const []}) {
+    return SliverPadding(
+      padding: _kListPadding,
+      sliver: SliverList(
+        delegate: SliverChildListDelegate([
+          if (child != null) child,
+          ...children,
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required BuildContext context,
+    required Widget child,
+  }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildSectionDivider(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: cs.onSurface.withValues(alpha: 0.07),
     );
   }
 }

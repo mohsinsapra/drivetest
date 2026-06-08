@@ -81,8 +81,11 @@ class AppStorage {
 
   // Updated by ApiService after every successful /self response.
   static bool _cachedAllowScreenshots = false;
+  static final ValueNotifier<bool> allowScreenshotsNotifier =
+      ValueNotifier(false);
   static void updateAllowScreenshots(bool value) {
     _cachedAllowScreenshots = value;
+    allowScreenshotsNotifier.value = value;
   }
 
   /// App display language — `'en'` or `'sv'`.

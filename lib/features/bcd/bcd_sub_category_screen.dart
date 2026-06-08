@@ -1,7 +1,7 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/category_sort_utils.dart';
@@ -223,10 +223,7 @@ class _CategoryCard extends StatelessWidget {
 class _Shimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Shimmer.fromColors(
-      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
+    return AppShimmer(
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 6,

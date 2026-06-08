@@ -10,13 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+- **More pull-to-refresh support across the app**: Refresh gestures are now available more consistently across Smart Learning and other key study screens, making it easier to reload content without leaving the page.
 
 ### Changed
--
+- **Polished top navigation on the main app screens**: The top area now feels cleaner and more modern, with improved profile and notification button presentation and smoother behavior while scrolling.
+- **More consistent loading placeholders**: Dashboard, Smart Learning, BCD, licences, onboarding, and home loading states now use a more unified shimmer style for a cleaner loading experience.
+- **Smoother Smart Learning browsing**: Category, subcategory, and test lists in Smart Learning now feel more consistent when navigating deeper into topics.
 
 ### Fixed
--
+- **Refresh indicator placement under top overlays**: Pull-to-refresh indicators are now positioned more cleanly on screens with custom top bars and gradients.
+- **Screenshot permission updates apply more reliably**: Screens that depend on screenshot protection now respond more consistently when your account settings change.
 
 ---
 

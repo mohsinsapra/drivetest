@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import '../models/dashboard_stats.dart';
 import '../providers/dashboard_provider.dart';
@@ -267,15 +268,13 @@ class _StatCell extends StatelessWidget {
 class _StatsRowShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    return Container(
-      height: 90,
-      decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? cs.surfaceContainerHighest
-            : cs.surfaceContainerHighest.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(16),
+    return AppShimmer(
+      child: Container(
+        height: 90,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
       ),
     );
   }

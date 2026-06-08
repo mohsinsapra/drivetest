@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_text_utils.dart';
@@ -428,17 +428,9 @@ class _BatchDots extends StatelessWidget {
 class _Shimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      child: Shimmer.fromColors(
-        baseColor: isDark
-            ? cs.onSurface.withValues(alpha: 0.15)
-            : cs.onSurface.withValues(alpha: 0.08),
-        highlightColor: isDark
-            ? cs.onSurface.withValues(alpha: 0.28)
-            : cs.onSurface.withValues(alpha: 0.15),
+      child: AppShimmer(
         child: Container(
           height: 200,
           decoration: BoxDecoration(

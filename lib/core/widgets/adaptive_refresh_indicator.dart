@@ -14,12 +14,17 @@ class AdaptiveRefreshIndicator extends StatefulWidget {
     required this.slivers,
     this.physics,
     this.controller,
+    this.refreshIndicatorExtent = 60,
   });
 
   final Future<void> Function() onRefresh;
   final List<Widget> slivers;
   final ScrollPhysics? physics;
   final ScrollController? controller;
+
+  /// How tall the indicator stays while refreshing. Increase to push the
+  /// spinner below top overlays (e.g. gradient / status-bar fade).
+  final double refreshIndicatorExtent;
 
   @override
   State<AdaptiveRefreshIndicator> createState() =>
@@ -83,7 +88,11 @@ class _AdaptiveRefreshIndicatorState extends State<AdaptiveRefreshIndicator> {
           physics: effectivePhysics,
           clipBehavior: Clip.none,
           slivers: [
-            CupertinoSliverRefreshControl(onRefresh: widget.onRefresh),
+            CupertinoSliverRefreshControl(
+              onRefresh: widget.onRefresh,
+              refreshIndicatorExtent: widget.refreshIndicatorExtent,
+              refreshTriggerPullDistance: widget.refreshIndicatorExtent + 40,
+            ),
             ...widget.slivers,
           ],
         ),

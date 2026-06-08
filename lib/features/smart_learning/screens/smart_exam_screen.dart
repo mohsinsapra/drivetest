@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_test_screen.dart';
@@ -275,28 +276,32 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
+          : AdaptiveRefreshIndicator(
               onRefresh: _load,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
-                children: [
-                  ..._buildChunksWithReviews(t),
-                  const SizedBox(height: 6),
-                  if (_weakCount > 0) ...[
-                    _TrainMistakesCard(
-                        count: _weakCount, onTap: _startMistakes),
-                    const SizedBox(height: 10),
-                  ],
-                  _FullExamCard(
-                    onStart: _launchFullExam,
-                    hasCompletedPreviousParts:
-                        _activeChunk >= widget.entry.chunkSizes.length,
-                    mastered: _masteredCount,
-                    totalQuestions: widget.entry.questionCount,
-                    weakCount: _weakCount,
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      ..._buildChunksWithReviews(t),
+                      const SizedBox(height: 6),
+                      if (_weakCount > 0) ...[
+                        _TrainMistakesCard(
+                            count: _weakCount, onTap: _startMistakes),
+                        const SizedBox(height: 10),
+                      ],
+                      _FullExamCard(
+                        onStart: _launchFullExam,
+                        hasCompletedPreviousParts:
+                            _activeChunk >= widget.entry.chunkSizes.length,
+                        mastered: _masteredCount,
+                        totalQuestions: widget.entry.questionCount,
+                        weakCount: _weakCount,
+                      ),
+                    ]),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
     );
   }

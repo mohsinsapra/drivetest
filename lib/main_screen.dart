@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -16,7 +17,6 @@ import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_download_sheet.dart';
-import 'package:taxi_exam_app/core/widgets/glass_box.dart';
 import 'package:taxi_exam_app/features/notifications/notifications_screen.dart';
 import 'package:taxi_exam_app/features/home/home_screen.dart';
 import 'package:taxi_exam_app/features/tests/licences_screen.dart';
@@ -63,6 +63,8 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
+  static const _kTopActionPadding = 16.0;
+
   final ApiService _apiService = ApiService();
   final ProfileProvider _profile = ProfileProvider();
 
@@ -102,7 +104,7 @@ class MainScreenState extends State<MainScreen>
           pageIndex: _kPageDriveTest,
         ),
       _NavEntry(
-        icon: LucideIcons.compass,
+        icon: LucideIcons.sparkles,
         label: t.smart_learning_title,
         pageIndex: _kPageSmartLearning,
       ),
@@ -263,6 +265,7 @@ class MainScreenState extends State<MainScreen>
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+    final theme = Theme.of(context);
     final provider = Provider.of<MainScreenProvider>(context);
     final entries = _navEntries(t);
     final displayedPage = _displayedPage.clamp(0, _kAllScreens.length - 1);
@@ -283,7 +286,14 @@ class MainScreenState extends State<MainScreen>
             },
             child: _LazyIndexedStack(
               index: displayedPage,
-              children: _kAllScreens,
+              children: [
+                MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: _kAllScreens[0],
+                ),
+                ..._kAllScreens.sublist(1),
+              ],
             ),
           ),
           if (_profileVisible)
@@ -305,6 +315,32 @@ class MainScreenState extends State<MainScreen>
               isCompact: _isNavCompact,
             ),
           ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: mq.padding.top,
+            child: IgnorePointer(
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 0, sigmaY: 6),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          theme.scaffoldBackgroundColor.withValues(alpha: 0.92),
+                          theme.scaffoldBackgroundColor.withValues(alpha: 0.0),
+                        ],
+                        stops: const [0.0, 1.0],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           if (_profileVisible)
             Positioned(
               top: mq.padding.top,
@@ -313,18 +349,26 @@ class MainScreenState extends State<MainScreen>
             )
           else
             Positioned(
-              top: mq.padding.top + 8,
-              left: 16,
-              child: _ProfileAvatarButton(
-                profile: _profile,
-                onTap: _openProfile,
+              top: mq.padding.top,
+              left: _kTopActionPadding,
+              child: _TopActionSlide(
+                topInset: mq.padding.top,
+                isCompact: _isNavCompact,
+                child: _ProfileAvatarButton(
+                  profile: _profile,
+                  onTap: _openProfile,
+                ),
               ),
             ),
           if (!_profileVisible)
             Positioned(
-              top: mq.padding.top + 8,
-              right: 16,
-              child: const _NotificationButton(),
+              top: mq.padding.top,
+              right: _kTopActionPadding,
+              child: _TopActionSlide(
+                topInset: mq.padding.top,
+                isCompact: _isNavCompact,
+                child: const _NotificationButton(),
+              ),
             ),
         ],
       ),
@@ -339,7 +383,8 @@ class _NotificationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Consumer<NotificationProvider>(
       builder: (_, notifProvider, __) => GestureDetector(
         onTap: () => Navigator.of(context).push(
@@ -347,17 +392,11 @@ class _NotificationButton extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: GlassBox(
+          child: _TopActionSurface(
             borderRadius: BorderRadius.circular(24),
+            color: theme.cardColor,
+            shadowColor: cs.onSurface,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            border: Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
-            boxShadow: [
-              BoxShadow(
-                color: cs.onSurface.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.center,
@@ -410,21 +449,10 @@ class _ProfileAvatarButton extends StatelessWidget {
         child: Container(
           width: 46,
           height: 46,
-          decoration: BoxDecoration(
+          decoration: _TopActionSurface.decoration(
             color: theme.cardColor,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: cs.onSurface.withValues(alpha: 0.12),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: cs.onSurface.withValues(alpha: 0.06),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
-              ),
-            ],
+            shadowColor: cs.onSurface,
           ),
           child: Center(
             child: initial != null
@@ -444,6 +472,86 @@ class _ProfileAvatarButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TopActionSlide extends StatelessWidget {
+  final double topInset;
+  final bool isCompact;
+  final Widget child;
+
+  const _TopActionSlide({
+    required this.topInset,
+    required this.isCompact,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: isCompact ? 1.0 : 0.0),
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOutCubic,
+      builder: (_, t, child) => Transform.translate(
+        offset: Offset(0, -(topInset + 80) * t),
+        child: child,
+      ),
+      child: child,
+    );
+  }
+}
+
+class _TopActionSurface extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final Color color;
+  final Color shadowColor;
+  final BorderRadius? borderRadius;
+
+  const _TopActionSurface({
+    required this.child,
+    required this.color,
+    required this.shadowColor,
+    this.padding,
+    this.borderRadius,
+  });
+
+  static BoxDecoration decoration({
+    required Color color,
+    required Color shadowColor,
+    BorderRadius? borderRadius,
+    BoxShape shape = BoxShape.rectangle,
+  }) {
+    return BoxDecoration(
+      color: color,
+      borderRadius: shape == BoxShape.circle ? null : borderRadius,
+      shape: shape,
+      boxShadow: [
+        BoxShadow(
+          color: shadowColor.withValues(alpha: 0.12),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+        BoxShadow(
+          color: shadowColor.withValues(alpha: 0.06),
+          blurRadius: 4,
+          offset: const Offset(0, 1),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: decoration(
+        color: color,
+        shadowColor: shadowColor,
+        borderRadius: borderRadius,
+      ),
+      child: child,
     );
   }
 }
@@ -654,6 +762,7 @@ class _FloatingNavPillState extends State<_FloatingNavPill>
               stretchPixels: _stretchPixels,
               child: DecoratedBox(
                 decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
                   borderRadius: BorderRadius.circular(50),
                   boxShadow: [
                     BoxShadow(
@@ -673,14 +782,14 @@ class _FloatingNavPillState extends State<_FloatingNavPill>
                   shape: const LiquidRoundedSuperellipse(borderRadius: 50),
                   settings: LiquidGlassSettings(
                     thickness: 20,
-                    blur: 24,
+                    blur: 20,
                     glassColor: isDark
                         ? Colors.white.withValues(alpha: 0.07)
                         : Colors.white.withValues(alpha: 0.50),
                     lightIntensity: 0.55,
                     saturation: 1.1,
                   ),
-                  glassContainsChild: true,
+                  glassContainsChild: false,
                   child: SizedBox(
                     width: pillWidth,
                     height: itemH,
@@ -688,36 +797,43 @@ class _FloatingNavPillState extends State<_FloatingNavPill>
                       padding: const EdgeInsets.all(_FloatingNavPill._pad),
                       child: Stack(
                         children: [
-                          // Indicator — dedicated tween for left so it doesn't
-                          // fight the outer compact/expand tween.
                           TweenAnimationBuilder<double>(
                             tween: Tween<double>(
-                              begin: activeIdx * itemW,
-                              end: activeIdx * itemW,
+                              begin: 0,
+                              end: activeIdx.toDouble(),
                             ),
                             duration:
                                 Duration(milliseconds: _isDragging ? 60 : 280),
                             curve: Curves.easeOutCubic,
-                            builder: (context, left, _) => Positioned(
-                              left: left,
+                            builder: (_, animIdx, child) => Positioned(
+                              left: animIdx * itemW,
                               top: 0,
                               width: itemW,
                               height: innerH,
-                              child: AnimatedScale(
-                                scale: _isDragging ? 0.93 : 1.0,
-                                duration: const Duration(milliseconds: 150),
-                                curve: Curves.easeOutBack,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.18)
-                                        : Colors.white.withValues(alpha: 0.45),
-                                    borderRadius: BorderRadius.circular(40),
-                                    border: Border.all(
+                              child: child!,
+                            ),
+                            child: AnimatedScale(
+                              scale: _isDragging ? 0.93 : 1.0,
+                              duration: const Duration(milliseconds: 150),
+                              curve: Curves.easeOutBack,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.22)
+                                      : Colors.white.withValues(alpha: 0.80),
+                                  borderRadius: BorderRadius.circular(40),
+                                  boxShadow: [
+                                    BoxShadow(
                                       color:
-                                          Colors.white.withValues(alpha: 0.55),
-                                      width: 0.8,
+                                          Colors.black.withValues(alpha: 0.08),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
                                     ),
+                                  ],
+                                  border: Border.all(
+                                    color: Colors.white.withValues(
+                                        alpha: isDark ? 0.30 : 0.90),
+                                    width: 0.8,
                                   ),
                                 ),
                               ),

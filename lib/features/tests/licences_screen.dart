@@ -14,7 +14,7 @@ import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/widgets/category_card_widget.dart';
 import 'package:taxi_exam_app/core/widgets/licence_type_card_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:taxi_exam_app/core/widgets/test_option_card_widget.dart';
 import 'package:taxi_exam_app/features/tests/custom_test_screen.dart';
 import 'package:taxi_exam_app/features/tests/saved_questions_preview_screen.dart';
@@ -512,11 +512,8 @@ class _LicenceTypesScreenState extends State<LicenceTypesScreen> {
   /* ----------------------------- Sub‑Views ------------------------------ */
 
   Widget _buildLoadingShimmer() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Shimmer.fromColors(
+    return AppShimmer(
       key: const ValueKey('loading'),
-      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade50,
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Center(
