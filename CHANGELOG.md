@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.5.18+297] - 2026-06-10
+
+### Added
 
 ### Changed
 - **Smart Learning parts auto-unlock after passing the full exam**: If you've already passed the full exam for a test, all individual parts on the Smart Learning screen are now automatically shown as completed — no need to retake them one by one.
@@ -18,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+---
 ---
 
 ## [1.5.17+296] - 2026-06-09
