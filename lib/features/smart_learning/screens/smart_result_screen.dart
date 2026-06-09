@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/services/activity_reminder_service.dart';
 import 'package:taxi_exam_app/core/services/app_review_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/option_tile.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
-import 'package:taxi_exam_app/features/smart_learning/screens/smart_session_screen.dart';
 
 /// Post-chunk result screen shown after a Smart Learning session ends.
 ///
@@ -36,6 +36,10 @@ class SmartResultScreen extends StatefulWidget {
   /// Maps questionId → the wrong option label the user selected.
   final Map<String, String> wrongSelections;
 
+  /// Called when the user taps Retry. Returns the SmartTestScreen to push,
+  /// or null if the fetch failed (the callback handles showing the error).
+  final Future<Widget?> Function()? onRetry;
+
   const SmartResultScreen({
     super.key,
     required this.entry,
@@ -49,6 +53,7 @@ class SmartResultScreen extends StatefulWidget {
     required this.masteredCount,
     this.wrongQuestions = const [],
     this.wrongSelections = const {},
+    this.onRetry,
   });
 
   @override
@@ -60,6 +65,7 @@ class _SmartResultScreenState extends State<SmartResultScreen>
   late final AnimationController _ctrl;
   late final Animation<double> _scoreAnim;
   late final Animation<double> _masteryAnim;
+  bool _retrying = false;
 
   double get _scorePercent =>
       widget.total == 0 ? 0 : widget.correct / widget.total;
@@ -198,26 +204,35 @@ class _SmartResultScreenState extends State<SmartResultScreen>
                               fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                   ),
-                  if (!widget.hasPassed && !widget.isMistakesMode) ...[
+                  if (!widget.hasPassed &&
+                      !widget.isMistakesMode &&
+                      widget.onRetry != null) ...[
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       height: 48,
                       child: OutlinedButton(
-                        onPressed: () => Navigator.of(context).pushReplacement(
-                          AppPageRoute(
-                            builder: (_) => SmartSessionScreen(
-                              entry: widget.entry,
-                              chunkIndex: widget.chunkIndex,
-                              isMistakesMode: false,
-                              isReviewMode: widget.isReviewMode,
-                              reviewIndex: widget.reviewIndex,
-                            ),
-                          ),
-                        ),
-                        child: Text(t.smart_chunk_retry,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w600)),
+                        onPressed: _retrying
+                            ? null
+                            : () async {
+                                setState(() => _retrying = true);
+                                final screen = await widget.onRetry!();
+                                if (!mounted) return;
+                                setState(() => _retrying = false);
+                                if (screen == null) return;
+                                Navigator.of(context).pushReplacement(
+                                  AppPageRoute(builder: (_) => screen),
+                                );
+                              },
+                        child: _retrying
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: AppLoadingIndicator(strokeWidth: 2),
+                              )
+                            : Text(t.smart_chunk_retry,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],

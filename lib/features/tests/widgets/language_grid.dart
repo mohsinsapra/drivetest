@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/constants/language_options.dart';
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 
 class LanguageGrid extends StatefulWidget {
   final ValueNotifier<String> selectedLanguage;
@@ -103,7 +104,7 @@ class _LanguageGridState extends State<LanguageGrid> {
                       child: SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(
+                        child: AppLoadingIndicator(
                           strokeWidth: 2,
                           color: primary,
                         ),

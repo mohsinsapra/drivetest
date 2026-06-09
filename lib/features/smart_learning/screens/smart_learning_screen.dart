@@ -305,10 +305,11 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        leading:
-            (widget.categoryFilter != null || widget.subcategoryBcdId != null)
-                ? const AppBackButton()
-                : null,
+        leading: (widget.categoryFilter != null ||
+                widget.subcategoryBcdId != null ||
+                Navigator.canPop(context))
+            ? const AppBackButton()
+            : null,
         automaticallyImplyLeading: false,
         title: Text(
           scopeTitle,

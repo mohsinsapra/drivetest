@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/chat_message.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
@@ -400,7 +401,7 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
                           ? SizedBox(
                               width: 18,
                               height: 18,
-                              child: CircularProgressIndicator(
+                              child: AppLoadingIndicator(
                                 strokeWidth: 2,
                                 color: cs.onSurface.withValues(alpha: 0.4),
                               ),

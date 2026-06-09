@@ -1,12 +1,22 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
-import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
+import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
+import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_test_screen.dart';
-import 'package:taxi_exam_app/features/smart_learning/screens/smart_session_screen.dart';
-import 'package:taxi_exam_app/features/smart_learning/services/smart_progress_service.dart';
+import 'package:taxi_exam_app/features/bcd/providers/bcd_provider.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
+import 'package:taxi_exam_app/features/smart_learning/screens/smart_result_screen.dart';
+import 'package:taxi_exam_app/features/smart_learning/screens/smart_test_screen.dart';
+import 'package:taxi_exam_app/features/smart_learning/services/smart_progress_service.dart';
+import 'package:taxi_exam_app/features/smart_learning/utils/smart_utils.dart';
 
 class SmartExamScreen extends StatefulWidget {
   final SmartExamEntry entry;
@@ -19,11 +29,15 @@ class SmartExamScreen extends StatefulWidget {
 
 class _SmartExamScreenState extends State<SmartExamScreen> {
   final _svc = SmartProgressService();
+  final _provider = BcdProvider();
+  final _api = ApiService();
   int _activeChunk = 0;
   int _weakCount = 0;
   int _masteredCount = 0;
   Map<int, bool> _reviewPassedMap = {};
   bool _loading = true;
+  // Key of the session being loaded ('chunk-N', 'review-N', 'mistakes').
+  String? _loadingKey;
 
   int get _reviewCount => widget.entry.chunkSizes.length ~/ 2;
 
@@ -59,47 +73,291 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
   }
 
   Future<void> _startChunk(int chunkIndex) async {
-    await Navigator.push(
-      context,
-      AppPageRoute(
-        builder: (_) => SmartSessionScreen(
-          entry: widget.entry,
+    if (_loadingKey != null) return;
+    setState(() => _loadingKey = 'chunk-$chunkIndex');
+    try {
+      final questions = await _fetchChunkQuestions(chunkIndex);
+      if (!mounted || questions == null) return;
+      await Navigator.push(
+        context,
+        AppPageRoute(
+            builder: (_) => _buildChunkTestScreen(chunkIndex, questions)),
+      );
+    } finally {
+      if (mounted) setState(() => _loadingKey = null);
+    }
+  }
+
+  SmartTestScreen _buildChunkTestScreen(
+      int chunkIndex, List<Question> questions) {
+    final entry = widget.entry;
+    final testBcdId = entry.testBcdId;
+    return SmartTestScreen(
+      initialQuestions: questions,
+      passScorePercent: 70.0,
+      testName: entry.testName,
+      licenceId: '',
+      categoryId: testBcdId.toString(),
+      bcdCategoryId: entry.parentCategoryBcdId,
+      bcdTestId: testBcdId,
+      onComplete: (hasPassed, finalResults, wrongSelections) async {
+        await _svc.recordSmartResult(testBcdId, chunkIndex, hasPassed);
+        await _svc.recordSessionResults(testBcdId, finalResults);
+        _load();
+        _syncSmartData(testBcdId, false).ignore();
+        final mastered =
+            await _svc.masteredQuestionCount(testBcdId, entry.chunkSizes);
+        return SmartResultScreen(
+          entry: entry,
           chunkIndex: chunkIndex,
           isMistakesMode: false,
-          onProgressSaved: _load,
-        ),
-      ),
+          isReviewMode: false,
+          reviewIndex: 0,
+          hasPassed: hasPassed,
+          correct: finalResults.values.where((v) => v).length,
+          total: finalResults.length,
+          masteredCount: mastered,
+          wrongQuestions: questions
+              .where((q) => finalResults[q.questionId] == false)
+              .toList(),
+          wrongSelections: wrongSelections,
+          onRetry: () async {
+            final qs = await _fetchChunkQuestions(chunkIndex);
+            if (qs == null) return null;
+            return _buildChunkTestScreen(chunkIndex, qs);
+          },
+        );
+      },
     );
   }
 
   Future<void> _startReview(int reviewIndex) async {
-    await Navigator.push(
-      context,
-      AppPageRoute(
-        builder: (_) => SmartSessionScreen(
-          entry: widget.entry,
+    if (_loadingKey != null) return;
+    setState(() => _loadingKey = 'review-$reviewIndex');
+    try {
+      final questions = await _fetchReviewQuestions(reviewIndex);
+      if (!mounted || questions == null) return;
+      await Navigator.push(
+        context,
+        AppPageRoute(
+            builder: (_) => _buildReviewTestScreen(reviewIndex, questions)),
+      );
+    } finally {
+      if (mounted) setState(() => _loadingKey = null);
+    }
+  }
+
+  SmartTestScreen _buildReviewTestScreen(
+      int reviewIndex, List<Question> questions) {
+    final entry = widget.entry;
+    final testBcdId = entry.testBcdId;
+    return SmartTestScreen(
+      initialQuestions: questions,
+      passScorePercent: 70.0,
+      testName: entry.testName,
+      licenceId: '',
+      categoryId: testBcdId.toString(),
+      bcdCategoryId: entry.parentCategoryBcdId,
+      bcdTestId: testBcdId,
+      onComplete: (hasPassed, finalResults, wrongSelections) async {
+        await _svc.recordReviewResult(testBcdId, reviewIndex, hasPassed);
+        await _svc.recordSessionResults(testBcdId, finalResults);
+        _load();
+        _syncSmartData(testBcdId, false).ignore();
+        final mastered =
+            await _svc.masteredQuestionCount(testBcdId, entry.chunkSizes);
+        return SmartResultScreen(
+          entry: entry,
           chunkIndex: -1,
           isMistakesMode: false,
           isReviewMode: true,
           reviewIndex: reviewIndex,
-          onProgressSaved: _load,
-        ),
-      ),
+          hasPassed: hasPassed,
+          correct: finalResults.values.where((v) => v).length,
+          total: finalResults.length,
+          masteredCount: mastered,
+          wrongQuestions: questions
+              .where((q) => finalResults[q.questionId] == false)
+              .toList(),
+          wrongSelections: wrongSelections,
+          onRetry: () async {
+            final qs = await _fetchReviewQuestions(reviewIndex);
+            if (qs == null) return null;
+            return _buildReviewTestScreen(reviewIndex, qs);
+          },
+        );
+      },
     );
   }
 
   Future<void> _startMistakes() async {
-    await Navigator.push(
-      context,
-      AppPageRoute(
-        builder: (_) => SmartSessionScreen(
-          entry: widget.entry,
-          chunkIndex: -1,
-          isMistakesMode: true,
-          onProgressSaved: _load,
+    if (_loadingKey != null) return;
+    setState(() => _loadingKey = 'mistakes');
+    try {
+      final questions = await _fetchMistakesQuestions();
+      if (!mounted || questions == null) return;
+      final entry = widget.entry;
+      final testBcdId = entry.testBcdId;
+      await Navigator.push(
+        context,
+        AppPageRoute(
+          builder: (_) => SmartTestScreen(
+            initialQuestions: questions,
+            passScorePercent: 0.0,
+            testName: entry.testName,
+            licenceId: '',
+            categoryId: testBcdId.toString(),
+            bcdCategoryId: entry.parentCategoryBcdId,
+            bcdTestId: testBcdId,
+            onComplete: (hasPassed, finalResults, wrongSelections) async {
+              await _svc.recordSessionResults(testBcdId, finalResults);
+              _load();
+              _syncSmartData(testBcdId, true).ignore();
+              final mastered =
+                  await _svc.masteredQuestionCount(testBcdId, entry.chunkSizes);
+              return SmartResultScreen(
+                entry: entry,
+                chunkIndex: -1,
+                isMistakesMode: true,
+                isReviewMode: false,
+                reviewIndex: 0,
+                hasPassed: hasPassed,
+                correct: finalResults.values.where((v) => v).length,
+                total: finalResults.length,
+                masteredCount: mastered,
+                wrongQuestions: questions
+                    .where((q) => finalResults[q.questionId] == false)
+                    .toList(),
+                wrongSelections: wrongSelections,
+              );
+            },
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => _loadingKey = null);
+    }
+  }
+
+  // ── Question fetchers ────────────────────────────────────────────────────────
+
+  Future<List<Question>?> _fetchChunkQuestions(int chunkIndex) async {
+    try {
+      final testBcdId = widget.entry.testBcdId;
+      final sizes = SmartUtils.computeSmartSizes(widget.entry.questionCount);
+      final safeIdx = chunkIndex.clamp(0, sizes.length - 1);
+      final offset = SmartUtils.smartOffset(sizes, safeIdx);
+      final limit = sizes[safeIdx];
+      final base = await _provider.fetchChunkQuestions(testBcdId,
+          limit: limit, offset: offset);
+      final weakIds = await _svc.allWeakQuestionIds(testBcdId);
+      final baseIds = base.map((q) => q.questionId).toSet();
+      final cap = (limit * 0.3).floor();
+      final injectIds =
+          weakIds.where((id) => !baseIds.contains(id)).take(cap).toList();
+      List<Question> questions;
+      if (injectIds.isNotEmpty) {
+        final injected =
+            await _provider.fetchChunkQuestions(testBcdId, ids: injectIds);
+        questions = [...base, ...injected]..shuffle(Random());
+      } else {
+        questions = base..shuffle(Random());
+      }
+      if (questions.isEmpty && mounted) {
+        showAppSnackBar(Translations.of(context).bcd_no_questions);
+        return null;
+      }
+      return questions;
+    } catch (_) {
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_test_questions,
+            type: SnackBarType.error);
+      }
+      return null;
+    }
+  }
+
+  Future<List<Question>?> _fetchReviewQuestions(int reviewIndex) async {
+    try {
+      final testBcdId = widget.entry.testBcdId;
+      final coveredChunks = 2 * (reviewIndex + 1);
+      final sizes = widget.entry.chunkSizes.take(coveredChunks).toList();
+      final totalCovered = sizes.fold(0, (a, b) => a + b);
+      final reviewSize = widget.entry.chunkSizes[0].clamp(1, totalCovered);
+      final all = await _provider.fetchChunkQuestions(testBcdId,
+          limit: totalCovered, offset: 0);
+      final questions = (all..shuffle(Random())).take(reviewSize).toList();
+      if (questions.isEmpty && mounted) {
+        showAppSnackBar(Translations.of(context).bcd_no_questions);
+        return null;
+      }
+      return questions;
+    } catch (_) {
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_test_questions,
+            type: SnackBarType.error);
+      }
+      return null;
+    }
+  }
+
+  Future<List<Question>?> _fetchMistakesQuestions() async {
+    try {
+      final testBcdId = widget.entry.testBcdId;
+      final weakIds = await _svc.allWeakQuestionIds(testBcdId);
+      if (weakIds.isEmpty) {
+        if (mounted) {
+          showAppSnackBar(Translations.of(context).bcd_no_questions);
+        }
+        return null;
+      }
+      final questions =
+          await _provider.fetchChunkQuestions(testBcdId, ids: weakIds)
+            ..shuffle(Random());
+      if (questions.isEmpty && mounted) {
+        showAppSnackBar(Translations.of(context).bcd_no_questions);
+        return null;
+      }
+      return questions;
+    } catch (_) {
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_test_questions,
+            type: SnackBarType.error);
+      }
+      return null;
+    }
+  }
+
+  Future<void> _syncSmartData(int testBcdId, bool isMistakes) async {
+    try {
+      if (!isMistakes) {
+        final progressBox = await AppStorage.smartProgressBox();
+        final chunks = progressBox.values
+            .where((p) => p.testBcdId == testBcdId)
+            .map((p) => {
+                  'chunk_index': p.chunkIndex,
+                  'is_passed': p.isPassed,
+                  'completed_at': p.completedAt.toUtc().toIso8601String(),
+                })
+            .toList();
+        if (chunks.isNotEmpty) {
+          await _api.syncSmartProgress(testBcdId, chunks);
+        }
+      }
+      final weakBox = await AppStorage.weakQuestionsBox();
+      final weakQuestions = weakBox.values
+          .where((wq) => wq.testBcdId == testBcdId)
+          .map((wq) => {
+                'question_id': wq.questionId,
+                'wrong_count': wq.wrongCount,
+                'correct_streak': wq.correctStreak,
+                'last_seen': wq.lastSeen.toUtc().toIso8601String(),
+              })
+          .toList();
+      await _api.syncWeakQuestions(testBcdId, weakQuestions);
+    } catch (e) {
+      debugPrint('[_syncSmartData] failed: $e');
+    }
   }
 
   void _launchFullExam() {
@@ -225,6 +483,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
           isPassed: isPassed,
           isActive: isActive,
           isLocked: isLocked,
+          isLoading: _loadingKey == 'chunk-$i',
           onTap: !isLocked ? () => _startChunk(i) : null,
         ),
       ));
@@ -246,6 +505,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
             questionCount: reviewSize,
             isPassed: isReviewPassed,
             isUnlocked: isUnlocked,
+            isLoading: _loadingKey == 'review-$rIdx',
             onTap: isUnlocked ? () => _startReview(rIdx) : null,
           ),
         ));
@@ -275,7 +535,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
         elevation: 0,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AppLoadingIndicator())
           : AdaptiveRefreshIndicator(
               onRefresh: _load,
               slivers: [
@@ -287,7 +547,10 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
                       const SizedBox(height: 6),
                       if (_weakCount > 0) ...[
                         _TrainMistakesCard(
-                            count: _weakCount, onTap: _startMistakes),
+                          count: _weakCount,
+                          isLoading: _loadingKey == 'mistakes',
+                          onTap: _startMistakes,
+                        ),
                         const SizedBox(height: 10),
                       ],
                       _FullExamCard(
@@ -315,6 +578,7 @@ class _ChunkCard extends StatelessWidget {
   final bool isPassed;
   final bool isActive;
   final bool isLocked;
+  final bool isLoading;
   final VoidCallback? onTap;
 
   const _ChunkCard({
@@ -323,6 +587,7 @@ class _ChunkCard extends StatelessWidget {
     required this.isPassed,
     required this.isActive,
     required this.isLocked,
+    this.isLoading = false,
     this.onTap,
   });
 
@@ -397,17 +662,24 @@ class _ChunkCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Text(
-                isPassed
-                    ? t.smart_chunk_passed
-                    : isActive
-                        ? t.smart_chunk_active
-                        : t.smart_chunk_locked,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelMedium
-                    ?.copyWith(color: color, fontWeight: FontWeight.w600),
-              ),
+              if (isLoading)
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: AppLoadingIndicator(strokeWidth: 2, color: color),
+                )
+              else
+                Text(
+                  isPassed
+                      ? t.smart_chunk_passed
+                      : isActive
+                          ? t.smart_chunk_active
+                          : t.smart_chunk_locked,
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: color, fontWeight: FontWeight.w600),
+                ),
             ],
           ),
         ),
@@ -420,9 +692,14 @@ class _ChunkCard extends StatelessWidget {
 
 class _TrainMistakesCard extends StatelessWidget {
   final int count;
+  final bool isLoading;
   final VoidCallback onTap;
 
-  const _TrainMistakesCard({required this.count, required this.onTap});
+  const _TrainMistakesCard({
+    required this.count,
+    required this.onTap,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -451,8 +728,15 @@ class _TrainMistakesCard extends StatelessWidget {
                     ?.copyWith(color: cs.error, fontWeight: FontWeight.w600),
               ),
             ),
-            Icon(Icons.chevron_right_rounded,
-                size: 18, color: cs.error.withValues(alpha: 0.5)),
+            if (isLoading)
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: AppLoadingIndicator(strokeWidth: 2, color: cs.error),
+              )
+            else
+              Icon(Icons.chevron_right_rounded,
+                  size: 18, color: cs.error.withValues(alpha: 0.5)),
           ],
         ),
       ),
@@ -467,6 +751,7 @@ class _ReviewCard extends StatelessWidget {
   final int questionCount;
   final bool isPassed;
   final bool isUnlocked;
+  final bool isLoading;
   final VoidCallback? onTap;
 
   const _ReviewCard({
@@ -474,6 +759,7 @@ class _ReviewCard extends StatelessWidget {
     required this.questionCount,
     required this.isPassed,
     required this.isUnlocked,
+    this.isLoading = false,
     this.onTap,
   });
 
@@ -549,17 +835,24 @@ class _ReviewCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Text(
-                isPassed
-                    ? t.smart_chunk_passed
-                    : isUnlocked
-                        ? t.smart_chunk_active
-                        : t.smart_chunk_locked,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelMedium
-                    ?.copyWith(color: color, fontWeight: FontWeight.w600),
-              ),
+              if (isLoading)
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: AppLoadingIndicator(strokeWidth: 2, color: color),
+                )
+              else
+                Text(
+                  isPassed
+                      ? t.smart_chunk_passed
+                      : isUnlocked
+                          ? t.smart_chunk_active
+                          : t.smart_chunk_locked,
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: color, fontWeight: FontWeight.w600),
+                ),
             ],
           ),
         ),

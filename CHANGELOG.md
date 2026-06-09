@@ -9,14 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
--
-
 ### Changed
--
-
-### Fixed
--
+- **Smart Learning now starts instantly**: Tapping a part no longer shows a loading screen — questions load in the background and the session opens directly.
+- **Smarter question repetition**: Wrong answers are revisited once per session. Correct answers move you forward immediately, keeping sessions shorter and more focused.
+- **Native loading indicators on iOS**: Loading spinners now match the iOS style across the app.
 
 ---
 

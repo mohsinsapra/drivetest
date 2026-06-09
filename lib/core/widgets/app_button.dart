@@ -299,8 +299,7 @@ class AppDangerButton extends StatelessWidget {
           ? const SizedBox(
               width: 18,
               height: 18,
-              child: CircularProgressIndicator(
-                  strokeWidth: 2, color: Colors.white))
+              child: AppLoadingIndicator(strokeWidth: 2, color: Colors.white))
           : Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
     );
   }

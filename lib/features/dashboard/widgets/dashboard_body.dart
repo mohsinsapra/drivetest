@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -620,7 +621,7 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
                                   ? SizedBox(
                                       width: 14,
                                       height: 14,
-                                      child: CircularProgressIndicator(
+                                      child: AppLoadingIndicator(
                                           strokeWidth: 2, color: cs.primary),
                                     )
                                   : Row(
@@ -1342,7 +1343,7 @@ class _QuickAccessRow extends StatelessWidget {
                         child: SizedBox(
                           width: 15,
                           height: 15,
-                          child: CircularProgressIndicator(
+                          child: AppLoadingIndicator(
                               strokeWidth: 2, color: item.iconColor),
                         ),
                       )

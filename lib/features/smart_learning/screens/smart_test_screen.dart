@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:math';
 
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -86,8 +88,6 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   // Session tracking
   final Map<String, int> _wrongCounts = {};
   final Set<String> _correctOnce = {};
-  // Questions answered correctly once but awaiting a confirmation re-ask.
-  final Set<String> _needsConfirmation = {};
   // Questions whose progress step has already been counted (at most once each).
   final Set<String> _progressCounted = {};
   // Last wrong option label selected per question (for result-screen review).
@@ -161,11 +161,12 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     required String status,
     required double score,
     required bool hasPassed,
+    Map<int, String> userSelections = const {},
   }) async {
     final attempt = TestAttempt(
       testId: _testId,
       dateTime: _startTime,
-      userSelections: {},
+      userSelections: userSelections,
       score: score,
       hasPassed: hasPassed,
       questions: widget.initialQuestions,
@@ -372,11 +373,9 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     final id = _current!.questionId;
     final isCorrect = _selection[0] == _current!.correctAnswer;
     if (!isCorrect) {
+      // Wrong answer will be re-inserted if it's the first wrong attempt.
       final afterThis = (_wrongCounts[id] ?? 0) + 1;
       if (afterThis < 2) return false;
-    } else {
-      // First correct will be re-inserted for confirmation — not the last action.
-      if (!_needsConfirmation.contains(id)) return false;
     }
     return _queue.length == 1;
   }
@@ -465,19 +464,10 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     final q = _current!;
     final id = q.questionId;
     final wasCorrect = _selection[0] == q.correctAnswer;
-    final wasConfirmation = _needsConfirmation.contains(id);
 
     if (wasCorrect) {
-      if (wasConfirmation) {
-        // Second correct — confirmed mastery.
-        _needsConfirmation.remove(id);
-        _correctOnce.add(id);
-      } else {
-        // First correct — queue a confirmation re-ask.
-        _needsConfirmation.add(id);
-      }
+      _correctOnce.add(id);
     } else {
-      _needsConfirmation.remove(id);
       _wrongCounts[id] = (_wrongCounts[id] ?? 0) + 1;
       if (_wrongCounts[id]! >= 2) {
         vibrateFail();
@@ -487,19 +477,10 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
     _queue.removeAt(0);
 
     if (!wasCorrect && _wrongCounts[id] == 1) {
-      // First wrong — re-insert at a random position.
+      // First wrong — re-insert at a random later position (same option order).
       final len = _queue.length;
       final pos = len <= 1 ? len : 1 + _random.nextInt(len - 1);
       _queue.insert(pos, q);
-    } else if (wasCorrect && !wasConfirmation) {
-      // First correct — re-insert for confirmation at a random later position.
-      final len = _queue.length;
-      if (len == 0) {
-        _queue.add(q);
-      } else {
-        final pos = len <= 1 ? len : 1 + _random.nextInt(len - 1);
-        _queue.insert(pos, q);
-      }
     }
 
     _preloadQueueImages(1);
@@ -518,9 +499,24 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
         SoundService.instance.failExam().ignore();
         vibrateFail();
       }
+      // Build per-question selections: correct answer for mastered questions,
+      // last wrong pick for failed ones.
+      final userSelections = <int, String>{};
+      for (var i = 0; i < widget.initialQuestions.length; i++) {
+        final q = widget.initialQuestions[i];
+        if (_correctOnce.contains(q.questionId)) {
+          userSelections[i] = q.correctAnswer;
+        } else if (_lastWrongSelections.containsKey(q.questionId)) {
+          userSelections[i] = _lastWrongSelections[q.questionId]!;
+        }
+      }
       // Save completed attempt so it shows in the user's attempts list.
-      _saveAttempt(status: 'completed', score: score, hasPassed: hasPassed)
-          .ignore();
+      _saveAttempt(
+        status: 'completed',
+        score: score,
+        hasPassed: hasPassed,
+        userSelections: userSelections,
+      ).ignore();
       final finalResults = {
         for (final q in widget.initialQuestions)
           q.questionId: _correctOnce.contains(q.questionId),
@@ -630,7 +626,16 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       ),
     );
     final confirmed = shouldExit ?? false;
-    if (confirmed) vibrateFail();
+    if (confirmed) {
+      vibrateFail();
+      final partialScore =
+          _total > 0 ? (_correctOnce.length / _total * 100) : 0.0;
+      _saveAttempt(
+        status: 'abandoned',
+        score: partialScore,
+        hasPassed: false,
+      ).ignore();
+    }
     return confirmed;
   }
 
@@ -669,7 +674,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                 ),
                 title: _SmartProgressBar(
                   doneCount: _progressDoneCount,
-                  total: _total * 2,
+                  total: _total,
                   consecutiveCorrect: _consecutiveCorrect,
                   hideLabel: _hideStreakLabel,
                 ),
@@ -692,7 +697,7 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
                 ],
               ),
               body: q == null
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(child: AppLoadingIndicator())
                   : Column(
                       children: [
                         Expanded(

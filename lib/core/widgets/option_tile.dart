@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'tts_button.dart';
 
@@ -381,7 +382,7 @@ class _OptionState extends State<Option> with TickerProviderStateMixin {
                             child: SizedBox(
                               width: 24,
                               height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: AppLoadingIndicator(strokeWidth: 2),
                             ),
                           ),
                         ),
