@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:taxi_exam_app/core/services/language_preference_service.dart';
 import 'package:taxi_exam_app/core/services/navigation_feedback.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -1026,14 +1027,38 @@ class _TestscreenState extends State<Testscreen> {
     final controller = TextEditingController();
     String feedbackType = 'question_issue';
 
-    final result = await showDialog<Map<String, String>>(
+    final result = await showModalBottomSheet<Map<String, String>>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(t.test_feedback_title),
-          content: Column(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.fromLTRB(
+              24, 20, 24, MediaQuery.of(ctx).viewInsets.bottom + 36),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                t.test_feedback_title,
+                style: GoogleFonts.lexend(
+                    fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 20),
               DropdownButtonFormField<String>(
                 initialValue: feedbackType,
                 decoration: InputDecoration(labelText: t.test_feedback_type),
@@ -1050,13 +1075,11 @@ class _TestscreenState extends State<Testscreen> {
                       value: 'image_issue',
                       child: Text(t.test_feedback_image_issue)),
                   DropdownMenuItem(
-                    value: 'other',
-                    child: Text(t.test_feedback_other),
-                  ),
+                      value: 'other', child: Text(t.test_feedback_other)),
                 ],
                 onChanged: (v) {
                   if (v == null) return;
-                  setDialogState(() => feedbackType = v);
+                  setSheetState(() => feedbackType = v);
                 },
               ),
               const SizedBox(height: 12),
@@ -1069,21 +1092,34 @@ class _TestscreenState extends State<Testscreen> {
                   border: const OutlineInputBorder(),
                 ),
               ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppOutlinedButton(
+                      label: t.cancel,
+                      borderRadius: 12,
+                      minimumWidth: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: AppFilledButton(
+                      label: t.btn_submit,
+                      borderRadius: 12,
+                      onPressed: () => Navigator.pop(ctx, {
+                        'text': controller.text.trim(),
+                        'type': feedbackType,
+                      }),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-          actions: [
-            AppTextButton(
-              label: t.cancel,
-              onPressed: () => Navigator.pop(ctx),
-            ),
-            AppFilledButton(
-              label: t.btn_submit,
-              onPressed: () => Navigator.pop(ctx, {
-                'text': controller.text.trim(),
-                'type': feedbackType,
-              }),
-            ),
-          ],
         ),
       ),
     );

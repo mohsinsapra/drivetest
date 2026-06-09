@@ -141,6 +141,7 @@
   "auth_feedback_signup_issue": "Registreringsproblem",
   "auth_feedback_app_issue": "Appproblem",
   "auth_feedback_feature_request": "Funktionsförfrågan",
+  "auth_feedback_payment_issue": "Betalningsproblem",
   "auth_feedback_other": "Övrigt",
   "auth_create_account": "Skapa konto",
   "auth_sign_up_btn": "Registrera",
@@ -232,6 +233,7 @@
   "bcd_hub_theory_docs": "Teori-\ndokument",
   "bcd_hub_traffic_signs": "Trafikskyltar",
   "bcd_hub_checklist": "Checklista",
+  "checklist_language_subtitle": "Översätt checklistan till ditt språk",
   "bcd_hub_statistics": "Statistik",
   "bcd_hub_saved_questions": "Sparade\nfrågor",
 
@@ -627,6 +629,7 @@
   "btn_save_changes": "Spara ändringar",
   "btn_set_password": "Ange lösenord",
   "btn_delete_account": "Ta bort konto",
+  "delete_account_confirm_body": "Den här åtgärden är permanent och kan inte ångras. All din framsteg och data kommer att tas bort.",
   "btn_deleting": "Tar bort...",
   "btn_keep_going": "Fortsätt",
   "btn_exit": "Avsluta",

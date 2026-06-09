@@ -128,32 +128,18 @@ class _AppDownloadSheet extends StatelessWidget {
 
           // Learn more link
           Center(
-            child: TextButton(
+            child: AppTextButton(
+              label: t.app_download_learn_more,
               onPressed: () => redirectToUrl(_kLandingUrl),
-              child: Text(
-                t.app_download_learn_more,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: cs.primary,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
             ),
           ),
           const SizedBox(height: 4),
 
           // Dismiss
           Center(
-            child: TextButton(
+            child: AppTextButton(
+              label: t.app_download_dismiss,
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                t.app_download_dismiss,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: cs.onSurfaceVariant,
-                ),
-              ),
             ),
           ),
         ],

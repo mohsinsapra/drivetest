@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:math';
 
+import 'package:taxi_exam_app/core/widgets/app_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -608,24 +609,12 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
   Future<bool> _confirmExitSession() async {
     if (_finishing) return true;
     final t = Translations.of(context);
-    final shouldExit = await showDialog<bool>(
+    final confirmed = await showAppConfirmDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(t.smart_exit_title),
-        content: Text(t.smart_exit_body),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(t.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(t.btn_exit),
-          ),
-        ],
-      ),
+      title: t.smart_exit_title,
+      body: t.smart_exit_body,
+      confirmLabel: t.btn_exit,
     );
-    final confirmed = shouldExit ?? false;
     if (confirmed) {
       vibrateFail();
       final partialScore =
@@ -803,28 +792,33 @@ class _LanguageChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(flag, style: const TextStyle(fontSize: 14)),
-            const SizedBox(width: 4),
-            Text(
-              langCode,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: primary,
-              ),
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Center(
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(flag, style: const TextStyle(fontSize: 13)),
+                const SizedBox(width: 4),
+                Text(
+                  langCode,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -9,6 +9,7 @@ import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_test_screen.dart';
 import 'package:taxi_exam_app/features/bcd/providers/bcd_provider.dart';
@@ -439,24 +440,10 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.pop(context),
-                style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: Text(
-                  t.smart_hearts_keep_practising,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: cs.onPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+            AppFilledButton(
+              label: t.smart_hearts_keep_practising,
+              borderRadius: 14,
+              onPressed: () => Navigator.pop(context),
             ),
           ],
         ),
@@ -959,12 +946,9 @@ class _FullExamCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: onStart,
-                child: Text(t.smart_attempt_final_exam),
-              ),
+            AppFilledButton(
+              label: t.smart_attempt_final_exam,
+              onPressed: onStart,
             ),
           ],
         ),

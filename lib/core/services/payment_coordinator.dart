@@ -7,6 +7,7 @@ import 'package:taxi_exam_app/core/models/purchase_receipt.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/stripe_payment_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
+import 'package:taxi_exam_app/core/widgets/app_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/payment/paywall_sheet.dart';
 import 'package:taxi_exam_app/features/payment/subscription_success_overlay.dart';
@@ -170,39 +171,12 @@ class PaymentCoordinator {
       if (isIAPCancellation(e)) return null;
       if (isIAPOwnedByOtherAccount(e)) {
         final t = Translations.of(context);
-        await showDialog<void>(
+        await showAppInfoDialog(
           context: context,
-          builder: (ctx) {
-            final theme = Theme.of(ctx);
-            return AlertDialog(
-              backgroundColor: theme.dialogTheme.backgroundColor ??
-                  theme.colorScheme.surface,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              title: Text(
-                t.iap_owned_by_other_title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              content: Text(
-                t.iap_owned_by_other_body,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  style: TextButton.styleFrom(
-                    foregroundColor: theme.colorScheme.primary,
-                  ),
-                  child: Text(t.iap_owned_by_other_ok),
-                ),
-              ],
-            );
-          },
+          icon: Icons.info_outline_rounded,
+          title: t.iap_owned_by_other_title,
+          body: t.iap_owned_by_other_body,
+          ctaLabel: t.iap_owned_by_other_ok,
         );
         return null;
       }

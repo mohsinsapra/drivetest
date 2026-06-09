@@ -1,5 +1,6 @@
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:taxi_exam_app/core/widgets/app_dialogs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -195,57 +196,33 @@ class _HomeScreenState extends State<HomeScreen>
     ApiService().deleteAllTestAttempts();
   }
 
-  void _confirmDeletePausedTest(TestAttempt attempt) {
+  void _confirmDeletePausedTest(TestAttempt attempt) async {
     final t = Translations.of(context);
-    showDialog(
+    final confirmed = await showAppDangerDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.home_delete_progress_title),
-        content: Text(t.home_delete_progress_body),
-        actions: [
-          AppTextButton(
-            label: t.cancel,
-            onPressed: () => Navigator.of(ctx).pop(),
-          ),
-          AppDangerButton(
-            label: t.delete,
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              setState(() => _pausedAttempts
-                  .removeWhere((a) => a.testId == attempt.testId));
-              final box = await AppStorage.testAttemptsBox();
-              await box.delete(attempt.testId);
-              ApiService().deleteTestAttempt(attempt.testId);
-            },
-          ),
-        ],
-      ),
+      title: t.home_delete_progress_title,
+      body: t.home_delete_progress_body,
+      dangerLabel: t.delete,
     );
+    if (!confirmed || !mounted) return;
+    setState(() =>
+        _pausedAttempts.removeWhere((a) => a.testId == attempt.testId));
+    final box = await AppStorage.testAttemptsBox();
+    await box.delete(attempt.testId);
+    ApiService().deleteTestAttempt(attempt.testId);
   }
 
-  void _confirmDeleteAllTests() {
+  void _confirmDeleteAllTests() async {
     final t = Translations.of(context);
-    showDialog(
+    final confirmed = await showAppDangerDialog(
       context: context,
+      title: t.home_delete_all_tests_title,
+      body: t.home_delete_all_tests_body,
+      dangerLabel: t.delete,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.home_delete_all_tests_title),
-        content: Text(t.home_delete_all_tests_body),
-        actions: [
-          AppTextButton(
-            label: t.cancel,
-            onPressed: () => Navigator.of(ctx).pop(),
-          ),
-          AppFilledButton(
-            label: t.delete,
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _deleteAllTests();
-            },
-          ),
-        ],
-      ),
     );
+    if (!confirmed) return;
+    _deleteAllTests();
   }
 
   Map<String, int> getDailyAttemptCounts(List<TestAttempt> attempts) {

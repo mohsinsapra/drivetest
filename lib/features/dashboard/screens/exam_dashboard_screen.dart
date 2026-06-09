@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:no_screenshot/no_screenshot.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
@@ -85,18 +86,20 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
           : UpgradeDialogStyle.material,
       showIgnore: false,
       showLater: true,
-      child: Scaffold(
-        appBar: AppBar(toolbarHeight: 0),
-        body: provider.status == DashboardStatus.error
-            ? DashboardErrorView(
-                errorKind: provider.errorKind,
-                onRetry: () => context.read<DashboardProvider>().init(),
-              )
-            : DashboardBody(
-                provider: provider,
-                onSubscribe: _handleSubscribe,
-                onRefresh: () => context.read<DashboardProvider>().syncNow(),
-              ),
+      child: CupertinoScaffold(
+        body: Scaffold(
+          appBar: AppBar(toolbarHeight: 0),
+          body: provider.status == DashboardStatus.error
+              ? DashboardErrorView(
+                  errorKind: provider.errorKind,
+                  onRetry: () => context.read<DashboardProvider>().init(),
+                )
+              : DashboardBody(
+                  provider: provider,
+                  onSubscribe: _handleSubscribe,
+                  onRefresh: () => context.read<DashboardProvider>().syncNow(),
+                ),
+        ),
       ),
     );
   }

@@ -43,6 +43,11 @@ class DioClient {
   Future<bool>? _refreshFuture;
   String? _lastFailedRefreshToken;
   DateTime? _lastFailedRefreshAt;
+  // True when the last refresh failure was a transient network error (no
+  // server response). In that case the cooldown in _shouldSkipRefreshAttempt
+  // must NOT apply — we should still retry on the next 401 instead of
+  // immediately logging the user out.
+  bool _lastRefreshFailedWithNetworkError = false;
   String? _last401Fingerprint;
   int _same401Count = 0;
   bool _logoutTriggeredFrom401 = false;
@@ -364,13 +369,17 @@ class DioClient {
     if (refreshToken == null || accessToken == null) {}
   }
 
-  Future<bool> _refreshAccessToken() async {
+  Future<bool> _refreshAccessToken({int attempt = 0}) async {
     if (refreshToken == null) return false;
 
     try {
       final response = await dio.post(
         'api/token/refresh/',
         options: Options(
+          // Give the refresh call more breathing room than regular requests —
+          // a slow network mid-exam should not kill the session.
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 30),
           extra: {
             'skipAuth': true,
             'skipRefresh': true,
@@ -390,10 +399,8 @@ class DioClient {
       }
       _lastFailedRefreshToken = null;
       _lastFailedRefreshAt = null;
+      _lastRefreshFailedWithNetworkError = false;
 
-      // Mirror to SharedPreferences for iOS web browser resilience.
-
-      // If a new refresh token is provided, update and save it
       if (response.data.containsKey('refresh')) {
         refreshToken = response.data['refresh'];
         try {
@@ -406,17 +413,27 @@ class DioClient {
 
       return true;
     } catch (e) {
-      debugPrint('Failed to refresh token: $e');
+      debugPrint('[DioClient] refresh attempt ${attempt + 1} failed: $e');
+
+      final isNetworkError = e is DioException && e.response == null;
+
+      if (isNetworkError && attempt == 0) {
+        // Transient network failure — wait briefly and retry once before
+        // giving up. This prevents a 2-second WiFi blip mid-exam from
+        // triggering a logout.
+        await Future.delayed(const Duration(seconds: 3));
+        return _refreshAccessToken(attempt: 1);
+      }
+
       _lastFailedRefreshToken = refreshToken;
       _lastFailedRefreshAt = DateTime.now();
+      _lastRefreshFailedWithNetworkError = isNetworkError;
 
-      // Check if token is blacklisted
-      if (e is DioException && e.response != null) {
+      if (!isNetworkError && e is DioException && e.response != null) {
         final responseData = e.response?.data;
         if (responseData is Map &&
             responseData['code'] == 'token_not_valid' &&
             responseData['detail'] == 'Token is blacklisted') {
-          // Token is blacklisted, logout and redirect to auth page
           await logoutAndRedirect();
         }
       }
@@ -430,6 +447,9 @@ class DioClient {
     if (_lastFailedRefreshToken == null || _lastFailedRefreshAt == null) {
       return false;
     }
+    // If the last failure was a transient network error (no server response),
+    // don't apply the cooldown — we should retry rather than instantly logout.
+    if (_lastRefreshFailedWithNetworkError) return false;
     final sameToken = _lastFailedRefreshToken == refreshToken;
     final withinCooldown = DateTime.now().difference(_lastFailedRefreshAt!) <
         const Duration(minutes: 5);

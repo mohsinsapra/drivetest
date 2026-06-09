@@ -2,6 +2,7 @@ import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import '../../features/tests/result_screen.dart';
 import '../models/question.dart';
 
@@ -36,17 +37,18 @@ Future<void> showFinishConfirmationDialog({
             : t.test_finish_prompt,
       ),
       actions: [
-        TextButton(
-          child: Text(t.test_finish_no),
+        AppTextButton(
+          label: t.test_finish_no,
           onPressed: () async {
-            Navigator.of(ctx).pop(); // close
+            Navigator.of(ctx).pop();
             await onCancel();
           },
         ),
-        ElevatedButton(
-          child: Text(t.test_finish_yes),
+        AppFilledButton(
+          label: t.test_finish_yes,
+          minimumWidth: 0,
           onPressed: () async {
-            Navigator.of(ctx).pop(); // close
+            Navigator.of(ctx).pop();
             await onConfirm();
           },
         ),
@@ -172,30 +174,25 @@ Future<void> showResultDialog({
             child: Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
+                  child: AppOutlinedButton(
+                    label: t.test_result_go_back,
+                    borderRadius: 12,
+                    minimumWidth: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
                     onPressed: () {
-                      Navigator.of(ctx).pop(); // close dialog
-                      Navigator.of(ctx).pop(); // pop TestScreen
+                      Navigator.of(ctx).pop();
+                      Navigator.of(ctx).pop();
                     },
-                    child: Text(t.test_result_go_back),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
+                  child: AppFilledButton(
+                    label: t.test_result_see_results,
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    borderRadius: 12,
+                    minimumWidth: 0,
                     onPressed: () {
                       Navigator.of(ctx).pop();
                       Navigator.pushAndRemoveUntil(
@@ -214,7 +211,6 @@ Future<void> showResultDialog({
                         (route) => route.isFirst,
                       );
                     },
-                    child: Text(t.test_result_see_results),
                   ),
                 ),
               ],

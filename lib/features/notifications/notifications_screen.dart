@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
+import 'package:taxi_exam_app/core/widgets/app_dialogs.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -73,71 +74,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
   void _showWebSettingsDialog() {
     final t = Translations.of(context);
-    final cs = Theme.of(context).colorScheme;
-    showDialog<void>(
+    showAppInfoDialog(
       context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: cs.surface,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: cs.primaryContainer.withValues(alpha: 0.35),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(LucideIcons.info, size: 26, color: cs.primary),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                t.notifications_permission_web_dialog_title,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.lexend(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: cs.onSurface,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                t.notifications_permission_web_dialog_body,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: cs.onSurfaceVariant,
-                  height: 1.55,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: cs.primary,
-                    foregroundColor: cs.onPrimary,
-                    shape: const StadiumBorder(),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    t.notifications_permission_web_dialog_ok,
-                    style: GoogleFonts.lexend(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      icon: LucideIcons.info,
+      title: t.notifications_permission_web_dialog_title,
+      body: t.notifications_permission_web_dialog_body,
+      ctaLabel: t.notifications_permission_web_dialog_ok,
     );
   }
 
@@ -249,74 +191,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
   void _confirmClear(
       BuildContext context, NotificationProvider provider, Translations t) {
-    showModalBottomSheet(
+    showAppDangerSheet(
       context: context,
-      backgroundColor: Theme.of(context).cardColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // drag handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Text(t.notifications_clear_confirm_title,
-                style:
-                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Text(t.notifications_clear_confirm_body,
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
-            const SizedBox(height: 28),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: Text(t.cancel,
-                        style: const TextStyle(fontWeight: FontWeight.w500)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () {
-                      provider.clearAll();
-                      Navigator.pop(context);
-                    },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.red.shade400,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: Text(t.notifications_clear,
-                        style: const TextStyle(fontWeight: FontWeight.w600)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      title: t.notifications_clear_confirm_title,
+      body: t.notifications_clear_confirm_body,
+      dangerLabel: t.notifications_clear,
+      onConfirm: provider.clearAll,
     );
   }
 }

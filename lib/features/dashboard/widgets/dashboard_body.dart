@@ -8,6 +8,8 @@ import 'package:taxi_exam_app/core/constants/language_options.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/category_icon_mapper.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_bottom_sheet.dart';
+import 'package:taxi_exam_app/core/widgets/app_sheet.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_category_hub_screen.dart';
 import 'package:taxi_exam_app/features/bcd/bcd_text_utils.dart';
@@ -25,6 +27,7 @@ import 'exam_carousel_section.dart';
 import 'exam_nav_helpers.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
+import 'package:taxi_exam_app/features/tests/widgets/language_grid.dart';
 import 'category_progress_section.dart';
 import 'performance_overview_section.dart';
 import 'weekly_streak_section.dart';
@@ -452,10 +455,24 @@ class _ChecklistSection extends StatefulWidget {
 
 class _ChecklistSectionState extends State<_ChecklistSection> {
   String _langCode = 'SV';
+  String? _previousLangCode;
+  late final ValueNotifier<String> _langNotifier;
   bool _translating = false;
   bool _outerExpanded = false;
   final Map<String, List<Map<String, String>>> _cache = {};
   final _translator = GoogleTranslator();
+
+  @override
+  void initState() {
+    super.initState();
+    _langNotifier = ValueNotifier(_langCode);
+  }
+
+  @override
+  void dispose() {
+    _langNotifier.dispose();
+    super.dispose();
+  }
 
   List<Map<String, String>> get _effectiveItems {
     if (_cache.containsKey(_langCode)) return _cache[_langCode]!;
@@ -468,13 +485,24 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
         .toList();
   }
 
+  Future<void> _revertToPreviousLanguage() async {
+    if (_previousLangCode == null) return;
+    await _onLanguageSelected(_previousLangCode!);
+  }
+
   Future<void> _onLanguageSelected(String code) async {
     if (code == _langCode) return;
+    final previousCode = _langCode;
+    _langNotifier.value = code;
     if (code == 'SV' || _cache.containsKey(code)) {
-      setState(() => _langCode = code);
+      setState(() {
+        _previousLangCode = previousCode;
+        _langCode = code;
+      });
       return;
     }
     setState(() {
+      _previousLangCode = previousCode;
       _langCode = code;
       _translating = true;
     });
@@ -508,14 +536,6 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
     }
   }
 
-  String _flagFor(String code) {
-    final entry = languageOptions.firstWhere(
-      (l) => l['code'] == code,
-      orElse: () => {},
-    );
-    final label = entry['label'];
-    return label != null && label.isNotEmpty ? label.split(' ').first : '🌐';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -555,7 +575,8 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => setState(() => _outerExpanded = !_outerExpanded),
+                  onTap: () =>
+                      setState(() => _outerExpanded = !_outerExpanded),
                   splashColor: cs.primary.withValues(alpha: 0.06),
                   highlightColor: cs.primary.withValues(alpha: 0.04),
                   child: Padding(
@@ -594,50 +615,21 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
                                           .replaceAll('{n}', '$count'),
                                   style: GoogleFonts.lexend(
                                     fontSize: 11,
-                                    color: cs.onSurface.withValues(alpha: 0.45),
+                                    color: cs.onSurface
+                                        .withValues(alpha: 0.45),
                                   ),
                                 ),
                             ],
                           ),
                         ),
-                        // Language picker (only when expanded)
                         if (_outerExpanded) ...[
-                          PopupMenuButton<String>(
+                          _LanguagePickerChip(
+                            langCode: _langCode,
+                            translating: _translating,
+                            langNotifier: _langNotifier,
                             onSelected: _onLanguageSelected,
-                            itemBuilder: (_) => languageOptions
-                                .map((l) => PopupMenuItem<String>(
-                                      value: l['code'],
-                                      child: Text(l['label']!),
-                                    ))
-                                .toList(),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: cs.primary.withValues(alpha: 0.10),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: _translating
-                                  ? SizedBox(
-                                      width: 14,
-                                      height: 14,
-                                      child: AppLoadingIndicator(
-                                          strokeWidth: 2, color: cs.primary),
-                                    )
-                                  : Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(_flagFor(_langCode),
-                                            style:
-                                                const TextStyle(fontSize: 13)),
-                                        const SizedBox(width: 3),
-                                        Icon(LucideIcons.languages,
-                                            size: 14, color: cs.primary),
-                                      ],
-                                    ),
-                            ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                         ],
                         AnimatedRotation(
                           turns: _outerExpanded ? 0.25 : 0.0,
@@ -657,44 +649,48 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
                   duration: const Duration(milliseconds: 280),
                   curve: Curves.easeInOut,
                   child: _outerExpanded
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: cs.onSurface.withValues(alpha: 0.07),
-                            ),
-                            if (widget.loading)
-                              _ChecklistShimmer()
-                            else if (items.length == 1)
-                              _ChecklistCard(
-                                title: items.first['title']!,
-                                content: items.first['content']!,
-                                nested: true,
-                              )
-                            else
-                              ...items.asMap().entries.map((e) {
-                                final isLast = e.key == items.length - 1;
-                                return Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _ChecklistCard(
-                                      title: e.value['title']!,
-                                      content: e.value['content']!,
-                                      nested: true,
-                                    ),
-                                    if (!isLast)
-                                      Divider(
-                                        height: 1,
-                                        thickness: 1,
-                                        color: cs.onSurface
-                                            .withValues(alpha: 0.07),
+                      ? GestureDetector(
+                          onLongPress: _revertToPreviousLanguage,
+                          onLongPressUp: _revertToPreviousLanguage,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: cs.onSurface.withValues(alpha: 0.07),
+                              ),
+                              if (widget.loading)
+                                _ChecklistShimmer()
+                              else if (items.length == 1)
+                                _ChecklistCard(
+                                  title: items.first['title']!,
+                                  content: items.first['content']!,
+                                  nested: true,
+                                )
+                              else
+                                ...items.asMap().entries.map((e) {
+                                  final isLast = e.key == items.length - 1;
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _ChecklistCard(
+                                        title: e.value['title']!,
+                                        content: e.value['content']!,
+                                        nested: true,
                                       ),
-                                  ],
-                                );
-                              }),
-                          ],
+                                      if (!isLast)
+                                        Divider(
+                                          height: 1,
+                                          thickness: 1,
+                                          color: cs.onSurface
+                                              .withValues(alpha: 0.07),
+                                        ),
+                                    ],
+                                  );
+                                }),
+                            ],
+                          ),
                         )
                       : const SizedBox.shrink(),
                 ),
@@ -1456,6 +1452,82 @@ class _SmartLearningBanner extends StatelessWidget {
                 size: 18, color: cs.primary.withValues(alpha: 0.5)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Language picker chip for the checklist section ────────────────────────────
+// Self-contained: shows a flag+icon chip and opens a bottom sheet with
+// LanguageGrid. Scoped to _ChecklistSection — not used elsewhere.
+
+class _LanguagePickerChip extends StatelessWidget {
+  const _LanguagePickerChip({
+    required this.langCode,
+    required this.translating,
+    required this.langNotifier,
+    required this.onSelected,
+  });
+
+  final String langCode;
+  final bool translating;
+  final ValueNotifier<String> langNotifier;
+  final Future<void> Function(String code) onSelected;
+
+  static String _flagFor(String code) {
+    final entry = languageOptions.firstWhere(
+      (l) => l['code'] == code,
+      orElse: () => {},
+    );
+    final label = entry['label'];
+    return label != null && label.isNotEmpty ? label.split(' ').first : '🌐';
+  }
+
+  void _showSheet(BuildContext context) {
+    final t = Translations.of(context);
+    showAppSheet<void>(
+      context,
+      builder: (ctx) => AppBottomSheetContainer(
+        title: t.settings_language,
+        subtitle: t.checklist_language_subtitle,
+        heightFactor: 0.9,
+        child: LanguageGrid(
+          selectedLanguage: langNotifier,
+          onSelected: (code) async {
+            await onSelected(code);
+            if (ctx.mounted) Navigator.pop(ctx);
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: () => _showSheet(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: cs.primary.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: translating
+            ? SizedBox(
+                width: 14,
+                height: 14,
+                child: AppLoadingIndicator(strokeWidth: 2, color: cs.primary),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_flagFor(langCode),
+                      style: const TextStyle(fontSize: 13)),
+                  const SizedBox(width: 3),
+                  Icon(LucideIcons.languages, size: 14, color: cs.primary),
+                ],
+              ),
       ),
     );
   }

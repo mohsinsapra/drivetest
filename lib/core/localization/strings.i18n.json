@@ -141,6 +141,7 @@
   "auth_feedback_signup_issue": "Signup issue",
   "auth_feedback_app_issue": "App issue",
   "auth_feedback_feature_request": "Feature request",
+  "auth_feedback_payment_issue": "Payment issue",
   "auth_feedback_other": "Other",
   "auth_create_account": "Create Account",
   "auth_sign_up_btn": "Sign Up",
@@ -232,6 +233,7 @@
   "bcd_hub_theory_docs": "Theory\nDocuments",
   "bcd_hub_traffic_signs": "Traffic Signs",
   "bcd_hub_checklist": "Checklist",
+  "checklist_language_subtitle": "Translate checklist to your language",
   "bcd_hub_statistics": "Statistics",
   "bcd_hub_saved_questions": "Saved\nQuestions",
 
@@ -627,6 +629,7 @@
   "btn_save_changes": "Save Changes",
   "btn_set_password": "Set Password",
   "btn_delete_account": "Delete Account",
+  "delete_account_confirm_body": "This action is permanent and cannot be undone. All your progress and data will be removed.",
   "btn_deleting": "Deleting...",
   "btn_keep_going": "Keep Going",
   "btn_exit": "Exit",

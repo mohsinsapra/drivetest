@@ -1,5 +1,6 @@
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:taxi_exam_app/core/widgets/app_dialogs.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -108,27 +109,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _deleteAccount() async {
     final t = Translations.of(context);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAppDangerDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: const Text(
-          'This action is permanent and will remove your account data. Are you sure?',
-        ),
-        actions: [
-          AppTextButton(
-            label: t.cancel,
-            onPressed: () => Navigator.of(ctx).pop(false),
-          ),
-          AppDangerButton(
-            label: t.btn_delete_account,
-            onPressed: () => Navigator.of(ctx).pop(true),
-          ),
-        ],
-      ),
+      title: t.btn_delete_account,
+      body: t.delete_account_confirm_body,
+      dangerLabel: t.btn_delete_account,
     );
 
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     try {
       await _profile.deleteAccount();

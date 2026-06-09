@@ -70,14 +70,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final messageCtrl = TextEditingController();
     String feedbackType = 'app_issue';
 
-    final payload = await showDialog<Map<String, String>>(
+    final payload = await showModalBottomSheet<Map<String, String>>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(t.auth_contact_support),
-          content: Column(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.fromLTRB(
+              24, 20, 24, MediaQuery.of(ctx).viewInsets.bottom + 36),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                t.auth_contact_support,
+                style: GoogleFonts.lexend(
+                    fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 20),
               DropdownButtonFormField<String>(
                 initialValue: feedbackType,
                 decoration: InputDecoration(labelText: t.auth_feedback_type),
@@ -88,14 +112,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   DropdownMenuItem(
                       value: 'feature_request',
                       child: Text(t.auth_feedback_feature_request)),
-                  const DropdownMenuItem(
-                      value: 'payment_issue', child: Text('Payment issue')),
+                  DropdownMenuItem(
+                      value: 'payment_issue',
+                      child: Text(t.auth_feedback_payment_issue)),
                   DropdownMenuItem(
                       value: 'other', child: Text(t.auth_feedback_other)),
                 ],
                 onChanged: (v) {
                   if (v == null) return;
-                  setDialogState(() => feedbackType = v);
+                  setSheetState(() => feedbackType = v);
                 },
               ),
               const SizedBox(height: 12),
@@ -114,22 +139,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: const OutlineInputBorder(),
                 ),
               ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppOutlinedButton(
+                      label: t.cancel,
+                      borderRadius: 12,
+                      minimumWidth: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: AppFilledButton(
+                      label: t.auth_submit,
+                      borderRadius: 12,
+                      onPressed: () => Navigator.pop(ctx, {
+                        'subject': subjectCtrl.text.trim(),
+                        'message': messageCtrl.text.trim(),
+                        'type': feedbackType,
+                      }),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-          actions: [
-            AppTextButton(
-              label: t.cancel,
-              onPressed: () => Navigator.pop(ctx),
-            ),
-            AppFilledButton(
-              label: t.auth_submit,
-              onPressed: () => Navigator.pop(ctx, {
-                'subject': subjectCtrl.text.trim(),
-                'message': messageCtrl.text.trim(),
-                'type': feedbackType,
-              }),
-            ),
-          ],
         ),
       ),
     );

@@ -1,6 +1,6 @@
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_dialogs.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'dart:async'; // Import for TimeoutException
 import 'package:flutter/material.dart';
@@ -92,22 +92,20 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (_isLoadingDialogDisplayed && mounted) {
-        Navigator.pop(context);
-        _isLoadingDialogDisplayed = false;
-      }
+      _hideLoading();
+    }
+  }
+
+  void _hideLoading() {
+    if (_isLoadingDialogDisplayed && mounted) {
+      hideAppLoadingDialog(context);
+      _isLoadingDialogDisplayed = false;
     }
   }
 
   void _onStartTest() async {
     _isLoadingDialogDisplayed = true;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => const Center(
-        child: AppLoadingIndicator(),
-      ),
-    );
+    showAppLoadingDialog(context);
 
     List<Question>? fetchedQuestions;
 
@@ -129,10 +127,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
         );
 
         if (savedIds.isEmpty) {
-          if (_isLoadingDialogDisplayed && mounted) {
-            Navigator.pop(context);
-            _isLoadingDialogDisplayed = false;
-          }
+          _hideLoading();
           showAppSnackBar(
               'No saved questions found. Save questions during a test first.');
           return;
@@ -142,10 +137,7 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
             allQuestions.where((q) => savedIds.contains(q.questionId)).toList();
 
         if (saved.isEmpty) {
-          if (_isLoadingDialogDisplayed && mounted) {
-            Navigator.pop(context);
-            _isLoadingDialogDisplayed = false;
-          }
+          _hideLoading();
           showAppSnackBar('None of your saved questions are in this category.');
           return;
         }
@@ -165,34 +157,22 @@ class _CreateCustomTestScreenState extends State<CreateCustomTestScreen>
       }
 
       if (fetchedQuestions.isEmpty) {
-        if (_isLoadingDialogDisplayed && mounted) {
-          Navigator.pop(context);
-          _isLoadingDialogDisplayed = false;
-        }
+        _hideLoading();
         showAppSnackBar('No questions available.');
         return;
       }
     } on TimeoutException catch (_) {
-      if (_isLoadingDialogDisplayed && mounted) {
-        Navigator.pop(context);
-        _isLoadingDialogDisplayed = false;
-      }
+      _hideLoading();
       showAppSnackBar('Request timed out. Please try again.',
           type: SnackBarType.error);
       return;
     } catch (e) {
-      if (_isLoadingDialogDisplayed && mounted) {
-        Navigator.pop(context);
-        _isLoadingDialogDisplayed = false;
-      }
+      _hideLoading();
       showAppSnackBar('Failed to start test. Please try again.',
           type: SnackBarType.error);
       return;
     } finally {
-      if (_isLoadingDialogDisplayed && mounted) {
-        Navigator.pop(context);
-        _isLoadingDialogDisplayed = false;
-      }
+      _hideLoading();
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

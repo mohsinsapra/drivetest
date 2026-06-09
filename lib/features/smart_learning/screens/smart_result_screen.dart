@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/services/activity_reminder_service.dart';
 import 'package:taxi_exam_app/core/services/app_review_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/option_tile.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
 
@@ -194,46 +194,30 @@ class _SmartResultScreenState extends State<SmartResultScreen>
             sliver: SliverToBoxAdapter(
               child: Column(
                 children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: FilledButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(t.smart_result_continue,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
-                    ),
+                  AppFilledButton(
+                    label: t.smart_result_continue,
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                   if (!widget.hasPassed &&
                       !widget.isMistakesMode &&
                       widget.onRetry != null) ...[
                     const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton(
-                        onPressed: _retrying
-                            ? null
-                            : () async {
-                                setState(() => _retrying = true);
-                                final screen = await widget.onRetry!();
-                                if (!mounted) return;
-                                setState(() => _retrying = false);
-                                if (screen == null) return;
-                                Navigator.of(context).pushReplacement(
-                                  AppPageRoute(builder: (_) => screen),
-                                );
-                              },
-                        child: _retrying
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: AppLoadingIndicator(strokeWidth: 2),
-                              )
-                            : Text(t.smart_chunk_retry,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600)),
-                      ),
+                    AppOutlinedButton(
+                      label: t.smart_chunk_retry,
+                      minimumWidth: 0,
+                      loading: _retrying,
+                      onPressed: _retrying
+                          ? null
+                          : () async {
+                              setState(() => _retrying = true);
+                              final screen = await widget.onRetry!();
+                              if (!context.mounted) return;
+                              setState(() => _retrying = false);
+                              if (screen == null) return;
+                              Navigator.of(context).pushReplacement(
+                                AppPageRoute(builder: (_) => screen),
+                              );
+                            },
                     ),
                   ],
                 ],
@@ -861,13 +845,9 @@ class _AnswerReviewSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: FilledButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(t.smart_result_continue),
-            ),
+          AppFilledButton(
+            label: t.smart_result_continue,
+            onPressed: () => Navigator.pop(context),
           ),
         ],
       ),

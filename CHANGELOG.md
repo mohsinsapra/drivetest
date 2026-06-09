@@ -9,10 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Hold to peek translation on checklist**: Long-press any expanded checklist item to temporarily view it in your previously selected language — release to switch back. Same gesture already available on test and translation screens.
+
 ### Changed
 - **Smart Learning now starts instantly**: Tapping a part no longer shows a loading screen — questions load in the background and the session opens directly.
 - **Smarter question repetition**: Wrong answers are revisited once per session. Correct answers move you forward immediately, keeping sessions shorter and more focused.
 - **Native loading indicators on iOS**: Loading spinners now match the iOS style across the app.
+- **Checklist language picker is now a full language sheet**: The small dropdown on the BCD checklist has been replaced with the same full-screen language grid used on test screens — 90 % height with the iOS depth background effect.
+- **Contact Support and Question Feedback slide up as sheets**: Both forms now appear as bottom sheets instead of pop-up dialogs for a more natural mobile feel.
+- **Delete and danger confirmations use consistent styling**: Progress deletion and other destructive actions now share the same danger-button design across the app.
+- **Smart Learning language chip matches the timer**: The language selector in Smart Learning tests is now the same height and font weight as the countdown timer chip.
 
 ---
 

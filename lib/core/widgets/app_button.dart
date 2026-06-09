@@ -233,6 +233,7 @@ class AppOutlinedButton extends StatelessWidget {
     this.borderRadius = 9999,
     this.padding,
     this.minimumWidth,
+    this.loading = false,
   });
 
   final String label;
@@ -243,9 +244,11 @@ class AppOutlinedButton extends StatelessWidget {
   final double borderRadius;
   final EdgeInsetsGeometry? padding;
   final double? minimumWidth;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final shape = RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius));
     final style = OutlinedButton.styleFrom(
@@ -255,12 +258,22 @@ class AppOutlinedButton extends StatelessWidget {
       minimumSize: minimumWidth != null ? Size(minimumWidth!, 0) : null,
       shape: shape,
     );
-    if (icon != null) {
+    final child = loading
+        ? SizedBox(
+            width: 18,
+            height: 18,
+            child: AppLoadingIndicator(
+                strokeWidth: 2, color: foregroundColor ?? cs.primary))
+        : Text(label);
+    if (icon != null && !loading) {
       return OutlinedButton.icon(
-          onPressed: onPressed, icon: icon!, label: Text(label), style: style);
+          onPressed: loading ? null : onPressed,
+          icon: icon!,
+          label: Text(label),
+          style: style);
     }
     return OutlinedButton(
-        onPressed: onPressed, style: style, child: Text(label));
+        onPressed: loading ? null : onPressed, style: style, child: child);
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -405,17 +406,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                           !kIsWeb)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                          child: OutlinedButton.icon(
+                          child: AppOutlinedButton(
+                            label: t.settings_notifications_open_settings,
                             onPressed: _openNotificationSettings,
-                            icon: const Icon(Icons.settings_rounded, size: 16),
-                            label: Text(t.settings_notifications_open_settings),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                              side: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary),
-                              shape: const StadiumBorder(),
-                            ),
                           ),
                         ),
                     ],
@@ -630,21 +623,14 @@ class _SettingsScreenState extends State<SettingsScreen>
             // Save button
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await _savePreferences();
-                    if (!mounted) return;
-                    showAppSnackBar(t.settings_saved);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Text(t.save),
-                ),
+              child: AppFilledButton(
+                label: t.save,
+                borderRadius: 12,
+                onPressed: () async {
+                  await _savePreferences();
+                  if (!mounted) return;
+                  showAppSnackBar(t.settings_saved);
+                },
               ),
             ),
           ],
