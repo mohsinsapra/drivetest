@@ -40,8 +40,7 @@ class ExamOverviewCard extends StatelessWidget {
               isSelected ? cs.primary.withValues(alpha: 0.12) : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color:
-                isSelected ? cs.primary : cs.onSurface.withValues(alpha: 0.08),
+            color: isSelected ? cs.primary : cs.onSurface.withValues(alpha: 0.08),
             width: isSelected ? 1.5 : 1,
           ),
         ),

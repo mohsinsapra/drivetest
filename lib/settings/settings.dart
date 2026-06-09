@@ -1,5 +1,8 @@
+import 'package:taxi_exam_app/core/constants/app_text_styles.dart';
+import 'package:taxi_exam_app/core/theme/app_surface_colors.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
+import 'package:taxi_exam_app/core/widgets/app_surface_card.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -288,13 +291,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ],
                         ),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
                       ListTile(
                         leading: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? Colors.purple.withValues(alpha: 0.2)
+                                ? Colors.purple.withValues(alpha: 0.05)
                                 : Colors.purple.shade50,
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -323,13 +326,13 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ],
                         ),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
                       ListTile(
                         leading: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? Colors.blue.withValues(alpha: 0.2)
+                                ? Colors.blue.withValues(alpha: 0.05)
                                 : Colors.blue.shade50,
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -372,7 +375,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? Colors.orange.withValues(alpha: 0.2)
+                                ? Colors.orange.withValues(alpha: 0.05)
                                 : Colors.orange.shade50,
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -429,7 +432,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           setState(() => isTimed = v);
                         },
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
                       SwitchListTile(
                         title: Text(t.settings_instant_marking),
                         subtitle: Text(t.settings_instant_marking_sub),
@@ -439,7 +442,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           setState(() => isInstantMarking = v);
                         },
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
                       SwitchListTile(
                         title: const Text('Randomize Questions'),
                         subtitle: const Text(
@@ -451,7 +454,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           setState(() => randomize = v);
                         },
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
                       SwitchListTile(
                         title: const Text('Shuffle Question Order'),
                         subtitle: const Text(
@@ -463,7 +466,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           setState(() => shuffleOnDevice = v);
                         },
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
                       ListTile(
                         title: Text(t.settings_num_questions),
                         subtitle: Column(
@@ -510,7 +513,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ],
                         ),
                       ),
-                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
                       SwitchListTile(
                         title: Text(t.settings_include_saved),
                         subtitle: Text(t.settings_include_saved_sub),
@@ -647,18 +650,16 @@ class _SectionHeader extends StatelessWidget {
   const _SectionHeader(this.label);
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 6),
-        child: Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: Theme.of(context).colorScheme.primary,
-            letterSpacing: 1.0,
-          ),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final surfaces = AppSurfaceColors.fromTheme(Theme.of(context));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 16, 8),
+      child: Text(
+        label.toUpperCase(),
+        style: AppTextStyles.bodySmall(color: surfaces.sectionLabel),
+      ),
+    );
+  }
 }
 
 class _SettingsSectionCard extends StatelessWidget {
@@ -668,25 +669,13 @@ class _SettingsSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final borderColor = isDark
-        ? theme.colorScheme.onSurface.withValues(alpha: 0.06)
-        : theme.colorScheme.onSurface.withValues(alpha: 0.08);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Card(
-        elevation: isDark ? 3 : 10,
-        shadowColor: Colors.black.withValues(alpha: isDark ? 0.08 : 0.18),
-        margin: EdgeInsets.zero,
-        color: theme.cardColor,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: BorderSide(color: borderColor, width: isDark ? 0 : 1),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: AppSurfaceCard(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(children: children),
         ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(children: children),
       ),
     );
   }

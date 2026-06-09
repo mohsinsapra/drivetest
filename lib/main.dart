@@ -422,6 +422,18 @@ ThemeData buildDarkTheme(String font) => ThemeData(
         backgroundColor: Color(0xFF09082F),
         elevation: 0,
       ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          return Colors.white;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const Color(0xFF6A89FF);
+          }
+          return const Color(0xFF3D3C65);
+        }),
+        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+      ),
       dividerColor: Colors.transparent,
     );
 
@@ -517,6 +529,18 @@ ThemeData buildLightTheme(String font) => ThemeData(
         unselectedItemColor: Color(0xFF73739E),
         backgroundColor: Color(0xFFF8F5FF),
         elevation: 0,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          return Colors.white;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const Color(0xFF0049E6);
+          }
+          return const Color(0xFFD0CFF0);
+        }),
+        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),
       dividerColor: Colors.transparent,
     );

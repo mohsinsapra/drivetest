@@ -17,22 +17,24 @@ class AppSurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final borderColor = isDark
-        ? theme.colorScheme.onSurface.withValues(alpha: 0.06)
-        : theme.colorScheme.onSurface.withValues(alpha: 0.08);
 
-    return Card(
-      elevation: isDark ? 1 : 3,
-      shadowColor: Colors.black.withValues(alpha: isDark ? 0.04 : 0.07),
+    return Container(
       margin: margin,
-      color: theme.cardColor,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: borderRadius,
-        side: BorderSide(color: borderColor, width: isDark ? 0 : 1),
-      ),
       clipBehavior: clipBehavior,
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: borderRadius,
+        border: Border.all(color: cs.onSurface.withValues(alpha: isDark ? 0.06 : 0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.08 : 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: child,
     );
   }

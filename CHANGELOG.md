@@ -9,14 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
--
-
 ### Changed
--
-
-### Fixed
--
+- **Cleaner card style across the app**: Profile and Settings cards now have a consistent look with subtle borders and soft shadows — matching the dashboard style throughout.
+- **Softer divider lines in Settings**: The lines between settings rows are now much lighter and less distracting.
+- **Toggle switches look better**: On/off switches now show a clean grey when off and your app's blue when on — no more muddy purple tones.
+- **Delete My Account button is now clearly styled**: The delete button on the Edit Profile screen is now a solid red button, making it easier to find and harder to tap by accident.
+- **Better spacing on Edit Profile screen**: More breathing room between the save and delete sections for a cleaner layout.
+- **"Delete Account" renamed to "Delete My Account"**: Clearer and more personal wording for the account deletion button.
 
 ---
 

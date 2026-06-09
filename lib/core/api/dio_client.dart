@@ -11,6 +11,7 @@ import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/services/navigation_service.dart';
@@ -91,9 +92,18 @@ class DioClient {
       accessToken = null;
     }
 
-    // Fallback to SharedPreferences if not found in secure storage
+    // Fallback to SharedPreferences if not found in secure storage.
+    // flutter_secure_storage on iOS Safari can lose its AES decryption key
+    // between sessions, returning null even when tokens were written correctly.
     if (refreshToken == null || accessToken == null) {
-      // If found in SharedPreferences, migrate to secure storage
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        refreshToken ??= prefs.getString('refreshToken');
+        accessToken ??= prefs.getString('accessToken');
+      } catch (e) {
+        debugPrint('[DioClient] SharedPreferences fallback read failed: $e');
+      }
+      // Migrate recovered tokens back into secure storage.
       if (refreshToken != null && accessToken != null) {
         try {
           await _secureStorage.write(key: 'refreshToken', value: refreshToken!);
@@ -365,8 +375,16 @@ class DioClient {
       accessToken = null;
     }
 
-    // Fallback to SharedPreferences if not found in secure storage
-    if (refreshToken == null || accessToken == null) {}
+    // Fallback to SharedPreferences if not found in secure storage.
+    if (refreshToken == null || accessToken == null) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        refreshToken ??= prefs.getString('refreshToken');
+        accessToken ??= prefs.getString('accessToken');
+      } catch (e) {
+        debugPrint('[DioClient] SharedPreferences fallback read failed: $e');
+      }
+    }
   }
 
   Future<bool> _refreshAccessToken({int attempt = 0}) async {
@@ -397,6 +415,12 @@ class DioClient {
         debugPrint(
             '[DioClient] secure storage write (access) failed (non-fatal): $e');
       }
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('accessToken', accessToken!);
+      } catch (e) {
+        debugPrint('[DioClient] SharedPreferences access write failed (non-fatal): $e');
+      }
       _lastFailedRefreshToken = null;
       _lastFailedRefreshAt = null;
       _lastRefreshFailedWithNetworkError = false;
@@ -408,6 +432,12 @@ class DioClient {
         } catch (e) {
           debugPrint(
               '[DioClient] secure storage write (refresh) failed (non-fatal): $e');
+        }
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('refreshToken', refreshToken!);
+        } catch (e) {
+          debugPrint('[DioClient] SharedPreferences refresh write failed (non-fatal): $e');
         }
       }
 
@@ -517,6 +547,13 @@ class DioClient {
     // recover tokens across sessions. flutter_secure_storage on iOS Safari
     // can lose its AES decryption key between sessions, causing read() to
     // return null and leaving the user logged out on reload.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('accessToken', access);
+      await prefs.setString('refreshToken', refresh);
+    } catch (e) {
+      debugPrint('[DioClient] SharedPreferences token write failed (non-fatal): $e');
+    }
   }
 
   Future<void> logout() async {
@@ -531,6 +568,16 @@ class DioClient {
 
     // Wipe all secure storage
     await _secureStorage.deleteAll();
+
+    // Remove token fallback from SharedPreferences so stale tokens
+    // are never read back on next cold start.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('accessToken');
+      await prefs.remove('refreshToken');
+    } catch (e) {
+      debugPrint('[DioClient] SharedPreferences token clear failed (non-fatal): $e');
+    }
 
     // User scope is reset in AppStorage.clearUserData() which is called after this.
   }

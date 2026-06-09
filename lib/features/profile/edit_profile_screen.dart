@@ -201,6 +201,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ? null
                 : _saveProfile,
             loading: _profile.savingProfile,
+            borderRadius: 14,
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           if (_profile.isGoogleAccount) ...[
             const SizedBox(height: 28),
@@ -270,23 +272,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               loading: _profile.settingPassword,
             ),
           ],
-          const SizedBox(height: 28),
-          const Divider(thickness: 0.6, color: Color(0xFFE6E6E6)),
-          const SizedBox(height: 12),
-          AppOutlinedButton(
+          const SizedBox(height: 40),
+          AppDangerButton(
             label: _profile.deletingAccount
                 ? t.btn_deleting
                 : t.btn_delete_account,
             onPressed: _profile.deletingAccount ? null : _deleteAccount,
-            icon: _profile.deletingAccount
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: AppLoadingIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.delete_forever),
-            foregroundColor: Colors.red,
-            borderColor: Colors.red,
+            loading: _profile.deletingAccount,
+            height: 48,
+            borderRadius: 48,
           ),
         ],
       ),
