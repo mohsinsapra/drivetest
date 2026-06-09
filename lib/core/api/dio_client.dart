@@ -419,7 +419,8 @@ class DioClient {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('accessToken', accessToken!);
       } catch (e) {
-        debugPrint('[DioClient] SharedPreferences access write failed (non-fatal): $e');
+        debugPrint(
+            '[DioClient] SharedPreferences access write failed (non-fatal): $e');
       }
       _lastFailedRefreshToken = null;
       _lastFailedRefreshAt = null;
@@ -437,7 +438,8 @@ class DioClient {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('refreshToken', refreshToken!);
         } catch (e) {
-          debugPrint('[DioClient] SharedPreferences refresh write failed (non-fatal): $e');
+          debugPrint(
+              '[DioClient] SharedPreferences refresh write failed (non-fatal): $e');
         }
       }
 
@@ -552,7 +554,8 @@ class DioClient {
       await prefs.setString('accessToken', access);
       await prefs.setString('refreshToken', refresh);
     } catch (e) {
-      debugPrint('[DioClient] SharedPreferences token write failed (non-fatal): $e');
+      debugPrint(
+          '[DioClient] SharedPreferences token write failed (non-fatal): $e');
     }
   }
 
@@ -576,7 +579,8 @@ class DioClient {
       await prefs.remove('accessToken');
       await prefs.remove('refreshToken');
     } catch (e) {
-      debugPrint('[DioClient] SharedPreferences token clear failed (non-fatal): $e');
+      debugPrint(
+          '[DioClient] SharedPreferences token clear failed (non-fatal): $e');
     }
 
     // User scope is reset in AppStorage.clearUserData() which is called after this.

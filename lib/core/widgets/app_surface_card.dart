@@ -26,7 +26,8 @@ class AppSurfaceCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: borderRadius,
-        border: Border.all(color: cs.onSurface.withValues(alpha: isDark ? 0.06 : 0.08)),
+        border: Border.all(
+            color: cs.onSurface.withValues(alpha: isDark ? 0.06 : 0.08)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.08 : 0.06),

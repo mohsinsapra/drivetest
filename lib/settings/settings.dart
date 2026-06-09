@@ -291,7 +291,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ],
                         ),
                       ),
-                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+                      Divider(
+                          height: 1,
+                          thickness: 0.5,
+                          indent: 16,
+                          endIndent: 16,
+                          color: Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.05)),
                       ListTile(
                         leading: Container(
                           padding: const EdgeInsets.all(8),
@@ -326,7 +333,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ],
                         ),
                       ),
-                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+                      Divider(
+                          height: 1,
+                          thickness: 0.5,
+                          indent: 16,
+                          endIndent: 16,
+                          color: Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.05)),
                       ListTile(
                         leading: Container(
                           padding: const EdgeInsets.all(8),
@@ -432,7 +446,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                           setState(() => isTimed = v);
                         },
                       ),
-                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+                      Divider(
+                          height: 1,
+                          thickness: 0.5,
+                          indent: 16,
+                          endIndent: 16,
+                          color: Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.05)),
                       SwitchListTile(
                         title: Text(t.settings_instant_marking),
                         subtitle: Text(t.settings_instant_marking_sub),
@@ -442,7 +463,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                           setState(() => isInstantMarking = v);
                         },
                       ),
-                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+                      Divider(
+                          height: 1,
+                          thickness: 0.5,
+                          indent: 16,
+                          endIndent: 16,
+                          color: Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.05)),
                       SwitchListTile(
                         title: const Text('Randomize Questions'),
                         subtitle: const Text(
@@ -454,7 +482,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                           setState(() => randomize = v);
                         },
                       ),
-                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+                      Divider(
+                          height: 1,
+                          thickness: 0.5,
+                          indent: 16,
+                          endIndent: 16,
+                          color: Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.05)),
                       SwitchListTile(
                         title: const Text('Shuffle Question Order'),
                         subtitle: const Text(
@@ -466,7 +501,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                           setState(() => shuffleOnDevice = v);
                         },
                       ),
-                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+                      Divider(
+                          height: 1,
+                          thickness: 0.5,
+                          indent: 16,
+                          endIndent: 16,
+                          color: Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.05)),
                       ListTile(
                         title: Text(t.settings_num_questions),
                         subtitle: Column(
@@ -513,7 +555,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ],
                         ),
                       ),
-                      Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
+                      Divider(
+                          height: 1,
+                          thickness: 0.5,
+                          indent: 16,
+                          endIndent: 16,
+                          color: Theme.of(context)
+                              .dividerColor
+                              .withValues(alpha: 0.05)),
                       SwitchListTile(
                         title: Text(t.settings_include_saved),
                         subtitle: Text(t.settings_include_saved_sub),

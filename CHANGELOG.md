@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.5.17+296] - 2026-06-09
+
 ### Changed
 - **Cleaner card style across the app**: Profile and Settings cards now have a consistent look with subtle borders and soft shadows — matching the dashboard style throughout.
 - **Softer divider lines in Settings**: The lines between settings rows are now much lighter and less distracting.
@@ -17,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Better spacing on Edit Profile screen**: More breathing room between the save and delete sections for a cleaner layout.
 - **"Delete Account" renamed to "Delete My Account"**: Clearer and more personal wording for the account deletion button.
 
+---
 ---
 
 ## [1.5.16+295] - 2026-06-09
