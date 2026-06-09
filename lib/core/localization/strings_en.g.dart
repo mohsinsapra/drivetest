@@ -1024,8 +1024,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get edit_profile_username_required => 'Username is required.';
   String get edit_profile_updated => 'Profile updated.';
   String get edit_profile_password_set => 'Password set successfully.';
-  String get edit_profile_demo_warning => 'Demo accounts cannot change username or email.';
-  String get edit_profile_google_info => 'You are signed in with Google. Password changes are managed through your Google account.';
+  String get edit_profile_demo_warning =>
+      'Demo accounts cannot change username or email.';
+  String get edit_profile_google_info =>
+      'You are signed in with Google. Password changes are managed through your Google account.';
 }
 
 /// Flat map(s) containing all translations.

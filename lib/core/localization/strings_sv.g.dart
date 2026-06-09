@@ -1858,7 +1858,8 @@ class TranslationsSv implements Translations {
   @override
   String get smart_feedback_correct_answer => 'Rätt svar:';
   @override
-  String get edit_profile_load_failed => 'Det gick inte att läsa in profildata.';
+  String get edit_profile_load_failed =>
+      'Det gick inte att läsa in profildata.';
   @override
   String get edit_profile_username_required => 'Användarnamn krävs.';
   @override
@@ -1866,9 +1867,11 @@ class TranslationsSv implements Translations {
   @override
   String get edit_profile_password_set => 'Lösenordet har angetts.';
   @override
-  String get edit_profile_demo_warning => 'Demokonton kan inte ändra användarnamn eller e-post.';
+  String get edit_profile_demo_warning =>
+      'Demokonton kan inte ändra användarnamn eller e-post.';
   @override
-  String get edit_profile_google_info => 'Du är inloggad med Google. Lösenordsändringar hanteras via ditt Google-konto.';
+  String get edit_profile_google_info =>
+      'Du är inloggad med Google. Lösenordsändringar hanteras via ditt Google-konto.';
 }
 
 /// Flat map(s) containing all translations.

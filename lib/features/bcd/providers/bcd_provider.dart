@@ -92,7 +92,9 @@ class BcdProvider extends ChangeNotifier {
     final questions = raw.map(toQuestion).toList();
     if (applyShufflePreference) {
       final prefs = await SharedPreferences.getInstance();
-      if (prefs.getBool('shuffleOnDevice') ?? false) questions.shuffle(Random());
+      if (prefs.getBool('shuffleOnDevice') ?? false) {
+        questions.shuffle(Random());
+      }
     }
     return questions;
   }

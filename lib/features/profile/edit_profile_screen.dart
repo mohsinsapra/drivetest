@@ -231,8 +231,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const Divider(),
             const SizedBox(height: 12),
             Text(t.btn_set_password,
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w700)),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             TextField(
               controller: _newPasswordController,
