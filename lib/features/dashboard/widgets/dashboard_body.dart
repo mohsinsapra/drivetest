@@ -536,7 +536,6 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
@@ -575,8 +574,7 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () =>
-                      setState(() => _outerExpanded = !_outerExpanded),
+                  onTap: () => setState(() => _outerExpanded = !_outerExpanded),
                   splashColor: cs.primary.withValues(alpha: 0.06),
                   highlightColor: cs.primary.withValues(alpha: 0.04),
                   child: Padding(
@@ -615,8 +613,7 @@ class _ChecklistSectionState extends State<_ChecklistSection> {
                                           .replaceAll('{n}', '$count'),
                                   style: GoogleFonts.lexend(
                                     fontSize: 11,
-                                    color: cs.onSurface
-                                        .withValues(alpha: 0.45),
+                                    color: cs.onSurface.withValues(alpha: 0.45),
                                   ),
                                 ),
                             ],

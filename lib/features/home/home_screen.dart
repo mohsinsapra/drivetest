@@ -205,8 +205,8 @@ class _HomeScreenState extends State<HomeScreen>
       dangerLabel: t.delete,
     );
     if (!confirmed || !mounted) return;
-    setState(() =>
-        _pausedAttempts.removeWhere((a) => a.testId == attempt.testId));
+    setState(
+        () => _pausedAttempts.removeWhere((a) => a.testId == attempt.testId));
     final box = await AppStorage.testAttemptsBox();
     await box.delete(attempt.testId);
     ApiService().deleteTestAttempt(attempt.testId);
