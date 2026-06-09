@@ -10,13 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
 
 ### Changed
--
+- **Smart Learning parts auto-unlock after passing the full exam**: If you've already passed the full exam for a test, all individual parts on the Smart Learning screen are now automatically shown as completed — no need to retake them one by one.
+- **Instant loading when starting a test from the dashboard**: Tapping a batch on the dashboard no longer opens a full loading screen. Questions now load in the background with a spinner on the button itself, then launch directly into the test.
+- **Full Exam loading is now inline**: Tapping "Attempt Final Exam" on the Smart Learning screen shows a loading spinner on the button instead of a separate loading screen.
 
 ### Fixed
--
 
 ---
 

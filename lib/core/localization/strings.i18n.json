@@ -852,5 +852,12 @@
   "smart_exit_body": "Your current session progress will be lost.",
   "smart_feedback_correct": "Correct!",
   "smart_feedback_incorrect": "Incorrect",
-  "smart_feedback_correct_answer": "Correct Answer:"
+  "smart_feedback_correct_answer": "Correct Answer:",
+
+  "edit_profile_load_failed": "Failed to load profile data.",
+  "edit_profile_username_required": "Username is required.",
+  "edit_profile_updated": "Profile updated.",
+  "edit_profile_password_set": "Password set successfully.",
+  "edit_profile_demo_warning": "Demo accounts cannot change username or email.",
+  "edit_profile_google_info": "You are signed in with Google. Password changes are managed through your Google account."
 }

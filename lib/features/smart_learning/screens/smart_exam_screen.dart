@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
-import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
@@ -10,9 +9,10 @@ import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/app_back_button.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
-import 'package:taxi_exam_app/features/bcd/bcd_test_screen.dart';
 import 'package:taxi_exam_app/features/bcd/providers/bcd_provider.dart';
+import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_learning_screen.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_result_screen.dart';
 import 'package:taxi_exam_app/features/smart_learning/screens/smart_test_screen.dart';
@@ -51,6 +51,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
   Future<void> _load() async {
     if (mounted) setState(() => _loading = true);
     final total = widget.entry.chunkSizes.length;
+    await _svc.syncChunksFromFullExamIfNeeded(widget.entry.testBcdId, total);
     // Start all futures in parallel, then await each with a named variable.
     final activeChunkF = _svc.activeSmartIndex(widget.entry.testBcdId, total);
     final weakCountF = _svc.weakQuestionCount(widget.entry.testBcdId);
@@ -361,25 +362,61 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
     }
   }
 
-  void _launchFullExam() {
-    final e = widget.entry;
-    final hasCompletedPreviousParts = _activeChunk >= e.chunkSizes.length;
-    Navigator.push(
-      context,
-      AppPageRoute(
-        builder: (_) => BCDTestScreen(
-          testId: e.testBcdId,
-          testName: e.testName,
-          passScore: e.passScore,
-          timeLimit: e.timeLimit,
-          parentCategoryName: e.categoryName,
-          parentCategoryBcdId: e.parentCategoryBcdId,
-          isMockExamMode: true,
-          maxWrongAnswers: hasCompletedPreviousParts ? null : 3,
-          onGameOver: hasCompletedPreviousParts ? null : _onHeartsDepleted,
+  Future<List<Question>?> _fetchFullExamQuestions() async {
+    try {
+      return await _provider.fetchChunkQuestions(
+        widget.entry.testBcdId,
+        applyShufflePreference: true,
+      );
+    } catch (_) {
+      if (mounted) {
+        showAppSnackBar(Translations.of(context).bcd_failed_test_questions,
+            type: SnackBarType.error);
+      }
+      return null;
+    }
+  }
+
+  Future<void> _launchFullExam() async {
+    if (_loadingKey != null) return;
+    setState(() => _loadingKey = 'fullExam');
+    try {
+      final e = widget.entry;
+      final hasCompletedPreviousParts = _activeChunk >= e.chunkSizes.length;
+      final maxWrongAnswers = hasCompletedPreviousParts ? null : 3;
+
+      final questions = await _fetchFullExamQuestions();
+      if (!mounted || questions == null) return;
+      if (questions.isEmpty) {
+        showAppSnackBar(Translations.of(context).bcd_no_questions);
+        return;
+      }
+
+      await Navigator.push(
+        context,
+        AppPageRoute(
+          builder: (_) => Testscreen(
+            questions: questions,
+            instantMarking: maxWrongAnswers != null,
+            licenceId: '',
+            categoryId: e.testBcdId.toString(),
+            licenceName: e.categoryName,
+            categoryName: e.testName,
+            bcdCategoryId: e.parentCategoryBcdId,
+            bcdTestId: e.testBcdId,
+            passScorePercent: e.passScore.toDouble(),
+            isTimed: e.timeLimit > 0,
+            timeLimitMinutes: e.timeLimit > 0 ? e.timeLimit : 10,
+            isMockExamMode: true,
+            maxWrongAnswers: maxWrongAnswers,
+            onGameOver: hasCompletedPreviousParts ? null : _onHeartsDepleted,
+          ),
         ),
-      ),
-    );
+      );
+      _load();
+    } finally {
+      if (mounted) setState(() => _loadingKey = null);
+    }
   }
 
   void _onHeartsDepleted() {
@@ -547,6 +584,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
                         mastered: _masteredCount,
                         totalQuestions: widget.entry.questionCount,
                         weakCount: _weakCount,
+                        isLoading: _loadingKey == 'fullExam',
                       ),
                     ]),
                   ),
@@ -856,6 +894,7 @@ class _FullExamCard extends StatelessWidget {
   final int mastered;
   final int totalQuestions;
   final int weakCount;
+  final bool isLoading;
 
   const _FullExamCard({
     required this.onStart,
@@ -863,6 +902,7 @@ class _FullExamCard extends StatelessWidget {
     required this.mastered,
     required this.totalQuestions,
     required this.weakCount,
+    this.isLoading = false,
   });
 
   @override
@@ -948,7 +988,8 @@ class _FullExamCard extends StatelessWidget {
             const SizedBox(height: 14),
             AppFilledButton(
               label: t.smart_attempt_final_exam,
-              onPressed: onStart,
+              onPressed: isLoading ? null : onStart,
+              loading: isLoading,
             ),
           ],
         ),

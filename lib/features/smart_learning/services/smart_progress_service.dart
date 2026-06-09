@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/models/test_attempt.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/features/smart_learning/models/smart_progress.dart';
@@ -185,6 +186,39 @@ class SmartProgressService {
     }
 
     return (passedCounts: passedCounts, activityDates: activityDates);
+  }
+
+  /// Marks all chunks for [testBcdId] as passed in a single Hive flush.
+  /// Skips chunks that are already passed.
+  Future<void> recordAllChunksAsPassed(int testBcdId, int totalChunks) async {
+    final box = await AppStorage.smartProgressBox();
+    final now = DateTime.now();
+    final toWrite = <String, SmartProgress>{};
+    for (var i = 0; i < totalChunks; i++) {
+      final key = _chunkKey(testBcdId, i);
+      if (box.get(key)?.isPassed != true) {
+        toWrite[key] = SmartProgress(
+          testBcdId: testBcdId,
+          chunkIndex: i,
+          isPassed: true,
+          completedAt: now,
+        );
+      }
+    }
+    if (toWrite.isNotEmpty) await box.putAll(toWrite);
+  }
+
+  /// Checks if the user has a passing full-exam attempt for [testBcdId] in
+  /// the test-attempts box, and if so marks all chunks as passed. No-ops when
+  /// chunks are already fully unlocked.
+  Future<void> syncChunksFromFullExamIfNeeded(
+      int testBcdId, int totalChunks) async {
+    final alreadyDone = await isFullExamUnlocked(testBcdId, totalChunks);
+    if (alreadyDone) return;
+    final attemptsBox = await AppStorage.testAttemptsBox();
+    final hasPassed = attemptsBox.values.any((TestAttempt a) =>
+        a.categoryId == testBcdId.toString() && a.isCompleted && a.hasPassed);
+    if (hasPassed) await recordAllChunksAsPassed(testBcdId, totalChunks);
   }
 
   /// Total weak questions across multiple tests (for category-level mistakes).

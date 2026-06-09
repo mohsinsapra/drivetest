@@ -852,5 +852,12 @@
   "smart_exit_body": "Dina framsteg i den här sessionen kommer att gå förlorade.",
   "smart_feedback_correct": "Rätt!",
   "smart_feedback_incorrect": "Fel",
-  "smart_feedback_correct_answer": "Rätt svar:"
+  "smart_feedback_correct_answer": "Rätt svar:",
+
+  "edit_profile_load_failed": "Det gick inte att läsa in profildata.",
+  "edit_profile_username_required": "Användarnamn krävs.",
+  "edit_profile_updated": "Profil uppdaterad.",
+  "edit_profile_password_set": "Lösenordet har angetts.",
+  "edit_profile_demo_warning": "Demokonton kan inte ändra användarnamn eller e-post.",
+  "edit_profile_google_info": "Du är inloggad med Google. Lösenordsändringar hanteras via ditt Google-konto."
 }

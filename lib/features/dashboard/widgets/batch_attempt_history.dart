@@ -8,7 +8,7 @@ import '../models/dashboard_stats.dart';
 import '../models/subscribed_exam.dart';
 import 'all_attempts_sheet.dart';
 
-class BatchAttemptHistory extends StatelessWidget {
+class BatchAttemptHistory extends StatefulWidget {
   const BatchAttemptHistory({
     super.key,
     required this.batchAttempts,
@@ -21,8 +21,25 @@ class BatchAttemptHistory extends StatelessWidget {
   final List<TestAttempt> batchAttempts;
   final SubscribedExam exam;
   final BatchStats batch;
-  final VoidCallback? onNewTest;
+  final Future<void> Function()? onNewTest;
   final void Function(TestAttempt) onResume;
+
+  @override
+  State<BatchAttemptHistory> createState() => _BatchAttemptHistoryState();
+}
+
+class _BatchAttemptHistoryState extends State<BatchAttemptHistory> {
+  bool _loading = false;
+
+  Future<void> _handleNewTest() async {
+    if (_loading || widget.onNewTest == null) return;
+    setState(() => _loading = true);
+    try {
+      await widget.onNewTest!();
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,17 +57,18 @@ class BatchAttemptHistory extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
             child: Row(
               children: [
-                if (onNewTest != null) ...[
+                if (widget.onNewTest != null) ...[
                   Expanded(
                     child: AppSecondaryButton(
                       label: t.dash_new_test,
-                      onPressed: onNewTest,
+                      onPressed: _loading ? null : _handleNewTest,
+                      loading: _loading,
                       height: 40,
                       fontSize: 14,
                     ),
                   ),
                   () {
-                    final paused = batchAttempts
+                    final paused = widget.batchAttempts
                         .where((a) => a.isPaused)
                         .toList()
                       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
@@ -62,7 +80,7 @@ class BatchAttemptHistory extends StatelessWidget {
                         SizedBox(
                           height: 40,
                           child: OutlinedButton.icon(
-                            onPressed: () => onResume(paused.first),
+                            onPressed: () => widget.onResume(paused.first),
                             icon: const Icon(Icons.play_circle_outline_rounded,
                                 size: 16),
                             label: Text(t.home_resume),
@@ -83,7 +101,7 @@ class BatchAttemptHistory extends StatelessWidget {
               ],
             ),
           ),
-          if (batchAttempts.isEmpty)
+          if (widget.batchAttempts.isEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
               child: Text(
@@ -107,16 +125,16 @@ class BatchAttemptHistory extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (batchAttempts.length > 3)
+                  if (widget.batchAttempts.length > 3)
                     TextButton(
                       onPressed: () => showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
                         backgroundColor: Colors.transparent,
                         builder: (_) => AllAttemptsSheet(
-                          batchName: batch.node.name,
-                          attempts: batchAttempts,
-                          onResume: onResume,
+                          batchName: widget.batch.node.name,
+                          attempts: widget.batchAttempts,
+                          onResume: widget.onResume,
                         ),
                       ),
                       style: TextButton.styleFrom(
@@ -137,7 +155,7 @@ class BatchAttemptHistory extends StatelessWidget {
               ),
             ),
             ...() {
-              final shown = batchAttempts.take(3).toList();
+              final shown = widget.batchAttempts.take(3).toList();
               return shown.map((a) {
                 final isPaused = a.isPaused;
                 final scoreColor = a.hasPassed ? Colors.green : cs.error;
@@ -148,7 +166,7 @@ class BatchAttemptHistory extends StatelessWidget {
                 return Column(
                   children: [
                     InkWell(
-                      onTap: isPaused ? () => onResume(a) : null,
+                      onTap: isPaused ? () => widget.onResume(a) : null,
                       borderRadius: BorderRadius.circular(8),
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),

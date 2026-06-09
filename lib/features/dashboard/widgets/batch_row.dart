@@ -20,7 +20,7 @@ class BatchRow extends StatefulWidget {
   final BatchStats batch;
   final SubscribedExam exam;
   final List<TestAttempt> batchAttempts;
-  final VoidCallback? onTap;
+  final Future<void> Function()? onTap;
   final bool nested;
 
   @override

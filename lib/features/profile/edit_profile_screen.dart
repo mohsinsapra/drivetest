@@ -50,7 +50,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _emailController.text = _profile.email ?? '';
     } catch (_) {
       if (!mounted) return;
-      showAppSnackBar('Failed to load profile data.', type: SnackBarType.error);
+      showAppSnackBar(Translations.of(context).edit_profile_load_failed,
+          type: SnackBarType.error);
     }
   }
 
@@ -59,22 +60,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
+    final t = Translations.of(context);
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
 
     if (username.isEmpty) {
-      showAppSnackBar('Username is required.', type: SnackBarType.error);
+      showAppSnackBar(t.edit_profile_username_required,
+          type: SnackBarType.error);
       return;
     }
     if (email.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
-      showAppSnackBar('Please enter a valid email.', type: SnackBarType.error);
+      showAppSnackBar(t.auth_val_email_invalid, type: SnackBarType.error);
       return;
     }
 
     try {
       await _profile.saveProfile(username: username, email: email);
       if (!mounted) return;
-      showAppSnackBar('Profile updated.', type: SnackBarType.success);
+      showAppSnackBar(t.edit_profile_updated, type: SnackBarType.success);
     } catch (e) {
       if (!mounted) return;
       showAppSnackBar(_profile.extractApiError(e), type: SnackBarType.error);
@@ -85,13 +88,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final password = _newPasswordController.text;
     final confirm = _confirmPasswordController.text;
 
+    final t = Translations.of(context);
     if (password.length < 6) {
-      showAppSnackBar('Password must be at least 6 characters.',
-          type: SnackBarType.error);
+      showAppSnackBar(t.auth_val_password_length, type: SnackBarType.error);
       return;
     }
     if (password != confirm) {
-      showAppSnackBar('Passwords do not match.', type: SnackBarType.error);
+      showAppSnackBar(t.auth_reset_mismatch, type: SnackBarType.error);
       return;
     }
 
@@ -100,7 +103,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (!mounted) return;
       _newPasswordController.clear();
       _confirmPasswordController.clear();
-      showAppSnackBar('Password set successfully.', type: SnackBarType.success);
+      showAppSnackBar(t.edit_profile_password_set, type: SnackBarType.success);
     } catch (e) {
       if (!mounted) return;
       showAppSnackBar(_profile.extractApiError(e), type: SnackBarType.error);
@@ -150,15 +153,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 color: const Color(0xFFFFF3CD),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Row(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.lock_outline, color: Color(0xFF856404)),
-                  SizedBox(width: 10),
+                  const Icon(Icons.lock_outline, color: Color(0xFF856404)),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Demo accounts cannot change username or email.',
-                      style: TextStyle(color: Color(0xFF856404)),
+                      t.edit_profile_demo_warning,
+                      style: const TextStyle(color: Color(0xFF856404)),
                     ),
                   ),
                 ],
@@ -170,7 +173,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             controller: _usernameController,
             readOnly: _profile.isDemo,
             decoration: InputDecoration(
-              labelText: 'Username',
+              labelText: t.help_username,
               border: const OutlineInputBorder(),
               filled: _profile.isDemo,
               fillColor: _profile.isDemo ? const Color(0xFFF5F5F5) : null,
@@ -185,7 +188,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             keyboardType: TextInputType.emailAddress,
             readOnly: _profile.isDemo,
             decoration: InputDecoration(
-              labelText: 'Email',
+              labelText: t.auth_email,
               border: const OutlineInputBorder(),
               filled: _profile.isDemo,
               fillColor: _profile.isDemo ? const Color(0xFFF5F5F5) : null,
@@ -214,16 +217,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 color: const Color(0xFFE8F0FE),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Row(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, color: Color(0xFF1A73E8)),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'You are signed in with Google. Password changes are managed through your Google account.',
-                    ),
-                  ),
+                  const Icon(Icons.info_outline, color: Color(0xFF1A73E8)),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(t.edit_profile_google_info)),
                 ],
               ),
             ),
@@ -231,14 +230,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 28),
             const Divider(),
             const SizedBox(height: 12),
-            const Text('Set Password',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            Text(t.btn_set_password,
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             TextField(
               controller: _newPasswordController,
               obscureText: _obscurePassword,
               decoration: InputDecoration(
-                labelText: 'New Password',
+                labelText: t.auth_reset_new_password_label,
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   onPressed: () =>
@@ -254,7 +254,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               controller: _confirmPasswordController,
               obscureText: _obscureConfirmPassword,
               decoration: InputDecoration(
-                labelText: 'Confirm Password',
+                labelText: t.auth_reset_confirm_password_label,
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   onPressed: () => setState(

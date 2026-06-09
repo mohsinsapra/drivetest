@@ -1857,6 +1857,18 @@ class TranslationsSv implements Translations {
   String get smart_feedback_incorrect => 'Fel';
   @override
   String get smart_feedback_correct_answer => 'Rätt svar:';
+  @override
+  String get edit_profile_load_failed => 'Det gick inte att läsa in profildata.';
+  @override
+  String get edit_profile_username_required => 'Användarnamn krävs.';
+  @override
+  String get edit_profile_updated => 'Profil uppdaterad.';
+  @override
+  String get edit_profile_password_set => 'Lösenordet har angetts.';
+  @override
+  String get edit_profile_demo_warning => 'Demokonton kan inte ändra användarnamn eller e-post.';
+  @override
+  String get edit_profile_google_info => 'Du är inloggad med Google. Lösenordsändringar hanteras via ditt Google-konto.';
 }
 
 /// Flat map(s) containing all translations.
@@ -3552,6 +3564,18 @@ extension on TranslationsSv {
         return 'Fel';
       case 'smart_feedback_correct_answer':
         return 'Rätt svar:';
+      case 'edit_profile_load_failed':
+        return 'Det gick inte att läsa in profildata.';
+      case 'edit_profile_username_required':
+        return 'Användarnamn krävs.';
+      case 'edit_profile_updated':
+        return 'Profil uppdaterad.';
+      case 'edit_profile_password_set':
+        return 'Lösenordet har angetts.';
+      case 'edit_profile_demo_warning':
+        return 'Demokonton kan inte ändra användarnamn eller e-post.';
+      case 'edit_profile_google_info':
+        return 'Du är inloggad med Google. Lösenordsändringar hanteras via ditt Google-konto.';
       default:
         return null;
     }

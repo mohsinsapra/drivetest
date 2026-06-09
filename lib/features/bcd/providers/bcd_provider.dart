@@ -71,6 +71,8 @@ class BcdProvider extends ChangeNotifier {
   ///
   /// For chunk mode:  pass [limit] and [offset] computed from SmartUtils.
   /// For mistakes mode: pass [ids] (the weak question IDs to practice).
+  /// Set [applyShufflePreference] to true to honour the user's shuffleOnDevice
+  /// SharedPreferences setting — callers then need no prefs/Random imports.
   ///
   /// Unlike [loadTestQuestions] this does NOT update shared state — it is a
   /// pure fetch that returns the question list directly to the caller.
@@ -79,6 +81,7 @@ class BcdProvider extends ChangeNotifier {
     int? limit,
     int? offset,
     List<String>? ids,
+    bool applyShufflePreference = false,
   }) async {
     final raw = await _api.fetchBCDTestQuestions(
       testId,
@@ -86,7 +89,12 @@ class BcdProvider extends ChangeNotifier {
       offset: offset,
       ids: ids,
     );
-    return raw.map(toQuestion).toList();
+    final questions = raw.map(toQuestion).toList();
+    if (applyShufflePreference) {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('shuffleOnDevice') ?? false) questions.shuffle(Random());
+    }
+    return questions;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

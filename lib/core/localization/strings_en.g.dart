@@ -1020,6 +1020,12 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get smart_feedback_correct => 'Correct!';
   String get smart_feedback_incorrect => 'Incorrect';
   String get smart_feedback_correct_answer => 'Correct Answer:';
+  String get edit_profile_load_failed => 'Failed to load profile data.';
+  String get edit_profile_username_required => 'Username is required.';
+  String get edit_profile_updated => 'Profile updated.';
+  String get edit_profile_password_set => 'Password set successfully.';
+  String get edit_profile_demo_warning => 'Demo accounts cannot change username or email.';
+  String get edit_profile_google_info => 'You are signed in with Google. Password changes are managed through your Google account.';
 }
 
 /// Flat map(s) containing all translations.
@@ -2715,6 +2721,18 @@ extension on Translations {
         return 'Incorrect';
       case 'smart_feedback_correct_answer':
         return 'Correct Answer:';
+      case 'edit_profile_load_failed':
+        return 'Failed to load profile data.';
+      case 'edit_profile_username_required':
+        return 'Username is required.';
+      case 'edit_profile_updated':
+        return 'Profile updated.';
+      case 'edit_profile_password_set':
+        return 'Password set successfully.';
+      case 'edit_profile_demo_warning':
+        return 'Demo accounts cannot change username or email.';
+      case 'edit_profile_google_info':
+        return 'You are signed in with Google. Password changes are managed through your Google account.';
       default:
         return null;
     }

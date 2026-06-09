@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
-import 'package:taxi_exam_app/features/bcd/bcd_test_screen.dart';
+import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/bcd/providers/bcd_provider.dart';
 import 'package:taxi_exam_app/features/tests/test_screen.dart';
 import '../helpers/dashboard_helpers.dart';
 import '../models/dashboard_stats.dart';
@@ -9,32 +11,60 @@ import '../models/exam_node.dart';
 import '../models/subscribed_exam.dart';
 import '../providers/dashboard_provider.dart';
 
-void launchBatch(
+Future<void> launchBatch(
   BuildContext context,
   SubscribedExam exam,
   ExamNode batchNode,
   String? categoryName,
-) {
+) async {
   if (!exam.isBcd) return;
 
+  final testId = int.tryParse(batchNode.id) ?? 0;
   final parentBcdId = int.tryParse(batchNode.parentId ?? exam.id) ?? 0;
   final parentName = categoryName ?? exam.name;
+  final timeLimitMinutes = batchNode.targetDurationSeconds ~/ 60;
 
-  Navigator.push(
-    context,
-    AppPageRoute(
-      builder: (_) => BCDTestScreen(
-        testId: int.tryParse(batchNode.id) ?? 0,
-        testName: batchNode.name,
-        passScore: batchNode.passScore,
-        timeLimit: batchNode.targetDurationSeconds ~/ 60,
-        parentCategoryName: parentName,
-        parentCategoryBcdId: parentBcdId,
+  try {
+    final questions = await BcdProvider().fetchChunkQuestions(
+      testId,
+      applyShufflePreference: true,
+    );
+
+    if (!context.mounted) return;
+
+    if (questions.isEmpty) {
+      showAppSnackBar(Translations.of(context).bcd_no_questions);
+      return;
+    }
+
+    await Navigator.push(
+      context,
+      AppPageRoute(
+        builder: (_) => Testscreen(
+          questions: questions,
+          instantMarking: true,
+          licenceId: '',
+          categoryId: testId.toString(),
+          licenceName: parentName,
+          categoryName: batchNode.name,
+          bcdCategoryId: parentBcdId,
+          bcdTestId: testId,
+          passScorePercent: batchNode.passScore.toDouble(),
+          isTimed: timeLimitMinutes > 0,
+          timeLimitMinutes: timeLimitMinutes > 0 ? timeLimitMinutes : 10,
+        ),
       ),
-    ),
-  ).then((_) {
-    if (context.mounted) context.read<DashboardProvider>().refresh();
-  });
+    );
+  } catch (_) {
+    if (!context.mounted) return;
+    showAppSnackBar(
+      Translations.of(context).bcd_failed_test_questions,
+      type: SnackBarType.error,
+    );
+    return;
+  }
+
+  if (context.mounted) context.read<DashboardProvider>().refresh();
 }
 
 void resumeAttempt(

@@ -358,7 +358,8 @@
       "Skill(run)",
       "Bash(echo \"Flutter run started in background with PID $!\")",
       "Bash(echo \"PID $!\")",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "Skill(simplify)"
     ],
     "deny": [],
     "ask": []
