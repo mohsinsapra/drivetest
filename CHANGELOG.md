@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+-
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+
+## [1.5.16+295] - 2026-06-09
+
+### Added
 - **Hold to peek translation on checklist**: Long-press any expanded checklist item to temporarily view it in your previously selected language — release to switch back. Same gesture already available on test and translation screens.
 
 ### Changed
@@ -21,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Delete and danger confirmations use consistent styling**: Progress deletion and other destructive actions now share the same danger-button design across the app.
 - **Smart Learning language chip matches the timer**: The language selector in Smart Learning tests is now the same height and font weight as the countdown timer chip.
 
+---
 ---
 
 ## [1.5.15+294] - 2026-06-08
