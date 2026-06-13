@@ -26,6 +26,64 @@ Future<void> vibratePass() => _vibrate(pattern: [0, 100, 60, 180, 60, 260]);
 /// Failure — test failed.
 Future<void> vibrateFail() => _vibrate(durationMs: 400);
 
+/// Exam-level pass — maximum celebration: three escalating heavy impacts.
+Future<void> vibrateExamPass() async {
+  if (kIsWeb) {
+    webVibratePattern([0, 80, 50, 130, 50, 200, 50, 280, 50, 380]);
+    return;
+  }
+  try {
+    await HapticFeedback.heavyImpact();
+    await Future.delayed(const Duration(milliseconds: 130));
+    await HapticFeedback.heavyImpact();
+    await Future.delayed(const Duration(milliseconds: 130));
+    await HapticFeedback.heavyImpact();
+  } on MissingPluginException {
+    // Not available in test environments.
+  } on PlatformException {
+    // Ignore.
+  }
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    try {
+      await Vibration.vibrate(pattern: [0, 80, 50, 130, 50, 200, 50, 280, 50, 380]);
+    } on MissingPluginException {
+      // Ignore.
+    } on PlatformException {
+      // Ignore.
+    } on UnsupportedError {
+      // Ignore.
+    }
+  }
+}
+
+/// Exam-level fail — two heavy thumps, less intense than pass.
+Future<void> vibrateExamFail() async {
+  if (kIsWeb) {
+    webVibratePattern([0, 220, 120, 220]);
+    return;
+  }
+  try {
+    await HapticFeedback.heavyImpact();
+    await Future.delayed(const Duration(milliseconds: 140));
+    await HapticFeedback.heavyImpact();
+  } on MissingPluginException {
+    // Not available in test environments.
+  } on PlatformException {
+    // Ignore.
+  }
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    try {
+      await Vibration.vibrate(pattern: [0, 220, 120, 220]);
+    } on MissingPluginException {
+      // Ignore.
+    } on PlatformException {
+      // Ignore.
+    } on UnsupportedError {
+      // Ignore.
+    }
+  }
+}
+
 /// Brief tap — login or logout confirmed.
 Future<void> vibrateLoginLogout() => _vibrate(durationMs: 100);
 

@@ -589,9 +589,9 @@ class _TestscreenState extends State<Testscreen> {
     }
     final passed = _calculateResult();
     if (passed) {
-      vibratePass();
+      vibrateExamPass();
     } else {
-      vibrateFail();
+      vibrateExamFail();
     }
     showResultDialog(
       context: context,
@@ -725,9 +725,9 @@ class _TestscreenState extends State<Testscreen> {
           if (!mounted) return;
           final passed = _calculateResult();
           if (passed) {
-            vibratePass();
+            vibrateExamPass();
           } else {
-            vibrateFail();
+            vibrateExamFail();
           }
           showResultDialog(
             context: context,
@@ -1513,9 +1513,9 @@ class _TestscreenState extends State<Testscreen> {
                     }
                     final passed = _calculateResult();
                     if (passed) {
-                      vibratePass();
+                      vibrateExamPass();
                     } else {
-                      vibrateFail();
+                      vibrateExamFail();
                     }
                     showResultDialog(
                       context: this.context,

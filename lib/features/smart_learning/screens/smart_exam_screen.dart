@@ -51,7 +51,8 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
   Future<void> _load() async {
     if (mounted) setState(() => _loading = true);
     final total = widget.entry.chunkSizes.length;
-    await _svc.syncChunksFromFullExamIfNeeded(widget.entry.testBcdId, total);
+    await _svc.syncChunksFromFullExamIfNeeded(
+        widget.entry.testBcdId, total, widget.entry.questionCount);
     // Start all futures in parallel, then await each with a named variable.
     final activeChunkF = _svc.activeSmartIndex(widget.entry.testBcdId, total);
     final weakCountF = _svc.weakQuestionCount(widget.entry.testBcdId);

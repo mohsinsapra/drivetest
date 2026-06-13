@@ -496,9 +496,10 @@ class _SmartTestScreenState extends State<SmartTestScreen> {
       final hasPassed = score >= widget.passScorePercent;
       if (hasPassed) {
         SoundService.instance.passExam().ignore();
+        vibrateExamPass();
       } else {
         SoundService.instance.failExam().ignore();
-        vibrateFail();
+        vibrateExamFail();
       }
       // Build per-question selections: correct answer for mastered questions,
       // last wrong pick for failed ones.

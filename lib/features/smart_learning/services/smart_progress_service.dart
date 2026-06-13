@@ -211,13 +211,26 @@ class SmartProgressService {
   /// Checks if the user has a passing full-exam attempt for [testBcdId] in
   /// the test-attempts box, and if so marks all chunks as passed. No-ops when
   /// chunks are already fully unlocked.
+  ///
+  /// [totalQuestions] is used to distinguish full-exam attempts (which contain
+  /// all questions) from smart-chunk attempts (which are partial). Without this
+  /// guard, passing a single chunk would incorrectly unlock all chunks because
+  /// both are saved with the same categoryId.
   Future<void> syncChunksFromFullExamIfNeeded(
-      int testBcdId, int totalChunks) async {
+      int testBcdId, int totalChunks, int totalQuestions) async {
     final alreadyDone = await isFullExamUnlocked(testBcdId, totalChunks);
     if (alreadyDone) return;
     final attemptsBox = await AppStorage.testAttemptsBox();
     final hasPassed = attemptsBox.values.any((TestAttempt a) =>
-        a.categoryId == testBcdId.toString() && a.isCompleted && a.hasPassed);
+        a.categoryId == testBcdId.toString() &&
+        a.isCompleted &&
+        a.hasPassed &&
+        // Only treat as a full-exam pass if the attempt covered all questions.
+        // Chunk attempts are partial (≤ 15 + 30% injection) so their
+        // question count will always be less than the full exam total.
+        // Single-chunk exams (totalQuestions ≤ 10) are exempt since the
+        // chunk IS the full exam.
+        (totalQuestions <= 10 || a.questions.length >= totalQuestions));
     if (hasPassed) await recordAllChunksAsPassed(testBcdId, totalChunks);
   }
 
