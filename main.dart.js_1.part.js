@@ -1,9 +1,9 @@
 ((a,b)=>{a[b]=a[b]||{}})(self,"$__dart_deferred_initializers__")
 $__dart_deferred_initializers__.current=function(a,b,c,$){var B,C,A={
-cyY(d,e,f){var w=new B.E7(C.dR,x.c),v=new A.ay_(w)
-w.r=A.d3I(v)
+cz0(d,e,f){var w=new B.E7(C.dR,x.c),v=new A.ay1(w)
+w.r=A.d3L(v)
 return v},
-d3E(c1,c2){var w="Prov",v="Inst\xe4llningar",u="Tidsbegr\xe4nsat prov",t="Aviseringar",s="Aviseringar \xe4r avst\xe4ngda",r="\xd6ppna inst\xe4llningar",q="Statistik",p="f\xf6rs\xf6k",o="Sparade fr\xe5gor",n="prov",m="Kom ig\xe5ng",l="Logga in",k="Registrera dig",j="Forts\xe4tt med Google",i="Tack! Din feedback skickades.",h="Kunde inte skicka feedback. F\xf6rs\xf6k igen.",g="Skapa konto",f="Loggar in...",e="E-postadress",d="Trafikskyltar",a0="Kategorier",a1="Prenumerera",a2="B\xf6rja \xf6va",a3="GRATIS",a4="F\xf6rst\xe5tt",a5="N\xe5got gick fel. F\xf6rs\xf6k igen.",a6="F\xf6rs\xf6k igen",a7="Beh\xf6ver \xf6vas",a8="Ej p\xe5b\xf6rjad",a9="Forts\xe4tt",b0="Eget datum",b1="Logga in f\xf6r att prenumerera",b2="{n} dagar/vecka",b3="{n} dagar kvar",b4="Inga f\xf6rs\xf6k \xe4nnu",b5="{n} dagar",b6="Studiem\xe5l",b7="Forts\xe4tt som g\xe4st",b8="Avsluta test",b9="Fr\xe5gespr\xe5k",c0="AI-assistent"
+d3H(c1,c2){var w="Prov",v="Inst\xe4llningar",u="Tidsbegr\xe4nsat prov",t="Aviseringar",s="Aviseringar \xe4r avst\xe4ngda",r="\xd6ppna inst\xe4llningar",q="Statistik",p="f\xf6rs\xf6k",o="Sparade fr\xe5gor",n="prov",m="Kom ig\xe5ng",l="Logga in",k="Registrera dig",j="Forts\xe4tt med Google",i="Tack! Din feedback skickades.",h="Kunde inte skicka feedback. F\xf6rs\xf6k igen.",g="Skapa konto",f="Loggar in...",e="E-postadress",d="Trafikskyltar",a0="Kategorier",a1="Prenumerera",a2="B\xf6rja \xf6va",a3="GRATIS",a4="F\xf6rst\xe5tt",a5="N\xe5got gick fel. F\xf6rs\xf6k igen.",a6="F\xf6rs\xf6k igen",a7="Beh\xf6ver \xf6vas",a8="Ej p\xe5b\xf6rjad",a9="Forts\xe4tt",b0="Eget datum",b1="Logga in f\xf6r att prenumerera",b2="{n} dagar/vecka",b3="{n} dagar kvar",b4="Inga f\xf6rs\xf6k \xe4nnu",b5="{n} dagar",b6="Studiem\xe5l",b7="Forts\xe4tt som g\xe4st",b8="Avsluta test",b9="Fr\xe5gespr\xe5k",c0="AI-assistent"
 switch(c2){case"home":return"Hem"
 case"tests":return w
 case"profile":return"Profil"
@@ -300,16 +300,16 @@ case"bcd_next":return"N\xe4sta"
 case"smart_check":return"Kontrollera"
 case"notif_subtitle":return"DriveTest"
 case"notif_morning_title":return"\u2600\ufe0f Morgonstudie-p\xe5minnelse"
-case"notif_morning_title_exam":return new A.cbL()
+case"notif_morning_title_exam":return new A.cbN()
 case"notif_morning_body":return"Starta din \xf6vningssession \u2014 bygg din streak!"
 case"notif_evening_title":return"\ud83c\udf19 Kv\xe4llsstreak-check"
-case"notif_evening_title_exam":return new A.cbM()
+case"notif_evening_title_exam":return new A.cbO()
 case"notif_evening_body":return"L\xe5t inte idag g\xe5 f\xf6rbi \u2014 h\xe5ll din streak vid liv!"
-case"notif_activity_0":return new A.cbN()
-case"notif_activity_1":return new A.cbY()
-case"notif_activity_2":return new A.cc0()
-case"notif_activity_3":return new A.cc1()
-case"notif_activity_4":return new A.cc2()
+case"notif_activity_0":return new A.cbP()
+case"notif_activity_1":return new A.cc_()
+case"notif_activity_2":return new A.cc2()
+case"notif_activity_3":return new A.cc3()
+case"notif_activity_4":return new A.cc4()
 case"bcd_failed_traffic_signs":return"Det gick inte att ladda trafikskyltar"
 case"bcd_search_hint":return"S\xf6k\u2026"
 case"bcd_no_subcategories":return"Inga underkategorier tillg\xe4ngliga."
@@ -772,13 +772,13 @@ case"option_image_unavailable":return"Bild ej tillg\xe4nglig"
 case"ai_close":return"St\xe4ng"
 case"smart_learning_title":return"Smart Learning"
 case"smart_learning_subtitle":return y.G
-case"smart_chunk_n":return new A.cc3()
+case"smart_chunk_n":return new A.cc5()
 case"smart_chunk_passed":return"Godk\xe4nd"
 case"smart_chunk_locked":return"L\xe5st"
 case"smart_chunk_active":return"Starta"
 case"smart_chunk_retry":return a6
 case"smart_review_n":return"Repetition"
-case"smart_review_subtitle":return new A.cc4()
+case"smart_review_subtitle":return new A.cc6()
 case"smart_full_exam":return"Fullst\xe4ndigt prov"
 case"smart_full_exam_locked":return"Slutf\xf6r alla delar f\xf6r att l\xe5sa upp"
 case"smart_full_exam_ready":return"Fullst\xe4ndigt prov redo"
@@ -792,24 +792,24 @@ case"smart_hearts_3_left":return"3 kvar"
 case"smart_hearts_2_left":return"2 kvar"
 case"smart_hearts_1_left":return"1 kvar"
 case"smart_hearts_0_left":return"0 kvar"
-case"smart_full_exam_q_of":return new A.cc5()
-case"smart_train_mistakes":return new A.cc6()
+case"smart_full_exam_q_of":return new A.cc7()
+case"smart_train_mistakes":return new A.cc8()
 case"smart_practice_mode":return"\xd6vning"
 case"smart_timed_mode":return u
 case"smart_attempt_final_exam":return"G\xf6r slutprovet"
-case"smart_questions_count":return new A.cbO()
+case"smart_questions_count":return new A.cbQ()
 case"smart_part_pass_requirement":return"Klara denna del med 70%"
 case"smart_not_started":return a8
-case"smart_chunks_done":return new A.cbP()
+case"smart_chunks_done":return new A.cbR()
 case"smart_result_passed":return"Del godk\xe4nd!"
 case"smart_result_failed":return"Inte riktigt \u2014 f\xf6rs\xf6k igen"
-case"smart_result_weak_updated":return new A.cbQ()
+case"smart_result_weak_updated":return new A.cbS()
 case"smart_result_continue":return a9
 case"smart_no_exams":return y.N
 case"smart_mistakes_title":return"Tr\xe4na misstag"
 case"smart_mistakes_none_category":return y.i
 case"smart_mistakes_load_failed":return"Kunde inte ladda misstagsfr\xe5gor."
-case"smart_mistakes_to_review":return new A.cbR()
+case"smart_mistakes_to_review":return new A.cbT()
 case"smart_progress_title":return"Dina framsteg"
 case"smart_progress_ready_full_exam":return"Redo f\xf6r fullst\xe4ndigt prov!"
 case"smart_progress_required_to_pass":return"70% kr\xe4vs f\xf6r att bli godk\xe4nd"
@@ -817,22 +817,22 @@ case"smart_full_exam_early_attempt":return y.O
 case"smart_full_exam_early_rules":return y.y
 case"smart_full_exam_completed_parts":return"Du har klarat delarna."
 case"smart_full_exam_completed_rules":return"Dina svar r\xe4ttas i slutet."
-case"smart_category_completed":return new A.cbS()
-case"smart_category_not_started":return new A.cbT()
-case"smart_category_parts_done":return new A.cbU()
+case"smart_category_completed":return new A.cbU()
+case"smart_category_not_started":return new A.cbV()
+case"smart_category_parts_done":return new A.cbW()
 case"smart_category_exam":return n
 case"smart_category_exams":return n
-case"smart_category_mistakes_subtitle":return new A.cbV()
+case"smart_category_mistakes_subtitle":return new A.cbX()
 case"smart_category_question":return"fr\xe5ga"
 case"smart_category_questions":return"fr\xe5gor"
-case"smart_result_unlock_needed":return new A.cbW()
-case"smart_result_unlock_remaining":return new A.cbX()
+case"smart_result_unlock_needed":return new A.cbY()
+case"smart_result_unlock_remaining":return new A.cbZ()
 case"smart_result_part_passed_caps":return"DEL GODK\xc4ND"
 case"smart_result_try_again_caps":return"F\xd6RS\xd6K IGEN"
 case"smart_result_overall_mastery":return"\xd6vergripande beh\xe4rskning"
 case"smart_result_threshold":return"70% f\xf6r godk\xe4nt"
-case"smart_mastered_of":return new A.cbZ()
-case"smart_in_a_row":return new A.cc_()
+case"smart_mastered_of":return new A.cc0()
+case"smart_in_a_row":return new A.cc1()
 case"smart_exit_title":return"L\xe4mna Smart Learning?"
 case"smart_exit_body":return y.b
 case"smart_feedback_correct":return"R\xe4tt!"
@@ -845,22 +845,20 @@ case"edit_profile_password_set":return"L\xf6senordet har angetts."
 case"edit_profile_demo_warning":return y.U
 case"edit_profile_google_info":return y.T
 default:return null}},
-d3I(d){return new A.cc8(d)},
-ay_:function ay_(d){this.a=d},
-cc8:function cc8(d){this.a=d},
-cbL:function cbL(){},
-cbM:function cbM(){},
+d3L(d){return new A.cca(d)},
+ay1:function ay1(d){this.a=d},
+cca:function cca(d){this.a=d},
 cbN:function cbN(){},
-cbY:function cbY(){},
-cc0:function cc0(){},
-cc1:function cc1(){},
+cbO:function cbO(){},
+cbP:function cbP(){},
+cc_:function cc_(){},
 cc2:function cc2(){},
 cc3:function cc3(){},
 cc4:function cc4(){},
 cc5:function cc5(){},
 cc6:function cc6(){},
-cbO:function cbO(){},
-cbP:function cbP(){},
+cc7:function cc7(){},
+cc8:function cc8(){},
 cbQ:function cbQ(){},
 cbR:function cbR(){},
 cbS:function cbS(){},
@@ -869,12 +867,14 @@ cbU:function cbU(){},
 cbV:function cbV(){},
 cbW:function cbW(){},
 cbX:function cbX(){},
+cbY:function cbY(){},
 cbZ:function cbZ(){},
-cc_:function cc_(){}}
+cc0:function cc0(){},
+cc1:function cc1(){}}
 B=c[0]
 C=c[2]
 A=a.updateHolder(c[3],A)
-A.ay_.prototype={
+A.ay1.prototype={
 i(d,e){return this.a.anP(e)},
 gaQR(){return"Hem"},
 gaXo(){return"Prov"},
@@ -1511,153 +1511,153 @@ gaOO(){return"L\xf6senordet har angetts."},
 gaOL(){return y.U},
 gaOM(){return y.T},
 $iq4:1,
-$int:1,
+$ins:1,
 ga4w(){return this.a}}
 var z=a.updateTypes([])
-A.cc8.prototype={
-$1(d){return A.d3E(this.a,d)},
+A.cca.prototype={
+$1(d){return A.d3H(this.a,d)},
 $S:200}
-A.cbL.prototype={
+A.cbN.prototype={
 $1$examTitle(d){return"\u2600\ufe0f Dags att studera "+B.k(d)},
 $C:"$1$examTitle",
 $R:0,
 $D(){return{examTitle:C.V}},
 $S:46}
-A.cbM.prototype={
+A.cbO.prototype={
 $1$examTitle(d){return"\ud83c\udf19 "+B.k(d)+" v\xe4ntar p\xe5 dig"},
 $C:"$1$examTitle",
 $R:0,
 $D(){return{examTitle:C.V}},
 $S:46}
-A.cbN.prototype={
+A.cbP.prototype={
 $1$examTitle(d){return"Du jobbade med "+B.k(d)+" \u2014 en session till och det sitter."},
 $C:"$1$examTitle",
 $R:0,
 $D(){return{examTitle:C.V}},
 $S:46}
-A.cbY.prototype={
+A.cc_.prototype={
 $1$examTitle(d){return B.k(d)+" v\xe4ntar. Du byggde upp ett bra flyt sist \u2014 tappa det inte."},
 $C:"$1$examTitle",
 $R:0,
 $D(){return{examTitle:C.V}},
 $S:46}
-A.cc0.prototype={
+A.cc2.prototype={
 $1$examTitle(d){return"Korta dagliga pass sl\xe5r pluggande. Hoppa in i "+B.k(d)+" nu."},
 $C:"$1$examTitle",
 $R:0,
 $D(){return{examTitle:C.V}},
 $S:46}
-A.cc1.prototype={
+A.cc3.prototype={
 $1$examTitle(d){return"Du \xe4r n\xe4rmare \xe4n du tror p\xe5 "+B.k(d)+". H\xe5ll streaket vid liv!"},
 $C:"$1$examTitle",
 $R:0,
 $D(){return{examTitle:C.V}},
 $S:46}
-A.cc2.prototype={
+A.cc4.prototype={
 $1$examTitle(d){return"En fokuserad session p\xe5 "+B.k(d)+" idag g\xf6r tentadagen l\xe4ttare."},
 $C:"$1$examTitle",
 $R:0,
 $D(){return{examTitle:C.V}},
 $S:46}
-A.cc3.prototype={
+A.cc5.prototype={
 $1$n(d){return"Del "+B.k(d)},
 $C:"$1$n",
 $R:0,
 $D(){return{n:C.V}},
 $S:153}
-A.cc4.prototype={
+A.cc6.prototype={
 $1$count(d){return B.k(d)+" fr\xe5gor \xb7 Alla tidigare delar"},
 $C:"$1$count",
 $R:0,
 $D(){return{count:C.V}},
 $S:57}
-A.cc5.prototype={
+A.cc7.prototype={
 $2$current$total(d,e){return B.k(d)+" / "+B.k(e)},
 $C:"$2$current$total",
 $R:0,
 $D(){return{current:C.V,total:C.V}},
 $S:411}
-A.cc6.prototype={
+A.cc8.prototype={
 $1$count(d){return"Tr\xe4na misstag ("+B.k(d)+")"},
 $C:"$1$count",
 $R:0,
 $D(){return{count:C.V}},
 $S:57}
-A.cbO.prototype={
+A.cbQ.prototype={
 $1$count(d){return B.k(d)+" fr\xe5gor"},
 $C:"$1$count",
 $R:0,
 $D(){return{count:C.V}},
 $S:57}
-A.cbP.prototype={
+A.cbR.prototype={
 $2$done$total(d,e){return B.k(d)+" av "+B.k(e)+" delar klara"},
 $C:"$2$done$total",
 $R:0,
 $D(){return{done:C.V,total:C.V}},
 $S:412}
-A.cbQ.prototype={
+A.cbS.prototype={
 $1$count(d){return B.k(d)+" svaga fr\xe5gor uppdaterade"},
 $C:"$1$count",
 $R:0,
 $D(){return{count:C.V}},
 $S:57}
-A.cbR.prototype={
+A.cbT.prototype={
 $1$count(d){return B.k(d)+" misstag att repetera"},
 $C:"$1$count",
 $R:0,
 $D(){return{count:C.V}},
 $S:57}
-A.cbS.prototype={
+A.cbU.prototype={
 $2$count$examLabel(d,e){return B.k(d)+" "+B.k(e)+" \u2022 Klart"},
 $C:"$2$count$examLabel",
 $R:0,
 $D(){return{count:C.V,examLabel:C.V}},
 $S:174}
-A.cbT.prototype={
+A.cbV.prototype={
 $2$count$examLabel(d,e){return B.k(d)+" "+B.k(e)+" \u2022 Ej p\xe5b\xf6rjad"},
 $C:"$2$count$examLabel",
 $R:0,
 $D(){return{count:C.V,examLabel:C.V}},
 $S:174}
-A.cbU.prototype={
+A.cbW.prototype={
 $4$count$done$examLabel$total(d,e,f,g){return B.k(d)+" "+B.k(f)+" \u2022 "+B.k(e)+"/"+B.k(g)+" delar klara"},
 $C:"$4$count$done$examLabel$total",
 $R:0,
 $D(){return{count:C.V,done:C.V,examLabel:C.V,total:C.V}},
 $S:414}
-A.cbV.prototype={
+A.cbX.prototype={
 $2$count$questionLabel(d,e){return B.k(d)+" "+B.k(e)+" att repetera i den h\xe4r kategorin"},
 $C:"$2$count$questionLabel",
 $R:0,
 $D(){return{count:C.V,questionLabel:C.V}},
 $S:175}
-A.cbW.prototype={
+A.cbY.prototype={
 $1$count(d){return"Bem\xe4stra "+B.k(d)+y.A},
 $C:"$1$count",
 $R:0,
 $D(){return{count:C.V}},
 $S:57}
-A.cbX.prototype={
+A.cbZ.prototype={
 $2$count$questionLabel(d,e){return B.k(d)+" "+B.k(e)+y._},
 $C:"$2$count$questionLabel",
 $R:0,
 $D(){return{count:C.V,questionLabel:C.V}},
 $S:175}
-A.cbZ.prototype={
+A.cc0.prototype={
 $2$mastered$total(d,e){return B.k(d)+" / "+B.k(e)+" bem\xe4strade"},
 $C:"$2$mastered$total",
 $R:0,
 $D(){return{mastered:C.V,total:C.V}},
 $S:416}
-A.cc_.prototype={
+A.cc1.prototype={
 $1$n(d){return B.k(d)+" i rad"},
 $C:"$1$n",
 $R:0,
 $D(){return{n:C.V}},
 $S:153};(function inheritance(){var w=a.inherit,v=a.inheritMany
-w(A.ay_,B.L)
-v(B.x6,[A.cc8,A.cbL,A.cbM,A.cbN,A.cbY,A.cc0,A.cc1,A.cc2,A.cc3,A.cc4,A.cc5,A.cc6,A.cbO,A.cbP,A.cbQ,A.cbR,A.cbS,A.cbT,A.cbU,A.cbV,A.cbW,A.cbX,A.cbZ,A.cc_])})()
-B.cB0(b.typeUniverse,JSON.parse('{"ay_":{"nt":[],"q4":["k0","nt"]}}'))
+w(A.ay1,B.L)
+v(B.x6,[A.cca,A.cbN,A.cbO,A.cbP,A.cc_,A.cc2,A.cc3,A.cc4,A.cc5,A.cc6,A.cc7,A.cc8,A.cbQ,A.cbR,A.cbS,A.cbT,A.cbU,A.cbV,A.cbW,A.cbX,A.cbY,A.cbZ,A.cc0,A.cc1])})()
+B.cB3(b.typeUniverse,JSON.parse('{"ay1":{"ns":[],"q4":["k_","ns"]}}'))
 var y={A:" fr\xe5gor f\xf6r att l\xe5sa upp fullst\xe4ndigt prov.",_:" kvar att bem\xe4stra och du l\xe5ser upp fullst\xe4ndigt prov.",H:"7 DAGARS GRATIS PROVPERIOD. AVBRYT N\xc4R SOM HELST.",Y:"AKADEMISK EXCELLENS GENOM KINETISKT L\xc4RANDE",x:"Accelerera ditt l\xe4rande med personliga studieverktyg.",J:"Ange din e-postadress s\xe5 skickar vi instruktioner f\xf6r att \xe5terst\xe4lla ditt l\xf6senord.",E:"Anslutningen tog f\xf6r l\xe5ng tid. Kontrollera din anslutning och f\xf6rs\xf6k igen.",s:"Beh\xf6righet nekad \u2014 tryck nedan f\xf6r att \xf6ppna Inst\xe4llningar",z:"Beh\xf6ver du hj\xe4lp med den h\xe4r fr\xe5gan? V\xe4lj ett alternativ nedan eller st\xe4ll din egen fr\xe5ga.",F:"Ber\xe4tta om ditt problem s\xe5 \xe5terkommer vi till dig.",R:"Ber\xe4tta vad som \xe4r fel med den h\xe4r fr\xe5gan...",I:"Bra jobbat! Du vet nu hur du \xf6vers\xe4tter fr\xe5gor och kikar p\xe5 originaltexten.",U:"Demokonton kan inte \xe4ndra anv\xe4ndarnamn eller e-post.",m:"Den h\xe4r \xe5tg\xe4rden \xe4r permanent och kan inte \xe5ngras. All din framsteg och data kommer att tas bort.",o:"Det gick inte att skicka \xe5terst\xe4llningsmail. F\xf6rs\xf6k igen.",w:"Det gick inte att \xe5terst\xe4lla din session. F\xf6rs\xf6k igen.",t:"Detta tar bort alla aviseringar. \xc5tg\xe4rden kan inte \xe5ngras.",Z:"Din resa mot framg\xe5ng b\xf6rjar med ett tryck.",b:"Dina framsteg i den h\xe4r sessionen kommer att g\xe5 f\xf6rlorade.",n:"Ditt l\xf6senord har \xe5terst\xe4llts. Du kan nu logga in med ditt nya l\xf6senord.",y:"Du f\xe5r 3 liv och direkt r\xe4ttning tills du har klarat alla delar.",L:"Du f\xe5r tv\xe5 p\xe5minnelser varje \xf6vningsdag \u2014 en p\xe5 morgonen och en p\xe5 kv\xe4llen \u2014 vid slumpm\xe4ssiga tider f\xf6r att hj\xe4lpa dig bygga en vana.",C:"Du gjorde 3 misstag. Forts\xe4tt tr\xe4na delarna innan du f\xf6rs\xf6ker med hela provet igen.",K:"Du har ingen aktiv prenumeration f\xf6r denna kategori",c:"Du har loggats ut eftersom ditt konto anv\xe4ndes p\xe5 en annan enhet.",S:"Du har nekat beh\xf6righet f\xf6r aviseringar. \xd6ppna Inst\xe4llningar f\xf6r att aktivera dem.",p:"Du har {count} obesvarade fr\xe5gor. Vill du \xe4nd\xe5 avsluta testet?",O:"Du kan g\xf6ra det tidsbegr\xe4nsade slutprovet nu, \xe4ven innan alla delar \xe4r klara.",B:"Du kommer att f\xe5 p\xe5minnelser och uppdateringar om dina prov",T:"Du \xe4r inloggad med Google. L\xf6senords\xe4ndringar hanteras via ditt Google-konto.",k:"Du \xe4r redo att f\xf6rbereda dig f\xf6r ditt taxik\xf6rkortsprov!",V:"Du \xe4r \xe0 jour! Vi meddelar dig n\xe4r n\xe5got nytt h\xe4nder.",g:"Eller mejla oss direkt p\xe5 mohsin.sapra@gmail.com",W:"Endast gratis \xf6vningsprov \xe4r tillg\xe4ngliga. Prenumerera f\xf6r att l\xe5sa upp alla prov.",D:"Fantastiskt! {n} dagar i rad \u2014 h\xe5ll i det!",h:"Feedback \xe4r inte tillg\xe4nglig f\xf6r den h\xe4r fr\xe5gan.",q:"Fel vid \xf6ppning av e-postappen. F\xf6rs\xf6k igen.",r:"Forts\xe4tt \xf6va och f\xf6rs\xf6k igen. Du klarar det!",P:"Forts\xe4tt \xf6va. Du beh\xf6ver {score}% f\xf6r att bli godk\xe4nd.",d:"Framstegen sparades p\xe5 den h\xe4r enheten, men synkronisering till ditt konto misslyckades. F\xf6rs\xf6k igen.",v:'F\xf6r att aktivera aviseringar, klicka p\xe5 l\xe5sikonen (\ud83d\udd12) i webbl\xe4sarens adressf\xe4lt, hitta "Aviseringar" och st\xe4ll in det p\xe5 "Till\xe5t". Ladda sedan om sidan.',f:"Inga kategorier kopplade till den h\xe4r prenumerationen",i:"Inga misstag att tr\xe4na i den h\xe4r kategorin.",N:"Inga prov tillg\xe4ngliga f\xf6r Smart Learning \xe4nnu",j:"Inga sparade fr\xe5gor hittades i denna kategori.",X:"Inga sparade fr\xe5gor i denna kategori \xe4nnu.",bi:"Ingen internetanslutning. Kontrollera din anslutning och f\xf6rs\xf6k igen.",l:"Inget gratis \xf6vningsprov tillg\xe4ngligt f\xf6r denna kategori.",a:"Instruktioner f\xf6r l\xf6senords\xe5terst\xe4llning har skickats till din e-post.",bk:"Kunde inte \xf6ppna e-postappen. Mejla mohsin.sapra@gmail.com direkt.",c8:"Ladda ner Drive Test-appen fr\xe5n App Store f\xf6r en snabbare och smidigare upplevelse.",M:"Ladda ner Drive Test-appen p\xe5 Google Play f\xf6r en snabbare och smidigare upplevelse.",e:"N\xe4r du slutf\xf6rt ett prov visas dina resultat h\xe4r.",a9:"Ogiltig eller utg\xe5ngen kod. F\xf6rs\xf6k att beg\xe4ra en ny \xe5terst\xe4llningsl\xe4nk.",bO:"Registreringen lyckades! V\xe4nligen logga in.",cn:"Registreringen misslyckades. R\xe4tta felen.",c0:"Skapa ett gratis konto eller logga in f\xf6r att f\xe5 tillg\xe5ng till fullst\xe4ndiga prov",at:"Skapa ett gratis konto eller logga in f\xf6r att starta din prenumeration. Dina framsteg och prenumeration synkas p\xe5 alla dina enheter.",cM:"Skapa ett gratis konto f\xf6r att beh\xe5lla allt du har \xf6vat p\xe5.",bt:"Skapa ett gratis konto f\xf6r att komma \xe5t din prenumeration p\xe5 alla dina enheter, eller forts\xe4tt som g\xe4st \u2014 du kan alltid skapa ett konto senare.",bc:"Skapa ett gratis konto f\xf6r att spara dina framsteg och synka p\xe5 alla dina enheter.",bA:"Sl\xe4pp fingret f\xf6r att g\xe5 tillbaka till den \xf6versatta texten.",bv:"Spara detta kvitto. Kontakta support med ditt kvittonummer om du har fr\xe5gor om detta k\xf6p.",a_:"Testa v\xe4gm\xe4rken \u2014 ingen prenumeration kr\xe4vs",Q:"Till\xe5t aviseringar f\xf6r att h\xe5lla dig uppdaterad om dina provframsteg och p\xe5minnelser.",aN:"Tj\xe4nsten \xe4r tillf\xe4lligt otillg\xe4nglig. F\xf6rs\xf6k igen om en stund.",cC:"Tryck och h\xe5ll var som helst p\xe5 fr\xe5gan (inte svarsalternativen) f\xf6r att tillf\xe4lligt se den ursprungliga svenska texten.",aO:"Tryck p\xe5 'Fr\xe5gespr\xe5k' i menyn och v\xe4lj sedan ett spr\xe5k fr\xe5n listan.",dc:"Tryck p\xe5 spr\xe5kknappen f\xf6r att \xf6ppna listan och v\xe4lj sedan engelska (eller valfritt annat spr\xe5k).",G:"Tr\xe4na del f\xf6r del, bem\xe4stra dina svaga punkter",u:"Varje fel svar kostar ett hj\xe4rta \u2764\ufe0f. F\xf6rlorar du alla 3 tas du tillbaka \u2014 slutf\xf6r de tidigare delarna f\xf6r att l\xe5sa upp hela provet.",cY:"Vi skickade en \xe5terst\xe4llningskod till\n{email}",cu:"V\xe4gm\xe4rkestest \xe4r helt gratis. \xd6va i din egen takt och k\xe4nn p\xe5 appen innan du prenumererar.",cm:"V\xe4lj de dagar du f\xf6rbinder dig att \xf6va varje vecka.",b0:"V\xe4lj ett annat spr\xe5k nedan, till exempel engelska.",dd:"V\xe4nligen ange ditt anv\xe4ndarnamn eller e-post",b_:"V\xe4nligen ange \xe5terst\xe4llningskoden fr\xe5n din e-post.",ak:"t.ex. Inloggningsproblem, Buggrapport, Funktionsf\xf6rfr\xe5gan",cG:"\xc4r du s\xe4ker p\xe5 att du vill ta bort alla testf\xf6rs\xf6k?",cI:"\xc4r du s\xe4ker p\xe5 att du vill ta bort det h\xe4r sparade testet?",br:"\xd6vers\xe4ttningen misslyckades. F\xf6rs\xf6k igen.",bX:"\xd6vning, Trafikskyltar, Dokument och Checklistor \xe4r gratis. Prenumerera f\xf6r att l\xe5sa upp Prov."}
-var x={c:B.aq("E7<k0,nt>")}};
-(a=>{a["F9OYEf5b1xFV+b/Hr8PbpcesEqw="]=a.current})($__dart_deferred_initializers__);
+var x={c:B.aq("E7<k_,ns>")}};
+(a=>{a["RduJsppuoqxF6akiyp/kmljwJaw="]=a.current})($__dart_deferred_initializers__);
