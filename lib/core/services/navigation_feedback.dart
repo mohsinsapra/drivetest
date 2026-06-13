@@ -45,7 +45,8 @@ Future<void> vibrateExamPass() async {
   }
   if (defaultTargetPlatform == TargetPlatform.android) {
     try {
-      await Vibration.vibrate(pattern: [0, 80, 50, 130, 50, 200, 50, 280, 50, 380]);
+      await Vibration.vibrate(
+          pattern: [0, 80, 50, 130, 50, 200, 50, 280, 50, 380]);
     } on MissingPluginException {
       // Ignore.
     } on PlatformException {
