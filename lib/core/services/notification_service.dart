@@ -172,6 +172,8 @@ class NotificationService {
           debugPrint('[FCM] failed to persist opened notification: $e');
         }
       }
+      // Tapped a push to open the app — record for click-through analytics.
+      api.reportNotificationOpened(payload.type);
       debugPrint('[FCM] opened from background: ${message.messageId}');
       // Future: navigate based on message.data['screen']
     });
@@ -190,6 +192,8 @@ class NotificationService {
           debugPrint('[FCM] failed to persist launch notification: $e');
         }
       }
+      // App launched by tapping a push — record for click-through analytics.
+      api.reportNotificationOpened(payload.type);
       debugPrint('[FCM] opened from terminated: ${initialMessage.messageId}');
     }
 

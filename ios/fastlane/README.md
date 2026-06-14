@@ -53,7 +53,15 @@ Deploy to both iOS TestFlight and Android Play Store alpha
 [bundle exec] fastlane ios production
 ```
 
-Deploy Production
+Deploy Production (fresh build → App Store, fully hands-off)
+
+### ios promote
+
+```sh
+[bundle exec] fastlane ios promote
+```
+
+Promote the latest TestFlight build to App Store production (no rebuild)
 
 ----
 

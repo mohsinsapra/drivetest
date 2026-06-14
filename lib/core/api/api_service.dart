@@ -967,6 +967,20 @@ class ApiService {
     }
   }
 
+  /// Records that the user tapped a push notification to open the app
+  /// (click-through analytics). Best-effort — failures are swallowed.
+  Future<void> reportNotificationOpened(String type) async {
+    try {
+      await _dio.post(
+        'api/v2/notifications/opened/',
+        data: {'type': type},
+      );
+      debugPrint('[FCM] reported notification open: type=$type');
+    } catch (e) {
+      debugPrint('[FCM] reportNotificationOpened failed: $e');
+    }
+  }
+
   Future<void> deregisterFCMToken(String token) async {
     try {
       final response = await _dio.delete(
