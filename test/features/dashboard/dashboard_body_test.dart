@@ -169,6 +169,9 @@ class _MockNotificationProvider extends ChangeNotifier
 
   @override
   Future<void> clearAll() async {}
+
+  @override
+  Future<void> reload() async {}
 }
 
 void main() {
