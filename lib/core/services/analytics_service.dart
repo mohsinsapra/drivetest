@@ -224,6 +224,12 @@ class AnalyticsService {
   Future<void> logSmartLearningCompleted() =>
       _log('smart_learning_session_completed');
 
+  Future<void> logPaywallShown({required String source, int? productId}) =>
+      _log('paywall_shown', {
+        'source': source,
+        'product_id': productId,
+      });
+
   Future<void> logStreakViewed({int? currentStreak}) =>
       _log('streak_viewed', {'current_streak': currentStreak});
 

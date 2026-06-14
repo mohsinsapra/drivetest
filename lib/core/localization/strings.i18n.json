@@ -326,6 +326,7 @@
   "bcd_questions_label": "questions",
   "bcd_pass_label": "Pass",
   "bcd_free_label": "FREE",
+  "smart_locked": "Locked",
   "settings_theme_label": "Theme",
   "settings_theme_sub": "Light, dark or follow system",
   "settings_theme_system": "System",

@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
+import 'package:taxi_exam_app/features/payment/single_product_paywall.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -39,6 +41,35 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
   bool _loading = true;
   // Key of the session being loaded ('chunk-N', 'review-N', 'mistakes').
   String? _loadingKey;
+
+  late bool _subscribed = widget.entry.categorySubscribed;
+
+  bool get _locked =>
+      widget.entry.subscriptionProduct != null &&
+      !_subscribed &&
+      !widget.entry.isTestFree;
+
+  /// Returns true when the action should be blocked (locked and not purchased).
+  /// If the user buys during the paywall, unlocks in place and returns false so
+  /// the caller proceeds with the originally requested action.
+  Future<bool> _gateBlocked() async {
+    if (!_locked) return false;
+    AnalyticsService().logPaywallShown(
+      source: 'smart_learning',
+      productId: (widget.entry.subscriptionProduct?['id'] as num?)?.toInt(),
+    );
+    final purchased = await showSingleProductPaywall(
+      context,
+      subscriptionProduct: widget.entry.subscriptionProduct,
+      title: widget.entry.categoryName,
+    );
+    if (!mounted) return true;
+    if (purchased) {
+      setState(() => _subscribed = true);
+      return false;
+    }
+    return true;
+  }
 
   int get _reviewCount => widget.entry.chunkSizes.length ~/ 2;
 
@@ -77,6 +108,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
 
   Future<void> _startChunk(int chunkIndex) async {
     if (_loadingKey != null) return;
+    if (await _gateBlocked()) return;
     setState(() => _loadingKey = 'chunk-$chunkIndex');
     try {
       final questions = await _fetchChunkQuestions(chunkIndex);
@@ -136,6 +168,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
 
   Future<void> _startReview(int reviewIndex) async {
     if (_loadingKey != null) return;
+    if (await _gateBlocked()) return;
     setState(() => _loadingKey = 'review-$reviewIndex');
     try {
       final questions = await _fetchReviewQuestions(reviewIndex);
@@ -195,6 +228,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
 
   Future<void> _startMistakes() async {
     if (_loadingKey != null) return;
+    if (await _gateBlocked()) return;
     setState(() => _loadingKey = 'mistakes');
     try {
       final questions = await _fetchMistakesQuestions();
@@ -380,6 +414,7 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
 
   Future<void> _launchFullExam() async {
     if (_loadingKey != null) return;
+    if (await _gateBlocked()) return;
     setState(() => _loadingKey = 'fullExam');
     try {
       final e = widget.entry;

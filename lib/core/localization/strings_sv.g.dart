@@ -734,6 +734,8 @@ class TranslationsSv implements Translations {
   @override
   String get bcd_free_label => 'GRATIS';
   @override
+  String get smart_locked => 'Låst';
+  @override
   String get settings_theme_label => 'Tema';
   @override
   String get settings_theme_sub => 'Ljust, mörkt eller följ systemet';
@@ -2547,6 +2549,8 @@ extension on TranslationsSv {
         return 'Godkänt';
       case 'bcd_free_label':
         return 'GRATIS';
+      case 'smart_locked':
+        return 'Låst';
       case 'settings_theme_label':
         return 'Tema';
       case 'settings_theme_sub':

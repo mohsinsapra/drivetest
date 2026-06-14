@@ -23,6 +23,9 @@ class SmartExamEntry {
   final int passScore;
   final int timeLimit;
   final List<int> chunkSizes;
+  final bool isTestFree;
+  final bool categorySubscribed;
+  final Map<String, dynamic>? subscriptionProduct;
 
   const SmartExamEntry({
     required this.testBcdId,
@@ -34,7 +37,15 @@ class SmartExamEntry {
     required this.passScore,
     required this.timeLimit,
     required this.chunkSizes,
+    this.isTestFree = false,
+    this.categorySubscribed = false,
+    this.subscriptionProduct,
   });
+
+  /// True when this test requires a subscription the user does not have.
+  /// Free categories (null product) and free tests are never locked.
+  bool get isLocked =>
+      subscriptionProduct != null && !categorySubscribed && !isTestFree;
 }
 
 /// Smart Learning entry screen.
@@ -137,20 +148,34 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
       final catId = cat['bcd_id'] as int;
       final catName = stripAppSuffix(cat['name']?.toString() ?? '');
       final hasSubs = cat['has_children'] == true;
+      final catSubscribed = cat['is_subscribed'] == true;
+      final catProduct = cat['subscription_product'] as Map<String, dynamic>?;
 
       if (hasSubs) {
         for (final sub in cache.subcategoriesOf(catId)) {
           final subId = sub['bcd_id'] as int;
           final subName = stripAppSuffix(sub['name']?.toString() ?? '');
           for (final test in cache.testsOf(subId)) {
-            final entry =
-                _entryFromTest(test, catName, subId, subcategoryName: subName);
+            final entry = _entryFromTest(
+              test,
+              catName,
+              subId,
+              subcategoryName: subName,
+              categorySubscribed: catSubscribed,
+              subscriptionProduct: catProduct,
+            );
             if (entry != null) entries.add(entry);
           }
         }
       } else {
         for (final test in cache.testsOf(catId)) {
-          final entry = _entryFromTest(test, catName, catId);
+          final entry = _entryFromTest(
+            test,
+            catName,
+            catId,
+            categorySubscribed: catSubscribed,
+            subscriptionProduct: catProduct,
+          );
           if (entry != null) entries.add(entry);
         }
       }
@@ -159,8 +184,13 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
   }
 
   SmartExamEntry? _entryFromTest(
-      Map<String, dynamic> test, String catName, int catId,
-      {String subcategoryName = ''}) {
+    Map<String, dynamic> test,
+    String catName,
+    int catId, {
+    String subcategoryName = '',
+    bool categorySubscribed = false,
+    Map<String, dynamic>? subscriptionProduct,
+  }) {
     final qc = test['question_count'] as int? ?? 0;
     if (qc == 0) return null;
     final sizes = SmartUtils.computeSmartSizes(qc);
@@ -174,6 +204,9 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
       passScore: test['pass_score'] as int? ?? 0,
       timeLimit: test['time_limit'] as int? ?? 0,
       chunkSizes: sizes,
+      isTestFree: test['is_free'] == true,
+      categorySubscribed: categorySubscribed,
+      subscriptionProduct: subscriptionProduct,
     );
   }
 
@@ -374,6 +407,8 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
                 _CategoryRow(
                   name: catName,
                   isFree: isFreeMap[catName] ?? false,
+                  locked: catEntries.any((e) =>
+                      e.subscriptionProduct != null && !e.categorySubscribed),
                   testCount: catEntries.length,
                   passedChunks: passedChunks,
                   totalChunks: totalChunks,
@@ -461,6 +496,8 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
                 _CategoryRow(
                   name: subName,
                   isFree: false,
+                  locked: subEntries.any((e) =>
+                      e.subscriptionProduct != null && !e.categorySubscribed),
                   testCount: subEntries.length,
                   passedChunks: passedChunks,
                   totalChunks: totalChunks,
@@ -602,6 +639,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
 class _CategoryRow extends StatelessWidget {
   final String name;
   final bool isFree;
+  final bool locked;
   final int testCount;
   final int passedChunks;
   final int totalChunks;
@@ -610,6 +648,7 @@ class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
     required this.name,
     required this.isFree,
+    this.locked = false,
     required this.testCount,
     required this.passedChunks,
     required this.totalChunks,
@@ -671,6 +710,9 @@ class _CategoryRow extends StatelessWidget {
                         if (isFree) ...[
                           _FreeBadge(color: cs.primary),
                           const SizedBox(width: 6),
+                        ] else if (locked) ...[
+                          const _LockBadge(),
+                          const SizedBox(width: 6),
                         ],
                         Expanded(
                           child: Text(sub,
@@ -713,6 +755,40 @@ class _FreeBadge extends StatelessWidget {
         t.bcd_free_label,
         style:
             TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+// ── Lock badge ─────────────────────────────────────────────────────────────────
+
+class _LockBadge extends StatelessWidget {
+  const _LockBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final color = cs.onSurface.withValues(alpha: 0.55);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.lock_outline_rounded, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            t.smart_locked,
+            style: TextStyle(
+                color: color, fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }
@@ -840,6 +916,10 @@ class _ExamRow extends StatelessWidget {
                         style: theme.textTheme.titleSmall
                             ?.copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 2),
+                    if (entry.isLocked) ...[
+                      const _LockBadge(),
+                      const SizedBox(height: 4),
+                    ],
                     Text(statusLabel,
                         style: theme.textTheme.bodySmall?.copyWith(
                             color: allDone

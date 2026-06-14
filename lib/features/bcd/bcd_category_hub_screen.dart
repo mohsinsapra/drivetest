@@ -1,7 +1,5 @@
 import 'package:taxi_exam_app/core/constants/app_text_styles.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
-import 'package:taxi_exam_app/core/api/dio_client.dart';
-import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
@@ -10,6 +8,7 @@ import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
+import 'package:taxi_exam_app/features/payment/single_product_paywall.dart';
 
 import 'package:taxi_exam_app/features/profile/stats_screen.dart';
 
@@ -31,7 +30,6 @@ class BCDCategoryHubScreen extends StatefulWidget {
 
 class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
   final _api = ApiService();
-  List<dynamic> _products = [];
   late final ValueNotifier<bool> _subscribedNotifier;
 
   bool get _subscribed => widget.category['is_subscribed'] == true;
@@ -54,46 +52,13 @@ class _BCDCategoryHubScreenState extends State<BCDCategoryHubScreen> {
 
   Future<void> _showPaywall() async {
     if (_subscribed) return;
-
-    // The embedded subscription_product from bcd_dashboard is a lightweight
-    // snapshot that omits iap_product_id. Always fetch the full product list
-    // so IAP works on iOS. Match by ID if we know which product to show;
-    // fall back to the embedded data only if the API call fails.
-    if (_products.isEmpty) {
-      final embeddedProduct = widget.category['subscription_product'];
-      try {
-        final all = await _api.fetchBCDSubscriptionProducts();
-        if (embeddedProduct != null) {
-          final productId = embeddedProduct['id'];
-          final matched = all.where((p) => p['id'] == productId).toList();
-          _products = matched.isNotEmpty ? matched : all;
-        } else {
-          _products = all;
-        }
-      } catch (_) {
-        if (embeddedProduct != null) _products = [embeddedProduct];
-      }
-    }
-
-    if (!mounted || _products.isEmpty) return;
-
-    final result = await PaymentCoordinator.show(
+    final purchased = await showSingleProductPaywall(
       context,
-      products: _products,
+      subscriptionProduct:
+          widget.category['subscription_product'] as Map<String, dynamic>?,
       title: _categoryName,
-      createStripeIntent: (p) => _api.createBCDPaymentIntent(p['id'] as int),
-      onStripePaymentConfirmed: _api.confirmBCDPayment,
-      onIAPPurchaseConfirmed: (p, transactionId) => _api.confirmBCDIAPPurchase(
-        (p['id'] as num).toInt(),
-        transactionId: transactionId,
-      ),
     );
-
-    if (result == null || !mounted) return;
-    await DioClient().clearCache();
-    BcdCache.instance.invalidate();
-    await BcdCache.instance.ensureLoaded();
-    if (!mounted) return;
+    if (!purchased || !mounted) return;
     setState(() => widget.category['is_subscribed'] = true);
     _subscribedNotifier.value = true;
   }

@@ -415,6 +415,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get bcd_questions_label => 'questions';
   String get bcd_pass_label => 'Pass';
   String get bcd_free_label => 'FREE';
+  String get smart_locked => 'Locked';
   String get settings_theme_label => 'Theme';
   String get settings_theme_sub => 'Light, dark or follow system';
   String get settings_theme_system => 'System';
@@ -1695,6 +1696,8 @@ extension on Translations {
         return 'Pass';
       case 'bcd_free_label':
         return 'FREE';
+      case 'smart_locked':
+        return 'Locked';
       case 'settings_theme_label':
         return 'Theme';
       case 'settings_theme_sub':
