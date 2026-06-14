@@ -8,6 +8,7 @@ import 'certificate_pinning_stub.dart'
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:taxi_exam_app/core/models/option.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/services/user_cache_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -118,7 +119,12 @@ class DioClient {
     // Scope Hive boxes to the returning user before any box is opened.
     if (accessToken != null) {
       final userId = _userIdFromJwt(accessToken!);
-      if (userId != null) AppStorage.setCurrentUser(userId);
+      if (userId != null) {
+        AppStorage.setCurrentUser(userId);
+        // Fan the same id out to Firebase / Clarity / Sentry so this user can
+        // be traced across the whole analytics pipeline.
+        AnalyticsService().identifyUser(userId: userId);
+      }
     }
 
     _key = utf8.encode(keyString);

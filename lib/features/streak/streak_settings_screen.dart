@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/services/streak_notification_service.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/streak/streak_settings_provider.dart';
@@ -26,6 +27,7 @@ class _StreakSettingsScreenState extends State<StreakSettingsScreen> {
     final provider = context.read<StreakSettingsProvider>();
     _examDeadline = provider.examDeadline;
     _selectedWeekdays = Set.from(provider.practiceWeekdays);
+    AnalyticsService().logStreakViewed();
   }
 
   Future<void> _pickCustomDate() async {

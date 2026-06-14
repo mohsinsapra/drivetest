@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/widgets/app_loading_indicator.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/chat_message.dart';
@@ -176,6 +177,8 @@ class _QuestionChatSheetState extends State<QuestionChatSheet> {
     required String prompt,
   }) async {
     if (_aiService == null || _isSending) return;
+
+    AnalyticsService().logAiMessageSent();
 
     if (!_firstMessageFired) {
       _firstMessageFired = true;

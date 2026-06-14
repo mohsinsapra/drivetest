@@ -1,3 +1,4 @@
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 
 /// Coordinates a full user-session teardown on logout.
@@ -25,5 +26,7 @@ class UserCacheService {
     // Reset provider state before storage so providers don't re-read stale data.
     await onProviderReset?.call();
     await AppStorage.clearUserData();
+    // Detach analytics identity so the next user isn't attributed to this one.
+    await AnalyticsService().clearUser();
   }
 }

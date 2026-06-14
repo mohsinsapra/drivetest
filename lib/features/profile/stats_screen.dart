@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 
 class StatsScreen extends StatefulWidget {
@@ -49,6 +50,10 @@ class _StatsScreenState extends State<StatsScreen> {
           _attempts = all;
           _isLoading = false;
         });
+        AnalyticsService().logStatsViewed(
+          hasHistory: all.isNotEmpty,
+          attemptCount: all.length,
+        );
       }
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
@@ -105,6 +110,7 @@ class _StatsScreenState extends State<StatsScreen> {
   int get _totalSeconds =>
       _attempts.fold(0, (s, a) => s + (a.durationSeconds ?? 0));
   double get _latestScore => _attempts.isEmpty ? 0 : _attempts.first.score;
+  bool get _latestPassed => _attempts.isNotEmpty && _attempts.first.hasPassed;
 
   // ── Per-test breakdown grouping ───────────────────────────────────────────
   Map<String, List<TestAttempt>> get _grouped {
@@ -196,6 +202,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 _expandedGroups.remove(key);
               } else {
                 _expandedGroups.add(key);
+                AnalyticsService().logStatsBreakdownExpanded(category: label);
               }
             }),
             child: Padding(
@@ -436,45 +443,58 @@ class _StatsScreenState extends State<StatsScreen> {
                               children: [
                                 _statCard(
                                   value: '$_completedCount',
-                                  label: 'Completed tests',
+                                  label: Translations.of(context)
+                                      .stats_completed_tests,
                                   icon: Icons.description_outlined,
                                   iconBg: Colors.blue.withValues(alpha: 0.15),
                                   iconColor: const Color(0xFF1976D2),
                                 ),
                                 _statCard(
                                   value: '${_passRate.round()}%',
-                                  label: 'Pass rate',
+                                  label:
+                                      Translations.of(context).stats_pass_rate,
                                   icon: Icons.gps_fixed,
                                   iconBg: Colors.green.withValues(alpha: 0.15),
                                   iconColor: const Color(0xFF388E3C),
                                 ),
                                 _statCard(
                                   value: '${_bestScore.round()}%',
-                                  label: 'Best score',
+                                  label:
+                                      Translations.of(context).stats_best_score,
                                   icon: Icons.emoji_events_outlined,
                                   iconBg: Colors.orange.withValues(alpha: 0.15),
                                   iconColor: const Color(0xFFF57C00),
                                 ),
                                 _statCard(
                                   value: '${_avgScore.round()}%',
-                                  label: 'Average score',
+                                  label: Translations.of(context)
+                                      .stats_average_score,
                                   icon: Icons.trending_up,
                                   iconBg: Colors.blue.withValues(alpha: 0.15),
                                   iconColor: const Color(0xFF1976D2),
                                 ),
                                 _statCard(
                                   value: _fmtDuration(_totalSeconds),
-                                  label: 'Total study time',
+                                  label: Translations.of(context)
+                                      .stats_total_study_time,
                                   icon: Icons.access_time,
                                   iconBg: Colors.purple.withValues(alpha: 0.15),
                                   iconColor: const Color(0xFF7B1FA2),
                                 ),
                                 _statCard(
                                   value: '${_latestScore.round()}%',
-                                  label: 'Latest result',
-                                  icon: Icons.cancel_outlined,
-                                  iconBg: Colors.red.withValues(alpha: 0.15),
-                                  iconColor: const Color(0xFFD32F2F),
+                                  label: Translations.of(context)
+                                      .stats_latest_result,
+                                  icon: _latestPassed
+                                      ? Icons.check_circle_outline
+                                      : Icons.cancel_outlined,
+                                  iconBg: (_latestPassed
+                                          ? Colors.green
+                                          : Colors.red)
+                                      .withValues(alpha: 0.15),
+                                  iconColor: _latestPassed
+                                      ? const Color(0xFF388E3C)
+                                      : const Color(0xFFD32F2F),
                                 ),
                               ],
                             ),
@@ -498,8 +518,10 @@ class _StatsScreenState extends State<StatsScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Per-test breakdown',
-                                      style: TextStyle(
+                                  Text(
+                                      Translations.of(context)
+                                          .stats_per_test_breakdown,
+                                      style: const TextStyle(
                                           fontSize: 17,
                                           fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 14),
@@ -532,8 +554,10 @@ class _StatsScreenState extends State<StatsScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('All attempts',
-                                      style: TextStyle(
+                                  Text(
+                                      Translations.of(context)
+                                          .stats_all_attempts,
+                                      style: const TextStyle(
                                           fontSize: 17,
                                           fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 14),

@@ -941,11 +941,19 @@ class ApiService {
     return _asList(response.data);
   }
 
-  Future<void> registerFCMToken(String token, String platform) async {
+  Future<void> registerFCMToken(
+    String token,
+    String platform, {
+    String? language,
+  }) async {
     try {
       final response = await _dio.post(
         'api/v2/notifications/register-token/',
-        data: {'token': token, 'platform': platform},
+        data: {
+          'token': token,
+          'platform': platform,
+          if (language != null && language.isNotEmpty) 'language': language,
+        },
       );
       debugPrint(
         '[FCM] registerFCMToken success: status=${response.statusCode}, platform=$platform, tokenLen=${token.length}',

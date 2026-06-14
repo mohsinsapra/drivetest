@@ -13,6 +13,11 @@ import 'package:taxi_exam_app/core/widgets/app_dialogs.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+// Store links — kept in sync with app_download_sheet.dart.
+const _kPlayStoreUrl =
+    'https://play.google.com/store/apps/details?id=com.mohsinsapra.drivetest';
+const _kAppStoreUrl = 'https://apps.apple.com/app/drive-test-pro/id6765940954';
+
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -70,6 +75,23 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         mode: LaunchMode.externalApplication,
       );
     }
+  }
+
+  /// Marks the notification read and, for app-update notifications, opens the
+  /// appropriate store so the user can update.
+  void _handleNotificationTap(
+    LocalNotification notification,
+    NotificationProvider provider,
+  ) {
+    provider.markRead(notification);
+    if (notification.type == 'app_update') {
+      _openStore();
+    }
+  }
+
+  Future<void> _openStore() async {
+    final url = (!kIsWeb && Platform.isIOS) ? _kAppStoreUrl : _kPlayStoreUrl;
+    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
   void _showWebSettingsDialog() {
@@ -178,7 +200,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         return _NotificationCard(
                           notification: n,
                           timeAgo: _timeAgo(context, n.receivedAt),
-                          onTap: () => provider.markRead(n),
+                          onTap: () => _handleNotificationTap(n, provider),
                           colorScheme: colorScheme,
                           theme: theme,
                         );

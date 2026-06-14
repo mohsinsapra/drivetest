@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/widgets/adaptive_refresh_indicator.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -79,6 +80,7 @@ class _SmartLearningScreenState extends State<SmartLearningScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService().logSmartLearningStarted();
     _allEntries = _buildEntries();
     if (widget.initialPassedCounts != null) {
       _passedCounts = widget.initialPassedCounts!;

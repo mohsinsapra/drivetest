@@ -13,10 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
--
+- **Statistics screen now fully translated to Swedish**: the stat labels (Completed tests, Pass rate, Best score, Average score, Total study time, Latest result) and the "Per-test breakdown" and "All attempts" headings previously stayed in English even with the app set to Swedish — they now show correctly in Swedish.
 
 ### Fixed
--
+- **"Latest result" on the statistics screen showed the wrong icon**: it always displayed a red cross, even when your most recent attempt passed. It now shows a green check when you passed and a red cross only when you didn't.
 
 ---
 

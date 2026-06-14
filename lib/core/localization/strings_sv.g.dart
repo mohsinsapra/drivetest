@@ -156,6 +156,22 @@ class TranslationsSv implements Translations {
   @override
   String get stats_average => 'Snitt';
   @override
+  String get stats_completed_tests => 'Genomförda prov';
+  @override
+  String get stats_pass_rate => 'Andel godkända';
+  @override
+  String get stats_best_score => 'Bästa resultat';
+  @override
+  String get stats_average_score => 'Snittresultat';
+  @override
+  String get stats_total_study_time => 'Total studietid';
+  @override
+  String get stats_latest_result => 'Senaste resultat';
+  @override
+  String get stats_per_test_breakdown => 'Uppdelning per prov';
+  @override
+  String get stats_all_attempts => 'Alla försök';
+  @override
   String get home_attempt_details => 'Försöksdetaljer';
   @override
   String get home_saved_questions_title => 'Sparade frågor';
@@ -1985,6 +2001,22 @@ extension on TranslationsSv {
         return 'Bäst';
       case 'stats_average':
         return 'Snitt';
+      case 'stats_completed_tests':
+        return 'Genomförda prov';
+      case 'stats_pass_rate':
+        return 'Andel godkända';
+      case 'stats_best_score':
+        return 'Bästa resultat';
+      case 'stats_average_score':
+        return 'Snittresultat';
+      case 'stats_total_study_time':
+        return 'Total studietid';
+      case 'stats_latest_result':
+        return 'Senaste resultat';
+      case 'stats_per_test_breakdown':
+        return 'Uppdelning per prov';
+      case 'stats_all_attempts':
+        return 'Alla försök';
       case 'home_attempt_details':
         return 'Försöksdetaljer';
       case 'home_saved_questions_title':

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 
@@ -207,7 +208,11 @@ class NotificationService {
       debugPrint(
           '[FCM] token=${token == null ? "NULL" : "${token.substring(0, 20)}..."}');
       if (token != null) {
-        await api.registerFCMToken(token, _platform);
+        await api.registerFCMToken(
+          token,
+          _platform,
+          language: LocaleSettings.currentLocale.languageCode,
+        );
         debugPrint('[FCM] token registered with backend');
       } else {
         debugPrint('[FCM] token was null — check VAPID key or service worker');

@@ -107,6 +107,14 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get stats_unknown => 'Unknown';
   String get stats_best => 'Best';
   String get stats_average => 'Average';
+  String get stats_completed_tests => 'Completed tests';
+  String get stats_pass_rate => 'Pass rate';
+  String get stats_best_score => 'Best score';
+  String get stats_average_score => 'Average score';
+  String get stats_total_study_time => 'Total study time';
+  String get stats_latest_result => 'Latest result';
+  String get stats_per_test_breakdown => 'Per-test breakdown';
+  String get stats_all_attempts => 'All attempts';
   String get home_attempt_details => 'Attempt Details';
   String get home_saved_questions_title => 'Saved Questions';
   String get profile_settings => 'Settings';
@@ -1141,6 +1149,22 @@ extension on Translations {
         return 'Best';
       case 'stats_average':
         return 'Average';
+      case 'stats_completed_tests':
+        return 'Completed tests';
+      case 'stats_pass_rate':
+        return 'Pass rate';
+      case 'stats_best_score':
+        return 'Best score';
+      case 'stats_average_score':
+        return 'Average score';
+      case 'stats_total_study_time':
+        return 'Total study time';
+      case 'stats_latest_result':
+        return 'Latest result';
+      case 'stats_per_test_breakdown':
+        return 'Per-test breakdown';
+      case 'stats_all_attempts':
+        return 'All attempts';
       case 'home_attempt_details':
         return 'Attempt Details';
       case 'home_saved_questions_title':

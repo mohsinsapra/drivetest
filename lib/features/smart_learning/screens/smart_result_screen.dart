@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/services/activity_reminder_service.dart';
 import 'package:taxi_exam_app/core/services/app_review_service.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
@@ -76,6 +77,7 @@ class _SmartResultScreenState extends State<SmartResultScreen>
   @override
   void initState() {
     super.initState();
+    AnalyticsService().logSmartLearningCompleted();
     _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1100),

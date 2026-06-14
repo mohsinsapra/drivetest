@@ -5,6 +5,7 @@ import 'package:no_screenshot/no_screenshot.dart';
 import 'package:provider/provider.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
@@ -28,6 +29,7 @@ class _ExamDashboardScreenState extends State<ExamDashboardScreen> {
   void initState() {
     super.initState();
     _upgrader = Upgrader();
+    AnalyticsService().logDashboardViewed();
     _applyScreenshotPolicy();
     AppStorage.allowScreenshotsNotifier.addListener(_applyScreenshotPolicy);
     WidgetsBinding.instance.addPostFrameCallback((_) async {

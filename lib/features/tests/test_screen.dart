@@ -12,6 +12,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/models/question.dart';
 import 'package:taxi_exam_app/core/models/test_attempt.dart';
@@ -116,6 +117,7 @@ class _TestscreenState extends State<Testscreen> {
   int currentQuestionIndex = 0;
   Map<int, String> userSelections = {};
   final ApiService _apiService = ApiService();
+  final AnalyticsService _analytics = AnalyticsService();
   late final TestAttemptSaveService _attemptSaveService =
       TestAttemptSaveService(
     saveLocal: _persistAttemptLocal,
@@ -240,6 +242,14 @@ class _TestscreenState extends State<Testscreen> {
     // Skip for review mode (no new attempt) and resumed tests (already recorded).
     if (!widget.isReviewMode && widget.resumeTestId == null) {
       _saveStartedAttempt();
+      _analytics.logExamStarted(
+        licenceId: widget.licenceId,
+        licenceName: widget.licenceName,
+        categoryId: widget.categoryId,
+        questionCount: widget.questions.length,
+        isTimed: _isTimed,
+        isInstantMarking: _instantMarking,
+      );
     }
     if (!widget.isReviewMode) _applyShuffleIfEnabled();
 
@@ -593,6 +603,7 @@ class _TestscreenState extends State<Testscreen> {
     } else {
       vibrateExamFail();
     }
+    _logExamCompleted(passed: passed, trigger: 'timer_expired');
     showResultDialog(
       context: context,
       hasPassed: passed,
@@ -606,12 +617,28 @@ class _TestscreenState extends State<Testscreen> {
     );
   }
 
+  /// Emit the `exam_completed` event from any finish path.
+  void _logExamCompleted({required bool passed, required String trigger}) {
+    _analytics.logExamCompleted(
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+      scorePercent: _computeScorePercent(),
+      passed: passed,
+      questionsAnswered: userSelections.length,
+      totalQuestions: widget.questions.length,
+      durationMs: DateTime.now().difference(_startTime).inMilliseconds,
+      trigger: trigger,
+    );
+  }
+
   void _openAiChat(
     BuildContext context,
     int index, {
     String? displayText,
     String? prompt,
+    String aiContext = 'continue',
   }) {
+    _analytics.logAiChatOpened(context: aiContext);
     final session = _aiSessions[index];
     CupertinoScaffold.showCupertinoModalBottomSheet<void>(
       context: context,
@@ -678,6 +705,15 @@ class _TestscreenState extends State<Testscreen> {
       return;
     }
     final isCorrect = optionId == widget.questions[index].correctAnswer;
+    // Record the first answer for this question only (skip re-selections in
+    // non-instant mode) so the funnel isn't double-counted.
+    if (userSelections[index] == null) {
+      _analytics.logQuestionAnswered(
+        questionId: widget.questions[index].questionId,
+        correct: isCorrect,
+        questionIndex: index,
+      );
+    }
     if (_instantMarking) {
       if (isCorrect) {
         vibrateCorrectAnswer();
@@ -729,6 +765,7 @@ class _TestscreenState extends State<Testscreen> {
           } else {
             vibrateExamFail();
           }
+          _logExamCompleted(passed: passed, trigger: 'submit');
           showResultDialog(
             context: context,
             hasPassed: passed,
@@ -925,6 +962,17 @@ class _TestscreenState extends State<Testscreen> {
     );
 
     if (!mounted) return;
+
+    // Either "save & exit" or "exit" means the attempt was left incomplete.
+    if ((result == 'save' || result == 'exit') && !widget.isReviewMode) {
+      _analytics.logExamAbandoned(
+        licenceId: widget.licenceId,
+        categoryId: widget.categoryId,
+        lastQuestionIndex: currentQuestionIndex,
+        questionsAnswered: userSelections.length,
+        totalQuestions: widget.questions.length,
+      );
+    }
 
     if (result == 'save') {
       // Show saving indicator
@@ -1453,6 +1501,7 @@ class _TestscreenState extends State<Testscreen> {
                   onAiHint: () => _openAiChat(
                     context,
                     index,
+                    aiContext: 'hint',
                     displayText: t.ai_hint_button,
                     prompt:
                         'Give me a short hint that helps me figure out the answer without telling me directly. You MUST reply in $uiLang only.',
@@ -1460,6 +1509,7 @@ class _TestscreenState extends State<Testscreen> {
                   onAiUnderstand: () => _openAiChat(
                     context,
                     index,
+                    aiContext: 'understand',
                     displayText: t.ai_understand_button,
                     prompt:
                         'Help me understand this question. Explain the concept it is testing and why the correct answer is right. You MUST reply in $uiLang only.',

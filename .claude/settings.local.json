@@ -359,7 +359,8 @@
       "Bash(echo \"Flutter run started in background with PID $!\")",
       "Bash(echo \"PID $!\")",
       "Bash(gh api *)",
-      "Skill(simplify)"
+      "Skill(simplify)",
+      "mcp__plugin_context7_context7__query-docs"
     ],
     "deny": [],
     "ask": []

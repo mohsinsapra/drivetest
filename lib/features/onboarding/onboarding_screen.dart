@@ -9,6 +9,7 @@ import 'package:taxi_exam_app/core/widgets/app_shimmer.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/api/dio_client.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
+import 'package:taxi_exam_app/core/services/analytics_service.dart';
 import 'package:taxi_exam_app/core/services/bcd_cache.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
 import 'package:taxi_exam_app/core/services/payment_coordinator.dart';
@@ -184,6 +185,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (widget.isLoggedIn()) {
       _fetchMySubscriptions();
     }
+    AnalyticsService().logOnboardingStepViewed(step: 0);
   }
 
   Future<void> _fetchMySubscriptions({bool forceRefresh = false}) async {
@@ -235,6 +237,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _markOnboardingComplete() async {
+    AnalyticsService().logOnboardingCompleted();
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('onboarding_complete', true);
@@ -521,7 +524,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (i) => setState(() => _currentStep = i),
+                onPageChanged: (i) {
+                  setState(() => _currentStep = i);
+                  AnalyticsService().logOnboardingStepViewed(step: i);
+                },
                 children: [
                   // Step 1: Choose Your Category
                   _CategoryPage(
