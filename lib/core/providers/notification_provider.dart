@@ -49,6 +49,19 @@ class NotificationProvider extends ChangeNotifier {
     return create();
   }
 
+  /// Re-read notifications from the Hive box. Call on app resume so messages
+  /// stored by the FCM background isolate (while the app was backgrounded or
+  /// terminated) appear without requiring a cold restart.
+  Future<void> reload() async {
+    try {
+      final box = await AppStorage.notificationsBox();
+      _notifications = box.values.toList().reversed.toList();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[NotificationProvider] reload failed: $e');
+    }
+  }
+
   /// Add a new incoming notification (called from NotificationService).
   /// Skips if an identical notification (same type + title + body) was added
   /// within the last 10 seconds — prevents FCM retransmissions from doubling up.

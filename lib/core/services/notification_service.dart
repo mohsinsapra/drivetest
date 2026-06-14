@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:taxi_exam_app/core/models/local_notification.dart';
+import 'package:taxi_exam_app/core/storage/app_storage.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/notification_provider.dart';
@@ -67,6 +68,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (!Hive.isAdapterRegistered(3)) {
     Hive.registerAdapter(LocalNotificationAdapter());
   }
+  // This isolate never ran the login flow, so the user scope is empty and the
+  // notifications box would resolve to the unsuffixed name — a different box
+  // than the foreground app reads. Restore the persisted user id first.
+  await AppStorage.restoreCurrentUserFromPrefs();
 
   final payload = _payloadFromMessage(message);
   if (!payload.hasVisibleContent) return;
@@ -149,9 +154,24 @@ class NotificationService {
       }
     });
 
-    // Background tap — app was in background, user tapped notification
-    _onOpenedSub =
-        FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    // Background tap — app was in background, user tapped notification.
+    // Persist it too: a notification-only message in the background is shown by
+    // the OS and never reaches the background handler, so the tap is the first
+    // time the app sees it.
+    _onOpenedSub = FirebaseMessaging.onMessageOpenedApp
+        .listen((RemoteMessage message) async {
+      final payload = _payloadFromMessage(message);
+      if (payload.hasVisibleContent) {
+        try {
+          await NotificationProvider.instance.add(
+            payload.title,
+            payload.body,
+            type: payload.type,
+          );
+        } catch (e) {
+          debugPrint('[FCM] failed to persist opened notification: $e');
+        }
+      }
       debugPrint('[FCM] opened from background: ${message.messageId}');
       // Future: navigate based on message.data['screen']
     });

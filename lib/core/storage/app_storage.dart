@@ -30,12 +30,38 @@ class AppStorage {
 
   static String _userId = '';
 
+  /// SharedPreferences key mirroring [_userId]. Persisted so background isolates
+  /// (e.g. the FCM background handler) — which never run the login flow — can
+  /// restore the user scope and open the SAME user-suffixed Hive boxes.
+  static const String kCurrentUserId = 'current_user_id';
+
   /// Set immediately after tokens are written (call from [DioClient.setTokens]
   /// and [DioClient.init]). Scopes all Hive box accessors to this user.
-  static void setCurrentUser(String userId) => _userId = userId;
+  static void setCurrentUser(String userId) {
+    _userId = userId;
+    SharedPreferences.getInstance()
+        .then((p) => p.setString(kCurrentUserId, userId))
+        .ignore();
+  }
 
   /// Reset on logout so box name getters return the unsuffixed fallback name.
-  static void clearCurrentUser() => _userId = '';
+  static void clearCurrentUser() {
+    _userId = '';
+    SharedPreferences.getInstance()
+        .then((p) => p.remove(kCurrentUserId))
+        .ignore();
+  }
+
+  /// Restore the persisted current-user id into memory. Used by background
+  /// isolates (FCM handler) that don't go through login, so their Hive boxes are
+  /// scoped to the same user as the foreground app.
+  static Future<void> restoreCurrentUserFromPrefs() async {
+    if (_userId.isNotEmpty) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _userId = prefs.getString(kCurrentUserId) ?? '';
+    } catch (_) {}
+  }
 
   /// The currently logged-in user's ID, or empty string if not set.
   static String get currentUserId => _userId;

@@ -35,14 +35,18 @@ platform :ios do
     end
     UI.user_error!("No IPA found at #{ipa_path} — run `fastlane build` first") unless File.exist?(ipa_path)
 
-    app_password = ENV["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"]
-    UI.user_error!("Set FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD in ios/fastlane/.env") if app_password.nil? || app_password.empty? || app_password == "your-app-specific-password-here"
+    using_api_key = setup_asc_api_key
+    # App-specific password is only needed for the legacy (no API key) auth path.
+    unless using_api_key
+      app_password = ENV["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"]
+      UI.user_error!("Set an App Store Connect API key (ASC_KEY_ID/ASC_ISSUER_ID/ASC_KEY_PATH) or FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD in the root .env") if app_password.nil? || app_password.empty? || app_password == "your-app-specific-password-here"
+    end
 
     changelog = get_latest_changelog_entry
 
     upload_to_testflight(
       ipa: ipa_path,
-      username: "mohsin.sapra@gmail.com",
+      username: using_api_key ? nil : "mohsin.sapra@gmail.com",
       team_id: "128337297",
       changelog: changelog,
       skip_waiting_for_build_processing: true
@@ -67,9 +71,11 @@ platform :ios do
     UI.success("✅ Deployed to both iOS TestFlight and Android Play Store!")
   end
 
-  desc "Deploy Production"
+  desc "Deploy Production (fresh build → App Store, fully hands-off)"
   lane :production do
     ENV['BUILD_VARIANT'] = 'production'
+    setup_asc_api_key
+
     # Update version
     update_flutter_version
 
@@ -83,7 +89,14 @@ platform :ios do
         "en-US" => changelog_text
       },
       screenshots_path: "fastlane/screenshots",
-      skip_screenshots: false
+      skip_screenshots: false,
+      # ── Hands-off submission ──────────────────────────────────────────────
+      submit_for_review: true,   # actually send to Apple review (not just upload)
+      force: true,               # skip the HTML preview confirmation prompt
+      automatic_release: true,   # auto-release once Apple approves
+      submission_information: {
+        add_id_info_uses_idfa: false # app does not use the advertising identifier
+      }
     )
 
     # Tag the release
@@ -93,7 +106,73 @@ platform :ios do
     notify_app_update
   end
 
+  desc "Promote the latest TestFlight build to App Store production (no rebuild)"
+  lane :promote do
+    setup_asc_api_key
+
+    changelog_text = get_latest_changelog_entry
+
+    pubspec_content = File.read(File.expand_path("../../pubspec.yaml", __dir__))
+    version_match = pubspec_content.match(/^version:\s*(.+)\+(\d+)/)
+    UI.user_error!("Could not read version from pubspec.yaml") unless version_match
+    app_version  = version_match[1].strip
+    build_number = version_match[2].strip
+
+    UI.message("🚀 Promoting build #{app_version} (#{build_number}) from TestFlight to production…")
+
+    upload_to_app_store(
+      app_identifier: "com.mohsinsapra.drivetest",
+      app_version: app_version,
+      build_number: build_number,
+      skip_binary_upload: true,  # reuse the exact build already on TestFlight
+      release_notes: {
+        "en-US" => changelog_text
+      },
+      screenshots_path: "fastlane/screenshots",
+      skip_screenshots: false,
+      submit_for_review: true,
+      force: true,
+      automatic_release: true,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+
+    notify_app_update
+  end
+
   # Helper methods
+
+  # Loads an App Store Connect API key (.p8) if configured in the root .env.
+  # Returns true when the key was set (all later upload/submit actions pick it
+  # up automatically). Falls back to Apple ID + app-specific password otherwise.
+  #
+  # The API key is the reliable path for unattended runs: unlike a
+  # FASTLANE_SESSION it does not expire, so "deploy to TestFlight now, run
+  # production weeks later" works without re-authenticating.
+  private_lane :setup_asc_api_key do
+    key_id = ENV["ASC_KEY_ID"].to_s.strip
+    issuer_id = ENV["ASC_ISSUER_ID"].to_s.strip
+    key_path = ENV["ASC_KEY_PATH"].to_s.strip
+
+    if !key_id.empty? && !issuer_id.empty? && !key_path.empty? && File.exist?(key_path)
+      app_store_connect_api_key(
+        key_id: key_id,
+        issuer_id: issuer_id,
+        key_filepath: key_path,
+        duration: 1200,
+        in_house: false
+      )
+      UI.success("🔑 Using App Store Connect API key for authentication")
+      true
+    else
+      UI.important("⚠️  No App Store Connect API key found — falling back to Apple ID + app-specific password.")
+      UI.important("    Hands-off submission can fail when the login session expires. To make it reliable, set")
+      UI.important("    ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_PATH in the root .env (see .env.example).")
+      false
+    end
+  end
+
   private_lane :update_flutter_version do
     # Read current version from pubspec.yaml
     pubspec_path = "../../pubspec.yaml"

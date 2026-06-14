@@ -44,8 +44,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Re-check when user returns from Settings
-    if (state == AppLifecycleState.resumed) _checkPermission();
+    if (state == AppLifecycleState.resumed) {
+      // Re-check when user returns from Settings
+      _checkPermission();
+      // Surface notifications the FCM background isolate stored while the app
+      // was backgrounded/terminated.
+      context.read<NotificationProvider>().reload();
+    }
   }
 
   Future<void> _checkPermission() async {
