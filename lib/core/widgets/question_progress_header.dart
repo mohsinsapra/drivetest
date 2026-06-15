@@ -55,9 +55,12 @@ class QuestionProgressHeader extends StatelessWidget {
                             borderRadius: BorderRadius.circular(radius),
                           ),
                         ),
-                        if (visibleProgress > 0)
-                          FractionallySizedBox(
-                            widthFactor: visibleProgress,
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.0, end: visibleProgress),
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeInOut,
+                          builder: (_, value, __) => FractionallySizedBox(
+                            widthFactor: value,
                             child: Container(
                               height: barHeight,
                               decoration: BoxDecoration(
@@ -66,6 +69,7 @@ class QuestionProgressHeader extends StatelessWidget {
                               ),
                             ),
                           ),
+                        ),
                       ],
                     ),
                   ),

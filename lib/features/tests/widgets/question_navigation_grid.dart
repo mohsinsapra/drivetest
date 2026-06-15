@@ -5,6 +5,8 @@ class QuestionNavigationGrid extends StatelessWidget {
   final Map<int, String> userSelections;
   final int currentIndex;
   final void Function(int index) onTap;
+  final List<String> questionIds;
+  final Set<String> savedQuestionIds;
 
   const QuestionNavigationGrid({
     super.key,
@@ -12,6 +14,8 @@ class QuestionNavigationGrid extends StatelessWidget {
     required this.userSelections,
     required this.currentIndex,
     required this.onTap,
+    this.questionIds = const [],
+    this.savedQuestionIds = const {},
   });
 
   @override
@@ -29,6 +33,8 @@ class QuestionNavigationGrid extends StatelessWidget {
         final isAnswered = userSelections[index] != null;
         final isCurrent = index == currentIndex;
         final primary = Theme.of(ctx).colorScheme.primary;
+        final isSaved = index < questionIds.length &&
+            savedQuestionIds.contains(questionIds[index]);
         return GestureDetector(
           onTap: () => onTap(index),
           child: AnimatedContainer(
@@ -79,6 +85,18 @@ class QuestionNavigationGrid extends StatelessWidget {
                       Icons.check_circle_rounded,
                       size: 10,
                       color: Colors.green,
+                    ),
+                  ),
+                if (isSaved)
+                  Positioned(
+                    top: 3,
+                    left: 3,
+                    child: Icon(
+                      Icons.star_rounded,
+                      size: 10,
+                      color: isCurrent
+                          ? Colors.white.withValues(alpha: 0.9)
+                          : primary,
                     ),
                   ),
               ],

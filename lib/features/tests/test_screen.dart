@@ -683,10 +683,15 @@ class _TestscreenState extends State<Testscreen> {
     super.dispose();
   }
 
+  bool _navigatingFromSheet = false;
+
   void _onPageChanged(int index) {
-    setState(() {
+    if (_navigatingFromSheet) {
       currentQuestionIndex = index;
-    });
+      _navigatingFromSheet = false;
+    } else {
+      setState(() => currentQuestionIndex = index);
+    }
     ttsService.flutterTts.stop();
     ttsService.ttsState = TtsState.stopped;
     _preloadImagesForQuestion(index + 1);
@@ -1728,34 +1733,62 @@ class _TestscreenState extends State<Testscreen> {
     ];
   }
 
-// Add this method to show the question navigation sheet
   void _showQuestionNavigationSheet() {
     final progressText = t.test_question_progress
         .replaceAll('{current}', '${currentQuestionIndex + 1}')
         .replaceAll('{total}', '${widget.questions.length}');
     final answeredText =
         '${userSelections.length}/${widget.questions.length} ${t.test_answered}';
+
+    final currentIdxNotifier = ValueNotifier<int>(currentQuestionIndex);
+    final savedIdsNotifier =
+        ValueNotifier<Set<String>>(Set.from(_savedQuestionIds));
+
+    // Ensure saved IDs are fresh when the sheet opens.
+    SavedQuestionsService.getSavedIdsScoped(
+      licenceId: widget.licenceId,
+      categoryId: widget.categoryId,
+      bcdCategoryId: widget.bcdCategoryId,
+    ).then((ids) {
+      savedIdsNotifier.value = ids;
+      if (mounted) setState(() => _savedQuestionIds = ids);
+    });
+
+    final questionIds =
+        widget.questions.map((q) => q.questionId).toList();
+
     CupertinoScaffold.showCupertinoModalBottomSheet<void>(
       context: _sheetContext ?? context,
       builder: (ctx) => AppBottomSheetContainer(
         title: t.test_questions_title,
         subtitle: '$progressText • $answeredText',
         heightFactor: 0.8,
-        child: QuestionNavigationGrid(
-          questionCount: widget.questions.length,
-          userSelections: userSelections,
-          currentIndex: currentQuestionIndex,
-          onTap: (index) {
-            Navigator.pop(ctx);
-            _pageController.animateToPage(
-              index,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          },
+        child: ValueListenableBuilder<int>(
+          valueListenable: currentIdxNotifier,
+          builder: (_, currentIdx, __) => ValueListenableBuilder<Set<String>>(
+            valueListenable: savedIdsNotifier,
+            builder: (_, savedIds, __) => QuestionNavigationGrid(
+              questionCount: widget.questions.length,
+              userSelections: userSelections,
+              currentIndex: currentIdx,
+              questionIds: questionIds,
+              savedQuestionIds: savedIds,
+              onTap: (index) {
+                currentIdxNotifier.value = index;
+                _navigatingFromSheet = true;
+                _pageController.jumpToPage(index);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) setState(() => currentQuestionIndex = index);
+                });
+              },
+            ),
+          ),
         ),
       ),
-    );
+    ).then((_) {
+      currentIdxNotifier.dispose();
+      savedIdsNotifier.dispose();
+    });
   }
 }
 
