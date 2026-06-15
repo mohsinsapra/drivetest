@@ -76,8 +76,9 @@ platform :ios do
     ENV['BUILD_VARIANT'] = 'production'
     setup_asc_api_key
 
-    # Update version
-    update_flutter_version
+    # Update version (skipped when the caller — e.g. `make ios-deploy` — already
+    # bumped + committed the version, so the bump has a single source of truth)
+    update_flutter_version unless ENV["SKIP_FLUTTER_VERSION_BUMP"] == "1"
 
     # Get changelog
     changelog_text = get_latest_changelog_entry
@@ -85,9 +86,7 @@ platform :ios do
     ipa_path = build_ios_archive(export_options: "ExportOptions.plist")
     upload_to_app_store(
       ipa: ipa_path,
-      release_notes: {
-        "en-US" => changelog_text
-      },
+      release_notes: localized_release_notes(text: changelog_text),
       screenshots_path: "fastlane/screenshots",
       skip_screenshots: false,
       # ── Hands-off submission ──────────────────────────────────────────────
@@ -125,11 +124,10 @@ platform :ios do
       app_version: app_version,
       build_number: build_number,
       skip_binary_upload: true,  # reuse the exact build already on TestFlight
-      release_notes: {
-        "en-US" => changelog_text
-      },
-      screenshots_path: "fastlane/screenshots",
-      skip_screenshots: false,
+      release_notes: localized_release_notes(text: changelog_text),
+      # Promote reuses the existing build + listing; screenshots already live on
+      # the App Store version and carry over, so don't re-upload them.
+      skip_screenshots: true,
       submit_for_review: true,
       force: true,
       automatic_release: true,
@@ -171,6 +169,21 @@ platform :ios do
       UI.important("    ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_PATH in the root .env (see .env.example).")
       false
     end
+  end
+
+  # This app's App Store locales are en-GB + sv (NOT en-US). deliver must update
+  # the EXISTING localizations; passing a locale the version doesn't have (e.g.
+  # en-US) makes deliver create one, which re-runs Apple's global app-name
+  # uniqueness check and fails with "app name is already being used".
+  # Swedish notes come from WHATS_NEW_SV when set, else fall back to English.
+  private_lane :localized_release_notes do |options|
+    english = options[:text].to_s
+    swedish = ENV["WHATS_NEW_SV"].to_s.strip
+    swedish = english if swedish.empty?
+    {
+      "en-GB" => english,
+      "sv" => swedish
+    }
   end
 
   private_lane :update_flutter_version do

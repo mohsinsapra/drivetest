@@ -108,6 +108,8 @@ help:
 	@echo "  make deploy-all-docker - Deploy web (Docker) + Android + iOS in parallel"
 	@echo "  make deploy-web-android - Deploy web + Android only, single commit"
 	@echo "  make ios-beta         - Deploy iOS to TestFlight"
+	@echo "  make ios-promote      - Promote latest TestFlight build to App Store (no rebuild)"
+	@echo "  make ios-deploy       - Fresh build + submit to App Store production"
 	@echo ""
 	@echo "$(COLOR_YELLOW)BUMP parameter (applies to all deploy commands):$(COLOR_RESET)"
 	@echo "  BUMP=fix    - Bug fix release:   1.0.3 → 1.0.4  (default)"
@@ -625,6 +627,29 @@ ios-beta: check
 	@$(MAKE) -s _bump-version BUMP=$(BUMP)
 	@$(MAKE) -s _commit-before-build
 	@$(MAKE) -s _ios-beta-core
+	@$(MAKE) -s _cleanup-deploy-artifacts
+
+## _ios-promote-core: Promote the build already on TestFlight to App Store (no rebuild)
+_ios-promote-core:
+	@echo "$(COLOR_GREEN)Promoting iOS TestFlight build to App Store production...$(COLOR_RESET)"
+	@cd ios && bundle exec fastlane promote
+
+## ios-promote: Promote the current TestFlight build to App Store production.
+## No rebuild, no version bump — submits the existing build for review (auto-release on approval).
+ios-promote:
+	@$(MAKE) -s _ios-promote-core
+
+## _ios-deploy-core: Fresh build → App Store production (version owned by the caller)
+_ios-deploy-core:
+	@echo "$(COLOR_GREEN)Building & submitting iOS to App Store production...$(COLOR_RESET)"
+	@cd ios && SKIP_FLUTTER_VERSION_BUMP=1 bundle exec fastlane production
+
+## ios-deploy: Bump, commit, fresh build, then submit to App Store production (auto-release on approval)
+ios-deploy: check
+	@$(MAKE) -s _ensure-changelog
+	@$(MAKE) -s _bump-version BUMP=$(BUMP)
+	@$(MAKE) -s _commit-before-build
+	@$(MAKE) -s _ios-deploy-core
 	@$(MAKE) -s _cleanup-deploy-artifacts
 
 ## clean: Clean build artifacts
