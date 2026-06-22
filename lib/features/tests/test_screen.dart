@@ -1243,6 +1243,46 @@ class _TestscreenState extends State<Testscreen> {
     return s.replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
+  /// Translate a question's tabs (title + body text), preserving any embedded
+  /// <img> tags so the tab gallery keeps working. Tab bodies are HTML that the
+  /// widget strips to plain text for display, so we translate the stripped
+  /// text and re-append the original images. Each item is translated safely so
+  /// one failure can't break the batch.
+  Future<List<QuestionTab>> _translateTabs(List<QuestionTab> tabs,
+      String fromLang, String toLang, GoogleTranslator translator) async {
+    if (tabs.isEmpty) return tabs;
+    final imgRegex =
+        RegExp(r'''<img[^>]+src=['"]([^'"]+)['"]''', caseSensitive: false);
+
+    return Future.wait(tabs.map((tab) async {
+      final titleClean = _stripHtml(tab.title);
+      final textClean = _stripHtml(tab.text);
+
+      final titleFuture = _isTranslatableText(titleClean)
+          ? _safeTranslate(titleClean, fromLang, toLang, translator)
+          : Future<String>.value(tab.title);
+      final textFuture = _isTranslatableText(textClean)
+          ? _safeTranslate(textClean, fromLang, toLang, translator)
+          : Future<String>.value('');
+
+      final results = await Future.wait([titleFuture, textFuture]);
+
+      final embedded = imgRegex
+          .allMatches(tab.text)
+          .map((m) => m.group(1) ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+
+      var newText = results[1];
+      if (embedded.isNotEmpty) {
+        final imgTags = embedded.map((s) => '<img src="$s">').join('\n');
+        newText = newText.isEmpty ? imgTags : '$newText\n$imgTags';
+      }
+
+      return tab.copyWith(title: results[0], text: newText);
+    }));
+  }
+
   /// Translate a single string, returning the original on error.
   Future<String> _safeTranslate(String text, String fromLang, String toLang,
       GoogleTranslator translator) async {
@@ -1314,6 +1354,16 @@ class _TestscreenState extends State<Testscreen> {
           ? partialTranslated[i].copyWith(answerExplanation: translatedExp)
           : partialTranslated[i]);
     }
+
+    // 6 ─ Translate tabs (title + body), preserving embedded images. Done per
+    //     question so a tab failure falls back to the original tab text.
+    final tabsPerQuestion = await Future.wait(
+      translated.map((q) => _translateTabs(q.tabs, fromLang, toLang, translator)),
+    );
+    for (var i = 0; i < translated.length; i++) {
+      translated[i] = translated[i].copyWith(tabs: tabsPerQuestion[i]);
+    }
+
     return translated;
   }
 

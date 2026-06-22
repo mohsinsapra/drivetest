@@ -14,6 +14,13 @@ class QuestionTab {
     required this.text,
     required this.images,
   });
+
+  QuestionTab copyWith({String? title, String? text, List<String>? images}) =>
+      QuestionTab(
+        title: title ?? this.title,
+        text: text ?? this.text,
+        images: images ?? this.images,
+      );
 }
 
 @HiveType(typeId: 1)
@@ -62,13 +69,16 @@ class Question extends HiveObject {
   }
 
   Question copyWith(
-          {String? text, List<Option>? options, String? answerExplanation}) =>
+          {String? text,
+          List<Option>? options,
+          String? answerExplanation,
+          List<QuestionTab>? tabs}) =>
       Question(
         text: text ?? this.text,
         options: options ?? this.options,
         imageUrl: imageUrl,
         images: images,
-        tabs: tabs,
+        tabs: tabs ?? this.tabs,
         correctAnswer: correctAnswer,
         answerExplanation: answerExplanation ?? this.answerExplanation,
         questionId: questionId,
