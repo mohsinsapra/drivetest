@@ -360,7 +360,8 @@
       "Bash(echo \"PID $!\")",
       "Bash(gh api *)",
       "Skill(simplify)",
-      "mcp__plugin_context7_context7__query-docs"
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(graphify update *)"
     ],
     "deny": [],
     "ask": []

@@ -1358,7 +1358,8 @@ class _TestscreenState extends State<Testscreen> {
     // 6 ─ Translate tabs (title + body), preserving embedded images. Done per
     //     question so a tab failure falls back to the original tab text.
     final tabsPerQuestion = await Future.wait(
-      translated.map((q) => _translateTabs(q.tabs, fromLang, toLang, translator)),
+      translated
+          .map((q) => _translateTabs(q.tabs, fromLang, toLang, translator)),
     );
     for (var i = 0; i < translated.length; i++) {
       translated[i] = translated[i].copyWith(tabs: tabsPerQuestion[i]);
@@ -1804,8 +1805,7 @@ class _TestscreenState extends State<Testscreen> {
       if (mounted) setState(() => _savedQuestionIds = ids);
     });
 
-    final questionIds =
-        widget.questions.map((q) => q.questionId).toList();
+    final questionIds = widget.questions.map((q) => q.questionId).toList();
 
     CupertinoScaffold.showCupertinoModalBottomSheet<void>(
       context: _sheetContext ?? context,
