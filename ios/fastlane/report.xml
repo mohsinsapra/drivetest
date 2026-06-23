@@ -5,32 +5,17 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.00021">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000138">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: Switch to ios setup_asc_api_key lane" time="8.1e-05">
+      <testcase classname="fastlane.lanes" name="1: Switch to ios build lane" time="5.1e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: Switch to ios get_latest_changelog_entry lane" time="5.4e-05">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="3: Switch to ios localized_release_notes lane" time="9.0e-05">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="4: upload_to_app_store" time="33.523071">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="5: Switch to ios notify_app_update lane" time="0.000104">
+      <testcase classname="fastlane.lanes" name="2: get_provisioning_profile" time="33.862628">
         
       </testcase>
     
