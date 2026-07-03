@@ -368,7 +368,9 @@
       "Bash(security default-keychain *)",
       "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run.log)",
       "Bash(xcodes runtimes *)",
-      "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run2.log)"
+      "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run2.log)",
+      "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run3.log)",
+      "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run4.log)"
     ],
     "deny": [],
     "ask": []
