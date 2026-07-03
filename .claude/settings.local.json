@@ -361,7 +361,8 @@
       "Bash(gh api *)",
       "Skill(simplify)",
       "mcp__plugin_context7_context7__query-docs",
-      "Bash(graphify update *)"
+      "Bash(graphify update *)",
+      "Bash(grep \"\\\\.py$\")"
     ],
     "deny": [],
     "ask": []

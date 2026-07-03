@@ -74,9 +74,8 @@ class _LanguageDropdownState extends State<LanguageDropdown>
 
   String _flag(AppLocale l) => l == AppLocale.sv ? '🇸🇪' : '🇬🇧';
 
-  String _label(AppLocale l, Translations t) => l == AppLocale.sv
-      ? t.auth_language_swedish
-      : t.auth_language_english;
+  String _label(AppLocale l, Translations t) =>
+      l == AppLocale.sv ? t.auth_language_swedish : t.auth_language_english;
 
   Widget _buildOverlay(BuildContext ctx) {
     final t = Translations.of(ctx);
@@ -167,9 +166,8 @@ class _LanguageDropdownState extends State<LanguageDropdown>
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.fromLTRB(14, 6, 10, 6),
           decoration: BoxDecoration(
-            color: isOpen
-                ? cs.primary.withValues(alpha: 0.1)
-                : Colors.transparent,
+            color:
+                isOpen ? cs.primary.withValues(alpha: 0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(9999),
           ),
           child: Row(

@@ -19039,6 +19039,15 @@
       "norm_label": "appshimmer"
     },
     {
+      "label": "_docCard",
+      "file_type": "code",
+      "source_file": "lib/features/bcd/bcd_category_hub_screen.dart",
+      "source_location": null,
+      "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_doccard",
+      "community": 21,
+      "norm_label": "_doccard"
+    },
+    {
       "label": "Card",
       "file_type": "code",
       "source_file": "lib/features/bcd/bcd_category_hub_screen.dart",
@@ -19046,15 +19055,6 @@
       "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_card",
       "community": 21,
       "norm_label": "card"
-    },
-    {
-      "label": "Icon",
-      "file_type": "code",
-      "source_file": "lib/features/bcd/bcd_category_hub_screen.dart",
-      "source_location": null,
-      "id": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_icon",
-      "community": 21,
-      "norm_label": "icon"
     },
     {
       "label": "package:taxi_exam_app/features/payment/single_product_paywall.dart",
@@ -58180,9 +58180,9 @@
       "source_location": null,
       "weight": 1.0,
       "_src": "lib_features_bcd_bcd_category_hub_screen_dart",
-      "_tgt": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_card",
+      "_tgt": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_doccard",
       "source": "lib_features_bcd_bcd_category_hub_screen_dart",
-      "target": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_card"
+      "target": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_doccard"
     },
     {
       "relation": "defines",
@@ -58192,9 +58192,9 @@
       "source_location": null,
       "weight": 1.0,
       "_src": "lib_features_bcd_bcd_category_hub_screen_dart",
-      "_tgt": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_icon",
+      "_tgt": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_card",
       "source": "lib_features_bcd_bcd_category_hub_screen_dart",
-      "target": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_icon"
+      "target": "users_muhammadmohsin_documents_learning_taxi_app_taxi_exam_app_lib_features_bcd_bcd_category_hub_screen_dart_card"
     },
     {
       "relation": "imports",

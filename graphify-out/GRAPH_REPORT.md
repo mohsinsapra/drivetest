@@ -1,7 +1,7 @@
-# Graph Report - taxi_exam_app  (2026-06-22)
+# Graph Report - taxi_exam_app  (2026-07-03)
 
 ## Corpus Check
-- 247 files · ~264,556 words
+- 247 files · ~265,533 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

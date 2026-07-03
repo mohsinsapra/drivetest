@@ -757,8 +757,7 @@ class _BCDDocumentsScreenState extends State<BCDDocumentsScreen> {
       final expanded = await Future.wait(subs.map((c) async {
         if (c['has_children'] != true) return [c];
         try {
-          final children =
-              await _api.fetchBCDSubcategories(c['bcd_id'] as int);
+          final children = await _api.fetchBCDSubcategories(c['bcd_id'] as int);
           return [c, ...children.cast<Map<String, dynamic>>()];
         } catch (_) {
           return [c];
@@ -808,8 +807,8 @@ class _BCDDocumentsScreenState extends State<BCDDocumentsScreen> {
                     context,
                     AppPageRoute(
                       builder: (_) => BCDDocumentViewerScreen(
-                        title:
-                            cleanBcdText(doc['title']?.toString() ?? 'Document'),
+                        title: cleanBcdText(
+                            doc['title']?.toString() ?? 'Document'),
                         url: _api.bcdMediaUrl(fileName),
                       ),
                     ),
@@ -825,7 +824,8 @@ class _BCDDocumentsScreenState extends State<BCDDocumentsScreen> {
                     color: cs.primary.withValues(alpha: 0.10),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(LucideIcons.fileText, color: cs.primary, size: 18),
+                  child:
+                      Icon(LucideIcons.fileText, color: cs.primary, size: 18),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
