@@ -231,7 +231,12 @@ bool _has(String text, List<String> keywords) =>
 /// Pass the translated prefix from the call site via [groupPrefix].
 String formatNodeName(String name, String groupPrefix) {
   final trimmed = name.trim();
-  if (RegExp(r'^[A-Za-z0-9]+$').hasMatch(trimmed)) {
+  // Prefix code-style names — "a", "1", "01", "B19", "F 01", "BX 05",
+  // "CE 12", "ADR 03" — but never plain words like "Lagstiftning" or
+  // "Gods 1" (4+ letters reads as a word, not a code).
+  final isCode = RegExp(r'^[A-Za-z]{1,2}$').hasMatch(trimmed) ||
+      RegExp(r'^([A-Za-z]{1,3} ?)?\d{1,3}$').hasMatch(trimmed);
+  if (isCode) {
     return '$groupPrefix $trimmed';
   }
   return trimmed;

@@ -17,6 +17,7 @@ import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/providers/theme_provider.dart';
 import 'package:taxi_exam_app/core/utils/app_page_route.dart';
 import 'package:taxi_exam_app/core/widgets/app_button.dart';
+import 'package:taxi_exam_app/core/widgets/language_dropdown.dart';
 import 'package:taxi_exam_app/core/widgets/snackbar.dart';
 import 'package:taxi_exam_app/features/auth/debug_credentials.dart';
 import 'package:taxi_exam_app/features/auth/forgot_password_screen.dart';
@@ -456,19 +457,13 @@ class _AuthAppBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            Hero(
-              tag: 'brand-title',
-              child: Material(
-                type: MaterialType.transparency,
-                child: Text(
-                  '${t.brand_drive.trim()} ${t.brand_test}',
-                  style: GoogleFonts.lexend(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    color: cs.primary,
-                  ),
-                ),
+            Text(
+              '${t.brand_drive.trim()} ${t.brand_test}',
+              style: GoogleFonts.lexend(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+                color: cs.primary,
               ),
             ),
           ],
@@ -967,14 +962,11 @@ class _LandingViewState extends State<_LandingView> {
                 ? Column(children: [
                     if (includeLogin) ...[
                       const SizedBox(height: 16),
-                      Hero(
-                        tag: 'auth_login_btn',
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(9999),
-                          child: AppButton(
-                            label: t.auth_tab_login,
-                            onPressed: widget.onLogin,
-                          ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(9999),
+                        child: AppButton(
+                          label: t.auth_tab_login,
+                          onPressed: widget.onLogin,
                         ),
                       ),
                     ],
@@ -989,17 +981,14 @@ class _LandingViewState extends State<_LandingView> {
                             color: cs.onSurfaceVariant,
                           ),
                         ),
-                        Hero(
-                          tag: 'auth_signup_btn',
-                          child: GestureDetector(
-                            onTap: widget.onSignup,
-                            child: Text(
-                              t.auth_create_account_link,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: cs.primary,
-                              ),
+                        GestureDetector(
+                          onTap: widget.onSignup,
+                          child: Text(
+                            t.auth_create_account_link,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: cs.primary,
                             ),
                           ),
                         ),
@@ -1049,7 +1038,6 @@ class _LandingViewState extends State<_LandingView> {
     final onSetLocale = widget.onSetLocale;
     final isSocialLoading = isGoogleLoading || isAppleLoading;
     final currentLocale = LocaleSettings.currentLocale;
-    final currentFlag = currentLocale == AppLocale.sv ? '🇸🇪' : '🇬🇧';
 
     // Toggle widget extracted so it can sit in the Stack overlay
     final toggleWidget = DecoratedBox(
@@ -1067,35 +1055,9 @@ class _LandingViewState extends State<_LandingView> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PopupMenuButton<AppLocale>(
-            tooltip: Translations.of(context).settings_language,
-            onSelected: onSetLocale,
-            itemBuilder: (_) => [
-              CheckedPopupMenuItem<AppLocale>(
-                value: AppLocale.en,
-                checked: currentLocale == AppLocale.en,
-                child: Text('🇬🇧 ${t.auth_language_english}'),
-              ),
-              CheckedPopupMenuItem<AppLocale>(
-                value: AppLocale.sv,
-                checked: currentLocale == AppLocale.sv,
-                child: Text('🇸🇪 ${t.auth_language_swedish}'),
-              ),
-            ],
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 10, 6),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: Center(
-                  child: Text(
-                    currentFlag,
-                    textScaler: TextScaler.noScaling,
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-            ),
+          LanguageDropdown(
+            locale: currentLocale,
+            onChanged: onSetLocale,
           ),
           Container(
             width: 1,
@@ -1133,35 +1095,29 @@ class _LandingViewState extends State<_LandingView> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Hero(
-                          tag: 'brand-title',
-                          child: Material(
-                            type: MaterialType.transparency,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: RichText(
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                text: TextSpan(
-                                  style: GoogleFonts.lexend(
-                                    fontSize: 56,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: -2,
-                                    height: 1.0,
-                                    color: cs.onSurface,
-                                  ),
-                                  children: [
-                                    TextSpan(text: t.brand_drive),
-                                    TextSpan(
-                                      text: t.brand_test,
-                                      style: GoogleFonts.lexend(
-                                        fontStyle: FontStyle.italic,
-                                        color: cs.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            text: TextSpan(
+                              style: GoogleFonts.lexend(
+                                fontSize: 56,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -2,
+                                height: 1.0,
+                                color: cs.onSurface,
                               ),
+                              children: [
+                                TextSpan(text: t.brand_drive),
+                                TextSpan(
+                                  text: t.brand_test,
+                                  style: GoogleFonts.lexend(
+                                    fontStyle: FontStyle.italic,
+                                    color: cs.primary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -1315,14 +1271,11 @@ class _LandingViewState extends State<_LandingView> {
                               !isGoogleLoading,
                               Column(children: [
                                 const SizedBox(height: 10),
-                                Hero(
-                                  tag: 'auth_login_btn',
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(9999),
-                                    child: AppButton(
-                                      label: t.auth_tab_login,
-                                      onPressed: onLogin,
-                                    ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(9999),
+                                  child: AppButton(
+                                    label: t.auth_tab_login,
+                                    onPressed: onLogin,
                                   ),
                                 ),
                               ]),
@@ -1606,16 +1559,13 @@ class _LoginPageState extends State<_LoginPage> {
                         ),
                         const SizedBox(height: 12),
                       ],
-                      Hero(
-                        tag: 'auth_login_btn',
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(9999),
-                          child: AppButton(
-                            label: t.auth_tab_login,
-                            loading: _isLoading,
-                            loadingLabel: t.auth_signing_in,
-                            onPressed: _login,
-                          ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(9999),
+                        child: AppButton(
+                          label: t.auth_tab_login,
+                          loading: _isLoading,
+                          loadingLabel: t.auth_signing_in,
+                          onPressed: _login,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -1879,14 +1829,11 @@ class _SignupPageState extends State<_SignupPage> {
                         ),
                       ),
                       const SizedBox(height: 36),
-                      Hero(
-                        tag: 'auth_signup_btn',
-                        child: AppButton(
-                          label: t.auth_sign_up_btn,
-                          loading: _isLoading,
-                          loadingLabel: t.auth_signing_in,
-                          onPressed: _signup,
-                        ),
+                      AppButton(
+                        label: t.auth_sign_up_btn,
+                        loading: _isLoading,
+                        loadingLabel: t.auth_signing_in,
+                        onPressed: _signup,
                       ),
                       const SizedBox(height: 40),
                       Center(

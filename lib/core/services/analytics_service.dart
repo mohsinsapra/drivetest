@@ -1,6 +1,7 @@
 import 'package:clarity_flutter/clarity_flutter.dart';
 import 'package:clarity_web/clarity_web.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -16,7 +17,23 @@ class AnalyticsService {
   factory AnalyticsService() => _instance;
   AnalyticsService._internal();
 
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  // `late` so constructing the singleton never touches Firebase: on web,
+  // DioClient.init() runs in parallel with Firebase.initializeApp() and can
+  // construct this service first — FirebaseAnalytics.instance would then throw
+  // outside any try/catch. A throwing `late` initializer re-runs on next read.
+  late final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+
+  /// Waits (max ~10s) for Firebase.initializeApp() to complete, for callers
+  /// that can fire during app bootstrap before Firebase is ready.
+  Future<bool> _firebaseReady() async {
+    for (var i = 0; i < 40; i++) {
+      try {
+        if (Firebase.apps.isNotEmpty) return true;
+      } catch (_) {}
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+    }
+    return false;
+  }
 
   FirebaseAnalytics get analytics => _analytics;
   FirebaseAnalyticsObserver get observer =>
@@ -56,8 +73,12 @@ class AnalyticsService {
     required String userId,
     Map<String, Object>? properties,
   }) async {
-    // Firebase
+    // Firebase — identifyUser is called from DioClient.init() during startup,
+    // which races Firebase.initializeApp(); wait for it so the id isn't lost.
     try {
+      if (!await _firebaseReady()) {
+        throw StateError('Firebase not initialized');
+      }
       await _analytics.setUserId(id: userId);
       if (properties != null) {
         for (final entry in properties.entries) {

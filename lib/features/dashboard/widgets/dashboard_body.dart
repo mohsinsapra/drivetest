@@ -1073,6 +1073,7 @@ class _QuickAccessSectionState extends State<_QuickAccessSection> {
           builder: (_) => BCDDocumentsScreen(
             categoryBcdId: widget.examBcdId,
             categoryName: widget.examName,
+            includeSubcategories: true,
           ),
         ),
       );

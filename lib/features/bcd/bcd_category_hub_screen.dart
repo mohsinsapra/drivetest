@@ -695,8 +695,16 @@ class _TestsSubscriptionBanner extends StatelessWidget {
 class BCDDocumentsScreen extends StatefulWidget {
   final int categoryBcdId;
   final String categoryName;
+
+  /// When true, documents from the category's subcategories are loaded too,
+  /// grouped under section headers (used by the dashboard quick shortcut).
+  final bool includeSubcategories;
+
   const BCDDocumentsScreen(
-      {super.key, required this.categoryBcdId, required this.categoryName});
+      {super.key,
+      required this.categoryBcdId,
+      required this.categoryName,
+      this.includeSubcategories = false});
 
   @override
   State<BCDDocumentsScreen> createState() => _BCDDocumentsScreenState();
@@ -704,83 +712,188 @@ class BCDDocumentsScreen extends StatefulWidget {
 
 class _BCDDocumentsScreenState extends State<BCDDocumentsScreen> {
   final _api = ApiService();
-  List<dynamic> _docs = [];
+  List<({String name, List<dynamic> docs})> _groups = [];
   bool _loading = true;
+
+  bool get _grouped => widget.includeSubcategories;
 
   @override
   void initState() {
     super.initState();
-    _api.fetchBCDDocuments(widget.categoryBcdId).then((data) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final groups = _grouped
+          ? await _loadWithSubcategories()
+          : [
+              (
+                name: widget.categoryName,
+                docs: await _api.fetchBCDDocuments(widget.categoryBcdId),
+              )
+            ];
       if (mounted) {
         setState(() {
-          _docs = data;
+          _groups = groups;
           _loading = false;
         });
       }
-    }).catchError((_) {
+    } catch (_) {
       if (mounted) setState(() => _loading = false);
-    });
+    }
+  }
+
+  /// Loads documents for the selected category and all of its subcategories
+  /// (two levels deep), keeping API order and skipping empty categories.
+  Future<List<({String name, List<dynamic> docs})>>
+      _loadWithSubcategories() async {
+    final categories = <Map<String, dynamic>>[
+      {'bcd_id': widget.categoryBcdId, 'name': widget.categoryName},
+    ];
+    try {
+      final subs = (await _api.fetchBCDSubcategories(widget.categoryBcdId))
+          .cast<Map<String, dynamic>>();
+      final expanded = await Future.wait(subs.map((c) async {
+        if (c['has_children'] != true) return [c];
+        try {
+          final children =
+              await _api.fetchBCDSubcategories(c['bcd_id'] as int);
+          return [c, ...children.cast<Map<String, dynamic>>()];
+        } catch (_) {
+          return [c];
+        }
+      }));
+      categories.addAll(expanded.expand((list) => list));
+    } catch (_) {}
+    final groups = await Future.wait(categories.map((c) async {
+      try {
+        final docs = await _api.fetchBCDDocuments(c['bcd_id'] as int);
+        return (name: cleanBcdText(c['name']?.toString() ?? ''), docs: docs);
+      } catch (_) {
+        return (name: '', docs: const <dynamic>[]);
+      }
+    }));
+    return groups.where((g) => g.docs.isNotEmpty).toList();
+  }
+
+  Widget _docCard(BuildContext context, dynamic doc) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final fileName = doc['file_name']?.toString() ?? '';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: isDark ? cs.surfaceContainerHighest : theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          splashColor: cs.primary.withValues(alpha: 0.06),
+          highlightColor: cs.primary.withValues(alpha: 0.04),
+          onTap: fileName.isEmpty
+              ? null
+              : () => Navigator.push(
+                    context,
+                    AppPageRoute(
+                      builder: (_) => BCDDocumentViewerScreen(
+                        title:
+                            cleanBcdText(doc['title']?.toString() ?? 'Document'),
+                        url: _api.bcdMediaUrl(fileName),
+                      ),
+                    ),
+                  ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: cs.primary.withValues(alpha: 0.10),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(LucideIcons.fileText, color: cs.primary, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    cleanBcdText(doc['title']?.toString() ?? ''),
+                    style: AppTextStyles.listTitle(color: cs.onSurface),
+                  ),
+                ),
+                Icon(LucideIcons.externalLink,
+                    size: 18, color: cs.onSurface.withValues(alpha: 0.3)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionHeader(
+      BuildContext context, ({String name, List<dynamic> docs}) group) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 10, left: 2, right: 2),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 16,
+            decoration: BoxDecoration(
+              color: cs.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              group.name,
+              style: AppTextStyles.headingSmall(
+                  color: cs.onSurface.withValues(alpha: 0.75)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final docsLabel = t.bcd_hub_theory_docs.replaceAll('\n', ' ');
+    final hasDocs = _groups.any((g) => g.docs.isNotEmpty);
     return Scaffold(
-      appBar: AppBar(title: Text('Theory Documents – ${widget.categoryName}')),
+      appBar: AppBar(title: Text('$docsLabel – ${widget.categoryName}')),
       body: _loading
           ? const Center(child: AppLoadingIndicator())
-          : _docs.isEmpty
+          : !hasDocs
               ? Center(
-                  child: Text(Translations.of(context).bcd_no_documents,
-                      style: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant)))
-              : ListView.builder(
+                  child: Text(t.bcd_no_documents,
+                      style: TextStyle(color: cs.onSurfaceVariant)))
+              : ListView(
                   padding: const EdgeInsets.all(16),
-                  itemCount: _docs.length,
-                  itemBuilder: (_, i) {
-                    final doc = _docs[i];
-                    final fileName = doc['file_name']?.toString() ?? '';
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      child: ListTile(
-                        onTap: fileName.isEmpty
-                            ? null
-                            : () => Navigator.push(
-                                  context,
-                                  AppPageRoute(
-                                    builder: (_) => BCDDocumentViewerScreen(
-                                      title: cleanBcdText(
-                                          doc['title']?.toString() ??
-                                              'Document'),
-                                      url: _api.bcdMediaUrl(fileName),
-                                    ),
-                                  ),
-                                ),
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(LucideIcons.fileText,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 18),
-                        ),
-                        title: Text(
-                          cleanBcdText(doc['title']?.toString() ?? ''),
-                          style: AppTextStyles.listTitle(),
-                        ),
-                        trailing:
-                            const Icon(LucideIcons.externalLink, size: 18),
-                      ),
-                    );
-                  },
+                  children: [
+                    for (final group in _groups) ...[
+                      if (_grouped) _sectionHeader(context, group),
+                      for (final doc in group.docs) _docCard(context, doc),
+                    ],
+                  ],
                 ),
     );
   }
