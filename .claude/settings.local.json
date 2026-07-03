@@ -362,7 +362,13 @@
       "Skill(simplify)",
       "mcp__plugin_context7_context7__query-docs",
       "Bash(graphify update *)",
-      "Bash(grep \"\\\\.py$\")"
+      "Bash(grep \"\\\\.py$\")",
+      "Bash(security find-certificate *)",
+      "Bash(security list-keychains *)",
+      "Bash(security default-keychain *)",
+      "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run.log)",
+      "Bash(xcodes runtimes *)",
+      "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run2.log)"
     ],
     "deny": [],
     "ask": []
