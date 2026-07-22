@@ -20,6 +20,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.31+310] - 2026-07-22
+
+### Added
+- **Medborgarskapsprov (Swedish citizenship test) preparation**: new study module built from UHR's official book *Sverige i fokus* — 136 practice questions across all 13 chapters, chapter-by-chapter tests, full 70-question mock exams, and the complete study book readable in the app. Available as a new in-app purchase (99 kr / 2 months); the first chapter test is free to try.
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
 ## [1.5.30+309] - 2026-07-03
 
 ### Added

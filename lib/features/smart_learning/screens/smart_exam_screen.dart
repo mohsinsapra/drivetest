@@ -524,56 +524,100 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
     );
   }
 
-  /// Builds part cards interleaved with review cards after every 2 parts.
-  List<Widget> _buildChunksWithReviews(Translations t) {
+  /// Builds the journey: part and review nodes on a winding trail ending at
+  /// the Full Exam boss node, followed by the optional Train Mistakes card
+  /// and the Full Exam info card.
+  List<Widget> _buildJourney(Translations t) {
+    final cs = Theme.of(context).colorScheme;
     final chunks = widget.entry.chunkSizes;
-    final items = <Widget>[];
+    final allPartsDone = _activeChunk >= chunks.length;
+    const reviewColor = Color(0xFF7C3AED);
+
+    final steps = <_JourneyStep>[];
     int reviewIdx = 0;
 
     for (int i = 0; i < chunks.length; i++) {
       final isPassed = i < _activeChunk;
       final isActive = i == _activeChunk;
-      final isLocked = i > _activeChunk;
 
-      items.add(Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: _ChunkCard(
-          label: t.smart_chunk_n(n: i + 1),
-          questionCount: chunks[i],
-          isPassed: isPassed,
-          isActive: isActive,
-          isLocked: isLocked,
-          isLoading: _loadingKey == 'chunk-$i',
-          onTap: !isLocked ? () => _startChunk(i) : null,
-        ),
+      steps.add(_JourneyStep(
+        label: t.smart_chunk_n(n: i + 1),
+        sublabel: t.smart_questions_count(count: chunks[i]),
+        icon: isPassed
+            ? Icons.star_rounded
+            : isActive
+                ? Icons.play_arrow_rounded
+                : Icons.lock_rounded,
+        state: isPassed
+            ? _NodeState.passed
+            : isActive
+                ? _NodeState.active
+                : _NodeState.locked,
+        activeColor: cs.primary,
+        loading: _loadingKey == 'chunk-$i',
+        showBubble: isActive,
+        onTap: !(i > _activeChunk) ? () => _startChunk(i) : null,
       ));
 
       // Insert a review after every 2nd part.
       if ((i + 1) % 2 == 0 && reviewIdx < _reviewCount) {
         final rIdx = reviewIdx;
-        final coveredChunks = i + 1;
-        final isUnlocked = _activeChunk >= coveredChunks;
+        final isUnlocked = _activeChunk >= i + 1;
         final isReviewPassed = _reviewPassedMap[rIdx] ?? false;
-        final totalCovered =
-            chunks.take(coveredChunks).fold<int>(0, (a, b) => a + b);
+        final totalCovered = chunks.take(i + 1).fold<int>(0, (a, b) => a + b);
         final reviewSize = chunks[0].clamp(1, totalCovered);
 
-        items.add(Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: _ReviewCard(
-            reviewNumber: rIdx + 1,
-            questionCount: reviewSize,
-            isPassed: isReviewPassed,
-            isUnlocked: isUnlocked,
-            isLoading: _loadingKey == 'review-$rIdx',
-            onTap: isUnlocked ? () => _startReview(rIdx) : null,
-          ),
+        steps.add(_JourneyStep(
+          label: t.smart_review_n,
+          sublabel: t.smart_review_subtitle(count: reviewSize),
+          icon: isReviewPassed ? Icons.check_rounded : Icons.refresh_rounded,
+          state: isReviewPassed
+              ? _NodeState.passed
+              : isUnlocked
+                  ? _NodeState.active
+                  : _NodeState.locked,
+          activeColor: reviewColor,
+          loading: _loadingKey == 'review-$rIdx',
+          onTap: isUnlocked ? () => _startReview(rIdx) : null,
         ));
         reviewIdx++;
       }
     }
 
-    return items;
+    // Full Exam: the boss node at the end of the trail. Always tappable
+    // (early attempts allowed, with the 3-mistake limit).
+    steps.add(_JourneyStep(
+      label: t.smart_full_exam,
+      icon: Icons.emoji_events_rounded,
+      state: allPartsDone ? _NodeState.active : _NodeState.locked,
+      activeColor: Colors.amber.shade600,
+      isBoss: true,
+      loading: _loadingKey == 'fullExam',
+      showBubble: allPartsDone,
+      onTap: _launchFullExam,
+    ));
+
+    return [
+      _JourneyPath(steps: steps, bubbleText: t.smart_chunk_active),
+      const SizedBox(height: 20),
+      if (_weakCount > 0)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _TrainMistakesCard(
+            count: _weakCount,
+            isLoading: _loadingKey == 'mistakes',
+            onTap: _startMistakes,
+          ),
+        ),
+      _FullExamCard(
+        onStart: _launchFullExam,
+        hasCompletedPreviousParts: allPartsDone,
+        mastered: _masteredCount,
+        totalQuestions: widget.entry.questionCount,
+        weakCount: _weakCount,
+        isLoading: _loadingKey == 'fullExam',
+      ),
+    ];
   }
 
   @override
@@ -600,29 +644,9 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
               onRefresh: _load,
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
                   sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      ..._buildChunksWithReviews(t),
-                      const SizedBox(height: 6),
-                      if (_weakCount > 0) ...[
-                        _TrainMistakesCard(
-                          count: _weakCount,
-                          isLoading: _loadingKey == 'mistakes',
-                          onTap: _startMistakes,
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                      _FullExamCard(
-                        onStart: _launchFullExam,
-                        hasCompletedPreviousParts:
-                            _activeChunk >= widget.entry.chunkSizes.length,
-                        mastered: _masteredCount,
-                        totalQuestions: widget.entry.questionCount,
-                        weakCount: _weakCount,
-                        isLoading: _loadingKey == 'fullExam',
-                      ),
-                    ]),
+                    delegate: SliverChildListDelegate(_buildJourney(t)),
                   ),
                 ),
               ],
@@ -631,122 +655,295 @@ class _SmartExamScreenState extends State<SmartExamScreen> {
   }
 }
 
-// ── Chunk card ──────────────────────────────────────────────────────────────
+// ── Journey path ────────────────────────────────────────────────────────────
 
-class _ChunkCard extends StatelessWidget {
+enum _NodeState { passed, active, locked }
+
+/// One stop on the journey trail.
+class _JourneyStep {
   final String label;
-  final int questionCount;
-  final bool isPassed;
-  final bool isActive;
-  final bool isLocked;
-  final bool isLoading;
+  final String? sublabel;
+  final IconData icon;
+  final _NodeState state;
+  final Color activeColor;
+  final bool isBoss;
+  final bool loading;
+  final bool showBubble;
   final VoidCallback? onTap;
 
-  const _ChunkCard({
+  const _JourneyStep({
     required this.label,
-    required this.questionCount,
-    required this.isPassed,
-    required this.isActive,
-    required this.isLocked,
-    this.isLoading = false,
+    this.sublabel,
+    required this.icon,
+    required this.state,
+    required this.activeColor,
+    this.isBoss = false,
+    this.loading = false,
+    this.showBubble = false,
     this.onTap,
   });
+}
+
+/// A straight vertical timeline list: game-style nodes down the left,
+/// connected by the trail (solid green behind the user, dotted grey ahead),
+/// with the step's title and details to the right. The current step carries
+/// a "you are here" pill.
+class _JourneyPath extends StatelessWidget {
+  final List<_JourneyStep> steps;
+  final String bubbleText;
+
+  const _JourneyPath({required this.steps, required this.bubbleText});
+
+  static const double _rowHeight = 88;
+  static const double _gutterWidth = 84;
 
   @override
   Widget build(BuildContext context) {
-    final t = Translations.of(context);
     final cs = Theme.of(context).colorScheme;
-    final color = isPassed
-        ? Colors.green.shade500
-        : isActive
-            ? cs.primary
-            : cs.onSurface.withValues(alpha: 0.25);
+    final h = steps.length * _rowHeight;
+    final centers = [
+      for (int i = 0; i < steps.length; i++)
+        Offset(_gutterWidth / 2, i * _rowHeight + _rowHeight / 2),
+    ];
 
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: isLocked ? 0.5 : 1.0,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: cs.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isActive
-                  ? cs.primary.withValues(alpha: 0.4)
-                  : Colors.transparent,
+    return SizedBox(
+      height: h,
+      child: Stack(
+        children: [
+          CustomPaint(
+            size: Size(_gutterWidth, h),
+            painter: _TrailPainter(
+              centers: centers,
+              segmentDone: [
+                for (int i = 0; i < steps.length - 1; i++)
+                  steps[i].state == _NodeState.passed,
+              ],
+              doneColor: Colors.green.shade500,
+              pendingColor: cs.onSurface.withValues(alpha: 0.15),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
-          child: Row(
+          Column(
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isPassed
-                      ? Icons.check_rounded
-                      : isLocked
-                          ? Icons.lock_outline_rounded
-                          : Icons.play_arrow_rounded,
-                  color: color,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${t.smart_questions_count(count: questionCount)}  ${t.smart_part_pass_requirement}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: cs.onSurface.withValues(alpha: 0.55)),
-                    ),
-                  ],
-                ),
-              ),
-              if (isLoading)
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: AppLoadingIndicator(strokeWidth: 2, color: color),
-                )
-              else
-                Text(
-                  isPassed
-                      ? t.smart_chunk_passed
-                      : isActive
-                          ? t.smart_chunk_active
-                          : t.smart_chunk_locked,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(color: color, fontWeight: FontWeight.w600),
-                ),
+              for (final step in steps)
+                SizedBox(height: _rowHeight, child: _buildStep(context, step)),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
+
+  Widget _buildStep(BuildContext context, _JourneyStep step) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final doneColor = Colors.green.shade500;
+    final labelColor = switch (step.state) {
+      _NodeState.passed => doneColor,
+      _NodeState.active => step.activeColor,
+      _NodeState.locked => cs.onSurface.withValues(alpha: 0.4),
+    };
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: step.onTap,
+      child: Row(
+        children: [
+          SizedBox(
+            width: _gutterWidth,
+            child: Center(child: _JourneyNode(step: step)),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  step.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: labelColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (step.sublabel != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    step.sublabel!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: cs.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (step.showBubble)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: _HereBubble(text: bubbleText, color: step.activeColor),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A chunky game-style circle with a hard bottom shadow for a 3D pressed
+/// look. Passed = green check, active = colored with a soft outer ring,
+/// locked = greyed. The boss (Full Exam) node is slightly larger.
+class _JourneyNode extends StatelessWidget {
+  final _JourneyStep step;
+
+  const _JourneyNode({required this.step});
+
+  Color _depth(Color c) {
+    final hsl = HSLColor.fromColor(c);
+    return hsl.withLightness((hsl.lightness - 0.14).clamp(0.0, 1.0)).toColor();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final doneColor = Colors.green.shade500;
+    final isActive = step.state == _NodeState.active;
+    final isLocked = step.state == _NodeState.locked;
+
+    final fill = switch (step.state) {
+      _NodeState.passed => doneColor,
+      _NodeState.active => step.activeColor,
+      // Solid locked grey (blended, so the hard depth shadow works).
+      _NodeState.locked =>
+        Color.alphaBlend(cs.onSurface.withValues(alpha: 0.12), cs.surface),
+    };
+    final contentColor =
+        isLocked ? cs.onSurface.withValues(alpha: 0.35) : Colors.white;
+    final size = step.isBoss ? 68.0 : (isActive ? 62.0 : 56.0);
+
+    final circle = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: fill,
+        boxShadow: [
+          BoxShadow(color: _depth(fill), offset: const Offset(0, 4)),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: step.loading
+          ? SizedBox(
+              width: 22,
+              height: 22,
+              child: AppLoadingIndicator(strokeWidth: 2.5, color: contentColor),
+            )
+          : Icon(step.icon, color: contentColor, size: step.isBoss ? 32 : 26),
+    );
+
+    if (!isActive) return circle;
+    // Soft halo ring around the current step.
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: step.activeColor.withValues(alpha: 0.35),
+          width: 3,
+        ),
+      ),
+      child: circle,
+    );
+  }
+}
+
+/// Small "you are here" pill shown on the active row.
+class _HereBubble extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _HereBubble({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+            ),
+      ),
+    );
+  }
+}
+
+/// Paints the trail between node centers as smooth S-curves: solid green for
+/// completed stretches, dashed grey ahead.
+class _TrailPainter extends CustomPainter {
+  final List<Offset> centers;
+  final List<bool> segmentDone;
+  final Color doneColor;
+  final Color pendingColor;
+
+  const _TrailPainter({
+    required this.centers,
+    required this.segmentDone,
+    required this.doneColor,
+    required this.pendingColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (int i = 0; i < centers.length - 1; i++) {
+      final p0 = centers[i];
+      final p1 = centers[i + 1];
+      final midY = (p0.dy + p1.dy) / 2;
+      final path = Path()
+        ..moveTo(p0.dx, p0.dy)
+        ..cubicTo(p0.dx, midY, p1.dx, midY, p1.dx, p1.dy);
+
+      final done = segmentDone[i];
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = done ? 5.0 : 4.5
+        ..color = done ? doneColor : pendingColor;
+
+      if (done) {
+        canvas.drawPath(path, paint);
+      } else {
+        _drawDashed(canvas, path, paint);
+      }
+    }
+  }
+
+  void _drawDashed(Canvas canvas, Path path, Paint paint) {
+    const dash = 1.0, gap = 12.0;
+    for (final metric in path.computeMetrics()) {
+      double d = 6;
+      while (d < metric.length) {
+        canvas.drawPath(
+            metric.extractPath(d, min(d + dash, metric.length)), paint);
+        d += dash + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_TrailPainter old) =>
+      old.centers != centers ||
+      old.segmentDone != segmentDone ||
+      old.doneColor != doneColor ||
+      old.pendingColor != pendingColor;
 }
 
 // ── Train Mistakes card ──────────────────────────────────────────────────────
@@ -799,123 +996,6 @@ class _TrainMistakesCard extends StatelessWidget {
               Icon(Icons.chevron_right_rounded,
                   size: 18, color: cs.error.withValues(alpha: 0.5)),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Review card ─────────────────────────────────────────────────────────────
-
-class _ReviewCard extends StatelessWidget {
-  final int reviewNumber;
-  final int questionCount;
-  final bool isPassed;
-  final bool isUnlocked;
-  final bool isLoading;
-  final VoidCallback? onTap;
-
-  const _ReviewCard({
-    required this.reviewNumber,
-    required this.questionCount,
-    required this.isPassed,
-    required this.isUnlocked,
-    this.isLoading = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final cs = Theme.of(context).colorScheme;
-    const reviewColor = Color(0xFF7C3AED); // violet — distinct from parts
-    final color = isUnlocked
-        ? (isPassed ? Colors.green.shade500 : reviewColor)
-        : cs.onSurface.withValues(alpha: 0.25);
-
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: isUnlocked ? 1.0 : 0.5,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: cs.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isUnlocked && !isPassed
-                  ? reviewColor.withValues(alpha: 0.4)
-                  : Colors.transparent,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isPassed
-                      ? Icons.check_rounded
-                      : isUnlocked
-                          ? Icons.refresh_rounded
-                          : Icons.lock_outline_rounded,
-                  color: color,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      t.smart_review_n,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      t.smart_review_subtitle(count: questionCount),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: cs.onSurface.withValues(alpha: 0.55)),
-                    ),
-                  ],
-                ),
-              ),
-              if (isLoading)
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: AppLoadingIndicator(strokeWidth: 2, color: color),
-                )
-              else
-                Text(
-                  isPassed
-                      ? t.smart_chunk_passed
-                      : isUnlocked
-                          ? t.smart_chunk_active
-                          : t.smart_chunk_locked,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(color: color, fontWeight: FontWeight.w600),
-                ),
-            ],
-          ),
         ),
       ),
     );
