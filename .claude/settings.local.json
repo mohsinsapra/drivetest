@@ -376,7 +376,8 @@
       "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run6.log)",
       "Bash(grep -nB2 -A5 \"Exit status\" /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run6.log)",
       "Bash(grep -vE \"^\\\\s*$\")",
-      "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run7.log)"
+      "Bash(tee /private/tmp/claude-501/-Users-muhammadmohsin-Documents-Learning-TAXI-App-taxi-exam-app/74886fd0-1db2-48ea-85f7-9687ab4fc3c7/scratchpad/beta_run7.log)",
+      "Bash(md5 -q /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/user_management/utils.py /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/user_management/serializers.py /Users/muhammadmohsin/Documents/Learning/TAXI/App/taxi_exam_backend/questions/ai_views.py)"
     ],
     "deny": [],
     "ask": []
