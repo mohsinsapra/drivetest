@@ -391,6 +391,8 @@ class TranslationsSv implements Translations {
   @override
   String get auth_express_google => 'Fortsätt med Google';
   @override
+  String get auth_or_continue_with => 'eller fortsätt med';
+  @override
   String get auth_google_label => 'Google';
   @override
   String get auth_express_apple => 'Fortsätt med Apple';
@@ -2231,6 +2233,8 @@ extension on TranslationsSv {
         return 'Ett fel uppstod. Försök igen.';
       case 'auth_express_google':
         return 'Fortsätt med Google';
+      case 'auth_or_continue_with':
+        return 'eller fortsätt med';
       case 'auth_google_label':
         return 'Google';
       case 'auth_express_apple':

@@ -231,6 +231,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get auth_signup_failed => 'Signup failed. Please correct the errors.';
   String get auth_generic_error => 'An error occurred. Please try again.';
   String get auth_express_google => 'Continue with Google';
+  String get auth_or_continue_with => 'or continue with';
   String get auth_google_label => 'Google';
   String get auth_express_apple => 'Continue with Apple';
   String get auth_more_options => 'More options';
@@ -1378,6 +1379,8 @@ extension on Translations {
         return 'An error occurred. Please try again.';
       case 'auth_express_google':
         return 'Continue with Google';
+      case 'auth_or_continue_with':
+        return 'or continue with';
       case 'auth_google_label':
         return 'Google';
       case 'auth_express_apple':

@@ -17,6 +17,9 @@ platform :ios do
   desc "Build IPA only (no upload)"
   lane :build do
     ENV['BUILD_VARIANT'] ||= 'testflight'
+    # Authenticate with the ASC API key so sigh doesn't depend on an
+    # interactive Apple ID session (which expires and breaks unattended runs).
+    setup_asc_api_key
     get_provisioning_profile(
       app_identifier: "com.mohsinsapra.drivetest",
       team_id: "MBWC2B7V68"

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:taxi_exam_app/core/localization/strings.g.dart';
 import 'package:taxi_exam_app/core/models/purchase_receipt.dart';
 import 'package:taxi_exam_app/core/services/iap_service.dart';
@@ -115,8 +117,11 @@ class PaymentCoordinator {
               transactionRef.isNotEmpty ? transactionRef : null,
             );
             debugPrint('[Payment] IAP backend confirmation succeeded');
-          } catch (e) {
+          } catch (e, st) {
             debugPrint('[Payment] IAP backend confirmation failed: $e');
+            unawaited(Sentry.captureException(e,
+                stackTrace: st,
+                hint: Hint.withMap({'where': 'iap_backend_confirmation'})));
           }
         }
       } else {
@@ -183,11 +188,18 @@ class PaymentCoordinator {
       if (e is stripe.StripeException) {
         final msg = e.error.localizedMessage ?? '';
         if (!msg.toLowerCase().contains('cancel')) {
+          unawaited(Sentry.captureMessage(
+            'Stripe payment error: code=${e.error.code} message=$msg',
+            level: SentryLevel.error,
+          ));
           showAppSnackBar(msg, type: SnackBarType.error);
         }
         return null;
       }
       debugPrint('[Payment] unexpected error: $e\n$st');
+      unawaited(Sentry.captureException(e,
+          stackTrace: st,
+          hint: Hint.withMap({'where': 'payment_coordinator'})));
       showAppSnackBar(Translations.of(context).bcd_payment_failed,
           type: SnackBarType.error);
       return null;

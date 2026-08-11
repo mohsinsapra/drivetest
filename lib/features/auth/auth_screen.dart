@@ -260,6 +260,8 @@ class _AuthScreenState extends State<AuthScreen> {
           apiService: _apiService,
           onAfterAuth: widget.onAfterAuth,
           signupRoute: _makeSignupRoute,
+          onGoogle: _signInWithGoogle,
+          onApple: _signInWithApple,
         ),
         transitionsBuilder: (_, anim, __, child) => SlideTransition(
           position: Tween<Offset>(
@@ -275,6 +277,8 @@ class _AuthScreenState extends State<AuthScreen> {
         pageBuilder: (_, __, ___) => _SignupPage(
           apiService: _apiService,
           loginRoute: _makeLoginRoute,
+          onGoogle: _signInWithGoogle,
+          onApple: _signInWithApple,
         ),
         transitionsBuilder: (_, anim, __, child) => SlideTransition(
           position: Tween<Offset>(
@@ -1313,17 +1317,139 @@ class _LandingViewState extends State<_LandingView> {
   }
 }
 
+// ─── Shared: Social auth section (Google/Apple) for Login & Signup pages ───────
+
+class _SocialAuthSection extends StatefulWidget {
+  const _SocialAuthSection({
+    required this.onGoogle,
+    required this.onApple,
+    required this.enabled,
+    this.onLoadingChanged,
+  });
+
+  final Future<void> Function() onGoogle;
+  final Future<void> Function() onApple;
+  final bool enabled;
+  final void Function(bool isLoading)? onLoadingChanged;
+
+  @override
+  State<_SocialAuthSection> createState() => _SocialAuthSectionState();
+}
+
+class _SocialAuthSectionState extends State<_SocialAuthSection> {
+  bool _isGoogleLoading = false;
+  bool _isAppleLoading = false;
+
+  void _notifyLoading() {
+    widget.onLoadingChanged?.call(_isGoogleLoading || _isAppleLoading);
+  }
+
+  Future<void> _handleGoogle() async {
+    setState(() => _isGoogleLoading = true);
+    _notifyLoading();
+    try {
+      await widget.onGoogle();
+    } finally {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+        _notifyLoading();
+      }
+    }
+  }
+
+  Future<void> _handleApple() async {
+    setState(() => _isAppleLoading = true);
+    _notifyLoading();
+    try {
+      await widget.onApple();
+    } finally {
+      if (mounted) {
+        setState(() => _isAppleLoading = false);
+        _notifyLoading();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = Translations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final canPress = widget.enabled && !_isGoogleLoading && !_isAppleLoading;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Divider(color: cs.outlineVariant.withValues(alpha: 0.4)),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                t.auth_or_continue_with,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Divider(color: cs.outlineVariant.withValues(alpha: 0.4)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 54,
+          child: Row(children: [
+            AppSocialButton(
+              icon: FontAwesomeIcons.google,
+              iconSize: 18,
+              iconColor: const Color(0xFF4285F4),
+              label: t.auth_express_google,
+              loading: _isGoogleLoading,
+              onPressed: canPress ? _handleGoogle : null,
+            ),
+          ]),
+        ),
+        if (AppleSignInHelper.isAvailable()) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 54,
+            child: Row(children: [
+              AppSocialButton(
+                icon: FontAwesomeIcons.apple,
+                iconSize: 22,
+                iconColor: isDark ? cs.primary : cs.onSurface,
+                label: t.auth_express_apple,
+                loading: _isAppleLoading,
+                loadingLabel: t.auth_apple_connecting,
+                onPressed: canPress ? _handleApple : null,
+              ),
+            ]),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 // ─── Login page (pushed route) ────────────────────────────────────────────────
 
 class _LoginPage extends StatefulWidget {
   const _LoginPage({
     required this.apiService,
     required this.signupRoute,
+    required this.onGoogle,
+    required this.onApple,
     this.onAfterAuth,
   });
 
   final ApiService apiService;
   final PageRoute Function() signupRoute;
+  final Future<void> Function() onGoogle;
+  final Future<void> Function() onApple;
   final void Function(NavigatorState nav)? onAfterAuth;
 
   @override
@@ -1336,6 +1462,7 @@ class _LoginPageState extends State<_LoginPage> {
   final _passwordCtrl =
       TextEditingController(text: kDebugMode ? kDebugPassword : '');
   bool _isLoading = false;
+  bool _isSocialLoading = false;
   bool _obscure = true;
   String? _error;
   Map<String, String?> _fieldErrors = {};
@@ -1565,8 +1692,19 @@ class _LoginPageState extends State<_LoginPage> {
                           label: t.auth_tab_login,
                           loading: _isLoading,
                           loadingLabel: t.auth_signing_in,
-                          onPressed: _login,
+                          onPressed: _isSocialLoading ? null : _login,
                         ),
+                      ),
+                      const SizedBox(height: 28),
+                      _SocialAuthSection(
+                        onGoogle: widget.onGoogle,
+                        onApple: widget.onApple,
+                        enabled: !_isLoading,
+                        onLoadingChanged: (loading) {
+                          if (mounted) {
+                            setState(() => _isSocialLoading = loading);
+                          }
+                        },
                       ),
                       const SizedBox(height: 16),
                       if (kDebugMode)
@@ -1633,10 +1771,14 @@ class _SignupPage extends StatefulWidget {
   const _SignupPage({
     required this.apiService,
     required this.loginRoute,
+    required this.onGoogle,
+    required this.onApple,
   });
 
   final ApiService apiService;
   final PageRoute Function() loginRoute;
+  final Future<void> Function() onGoogle;
+  final Future<void> Function() onApple;
 
   @override
   State<_SignupPage> createState() => _SignupPageState();
@@ -1647,6 +1789,7 @@ class _SignupPageState extends State<_SignupPage> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _isLoading = false;
+  bool _isSocialLoading = false;
   bool _obscure = true;
   Map<String, String?> _fieldErrors = {};
 
@@ -1833,7 +1976,18 @@ class _SignupPageState extends State<_SignupPage> {
                         label: t.auth_sign_up_btn,
                         loading: _isLoading,
                         loadingLabel: t.auth_signing_in,
-                        onPressed: _signup,
+                        onPressed: _isSocialLoading ? null : _signup,
+                      ),
+                      const SizedBox(height: 32),
+                      _SocialAuthSection(
+                        onGoogle: widget.onGoogle,
+                        onApple: widget.onApple,
+                        enabled: !_isLoading,
+                        onLoadingChanged: (loading) {
+                          if (mounted) {
+                            setState(() => _isSocialLoading = loading);
+                          }
+                        },
                       ),
                       const SizedBox(height: 40),
                       Center(

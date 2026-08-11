@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:taxi_exam_app/core/api/api_service.dart';
 import 'package:taxi_exam_app/core/storage/app_storage.dart';
@@ -63,6 +64,16 @@ class IAPService {
     final response = await _iap.queryProductDetails(productIds);
     debugPrint(
         '[IAP] loadProducts found=${response.productDetails.length} notFound=${response.notFoundIDs} error=${response.error}');
+    // Products missing from the store or a query error mean users cannot buy —
+    // report to Sentry since this is otherwise a silent, handled failure.
+    if (response.notFoundIDs.isNotEmpty || response.error != null) {
+      unawaited(Sentry.captureMessage(
+        'IAP loadProducts problem: notFound=${response.notFoundIDs} '
+        'error=${response.error?.message ?? 'none'} '
+        'found=${response.productDetails.length}/${productIds.length}',
+        level: SentryLevel.error,
+      ));
+    }
     return response.productDetails;
   }
 
@@ -103,9 +114,15 @@ class IAPService {
           debugPrint('[IAP] verifying on backend...');
           await _verifyOnBackend(purchase);
           debugPrint('[IAP] backend verified, completing purchase');
-        } catch (e) {
+        } catch (e, st) {
           verifyError = e;
           debugPrint('[IAP] backend verify failed: $e');
+          unawaited(Sentry.captureException(e,
+              stackTrace: st,
+              hint: Hint.withMap({
+                'where': 'iap_backend_verify',
+                'product': purchase.productID
+              })));
           if (e is IAPSubscriptionOwnedByOtherAccountException) {
             // Do not defer — this receipt will never succeed for the current user.
             debugPrint(
@@ -145,6 +162,12 @@ class IAPService {
           _pendingInternalProductId = null;
         }
       } else if (purchase.status == PurchaseStatus.error) {
+        unawaited(Sentry.captureMessage(
+          'IAP purchase error: product=${purchase.productID} '
+          'code=${purchase.error?.code} message=${purchase.error?.message} '
+          'source=${purchase.error?.source}',
+          level: SentryLevel.error,
+        ));
         try {
           await _iap.completePurchase(purchase);
         } catch (_) {}

@@ -20,10 +20,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.33+312] - 2026-08-11
+
+### Added
+- Google and Apple sign-in options on the login and signup pages ("or continue with" section), reusing the existing landing-view social auth flow.
+
+### Changed
+-
+
+### Fixed
+-
+
+---
+---
+
 ## [1.5.32+311] - 2026-08-10
 
 ### Added
 - `drivetest://` deep link scheme on iOS so App Store in-app events and marketing links can open the app directly.
+- Payment failures (StoreKit product/purchase errors, backend receipt verification, Stripe errors) are now reported to Sentry so handled payment errors are visible in monitoring.
 
 ### Changed
 -
