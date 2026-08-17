@@ -10,13 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
--
+
+### Changed
+
+### Fixed
+
+---
+
+## [1.5.34+313] - 2026-08-17
 
 ### Changed
 - Support contact email on the Help screen changed from the personal Gmail address to support@drivetest.se (EN + SV strings)
-
-### Fixed
--
 
 ---
 
@@ -25,13 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Google and Apple sign-in options on the login and signup pages ("or continue with" section), reusing the existing landing-view social auth flow.
 
-### Changed
--
-
-### Fixed
--
-
----
 ---
 
 ## [1.5.32+311] - 2026-08-10
