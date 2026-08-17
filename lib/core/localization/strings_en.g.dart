@@ -440,10 +440,10 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   String get help_description_too_short =>
       'Please provide more details (at least 10 characters)';
   String get help_submit => 'Submit Report';
-  String get help_or_email => 'Or email us directly at mohsin.sapra@gmail.com';
+  String get help_or_email => 'Or email us directly at support@drivetest.se';
   String get help_opening_email => 'Opening email app...';
   String get help_email_error =>
-      'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
+      'Could not open email app. Please email support@drivetest.se directly.';
   String get help_generic_error => 'Error opening email app. Please try again.';
   String get notifications_title => 'Notifications';
   String get notifications_mark_all_read => 'Mark all read';
@@ -1742,11 +1742,11 @@ extension on Translations {
       case 'help_submit':
         return 'Submit Report';
       case 'help_or_email':
-        return 'Or email us directly at mohsin.sapra@gmail.com';
+        return 'Or email us directly at support@drivetest.se';
       case 'help_opening_email':
         return 'Opening email app...';
       case 'help_email_error':
-        return 'Could not open email app. Please email mohsin.sapra@gmail.com directly.';
+        return 'Could not open email app. Please email support@drivetest.se directly.';
       case 'help_generic_error':
         return 'Error opening email app. Please try again.';
       case 'notifications_title':

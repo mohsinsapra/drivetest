@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -
 
 ### Changed
--
+- Support contact email on the Help screen changed from the personal Gmail address to support@drivetest.se (EN + SV strings)
 
 ### Fixed
 -

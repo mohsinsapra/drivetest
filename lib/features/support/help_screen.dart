@@ -63,7 +63,7 @@ class _HelpScreenState extends State<HelpScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final String email = 'mohsin.sapra@gmail.com';
+      final String email = 'support@drivetest.se';
       final String subject = Uri.encodeComponent(
           'Taxi Exam App - ${_subjectController.text.trim()}');
       final String body = Uri.encodeComponent(

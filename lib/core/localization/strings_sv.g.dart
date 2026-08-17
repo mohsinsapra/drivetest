@@ -782,12 +782,12 @@ class TranslationsSv implements Translations {
   String get help_submit => 'Skicka rapport';
   @override
   String get help_or_email =>
-      'Eller mejla oss direkt på mohsin.sapra@gmail.com';
+      'Eller mejla oss direkt på support@drivetest.se';
   @override
   String get help_opening_email => 'Öppnar e-postappen...';
   @override
   String get help_email_error =>
-      'Kunde inte öppna e-postappen. Mejla mohsin.sapra@gmail.com direkt.';
+      'Kunde inte öppna e-postappen. Mejla support@drivetest.se direkt.';
   @override
   String get help_generic_error =>
       'Fel vid öppning av e-postappen. Försök igen.';
@@ -2596,11 +2596,11 @@ extension on TranslationsSv {
       case 'help_submit':
         return 'Skicka rapport';
       case 'help_or_email':
-        return 'Eller mejla oss direkt på mohsin.sapra@gmail.com';
+        return 'Eller mejla oss direkt på support@drivetest.se';
       case 'help_opening_email':
         return 'Öppnar e-postappen...';
       case 'help_email_error':
-        return 'Kunde inte öppna e-postappen. Mejla mohsin.sapra@gmail.com direkt.';
+        return 'Kunde inte öppna e-postappen. Mejla support@drivetest.se direkt.';
       case 'help_generic_error':
         return 'Fel vid öppning av e-postappen. Försök igen.';
       case 'notifications_title':

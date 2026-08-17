@@ -348,9 +348,9 @@
   "help_description_required": "Please describe your issue",
   "help_description_too_short": "Please provide more details (at least 10 characters)",
   "help_submit": "Submit Report",
-  "help_or_email": "Or email us directly at mohsin.sapra@gmail.com",
+  "help_or_email": "Or email us directly at support@drivetest.se",
   "help_opening_email": "Opening email app...",
-  "help_email_error": "Could not open email app. Please email mohsin.sapra@gmail.com directly.",
+  "help_email_error": "Could not open email app. Please email support@drivetest.se directly.",
   "help_generic_error": "Error opening email app. Please try again.",
 
   "notifications_title": "Notifications",
